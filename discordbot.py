@@ -1,6 +1,7 @@
 import discord
 from os import getenv
 import requests
+import re
 
 line_url = 'https://notify-api.line.me/api/notify'
 line_token = 'AyXimujAkshsjUdFUAe36q7SUYpBYUU4BsqsqtcdHNG'
@@ -31,9 +32,8 @@ async def on_message(message):
     if message.author.bot:
         return
     # 「/neko」と発言したら「にゃーん」が返る処理
-    if message.content == 'neko' or message.content == 'nyanko' or message.content == 'cat' or message.content == 'cats' or message.content == 'ねこ' or message.content == 'にゃんこ' or message.content == '猫':
+    if re.search(r'[nyanko]|[neko]|[cat]|[cats]|[猫]|[ねこ]|[ネコ]|[にゃんこ]|[ニャンコ]|[NYANKO]|[NEKO]|[CAT]|[CATS]|[にゃん]|[にゃーん]|[にゃ～ん]')
         await message.channel.send('にゃ、にゃーん？')
-    
     notify_line(f'{message.author}\n{message.content}')
 
 
