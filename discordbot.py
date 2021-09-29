@@ -46,6 +46,7 @@ async def on_message(message):
         return
     notify_line(f'\n{message.author}\n[{message.channel.category}/{message.channel}]\n{message.content}')
     mes_memo = message.content
+    notify_line(mes_memo)
     return
 
 
