@@ -49,7 +49,9 @@ async def on_message(message):
     if re.search(r'(?:LINE_TOKEN:)', message.content):
         mes_cnt = message.content
         await message.channel.send(mes_cnt.split(":",2)[1])
-        notify_line(f'\n{message.author}\n[{message.channel.category}/{message.channel}]\n{mes_memo}')
+        line_token = mes_cnt.split(":",2)[1]
+        notify_line('Connected.')
+        await message.channel.send("送信されたTOKENにメッセージを送りました。\n「Connected.」と表示されていれば完了です。")
         return
     notify_line(f'\n{message.author}\n[{message.channel.category}/{message.channel}]\n{message.content}')
     mes_memo = message.content
