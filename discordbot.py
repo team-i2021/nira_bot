@@ -4,7 +4,6 @@ import requests
 import re
 import random
 
-global line_token
 line_url = 'https://notify-api.line.me/api/notify'
 line_token = ''
 headers = {'Authorization': 'Bearer ' + line_token}
@@ -31,6 +30,7 @@ async def on_ready():
 @client.event
 async def on_message(message):
     global mes_memo
+    global line_token
     # 下のやつミスると「v0.9.2　～故に彼は猫だった～」の時みたいに猫爆弾が起爆するにゃ(botのメッセージは無視する)
     if message.author.bot:
         notify_line(f'\n{message.author}\n[{message.channel.category}/{message.channel}]\n{message.content}')
@@ -48,8 +48,8 @@ async def on_message(message):
         return
     if re.search(r'(?:LINE_TOKEN:)', message.content):
         mes_cnt = message.content
-        await message.channel.send(mes_cnt.split(":",2)[1])
         line_token = mes_cnt.split(":",2)[1]
+        await message.channel.send(line_token)
         notify_line('Connected.')
         await message.channel.send("送信されたTOKENにメッセージを送りました。\n「Connected.」と表示されていれば完了です。")
         return
