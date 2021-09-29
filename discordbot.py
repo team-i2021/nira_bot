@@ -26,6 +26,7 @@ async def on_ready():
     print('でぃすこたん v0.9.2')
     print('～故に彼女は猫だった～')
     await client.change_presence(activity=discord.Game(name="にゃんこのでぃすこたん", type=1))
+    notify_line('\nでぃすこたん v0.9.2\n～故に彼女は猫だった～\n正常に起動しました。')
 
 
 # メッセージ受信時に動作する処理
