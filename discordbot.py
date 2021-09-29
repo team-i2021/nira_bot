@@ -33,11 +33,12 @@ async def on_ready():
 # メッセージ受信時に動作する処理
 @client.event
 async def on_message(message):
-    # 下のやつミスると「v0.9.2　～故に彼は猫だった～」の時みたいに猫爆弾が起爆するにゃ
+    # 下のやつミスると「v0.9.2　～故に彼は猫だった～」の時みたいに猫爆弾が起爆するにゃ(botのメッセージは無視する)
     if message.author.bot:
         notify_line(f'\n{message.author}\n[{message.channel.category}/{message.channel}]\n{message.content}')
         return
-    if re.search(r'(?:nyanko|neko|cat|cats|猫|ねこ|ネコ|にゃんこ|ニャンコ|NYANKO|NEKO|CAT|CATS|にゃん|にゃーん|にゃ～ん)', message.content):
+    # 猫系のワードに反応するにゃ
+    if re.search(r'(?:nyanko|neko|cat|cats|猫|ねこ|ネコ|にゃんこ|ニャンコ|NYANKO|NEKO|CAT|CATS|にゃん|にゃー|にゃ～)', message.content):
         notify_line(f'\n{message.author}\n[{message.channel.category}/{message.channel}]\n{message.content}')
         neko_rnd = random.randint(1,3)
         if neko_rnd == 1:
@@ -52,6 +53,7 @@ async def on_message(message):
         await message.channel.send(mes_memo)
         return
     notify_line(f'\n{message.author}\n[{message.channel.category}/{message.channel}]\n{message.content}')
+    global mes_memo
     mes_memo = message.content
     notify_line(mes_memo)
     return
