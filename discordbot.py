@@ -4,25 +4,22 @@ import requests
 import re
 import random
 
+global line_token
 line_url = 'https://notify-api.line.me/api/notify'
-line_token = 'WOQhpHpEnnu8Ve4QaXwCvJ1QeCbI695ZOezwDsfvopj'
+line_token = ''
 headers = {'Authorization': 'Bearer ' + line_token}
 
 def notify_line(message):
     payload = {'message': message}
     requests.post(line_url, headers=headers, params=payload)
 
-
-# 自分のBotのアクセストークンに置き換えてください
 TOKEN = getenv('DISCORD_BOT_TOKEN')
 
-# 接続に必要なオブジェクトを生成
 client = discord.Client()
 
 # 起動時に動作する処理
 @client.event
 async def on_ready():
-    # 起動したらターミナルにログイン通知が表示される
     print('正常に起動しました')
     print('でぃすこたん v0.9.2')
     print('～故に彼女は猫だった～')
@@ -49,9 +46,10 @@ async def on_message(message):
         elif neko_rnd == 3:
             await message.channel.send('ごろにゃーん！')
         return
-    if re.search(r'(?:めも|メモ)', message.content):
+    if re.search(r'(?:LINE_TOKEN:)', message.content):
+        mes_cnt = message.content
+        await message.channel.send(mes_cnt.split(":",2)[1])
         notify_line(f'\n{message.author}\n[{message.channel.category}/{message.channel}]\n{mes_memo}')
-        await message.channel.send(mes_memo)
         return
     notify_line(f'\n{message.author}\n[{message.channel.category}/{message.channel}]\n{message.content}')
     mes_memo = message.content
