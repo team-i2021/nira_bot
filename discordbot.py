@@ -3,8 +3,8 @@ from os import getenv
 import requests
 
 line_url = 'https://notify-api.line.me/api/notify'
-token = 'AyXimujAkshsjUdFUAe36q7SUYpBYUU4BsqsqtcdHNG'
-headers = {'Authorization' : 'Bearer ' + token}
+line_token = 'AyXimujAkshsjUdFUAe36q7SUYpBYUU4BsqsqtcdHNG'
+headers = {'Authorization' : 'Bearer ' + line_token}
 
 def notify_line(message):
    payload = { 'message' : message}
