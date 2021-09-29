@@ -35,8 +35,8 @@ async def on_message(message):
         notify_line(f'\n{message.author}\n{message.content}')
         return
     if re.search(r'(?:nyanko|neko|cat|cats|猫|ねこ|ネコ|にゃんこ|ニャンコ|NYANKO|NEKO|CAT|CATS|にゃん|にゃーん|にゃ～ん)', message.content):
-        await message.channel.send('にゃ、にゃーん？')
         notify_line(f'\n{message.author}\n{message.content}')
+        await message.channel.send('にゃ、にゃーん？')
         return
     notify_line(f'\n{message.author}\n{message.content}')
 
