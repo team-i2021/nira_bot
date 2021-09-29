@@ -15,16 +15,13 @@ async def on_ready():
 
 # メッセージ受信時に動作する処理
 @client.event
-async def on_member_join(member):
-    await message.channel.send(f'{member}おはよ')
-
 async def on_message(message):
     # メッセージ送信者がBotだった場合は無視する
     if message.author.bot:
         return
     # 「/neko」と発言したら「にゃーん」が返る処理
-    if message.content == '/neko':
-        await message.channel.send('にゃーん')
+    if message.content == 'neko' or message.content == 'nyanko' or message.content == 'cat' or message.content == 'cats' or message.content == 'ねこ' or message.content == 'にゃんこ' or message.content == '猫':
+        await message.channel.send('にゃ、にゃーん？')
 
 # Botの起動とDiscordサーバーへの接続
 client.run(TOKEN)
