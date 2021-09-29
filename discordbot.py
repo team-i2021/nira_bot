@@ -2,7 +2,9 @@ import discord
 from os import getenv
 import requests
 import re
-
+        
+        
+            
 line_url = 'https://notify-api.line.me/api/notify'
 line_token = 'WOQhpHpEnnu8Ve4QaXwCvJ1QeCbI695ZOezwDsfvopj'
 headers = {'Authorization': 'Bearer ' + line_token}
