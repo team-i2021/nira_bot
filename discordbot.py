@@ -6,7 +6,7 @@ import random
 
 line_url = 'https://notify-api.line.me/api/notify'
 
-def notify_line(message,token):
+def notify_line(message, token):
     payload = {'message': message}
     headers = {'Authorization': 'Bearer ' + token}
     requests.post(line_url, headers=headers, params=payload)
@@ -33,11 +33,11 @@ async def on_message(message):
     line_token = ""
     # 下のやつミスると「v0.9.2　～故に彼は猫だった～」の時みたいに猫爆弾が起爆するにゃ(botのメッセージは無視する)
     if message.author.bot:
-        notify_line(f'\n{message.author}\n[{message.channel.category}/{message.channel}]\n{message.content}',line_token)
+        notify_line(f'\n{message.author}\n[{message.channel.category}/{message.channel}]\n{message.content}', line_token)
         return
     # 猫系のワードに反応するにゃ
     if re.search(r'(?:nyanko|neko|cat|cats|猫|ねこ|ネコ|にゃんこ|ニャンコ|NYANKO|NEKO|CAT|CATS|にゃん|にゃー|にゃ～)', message.content):
-        notify_line(f'\n{message.author}\n[{message.channel.category}/{message.channel}]\n{message.content}',line_token)
+        notify_line(f'\n{message.author}\n[{message.channel.category}/{message.channel}]\n{message.content}', line_token)
         neko_rnd = random.randint(1,3)
         if neko_rnd == 1:
             await message.channel.send('にゃ、にゃーん？')
@@ -50,12 +50,12 @@ async def on_message(message):
         mes_cnt = message.content
         line_token = mes_cnt.split(":",2)[1]
         await message.channel.send(line_token)
-        notify_line('Connected.',line_token)
+        notify_line('Connected.', line_token)
         await message.channel.send("送信されたTOKENにメッセージを送りました。\n「Connected.」と表示されていれば完了です。")
         return
-    notify_line(f'\n{message.author}\n[{message.channel.category}/{message.channel}]\n{message.content}',line_token)
+    notify_line(f'\n{message.author}\n[{message.channel.category}/{message.channel}]\n{message.content}', line_token)
     mes_memo = message.content
-    notify_line(mes_memo,line_token)
+    notify_line(mes_memo, line_token)
     return
 
 
