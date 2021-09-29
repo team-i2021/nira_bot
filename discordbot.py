@@ -34,13 +34,19 @@ async def on_ready():
 async def on_message(message):
     # 下のやつミスるとさっきみたいに猫爆弾が起爆するよ
     if message.author.bot:
-        notify_line(f'\n{message.author}\n{message.content}')
+        notify_line(f'\n{message.author}\n[{message.category}/{message.channel}]\n{message.content}')
         return
     if re.search(r'(?:nyanko|neko|cat|cats|猫|ねこ|ネコ|にゃんこ|ニャンコ|NYANKO|NEKO|CAT|CATS|にゃん|にゃーん|にゃ～ん)', message.content):
-        notify_line(f'\n{message.author}\n{message.content}')
+        notify_line(f'\n{message.author}\n[{message.channel.category}/{message.channel}]\n{message.content}')
         await message.channel.send('にゃ、にゃーん？')
         return
-    notify_line(f'\n{message.author}\n{message.content}')
+    if re.search(r'(?:めも|メモ)', message.content):
+        notify_line(f'\n{message.author}\n[{message.channel.category}/{message.channel}]\n{message.content}')
+        await message.channel.send(mes_memo)
+        return
+    notify_line(f'\n{message.author}\n[{message.channel.category}/{message.channel}]\n{message.content}')
+    mes_memo = message.content
+    return
 
 
 # Botの起動とDiscordサーバーへの接続
