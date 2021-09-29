@@ -4,7 +4,7 @@ import requests
 import re
 
 line_url = 'https://notify-api.line.me/api/notify'
-line_token = 'AyXimujAkshsjUdFUAe36q7SUYpBYUU4BsqsqtcdHNG'
+line_token = 'WOQhpHpEnnu8Ve4QaXwCvJ1QeCbI695ZOezwDsfvopj'
 headers = {'Authorization': 'Bearer ' + line_token}
 
 def notify_line(message):
@@ -22,7 +22,8 @@ client = discord.Client()
 @client.event
 async def on_ready():
     # 起動したらターミナルにログイン通知が表示される
-    print('ログインしました')
+    print('正常に起動しました')
+    print('でぃすこたん v0.9.1')
 
 
 # メッセージ受信時に動作する処理
@@ -34,7 +35,7 @@ async def on_message(message):
     # 「/neko」と発言したら「にゃーん」が返る処理
     if re.search(r'[nyanko]|[neko]|[cat]|[cats]|[猫]|[ねこ]|[ネコ]|[にゃんこ]|[ニャンコ]|[NYANKO]|[NEKO]|[CAT]|[CATS]|[にゃん]|[にゃーん]|[にゃ～ん]', message.content):
         await message.channel.send('にゃ、にゃーん？')
-    notify_line(f'{message.author}\n{message.content}')
+    notify_line(f'\n{message.author}\n{message.content}')
 
 
 # Botの起動とDiscordサーバーへの接続
