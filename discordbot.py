@@ -4,11 +4,11 @@ import requests
 
 line_url = 'https://notify-api.line.me/api/notify'
 line_token = 'AyXimujAkshsjUdFUAe36q7SUYpBYUU4BsqsqtcdHNG'
-headers = {'Authorization' : 'Bearer ' + line_token}
+headers = {'Authorization':'Bearer ' + line_token}
 
 def notify_line(message):
-   payload = { 'message' : message}
-   requests.post(line_url ,headers = headers ,params=payload)
+   payload = {'message': message}
+   requests.post(line_url,headers = headers,params=payload)
 
 # 自分のBotのアクセストークンに置き換えてください
 TOKEN = getenv('DISCORD_BOT_TOKEN')
