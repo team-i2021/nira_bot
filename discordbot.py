@@ -15,6 +15,9 @@ async def on_ready():
 
 # メッセージ受信時に動作する処理
 @client.event
+async def on_member_join(member):
+    await message.channel.send(f'{message.author.mention} はろはろ')
+
 async def on_message(message):
     # メッセージ送信者がBotだった場合は無視する
     if message.author.bot:
