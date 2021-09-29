@@ -32,7 +32,7 @@ async def on_message(message):
     if message.author.bot:
         return
     # 「/neko」と発言したら「にゃーん」が返る処理
-    if re.search(r'[nyanko]|[neko]|[cat]|[cats]|[猫]|[ねこ]|[ネコ]|[にゃんこ]|[ニャンコ]|[NYANKO]|[NEKO]|[CAT]|[CATS]|[にゃん]|[にゃーん]|[にゃ～ん]')
+    if re.search(r'[nyanko]|[neko]|[cat]|[cats]|[猫]|[ねこ]|[ネコ]|[にゃんこ]|[ニャンコ]|[NYANKO]|[NEKO]|[CAT]|[CATS]|[にゃん]|[にゃーん]|[にゃ～ん]', message.content):
         await message.channel.send('にゃ、にゃーん？')
     notify_line(f'{message.author}\n{message.content}')
 
