@@ -2,9 +2,7 @@ import discord
 from os import getenv
 import requests
 import re
-        
-        
-            
+
 line_url = 'https://notify-api.line.me/api/notify'
 line_token = 'WOQhpHpEnnu8Ve4QaXwCvJ1QeCbI695ZOezwDsfvopj'
 headers = {'Authorization': 'Bearer ' + line_token}
@@ -33,8 +31,8 @@ async def on_ready():
 @client.event
 async def on_message(message):
     # メッセージ送信者がBotだった場合は無視する(現在無効中)
-    #if message.author.bot:
-    #    return
+    if message.author.bot:
+        return
     if re.search(r'(?:nyanko|neko|cat|cats|猫|ねこ|ネコ|にゃんこ|ニャンコ|NYANKO|NEKO|CAT|CATS|にゃん|にゃーん|にゃ～ん)', message.content):
         await message.channel.send('にゃ、にゃーん？')
     notify_line(f'\n{message.author}\n{message.content}')
