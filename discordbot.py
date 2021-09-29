@@ -1,5 +1,14 @@
 import discord
 from os import getenv
+import requests
+
+line_url = 'https://notify-api.line.me/api/notify'
+token = 'AyXimujAkshsjUdFUAe36q7SUYpBYUU4BsqsqtcdHNG'
+headers = {'Authorization' : 'Bearer ' + token}
+
+def notify_line(message):
+   payload = { 'message' : message}
+   requests.post(line_url ,headers = headers ,params=payload)
 
 # 自分のBotのアクセストークンに置き換えてください
 TOKEN = getenv('DISCORD_BOT_TOKEN')
@@ -22,6 +31,7 @@ async def on_message(message):
     # 「/neko」と発言したら「にゃーん」が返る処理
     if message.content == 'neko' or message.content == 'nyanko' or message.content == 'cat' or message.content == 'cats' or message.content == 'ねこ' or message.content == 'にゃんこ' or message.content == '猫':
         await message.channel.send('にゃ、にゃーん？')
+        notify_line(message.content)
 
 # Botの起動とDiscordサーバーへの接続
 client.run(TOKEN)
