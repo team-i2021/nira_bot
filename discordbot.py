@@ -10,7 +10,7 @@ def notify_line(message):
     payload = {'message': message}
     requests.post(line_url, headers=headers, params=payload)
 
-   
+
 # 自分のBotのアクセストークンに置き換えてください
 TOKEN = getenv('DISCORD_BOT_TOKEN')
 
