@@ -32,13 +32,19 @@ async def on_ready():
 # メッセージ受信時に動作する処理
 @client.event
 async def on_message(message):
-    # 下のやつミスるとさっきみたいに猫爆弾が起爆するよ
+    # 下のやつミスると「v0.9.2　～故に彼は猫だった～」の時みたいに猫爆弾が起爆するにゃ
     if message.author.bot:
         notify_line(f'\n{message.author}\n[{message.channel.category}/{message.channel}]\n{message.content}')
         return
     if re.search(r'(?:nyanko|neko|cat|cats|猫|ねこ|ネコ|にゃんこ|ニャンコ|NYANKO|NEKO|CAT|CATS|にゃん|にゃーん|にゃ～ん)', message.content):
         notify_line(f'\n{message.author}\n[{message.channel.category}/{message.channel}]\n{message.content}')
-        await message.channel.send('にゃ、にゃーん？')
+        neko_rnd = random.randint(1,3)
+        if neko_rnd == 1:
+            await message.channel.send('にゃ、にゃーん？')
+        elif neko_rnd == 2:
+            await message.channel.send('ねこだにゃーん？')
+        elif neko_rnd == 3:
+            await message.channel.send('ごろにゃーん！')
         return
     if re.search(r'(?:めも|メモ)', message.content):
         notify_line(f'\n{message.author}\n[{message.channel.category}/{message.channel}]\n{mes_memo}')
