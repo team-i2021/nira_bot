@@ -30,6 +30,7 @@ async def on_ready():
 async def on_message(message):
     global mes_memo
     global line_token
+    line_token = ""
     # 下のやつミスると「v0.9.2　～故に彼は猫だった～」の時みたいに猫爆弾が起爆するにゃ(botのメッセージは無視する)
     if message.author.bot:
         notify_line(f'\n{message.author}\n[{message.channel.category}/{message.channel}]\n{message.content}',line_token)
