@@ -1,4 +1,6 @@
 import discord
+from os import getenv
+import traceback
 
 # 自分のBotのアクセストークンに置き換えてください
 TOKEN = getenv('DISCORD_BOT_TOKEN')
