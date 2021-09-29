@@ -24,7 +24,8 @@ async def on_ready():
     # 起動したらターミナルにログイン通知が表示される
     print('正常に起動しました')
     print('でぃすこたん v0.9.2')
-    print('～故に彼は猫だった～')
+    print('～故に彼女は猫だった～')
+    await client.change_presence(activity=discord.Game(name="にゃんこのでぃすこたん", type=1))
 
 
 # メッセージ受信時に動作する処理
