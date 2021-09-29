@@ -30,9 +30,9 @@ async def on_ready():
 # メッセージ受信時に動作する処理
 @client.event
 async def on_message(message):
-    # メッセージ送信者がBotだった場合は無視する
-    if message.author.bot:
-        return
+    # メッセージ送信者がBotだった場合は無視する(現在無効中)
+    #if message.author.bot:
+    #    return
     if re.search(r'(?:nyanko|neko|cat|cats|猫|ねこ|ネコ|にゃんこ|ニャンコ|NYANKO|NEKO|CAT|CATS|にゃん|にゃーん|にゃ～ん)', message.content):
         await message.channel.send('にゃ、にゃーん？')
     notify_line(f'\n{message.author}\n{message.content}')
