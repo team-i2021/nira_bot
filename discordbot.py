@@ -26,12 +26,12 @@ async def on_message(message):
         return
     # 猫系のワードに反応するにゃ
     if re.search(r'(?:nyanko|neko|cat|cats|猫|ねこ|ネコ|にゃんこ|ニャンコ|NYANKO|NEKO|CAT|CATS|にゃん|にゃー|にゃ～|キャット|キャッツ)', message.content):
-        neko_rnd = random.randint(1, 3)
-        if neko_rnd == 1:
+        rnd = random.randint(1, 3)
+        if rnd == 1:
             await message.channel.send('にゃ、にゃーん？')
-        elif neko_rnd == 2:
+        elif rnd == 2:
             await message.channel.send('ねこだにゃーん？')
-        elif neko_rnd == 3:
+        elif rnd == 3:
             await message.channel.send('ごろにゃーん！')
         return
     # 犬系のワードにも反応するにゃ...わん！
@@ -39,13 +39,23 @@ async def on_message(message):
         if re.search(r'(?:bungo stray dogs|文豪ストレイドッグス)', message.content):
             await message.channel.send('わんわ...って文ストじゃん！（犬だと思った）')
             return
-        inu_rnd = random.randint(1, 3)
-        if inu_rnd == 1:
+        rnd = random.randint(1, 3)
+        if rnd == 1:
             await message.channel.send('わ、わーん？')
-        elif inu_rnd == 2:
+        elif rnd == 2:
             await message.channel.send('いぬだわーん？')
-        elif inu_rnd == 3:
+        elif rnd == 3:
             await message.channel.send('わんわんお！')
+        return
+    # えっ、かわいい！？　ありがと...///
+    if re.search(r'(?:かわいい/cute/カワイイ/kawaii/kyawaii/きゃわいい/キャワイイ)', message.content):
+        rnd = random.randint(1, 3)
+        if rnd == 1:
+            await message.channel.send('えっ！？.....ありがと///')
+        elif rnd == 2:
+            await message.channel.send('えっ！？.....ありがとwww')
+        elif rnd == 3:
+            await message.channel.send('は、恥ずかしい....かな....\nえっ...あっ....私じゃない....？')
         return
 
 
