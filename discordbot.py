@@ -28,9 +28,8 @@ async def on_ready():
 # メッセージ受信時に動作する処理
 @client.event
 async def on_message(message):
-    global mes_memo
-    global line_token
-    line_token = ""
+    global memo
+    memo = ""
     # 下のやつミスると「v0.9.2　～故に彼は猫だった～」の時みたいに猫爆弾が起爆するにゃ(botのメッセージは無視する)
     if message.author.bot:
         return
@@ -44,19 +43,14 @@ async def on_message(message):
         elif neko_rnd == 3:
             await message.channel.send('ごろにゃーん！')
         return
-    if re.search(r'(?:LINE_TOKEN:)', message.content):
+    if re.search(r'(?:めも |メモ |memo )', message.content):
         mes_cnt = message.content
-        line_token = mes_cnt.split(":", 2)[1]
-        await message.channel.send(line_token)
-        await message.channel.send("TOKENを記録しました。")
-        requests.post(line_url, headers={'Authorization': 'Bearer ' + line_token}, params={'message': (f'\n{message.author}\n[{message.channel.category}/{message.channel}]\nConnect')})
+        memo = mes_cnt.split(" ", 2)[1]
+        await message.channel.send(f'記録しました')
         return
-    if re.search(r'(?:$ )', message.content):
-        mes = message.content
-        mess = mes.split(" ", 2)[1]
-        requests.post(line_url, headers={'Authorization': 'Bearer ' + line_token}, params={'message': (f'\n{message.author}\n[{message.channel.category}/{message.channel}]\n{mess}')})
+    if message.content == "メモ" or message.content == "めも" or message.content == "memo":
+        await message.channel.send(memo)
         return
-    mes_memo = message.content
     return
 
 
