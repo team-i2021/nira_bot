@@ -47,7 +47,7 @@ async def on_message(message):
             await message.channel.send('わんわんお！')
         return
     # えっ、かわいい！？　ありがと...///
-    if re.search(r'(?:かわいい/cute/カワイイ/kawaii/kyawaii/きゃわいい/キャワイイ)', message.content):
+    if re.search(r'(?:かわいい|cute|カワイイ|kawaii|kyawaii|きゃわいい|キャワイイ)', message.content):
         rnd = random.randint(1, 3)
         if rnd == 1:
             await message.channel.send('えっ！？.....ありがと///')
