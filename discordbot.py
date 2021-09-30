@@ -1,15 +1,10 @@
 import discord
 from os import getenv
-import requests
+
 import re
 import random
 
 line_url = 'https://notify-api.line.me/api/notify'
-
-#def notify_line(message):
-#    payload = {'message': (f'\n{message.author}\n[{message.channel.category}/{message.channel}]\n{message.content}')}
-#    headers = {'Authorization': 'Bearer ' + line_token}
-#    requests.post(line_url, headers=headers, params=payload)
 
 TOKEN = getenv('DISCORD_BOT_TOKEN')
 
@@ -22,8 +17,6 @@ async def on_ready():
     print('でぃすこたん v0.9.2')
     print('～故に彼女は猫だった～')
     await client.change_presence(activity=discord.Game(name="にゃんこのでぃすこたん", type=1))
-
-
 
 # メッセージ受信時に動作する処理
 @client.event
