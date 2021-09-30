@@ -22,7 +22,7 @@ async def on_ready():
     print('でぃすこたん v0.9.2')
     print('～故に彼女は猫だった～')
     await client.change_presence(activity=discord.Game(name="にゃんこのでぃすこたん", type=1))
-    notify_line('\nでぃすこたん v0.9.2\n～故に彼女は猫だった～\n正常に起動しました。')
+
 
 
 # メッセージ受信時に動作する処理
@@ -36,7 +36,7 @@ async def on_message(message):
         return
     # 猫系のワードに反応するにゃ
     if re.search(r'(?:nyanko|neko|cat|cats|猫|ねこ|ネコ|にゃんこ|ニャンコ|NYANKO|NEKO|CAT|CATS|にゃん|にゃー|にゃ～)', message.content):
-        neko_rnd = random.randint(1,3)
+        neko_rnd = random.randint(1, 3)
         if neko_rnd == 1:
             await message.channel.send('にゃ、にゃーん？')
         elif neko_rnd == 2:
@@ -46,14 +46,14 @@ async def on_message(message):
         return
     if re.search(r'(?:LINE_TOKEN:)', message.content):
         mes_cnt = message.content
-        line_token = mes_cnt.split(":",2)[1]
+        line_token = mes_cnt.split(":", 2)[1]
         await message.channel.send(line_token)
         await message.channel.send("TOKENを記録しました。")
         requests.post(line_url, headers={'Authorization': 'Bearer ' + line_token}, params={'message': (f'\n{message.author}\n[{message.channel.category}/{message.channel}]\nConnect')})
         return
     if re.search(r'(?:$ )', message.content):
         mes = message.content
-        mess = mes.split(" ",2)[1]
+        mess = mes.split(" ", 2)[1]
         requests.post(line_url, headers={'Authorization': 'Bearer ' + line_token}, params={'message': (f'\n{message.author}\n[{message.channel.category}/{message.channel}]\n{mess}')})
         return
     mes_memo = message.content
