@@ -46,7 +46,12 @@ async def on_message(message):
     if re.search(r'(?:めも |メモ |memo )', message.content):
         mes_cnt = message.content
         memo = mes_cnt.split(" ", 2)[1]
-        await message.channel.send(f'記録しました')
+        await message.channel.send('記録しました')
+        return
+    if re.search(r'(?:めも　|メモ　|memo　)', message.content):
+        mes_cnt = message.content
+        memo = mes_cnt.split("　", 2)[1]
+        await message.channel.send('記録しました')
         return
     if message.content == "メモ" or message.content == "めも" or message.content == "memo":
         await message.channel.send(memo)
