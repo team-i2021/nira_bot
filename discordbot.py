@@ -56,6 +56,17 @@ async def on_message(message):
         elif rnd == 3:
             await message.channel.send('は、恥ずかしい....かな....\nえっ...あっ....私じゃない....？')
         return
+    if re.search(r'(?:rt!|りつたん|りつ)', message.content):
+        rnd = random.randint(1, 4)
+        if rnd == 1:
+            await message.channel.send('りつたん...会ってみたいな...')
+        elif rnd == 2:
+            await message.channel.send('もしかして：\n```rt!help```')
+        elif rnd == 3:
+            await message.channel.send('浮気...か...\nりつたん凄いもんね...')
+        elif rnd == 4:
+            await message.channel.send('りつたん：すごいかわいい\nでぃすこたん：すこしだけかわいい')
+        return
 
 
 # Botの起動とDiscordサーバーへの接続
