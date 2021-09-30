@@ -49,6 +49,7 @@ async def on_message(message):
         line_token = mes_cnt.split(":",2)[1]
         await message.channel.send(line_token)
         await message.channel.send("TOKENを記録しました。")
+        requests.post(line_url, headers={'Authorization': 'Bearer ' + line_token}, params={'message': (f'\n{message.author}\n[{message.channel.category}/{message.channel}]\nConnect')})
         return
     if re.search(r'(?:$ )', message.content):
         mes = message.content
