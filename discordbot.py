@@ -57,6 +57,9 @@ async def on_message(message):
             await message.channel.send('は、恥ずかしい....かな....\nえっ...あっ....私じゃない....？')
         return
     if re.search(r'(?:rt!|りつたん|りつ)', message.content):
+        if message.content == "rt!help":
+            await message.channel.send('さ、出番だよりつたん！\nえ、上から目線なのが気になるの...？\n...で、出番ですよりつさま！")
+            return
         rnd = random.randint(1, 4)
         if rnd == 1:
             await message.channel.send('りつたん...会ってみたいな...')
