@@ -1,6 +1,5 @@
 import discord
 from os import getenv
-
 import re
 import random
 
