@@ -16,12 +16,23 @@ async def on_ready():
     print('正常に起動しました')
     print('でぃすこたん v0.9.2')
     print('～故に彼女は猫だった～')
-    await client.change_presence(activity=discord.Game(name="にゃんこのでぃすこたん", type=1))
+    await client.change_presence(activity=discord.Game(name="現在起動準備中...", type=1))
+    time.sleep(10)
+    await client.change_presence(activity=discord.Game(name="起動しました！", type=1))
+    time.sleep(1)
     while True:
-        time.sleep(10)
-        await client.change_presence(activity=discord.Game(name="ディスコ", type=1))
-        time.sleep(10)
-        await client.change_presence(activity=discord.Game(name="でぃすこ", type=1))
+        time.sleep(1)
+        await client.change_presence(activity=discord.Game(name="ねこかわいい", type=1))
+        time.sleep(1)
+        await client.change_presence(activity=discord.Game(name="いぬかわいい", type=1))
+        time.sleep(1)
+        await client.change_presence(activity=discord.Game(name="私かわいい...？", type=1))
+        time.sleep(1)
+        await client.change_presence(activity=discord.Game(name="でぃすこーどが一番！", type=1))
+        time.sleep(1)
+        await client.change_presence(activity=discord.Game(name="主：@nattyan_tv", type=1))
+        time.sleep(1)
+        await client.change_presence(activity=discord.Game(name="謎botのりつたんです！", type=1))
 
 # メッセージ受信時に動作する処理
 @client.event
