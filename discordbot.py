@@ -44,6 +44,12 @@ async def on_message(message):
     if re.search(r'(?:煮裸族)', message.content):
         await message.channel.send('https://nattyan-tv.github.io/tensei_disko/nira_zoku.mp4')
         return
+    if message.content == "nira command":
+        if message.author.id != "669178357371371522":
+            await message.channel.send('！ bot管理者のみ実行可能")
+        elif message.author.id == "669178357371371522":
+            await message.channel.send('にら/にらさいばい/みずにらさいばい/にらざかな/煮裸族')
+        return
 
 
 # Botの起動とDiscordサーバーへの接続
