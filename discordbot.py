@@ -1,7 +1,6 @@
 import discord
 from os import getenv
 import re
-import time
 import random
 
 TOKEN = getenv('DISCORD_BOT_TOKEN')
