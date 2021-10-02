@@ -21,9 +21,12 @@ async def on_message(message):
     # 下のやつミスると「v0.9.2　～故に彼は猫だった～」の時みたいに猫爆弾が起爆するにゃ(botのメッセージは無視する)
     if message.author.bot:
         return
-    if message.content == "nira$cmd":
+    if message.content == "nira#cmd":
         if message.author.id == 669178357371371522:
             await message.channel.send('にら/にら栽培/水にら栽培/にら魚/独裁にら/にら成長/煮裸族')
+            return
+        elif message.author.id != 669178357371371522:
+            await message.channel.send('！　bot管理者のみ利用可能　！')
             return
         return
     if re.search(r'(?:にら|ニラ|nira|garlic|韮|Chinese chives|Allium tuberosum)', message.content):
