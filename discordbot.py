@@ -24,11 +24,11 @@ async def on_message(message):
     if re.search(r'(?:にら|ニラ|nira|garlic|韮|Chinese chives|Allium tuberosum)', message.content):
         if re.search(r'(?:栽培|さいばい|サイバイ)', message.content):
             if re.search(r'(?:水|みず|ミズ)', message.content):
-                await message.channel.send('https://nattyan-tv.github.io/tensei_disko/nira_mizu.jpg')
+                await message.channel.send('https://nattyan-tv.github.io/tensei_disko/nira_water.jpg')
                 return
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/nira_sand.jpeg')
             return
-        if re.search(r'(?:魚|さかな|fish|サカナ)', message.content):
+        if re.search(r'(?:魚|さかな|fish|サカナ|ざかな|ザカナ)', message.content):
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/nira_fish.png')
             return
         rnd = random.randint(1, 3)
