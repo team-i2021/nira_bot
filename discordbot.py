@@ -33,13 +33,13 @@ async def on_message(message):
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/nira_fish.png')
             return
         rnd = random.randint(1, 3)
-        if rnd == 1
+        if rnd == 1:
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/nira_a.jpg')
             return
-        elif rnd == 2
+        elif rnd == 2:
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/nira_b.jpg')
             return
-        elif rnd == 3
+        elif rnd == 3:
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/nira_c.png')
             return
     if re.search(r'(?:煮裸族)', message.content):
