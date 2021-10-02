@@ -21,6 +21,12 @@ async def on_message(message):
     # 下のやつミスると「v0.9.2　～故に彼は猫だった～」の時みたいに猫爆弾が起爆するにゃ(botのメッセージは無視する)
     if message.author.bot:
         return
+    if message.content == "nira command":
+        if message.author.id != "669178357371371522":
+            await message.channel.send('！ bot管理者のみ実行可能')
+        elif message.author.id == "669178357371371522":
+            await message.channel.send('にら/にらさいばい/みずにらさいばい/にらざかな/煮裸族')
+        return
     if re.search(r'(?:にら|ニラ|nira|garlic|韮|Chinese chives|Allium tuberosum)', message.content):
         if re.search(r'(?:栽培|さいばい|サイバイ)', message.content):
             if re.search(r'(?:水|みず|ミズ)', message.content):
@@ -43,12 +49,6 @@ async def on_message(message):
             return
     if re.search(r'(?:煮裸族)', message.content):
         await message.channel.send('https://nattyan-tv.github.io/tensei_disko/nira_zoku.mp4')
-        return
-    if message.content == "nira command":
-        if message.author.id != "669178357371371522":
-            await message.channel.send('！ bot管理者のみ実行可能')
-        elif message.author.id == "669178357371371522":
-            await message.channel.send('にら/にらさいばい/みずにらさいばい/にらざかな/煮裸族')
         return
 
 
