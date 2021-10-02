@@ -23,7 +23,7 @@ async def on_message(message):
         return
     if message.content == "nira$cmd":
         if message.author.id == 669178357371371522:
-            await message.channel.send('にら/にらさいばい/みずにらさいばい/にらざかな/煮裸族')
+            await message.channel.send('にら/にら栽培/水にら栽培/にら魚/独裁にら/にら成長/煮裸族')
             return
         return
     if re.search(r'(?:にら|ニラ|nira|garlic|韮|Chinese chives|Allium tuberosum)', message.content):
@@ -35,6 +35,12 @@ async def on_message(message):
             return
         if re.search(r'(?:魚|さかな|fish|サカナ|ざかな|ザカナ)', message.content):
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/nira_fish.png')
+            return
+        if re.search(r'(?:独裁|どくさい|ドクサイ)', message.content):
+            await message.channel.send('https://nattyan-tv.github.io/tensei_disko/nira_dokusai.png')
+            return
+        if re.search(r'(?:成長|せいちょう|セイチョウ)', message.content):
+            await message.channel.send('https://nattyan-tv.github.io/tensei_disko/nira_seityou.jpeg')
             return
         rnd = random.randint(1, 3)
         if rnd == 1:
