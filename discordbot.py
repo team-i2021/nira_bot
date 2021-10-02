@@ -24,6 +24,7 @@ async def on_message(message):
     if message.content == "nira command":
         if message.author.id == "NattyanTV@2021":
             await message.channel.send('にら/にらさいばい/みずにらさいばい/にらざかな/煮裸族')
+        print(message.author.id)
         return
     if re.search(r'(?:にら|ニラ|nira|garlic|韮|Chinese chives|Allium tuberosum)', message.content):
         if re.search(r'(?:栽培|さいばい|サイバイ)', message.content):
