@@ -1,7 +1,6 @@
 import discord
 from os import getenv
 import re
-import random
 import time
 
 TOKEN = getenv('DISCORD_BOT_TOKEN')
@@ -24,7 +23,7 @@ async def on_message(message):
     # 下のやつミスると「v0.9.2　～故に彼は猫だった～」の時みたいに猫爆弾が起爆するにゃ(botのメッセージは無視する)
     if message.author.bot:
         return
-    if re.search(r'(?:にら|ニラ|garlic)', message.content):
+    if re.search(r'(?:にら|ニラ|garlic)', message.content) == True and message.channel.id == "885493801878179890" or message.channel.id == "882182974559387698":
         await message.channel.send('https://media.discordapp.net/attachments/885154539769036831/893843337130426398/image0.png')
         return
 
