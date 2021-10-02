@@ -46,7 +46,7 @@ async def on_message(message):
         return
     if message.content == "nira command":
         if message.author.id != "669178357371371522":
-            await message.channel.send('！ bot管理者のみ実行可能")
+            await message.channel.send('！ bot管理者のみ実行可能')
         elif message.author.id == "669178357371371522":
             await message.channel.send('にら/にらさいばい/みずにらさいばい/にらざかな/煮裸族')
         return
