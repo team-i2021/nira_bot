@@ -22,7 +22,7 @@ async def on_message(message):
     if message.author.bot:
         return
     if message.content == "nira command":
-        if message.author.id == "NattyanTV@2021":
+        if message.author.id == "669178357371371522" or message.author.id == 669178357371371522:
             await message.channel.send('にら/にらさいばい/みずにらさいばい/にらざかな/煮裸族')
         print(message.author.id)
         return
