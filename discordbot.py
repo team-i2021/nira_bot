@@ -18,6 +18,9 @@ async def on_ready():
 # メッセージ受信時に動作する処理
 @client.event
 async def on_message(message):
+    if message.content == "そうだよ(便乗)":
+        await message.channel.send('黙れよ(便乗)')
+        return
     # 下のやつミスると「v0.9.2　～故に彼は猫だった～」の時みたいに猫爆弾が起爆するにゃ(botのメッセージは無視する)
     if message.author.bot:
         return
@@ -141,6 +144,12 @@ async def on_message(message):
     if re.search(r'(?:12pp|12PP)', message.content):
         await message.channel.send('https://nattyan-tv.github.io/tensei_disko/12pp.jpg')
         return
+    if re.search(r'(?:みけ|ミケ|三毛)', message.content):
+        await message.channel.send('https://nattyan-tv.github.io/tensei_disko/mike.mp4')
+        return
+    if re.search(r'(?:あう|アウ)', message.content):
+        await message.channel.send('https://nattyan-tv.github.io/tensei_disko/au.png')
+        return
     if re.search(r'(?:りーぱー|リーパー|犯|罪|はんざい|つみ|ろり|ロリ)', message.content):
         if re.search(r'(?:せろり|セロリ)', message.content):
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/serori.jpg')
@@ -150,6 +159,7 @@ async def on_message(message):
     if re.search(r'(?:tasuren|たすれん|タスレン)', message.content):
         await message.channel.send('すごいひと')
         return
+
 
 # Botの起動とDiscordサーバーへの接続
 client.run(TOKEN)
