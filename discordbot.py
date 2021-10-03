@@ -52,11 +52,9 @@ async def on_message(message):
                 mes_cnt = message.content
                 del_mes_id = mes_cnt.split(" ", 2)[1]
                 channel = message.channel.id
-                print(message.channel)
-                print(channel)
                 await client.http.delete_message(channel, del_mes_id)
                 return
-            except:
+            except BaseException:
                 embed = discord.Embed(title="Error", description="コマンドの実行方法などを確認してください！\n```n!delete [メッセージID]```", color=0xff0000)
                 await message.channel.send(embed=embed)
                 return
