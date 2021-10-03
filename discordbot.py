@@ -204,8 +204,8 @@ async def on_message(message):
         elif rnd == 2:
             await message.channel.send('すごいひと')
             return
-    if re.search(r'(?:ｸﾜｧｸﾜｧｸﾜｧ|きよわらい)', message.content):
-        await message.channel.send('ｸﾜｧｸﾜｧｸﾜｧｸﾜｧｸﾜｧｸﾜｧ!!!!')
+    if re.search(r'(?:ｸｧ|きよわらい|きよ笑い|くあっ|クアッ|クァ|くぁ|くわぁ|クワァ)', message.content):
+        await message.channel.send('ﾜｰｽｹﾞｪｽｯｹﾞｸｧｯｸｧｯｸｧwwwww')
         return
     if re.search(r'(?:ark|ARK|あーく|アーク|Ark)', message.content):
         embed = discord.Embed(title="ARK: Survival Evolved", description="[Launch ARK(Steam)](https://nattyan-tv.github.io/tensei_disko/html/launch_ark_steam.html)", color=0x555555)
