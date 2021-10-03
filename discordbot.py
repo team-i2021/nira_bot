@@ -46,6 +46,18 @@ async def on_message(message):
             await message.channel.send(embed=embed)
             return
         return
+    if re.search(f'(?:n!delete)', message.content):
+        if message.author.id == 669178357371371522:
+            mes_cnt = message.content
+            del_mes_id = mes_cnt.split(" ",2)[1]
+            msg = await channel.fetch_message(del_mes_id)
+            await msg.delete()
+            return
+        elif message.author.id != 669178357371371522:
+            embed = discord.Embed(title="Error", description="権限がありません！", color=0xff0000)
+            await message.channel.send(embed=embed)
+            return
+        return
     if re.search(r'(?:煮裸族|にらぞく|ニラゾク)', message.content):
         await message.channel.send('https://nattyan-tv.github.io/tensei_disko/images/nira_zoku.mp4')
         return
@@ -114,7 +126,7 @@ async def on_message(message):
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/images/pino_cool.jpg')
             return
     if re.search(r'(?:きつね|キツネ|狐)', message.content):
-        rnd = random.randint(1, 2)
+        rnd = random.randint(1, 3)
         if rnd == 1:
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/images/kitune_a.jpg')
             return
