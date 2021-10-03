@@ -162,8 +162,13 @@ async def on_message(message):
         await message.channel.send('https://nattyan-tv.github.io/tensei_disko/ri_par.png')
         return
     if re.search(r'(?:tasuren|たすれん|タスレン)', message.content):
-        await message.channel.send('すごいひと')
-        return
+        rnd = random.randint(1, 2)
+        if rnd == 1:
+            await message.channel.send('毎晩10時が全盛期')
+            return
+        elif rnd == 2:
+            await message.channel.send('すごいひと')
+            return
 
 
 # Botの起動とDiscordサーバーへの接続
