@@ -4,7 +4,6 @@ import re
 import random
 
 TOKEN = getenv('DISCORD_BOT_TOKEN')
-
 client = discord.Client()
 
 
