@@ -25,7 +25,7 @@ async def on_message(message):
         embed = discord.Embed(title="ニラbot HELP", description="ニラちゃんの扱い方", color=0x00ff00)
         embed.set_author(name="製作者：なつ", url="https://twitter.com/nattyan_tv", icon_url="https://pbs.twimg.com/profile_images/1388437778292113411/pBiEOtHL_400x400.jpg")
         embed.set_image(url="https://nattyan-tv.github.io/tensei_disko/nira_a.jpg")
-        embed.add_field(name="helpの見方", value="`単語A`・`単語B`> 単語Aと単語Bの両方が含まれるときの反応\n", inline=False)
+        embed.add_field(name="helpの見方", value="`単語A`・`単語B`\n> 単語Aと単語Bの両方が含まれるときの反応\n", inline=False)
         embed.add_field(name="---メイン---", value="（ひらがな・カタカナ・漢字は大体区別しません）\n\n", inline=False)
         embed.add_field(name="`ニラ`", value="> ニラの画像\n", inline=False)
         embed.add_field(name="`ニラ`・`栽培`", value="> 土の様子\n", inline=False)
