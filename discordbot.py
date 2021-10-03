@@ -7,6 +7,7 @@ TOKEN = getenv('DISCORD_BOT_TOKEN')
 
 client = discord.Client()
 
+
 # 起動時に動作する処理
 @client.event
 async def on_ready():
@@ -25,26 +26,27 @@ async def on_message(message):
         embed = discord.Embed(title="ニラbot HELP",description="ニラちゃんの扱い方",color=0x00ff00)
         embed.set_author(name="製作者：なつ",url="https://twitter.com/nattyan_tv",icon_url="https://pbs.twimg.com/profile_images/1388437778292113411/pBiEOtHL_400x400.jpg")
         embed.set_image(url="https://nattyan-tv.github.io/tensei_disko/nira_a.jpg")
-        embed.add_field(title="helpの見方",value="`単語A`・`単語B`\n> 単語Aと単語Bの両方が含まれるときの反応")
-        embed.add_field(name="---メイン---",value="（ひらがな・カタカナ・漢字は大体区別しません）")
-        embed.add_field(value="`ニラ`\n> ニラの画像")
-        embed.add_field(value="`ニラ`・`栽培`\n> 土の様子")
-        embed.add_field(value="`ニラ`・`栽培`・`水`\n> 水栽培されているニラ")
-        embed.add_field(value="`ニラ`・`魚`\n> 新種の魚「ニラ魚」")
-        embed.add_field(value="`ニラ`・`独裁`\n> 独裁者ニラの肖像画")
-        embed.add_field(value="`ニラ`・`成長`\n> 世にも珍しい、ニラの成長過程")
-        embed.add_field(value="`ニラ`・`鍋`\n> ニラ鍋のレシピ")
-        embed.add_field(value="`ニラ`・`カリバー`\n> 聖剣ニラカリバー！")
-        embed.add_field(value="`ニラ`・`アンド`\n> 「nik〇 and...」のコラ画像")
-        embed.add_field(value="`煮裸族`\n> nira_zoku.mp4")
-        embed.add_field(name="---その他---",value="------")
-        embed.add_field(value="`ぴの`\n> ピノ")
-        embed.add_field(value="`てぃらみす`\n> ティラミス")
-        embed.add_field(value="`りんご`\n> スーパーエクストリームりんご")
-        embed.add_field(value="`いくもん`\n> 村人のYouTube")
+        embed.add_field(name="helpの見方",value="`単語A`・`単語B`> 単語Aと単語Bの両方が含まれるときの反応\n",inline=False)
+        embed.add_field(name="---メイン---",value="（ひらがな・カタカナ・漢字は大体区別しません）\n\n",inline=False)
+        embed.add_field(name="`ニラ`",value="> ニラの画像\n",inline=False)
+        embed.add_field(name="`ニラ`・`栽培`",value="> 土の様子\n",inline=False)
+        embed.add_field(name="`ニラ`・`栽培`・`水`",value="> 水栽培されているニラ\n",inline=False)
+        embed.add_field(name="`ニラ`・`魚`",value="> 新種の魚「ニラ魚」\n",inline=False)
+        embed.add_field(name="`ニラ`・`独裁`",value="> 独裁者ニラの肖像画\n",inline=False)
+        embed.add_field(name="`ニラ`・`成長`",value="> 世にも珍しい、ニラの成長過程\n",inline=False)
+        embed.add_field(name="`ニラ`・`鍋`",value="> ニラ鍋のレシピ\n",inline=False)
+        embed.add_field(name="`ニラ`・`カリバー`",value="> 聖剣ニラカリバー！\n",inline=False)
+        embed.add_field(name="`ニラ`・`アンド`",value="> 「nik〇 and...」のコラ画像\n",inline=False)
+        embed.add_field(name="`煮裸族`",value="> nira_zoku.mp4\n\n",inline=False)
+        embed.add_field(name="---その他---",value="------\n\n",inline=False)
+        embed.add_field(name="`ぴの`",value="> ピノ\n",inline=False)
+        embed.add_field(name="`てぃらみす`",value="> ティラミス\n",inline=False)
+        embed.add_field(name="`りんご`",value="> スーパーエクストリームりんご\n",inline=False)
+        embed.add_field(name="`いくもん`",value="> 村人のYouTube\n",inline=False)
+        embed.add_field(name="`しゃけ`",value="> しゃけ\n",inline=False)
         await message.channel.send(embed=embed)
         if message.author.id == 669178357371371522:
-            embed = discord.Embed(title="Error?",description="ってかてめぇ俺の開発者だろ\n自分でコード見るなりして考えろ\nhttps://github.com/nattyan-tv/tensei_disko",color=0xff0000)
+            embed = discord.Embed(title="Error?",description="ってかお前俺の開発者だろ\n自分でコード見るなりして考えろ\nhttps://github.com/nattyan-tv/tensei_disko",color=0xff0000)
             await message.channel.send(embed=embed)
             return
         return
@@ -99,7 +101,7 @@ async def on_message(message):
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/pino_st.jpg')
             return
         elif rnd == 3:
-            await message.channel.send('https://nattyan-tv.github.io/tensei_disko/pino_cool.png')
+            await message.channel.send('https://nattyan-tv.github.io/tensei_disko/pino_cool.jpg')
             return
     if re.search(r'(?:きつね|キツネ|狐)', message.content):
         await message.channel.send('https://nattyan-tv.github.io/tensei_disko/kitune.jpg')
@@ -110,6 +112,19 @@ async def on_message(message):
     if re.search(r'(?:りんご|リンゴ|apple|Apple|App1e|app1e)', message.content):
         await message.channel.send('https://nattyan-tv.github.io/tensei_disko/apple.jpg')
         return
+    if re.search(r'(?:しゃけ|シャケ|さけ|サケ|鮭|syake|sarmon)', message.content):
+        rnd = random.randint(1, 3)
+        if rnd == 1:
+            await message.channel.send('https://nattyan-tv.github.io/tensei_disko/sarmon_a.jpg')
+            return
+        elif rnd == 2:
+            await message.channel.send('https://nattyan-tv.github.io/tensei_disko/sarmon_b.jpg')
+            return
+        elif rnd == 3:
+            await message.channel.send('https://nattyan-tv.github.io/tensei_disko/sarmon_c.jpg')
+            return
+        return
+
 
 # Botの起動とDiscordサーバーへの接続
 client.run(TOKEN)
