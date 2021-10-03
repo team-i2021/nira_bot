@@ -114,8 +114,12 @@ async def on_message(message):
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/pino_cool.jpg')
             return
     if re.search(r'(?:きつね|キツネ|狐)', message.content):
-        await message.channel.send('https://nattyan-tv.github.io/tensei_disko/kitune.jpg')
-        return
+        if rnd == 1:
+            await message.channel.send('https://nattyan-tv.github.io/tensei_disko/kitune_a.jpg')
+            return
+        elif rnd == 2:
+            await message.channel.send('https://nattyan-tv.github.io/tensei_disko/kitune_b.png')
+            return
     if re.search(r'(?:いくもん|イクモン|ikumon|Ikumon|村人|囚人)', message.content):
         await message.channel.send('https://www.youtube.com/IkumonTV')
         return
