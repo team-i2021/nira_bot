@@ -114,6 +114,7 @@ async def on_message(message):
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/pino_cool.jpg')
             return
     if re.search(r'(?:きつね|キツネ|狐)', message.content):
+        rnd = random.randint(1, 2)
         if rnd == 1:
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/kitune_a.jpg')
             return
