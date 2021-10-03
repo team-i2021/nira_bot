@@ -131,8 +131,13 @@ async def on_message(message):
         await message.channel.send('https://www.youtube.com/IkumonTV')
         return
     if re.search(r'(?:りんご|リンゴ|apple|Apple|App1e|app1e|アップル|あっぷる|林檎|maçã)', message.content):
-        await message.channel.send('https://nattyan-tv.github.io/tensei_disko/apple.jpg')
-        return
+        rnd = random.randint(1, 2)
+        if rnd == 1:
+            await message.channel.send('https://nattyan-tv.github.io/tensei_disko/apple.jpg')
+            return
+        elif rnd == 2:
+            await message.channel.send('https://twitter.com/RINGOSANDAO')
+            return
     if re.search(r'(?:しゃけ|シャケ|さけ|サケ|鮭|syake|salmon|さーもん|サーモン)', message.content):
         rnd = random.randint(1, 3)
         if rnd == 1:
