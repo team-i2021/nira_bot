@@ -48,12 +48,18 @@ async def on_message(message):
         return
     if re.search(f'(?:n!delete)', message.content):
         if message.author.id == 669178357371371522:
-            mes_cnt = message.content
-            del_mes_id = mes_cnt.split(" ", 2)[1]
-            channel = message.channel.id
-            print(message.channel)
-            print(channel)
-            await client.http.delete_message(channel, del_mes_id)
+            try:
+                mes_cnt = message.content
+                del_mes_id = mes_cnt.split(" ", 2)[1]
+                channel = message.channel.id
+                print(message.channel)
+                print(channel)
+                await client.http.delete_message(channel, del_mes_id)
+                return
+            except:
+                embed = discord.Embed(title="Error", description="コマンドの実行方法などを確認してください！\n```n!delete [メッセージID]```", color=0xff0000)
+                await message.channel.send(embed=embed)
+                return
             return
         elif message.author.id != 669178357371371522:
             embed = discord.Embed(title="Error", description="権限がありません！", color=0xff0000)
@@ -163,6 +169,9 @@ async def on_message(message):
         return
     if re.search(r'(?:なつ|なっちゃん|Nattyan|nattyan)', message.content):
         if re.search(r'(?:なつき)', message.content):
+            channel = message.channel.id
+            del_mes_id = message.id
+            await client.http.delete_message(channel, del_mes_id)
             await message.channel.send(':thinking:')
             return
         await message.channel.send('https://twitter.com/nattyan_tv')
