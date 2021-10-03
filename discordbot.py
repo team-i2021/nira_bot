@@ -49,7 +49,8 @@ async def on_message(message):
     if re.search(f'(?:n!delete)', message.content):
         if message.author.id == 669178357371371522:
             mes_cnt = message.content
-            del_mes_id = mes_cnt.split(" ",2)[1]
+            del_mes_id = mes_cnt.split(" ", 2)[1]
+            channel = message.channel.id
             msg = await channel.fetch_message(del_mes_id)
             await msg.delete()
             return
