@@ -42,7 +42,8 @@ async def on_message(message):
         embed.add_field(name="`てぃらみす`",value="> ティラミス\n",inline=False)
         embed.add_field(name="`りんご`",value="> スーパーエクストリームりんご\n",inline=False)
         embed.add_field(name="`いくもん`",value="> 村人のYouTube\n",inline=False)
-        embed.add_field(name="`しゃけ`",value="> しゃけ\n",inline=False)
+        embed.add_field(name="`しゃけ`",value="> しゃけ\n\n",inline=False)
+        embed.add_field(name="`なつ`",value="> このbotの製作者について\n",inline=False)
         await message.channel.send(embed=embed)
         if message.author.id == 669178357371371522:
             embed = discord.Embed(title="Error?",description="ってかお前俺の開発者だろ\n自分でコード見るなりして考えろ\nhttps://github.com/nattyan-tv/tensei_disko",color=0xff0000)
@@ -105,13 +106,13 @@ async def on_message(message):
     if re.search(r'(?:きつね|キツネ|狐)', message.content):
         await message.channel.send('https://nattyan-tv.github.io/tensei_disko/kitune.jpg')
         return
-    if re.search(r'(?:いくもん|イクモン|ikumon|Ikumon|村人)', message.content):
+    if re.search(r'(?:いくもん|イクモン|ikumon|Ikumon|村人|囚人)', message.content):
         await message.channel.send('https://www.youtube.com/IkumonTV')
         return
-    if re.search(r'(?:りんご|リンゴ|apple|Apple|App1e|app1e)', message.content):
+    if re.search(r'(?:りんご|リンゴ|apple|Apple|App1e|app1e|アップル|あっぷる|林檎|maçã)', message.content):
         await message.channel.send('https://nattyan-tv.github.io/tensei_disko/apple.jpg')
         return
-    if re.search(r'(?:しゃけ|シャケ|さけ|サケ|鮭|syake|sarmon)', message.content):
+    if re.search(r'(?:しゃけ|シャケ|さけ|サケ|鮭|syake|sarmon|さーもん|サーモン)', message.content):
         rnd = random.randint(1, 3)
         if rnd == 1:
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/sarmon_a.jpg')
@@ -123,7 +124,19 @@ async def on_message(message):
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/sarmon_c.jpg')
             return
         return
-
+    if re.search(r'(?:なつ|なっちゃん|Nattyan|nattyan)', message.content):
+        if re.search(r'(?:なつき)'):
+            await message.channel.send(':thinking:')
+            return
+        await message.channel.send('https://twitter.com/nattyan_tv')
+        await message.channel.send('https://www.youtube.com/なっちゃんTV')
+        return
+    if re.search(r'(?:12pp|12PP)', message.content):
+        await message.channel.send('https://nattyan-tv.github.io/tensei_disko/12pp.jpg')
+        return
+    if re.search(r'(?:tasuren|たすれん|タスレン)', message.content):
+        await message.channel.send('すごいひと')
+        return
 
 # Botの起動とDiscordサーバーへの接続
 client.run(TOKEN)
