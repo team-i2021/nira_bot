@@ -111,8 +111,5 @@ async def on_message(message):
         await message.channel.send('https://nattyan-tv.github.io/tensei_disko/apple.jpg')
         return
 
-
-
-
 # Botの起動とDiscordサーバーへの接続
 client.run(TOKEN)
