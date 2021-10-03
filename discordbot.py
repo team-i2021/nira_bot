@@ -39,15 +39,7 @@ async def on_message(message):
         embed.add_field(name="`ニラ`・`カリバー`", value="> 聖剣ニラカリバー！\n", inline=False)
         embed.add_field(name="`ニラ`・`アンド`", value="> 「nik〇 and...」のコラ画像\n", inline=False)
         embed.add_field(name="`煮裸族`", value="> nira_zoku.mp4\n\n", inline=False)
-        embed.add_field(name="---その他---", value="------\n\n", inline=False)
-        embed.add_field(name="`ぴの`", value="> ピノ\n", inline=False)
-        embed.add_field(name="`てぃらみす`", value="> ティラミス\n", inline=False)
-        embed.add_field(name="`りんご`", value="> スーパーエクストリームりんご\n", inline=False)
-        embed.add_field(name="`いくもん`", value="> 村人のYouTube\n", inline=False)
-        embed.add_field(name="`しゃけ`", value="> しゃけ\n\n", inline=False)
-        embed.add_field(name="`リーパー`", value="> ろりーぱー\n\n", inline=False)
-        embed.add_field(name="`tasuren`", value="> 凄い人\n", inline=False)
-        embed.add_field(name="`なつ`", value="> このbotの製作者について\n", inline=False)
+        embed.add_field(name="---その他---", value="ARKサーバーの人物名にも反応したり？", inline=False)
         await message.channel.send(embed=embed)
         if message.author.id == 669178357371371522:
             embed = discord.Embed(title="Error?", description="ってかお前俺の開発者だろ\n自分でコード見るなりして考えろ\nhttps://github.com/nattyan-tv/tensei_disko", color=0xff0000)
@@ -129,6 +121,9 @@ async def on_message(message):
         elif rnd == 2:
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/images/kitune_b.png')
             return
+        elif rnd == 3:
+            await message.channel.send('https://twitter.com/rougitune')
+            return
     if re.search(r'(?:いくもん|イクモン|ikumon|Ikumon|村人|囚人)', message.content):
         await message.channel.send('https://www.youtube.com/IkumonTV')
         return
@@ -188,7 +183,7 @@ async def on_message(message):
     if re.search(r'(?:ｸﾜｧｸﾜｧｸﾜｧ|きよわらい)', message.content):
         await message.channel.send('ｸﾜｧｸﾜｧｸﾜｧｸﾜｧｸﾜｧｸﾜｧ!!!!')
         return
-    if re.search(r'(?:ark|ARK|あーく|アーク)', message.content):
+    if re.search(r'(?:ark|ARK|あーく|アーク|Ark)', message.content):
         embed = discord.Embed(title="ARK: Survival Evolved", description="[Launch ARK(Steam)](https://nattyan-tv.github.io/tensei_disko/html/launch_ark_steam.html)", color=0x555555)
         await message.channel.send(embed=embed)
 
