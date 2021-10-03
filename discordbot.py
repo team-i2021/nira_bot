@@ -169,9 +169,6 @@ async def on_message(message):
         return
     if re.search(r'(?:なつ|なっちゃん|Nattyan|nattyan)', message.content):
         if re.search(r'(?:なつき)', message.content):
-            channel = message.channel.id
-            del_mes_id = message.id
-            await client.http.delete_message(channel, del_mes_id)
             await message.channel.send(':thinking:')
             return
         await message.channel.send('https://twitter.com/nattyan_tv')
