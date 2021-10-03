@@ -55,7 +55,7 @@ async def on_message(message):
                 await client.http.delete_message(channel, del_mes_id)
                 return
             except BaseException:
-                embed = discord.Embed(title="Error", description="コマンドの実行方法などを確認してください！\n```n!delete [メッセージID]```", color=0xff0000)
+                embed = discord.Embed(title="Error", description="コマンドの実行方法などを確認してください！\n```n!delete メッセージID```", color=0xff0000)
                 await message.channel.send(embed=embed)
                 return
             return
@@ -173,7 +173,7 @@ async def on_message(message):
             channel = message.channel.id
             del_mes_id = message.id
             await client.http.delete_message(channel, del_mes_id)
-            await message.channel.send(':thinking:')
+            await message.channel.send('なつ....き...? :thinking:')
             return
         await message.channel.send('https://twitter.com/nattyan_tv')
         await message.channel.send('https://www.youtube.com/なっちゃんTV')
