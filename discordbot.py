@@ -51,8 +51,9 @@ async def on_message(message):
             mes_cnt = message.content
             del_mes_id = mes_cnt.split(" ", 2)[1]
             channel = message.channel.id
-            msg = await channel.fetch_message(del_mes_id)
-            await msg.delete()
+            print(message.channel)
+            print(channel)
+            await client.http.delete_message(channel, del_mes_id)
             return
         elif message.author.id != 669178357371371522:
             embed = discord.Embed(title="Error", description="権限がありません！", color=0xff0000)
