@@ -43,8 +43,9 @@ async def on_message(message):
         embed.add_field(name="`りんご`", value="> スーパーエクストリームりんご\n", inline=False)
         embed.add_field(name="`いくもん`", value="> 村人のYouTube\n", inline=False)
         embed.add_field(name="`しゃけ`", value="> しゃけ\n\n", inline=False)
-        embed.add_field(name="`なつ`", value="> このbotの製作者について\n", inline=False)
+        embed.add_field(name="`リーパー`", value="> ろりーぱー\n\n", inline=False)
         embed.add_field(name="`tasuren`", value="> 凄い人\n", inline=False)
+        embed.add_field(name="`なつ`", value="> このbotの製作者について\n", inline=False)
         await message.channel.send(embed=embed)
         if message.author.id == 669178357371371522:
             embed = discord.Embed(title="Error?", description="ってかお前俺の開発者だろ\n自分でコード見るなりして考えろ\nhttps://github.com/nattyan-tv/tensei_disko", color=0xff0000)
@@ -91,8 +92,13 @@ async def on_message(message):
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/nira_c.png')
             return
     if re.search(r'(?:てぃらみす|ティラミス|tiramisu)', message.content):
-        await message.channel.send('https://nattyan-tv.github.io/tensei_disko/tiramisu.jpg')
-        return
+        rnd = random.randint(1, 2)
+        if rnd == 1:
+            await message.channel.send('https://nattyan-tv.github.io/tensei_disko/tiramisu_a.png')
+            return
+        elif rnd == 2:
+            await message.channel.send('https://nattyan-tv.github.io/tensei_disko/tiramisu_b.png')
+            return
     if re.search(r'(?:ぴの|ピノ|pino)', message.content):
         rnd = random.randint(1, 3)
         if rnd == 1:
@@ -134,6 +140,12 @@ async def on_message(message):
         return
     if re.search(r'(?:12pp|12PP)', message.content):
         await message.channel.send('https://nattyan-tv.github.io/tensei_disko/12pp.jpg')
+        return
+    if re.search(r'(?:りーぱー|リーパー|犯|罪|はんざい|つみ|ろり|ロリ)', message.content):
+        if re.search(r'(?:せろり|セロリ)', message.content):
+            await message.channel.send('https://nattyan-tv.github.io/tensei_disko/serori.jpg')
+            return
+        await message.channel.send('https://nattyan-tv.github.io/tensei_disko/ri_par.png')
         return
     if re.search(r'(?:tasuren|たすれん|タスレン)', message.content):
         await message.channel.send('すごいひと')
