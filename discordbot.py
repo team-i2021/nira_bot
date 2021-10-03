@@ -18,7 +18,7 @@ async def on_ready():
 @client.event
 async def on_message(message):
     if message.content == "そうだよ(便乗)":
-        await message.channel.send('黙れよ(便乗)')
+        await message.reply('黙れよ(便乗)')
         return
     # 下のやつミスると「v0.9.2　～故に彼は猫だった～」の時みたいに猫爆弾が起爆するにゃ(botのメッセージは無視する)
     if message.author.bot:
