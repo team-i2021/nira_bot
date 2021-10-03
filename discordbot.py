@@ -65,6 +65,9 @@ async def on_message(message):
                 return
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/nira_sand.jpeg')
             return
+        if re.search(r'(?:伊藤|いとう|イトウ)', message.content):
+            await message.channel.send('https://nattyan-tv.github.io/tensei_disko/nira_itou.png')
+            return
         if re.search(r'(?:魚|さかな|fish|サカナ|ざかな|ザカナ)', message.content):
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/nira_fish.png')
             return
@@ -84,7 +87,7 @@ async def on_message(message):
         if re.search(r'(?:あんど|and|アンド)', message.content):
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/nira_and.png')
             return
-        rnd = random.randint(1, 3)
+        rnd = random.randint(1, 4)
         if rnd == 1:
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/nira_a.jpg')
             return
@@ -93,6 +96,9 @@ async def on_message(message):
             return
         elif rnd == 3:
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/nira_c.png')
+            return
+        elif rnd == 4:
+            await message.channel.send('https://twitter.com/DR36Hl04ZUwnEnJ')
             return
     if re.search(r'(?:てぃらみす|ティラミス|tiramisu)', message.content):
         rnd = random.randint(1, 2)
