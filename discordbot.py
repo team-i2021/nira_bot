@@ -127,7 +127,7 @@ async def on_message(message):
     if re.search(r'(?:りんご|リンゴ|apple|Apple|App1e|app1e|アップル|あっぷる|林檎|maçã)', message.content):
         await message.channel.send('https://nattyan-tv.github.io/tensei_disko/apple.jpg')
         return
-    if re.search(r'(?:しゃけ|シャケ|さけ|サケ|鮭|syake|sarmon|さーもん|サーモン)', message.content):
+    if re.search(r'(?:しゃけ|シャケ|さけ|サケ|鮭|syake|salmon|さーもん|サーモン)', message.content):
         rnd = random.randint(1, 3)
         if rnd == 1:
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/sarmon_a.jpg')
