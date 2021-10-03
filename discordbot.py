@@ -14,7 +14,6 @@ async def on_ready():
     print('ニラbot v0.9.2')
     print('～故に彼女は猫だった～')
     await client.change_presence(activity=discord.Game(name="ニラの栽培ゲーム", type=1))
-
 # メッセージ受信時に動作する処理
 @client.event
 async def on_message(message):
@@ -189,7 +188,9 @@ async def on_message(message):
     if re.search(r'(?:ｸﾜｧｸﾜｧｸﾜｧ|きよわらい)', message.content):
         await message.channel.send('ｸﾜｧｸﾜｧｸﾜｧｸﾜｧｸﾜｧｸﾜｧ!!!!')
         return
-
+    if re.search(r'(?:ark|ARK|あーく|アーク)', message.content):
+        embed = discord.Embed(title="ARK: Survival Evolved", description="[Launch ARK(Steam)](https://nattyan-tv.github.io/tensei_disko/html/launch_ark_steam.html)", color=0x555555)
+        await message.channel.send(embed=embed)
 
 # Botの起動とDiscordサーバーへの接続
 client.run(TOKEN)
