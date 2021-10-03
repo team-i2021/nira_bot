@@ -69,6 +69,9 @@ async def on_message(message):
     if re.search(r'(?:煮裸族|にらぞく|ニラゾク)', message.content):
         await message.channel.send('https://nattyan-tv.github.io/tensei_disko/images/nira_zoku.mp4')
         return
+    if re.search(r'(?:コイキング|イトコイ|いとこい|コイキング|itokoi)', message.content):
+        await message.channel.send('https://nattyan-tv.github.io/tensei_disko/images/koikingu.jpg')
+        return
     if re.search(r'(?:にら|ニラ|nira|garlic|韮|Chinese chives|Allium tuberosum)', message.content):
         if re.search(r'(?:栽培|さいばい|サイバイ)', message.content):
             if re.search(r'(?:水|みず|ミズ)', message.content):
