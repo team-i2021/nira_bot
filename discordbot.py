@@ -57,33 +57,34 @@ async def on_message(message):
             if re.search(r'(?:水|みず|ミズ)', message.content):
                 await message.channel.send('https://nattyan-tv.github.io/tensei_disko/images/nira_water.jpg')
             else:
-                await message.channel.send('https://nattyan-tv.github.io/tensei_disko/images/nira_sand.jpeg')        
-        if re.search(r'(?:伊藤|いとう|イトウ)', message.content):
+                await message.channel.send('https://nattyan-tv.github.io/tensei_disko/images/nira_sand.jpeg')
+        elif re.search(r'(?:伊藤|いとう|イトウ)', message.content):
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/images/nira_itou.png')
-        if re.search(r'(?:枯|かれ|カレ)', message.content):
+        elif re.search(r'(?:枯|かれ|カレ)', message.content):
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/images/nira_kare.png')
-        if re.search(r'(?:魚|さかな|fish|サカナ|ざかな|ザカナ)', message.content):
+        elif re.search(r'(?:魚|さかな|fish|サカナ|ざかな|ザカナ)', message.content):
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/images/nira_fish.png')
-        if re.search(r'(?:独裁|どくさい|ドクサイ)', message.content):
+        elif re.search(r'(?:独裁|どくさい|ドクサイ)', message.content):
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/images/nira_dokusai.png')
-        if re.search(r'(?:成長|せいちょう|セイチョウ)', message.content):
+        elif re.search(r'(?:成長|せいちょう|セイチョウ)', message.content):
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/images/nira_seityou.jpeg')
-        if re.search(r'(?:なべ|鍋|ナベ)', message.content):
+        elif re.search(r'(?:なべ|鍋|ナベ)', message.content):
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/images/nira_nabe.jpg')
             await message.channel.send('https://cookpad.com/search/%E3%83%8B%E3%83%A9%E9%8D%8B')
-        if re.search(r'(?:かりばー|カリバー|剣)', message.content):
+        elif re.search(r'(?:かりばー|カリバー|剣)', message.content):
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/images/nira_sword.png')
-        if re.search(r'(?:あんど|and|アンド)', message.content):
+        elif re.search(r'(?:あんど|and|アンド)', message.content):
             await message.channel.send('https://nattyan-tv.github.io/tensei_disko/images/nira_and.png')
-        rnd = random.randint(1, 4)
-        if rnd == 1:
-            await message.channel.send('https://nattyan-tv.github.io/tensei_disko/images/nira_a.jpg')
-        elif rnd == 2:
-            await message.channel.send('https://nattyan-tv.github.io/tensei_disko/images/nira_b.jpg')
-        elif rnd == 3:
-            await message.channel.send('https://nattyan-tv.github.io/tensei_disko/images/nira_c.png')
-        elif rnd == 4:
-            await message.channel.send('https://twitter.com/DR36Hl04ZUwnEnJ')
+        else:
+            rnd = random.randint(1, 4)
+            if rnd == 1:
+                await message.channel.send('https://nattyan-tv.github.io/tensei_disko/images/nira_a.jpg')
+            elif rnd == 2:
+                await message.channel.send('https://nattyan-tv.github.io/tensei_disko/images/nira_b.jpg')
+            elif rnd == 3:
+                await message.channel.send('https://nattyan-tv.github.io/tensei_disko/images/nira_c.png')
+            elif rnd == 4:
+                await message.channel.send('https://twitter.com/DR36Hl04ZUwnEnJ')
     if re.search(r'(?:てぃらみす|ティラミス|tiramisu)', message.content):
         rnd = random.randint(1, 2)
         if rnd == 1:
