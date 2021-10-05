@@ -136,7 +136,11 @@ async def on_message(message):
     if re.search(r'(?:12pp|12PP)', message.content):
         await message.channel.send('https://nattyan-tv.github.io/tensei_disko/images/12pp.jpg')
     if re.search(r'(?:名前|なまえ|ナマエ|name)', message.content):
-        await message.channel.send('https://twitter.com/namae_1216')
+        rnd = random.randint(1, 2)
+        if rnd = 1:
+            await message.channel.send('https://twitter.com/namae_1216')
+        elif rnd = 2:
+            await message.channel.send('ｳﾋｮﾋｮﾋｮﾋﾋﾋｸﾞﾍｯﾍﾍ‪‪ :heart:')
     if re.search(r'(?:みけ|ミケ|三毛)', message.content):
         await message.channel.send('https://nattyan-tv.github.io/tensei_disko/images/mike.mp4')
     if re.search(r'(?:あう|アウ)', message.content):
