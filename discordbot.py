@@ -129,7 +129,7 @@ async def on_message(message):
         try:
             mes_ch = message.content
             emb_title = mes_ch.split(" ", 4)[1]
-            emb_desk = mes_ch.split(" ", 3)[2]
+            emb_desc = mes_ch.split(" ", 3)[2]
             embed = discord.Embed(title=emb_title, description=emb_desc, color=0x000000)
             await message.channel.send(embed=embed)
             return
