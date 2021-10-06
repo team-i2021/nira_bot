@@ -10,6 +10,8 @@ client = discord.Client()
 p = pings.Ping()
 ark_1 = p.ping("60.114.86.249:27015")
 ark_2 = p.ping("60.114.86.249:27016")
+test_1 = p.ping("jlt.f5.si:80")
+test_2 = p.ping("jlt.f5.si:11111")
 
 # 起動時に動作する処理
 @client.event
@@ -64,15 +66,27 @@ async def on_message(message):
             await message.channel.send(embed=embed)
             return
     if message.content == "n!ark":
-        embed = discord.Embed(title="ARK: Survival Evolved", description="・Status", color=0x333333)
-		if ark_1.is_reached():
-			embed.add_field(name="RAGNALOK(Server1)", value="Success!", inline=False)
+        embed = discord.Embed(title="ARK: Survival Evolved", description="Status", color=0x333333)
+        if ark_1.is_reached():
+            embed.add_field(name="RAGNALOK(Server1)", value="Success!", inline=False)
         else:
             embed.add_field(name="RAGNALOK(Server1)", value="Failure", inline=False)
         if ark_2.is_reached():
             embed.add_field(name="THE ISLAND(Server2)", value="Success!", inline=False)
         else:
             embed.add_field(name="THE ISLAND(Server2)", value="Failure", inline=False)
+        await message.reply(embed=embed)
+        return
+    if message.content == "n!test":
+        embed = discord.Embed(title="RaspberryPi", description="Status", color=0x333333)
+        if test_1.is_reached():
+            embed.add_field(name="WWW(Server1)", value="Success!", inline=False)
+        else:
+            embed.add_field(name="WWW(Server1)", value="Failure", inline=False)
+        if test_2.is_reached():
+            embed.add_field(name="Unknown(Server2)", value="Success!", inline=False)
+        else:
+            embed.add_field(name="Unknown(Server2)", value="Failure", inline=False)
         await message.reply(embed=embed)
         return
     if re.search(r'(?:煮裸族|にらぞく|ニラゾク)', message.content):
@@ -156,7 +170,7 @@ async def on_message(message):
             del_mes_id = message.id
             await client.http.delete_message(channel, del_mes_id)
             await message.channel.send('なつ....き...? :thinking:')
-        elif re.search(r'(?:なつき)'):
+        elif re.search(r'(?:なつき)', message.content):
             await message.channel.send('なつ....き...? :thinking:')
         else:
             await message.channel.send('https://twitter.com/nattyan_tv')
