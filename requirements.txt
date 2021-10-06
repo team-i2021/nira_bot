@@ -1,3 +1,3 @@
 discord.py[voice]>=1.7.3
 requests
-pings
+python-a2s
