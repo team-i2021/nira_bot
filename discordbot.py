@@ -58,6 +58,7 @@ async def on_message(message):
         	return
         except BaseException as err:
             embed = discord.Embed(title="Error", description=f"エラーが発生しました。\n```{err}```")
+            await message.channel.send(embed=embed)
             return
     if re.search(r'(?:煮裸族|にらぞく|ニラゾク)', message.content):
         await message.channel.send('https://nattyan-tv.github.io/tensei_disko/images/nira_zoku.mp4')
