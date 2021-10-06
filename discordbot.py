@@ -2,10 +2,14 @@ import discord
 from os import getenv
 import re
 import random
+import pings
 
 TOKEN = getenv('DISCORD_BOT_TOKEN')
 client = discord.Client()
 
+p = pings.Ping()
+ark_1 = p.ping("60.114.86.249:27015")
+ark_2 = p.ping("60.114.86.249:27016")
 
 # 起動時に動作する処理
 @client.event
@@ -59,6 +63,18 @@ async def on_message(message):
             embed = discord.Embed(title="Error", description=f"エラーが発生しました。\n```{err}```")
             await message.channel.send(embed=embed)
             return
+    if message.content == "n!ark":
+        embed = discord.Embed(title="ARK: Survival Evolved", description="・Status", color=0x333333)
+		if ark_1.is_reached():
+			embed.add_field(name="RAGNALOK(Server1)", value="Success!", inline=False)
+        else:
+            embed.add_field(name="RAGNALOK(Server1)", value="Failure", inline=False)
+        if ark_2.is_reached():
+            embed.add_field(name="THE ISLAND(Server2)", value="Success!", inline=False)
+        else:
+            embed.add_field(name="THE ISLAND(Server2)", value="Failure", inline=False)
+        await message.reply(embed=embed)
+        return
     if re.search(r'(?:煮裸族|にらぞく|ニラゾク)', message.content):
         await message.channel.send('https://nattyan-tv.github.io/tensei_disko/images/nira_zoku.mp4')
     if re.search(r'(?:コイキング|イトコイ|いとこい|コイキング|itokoi)', message.content):
