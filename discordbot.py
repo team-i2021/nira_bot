@@ -56,43 +56,62 @@ async def on_message(message):
             await message.reply(embed=embed)
             return
         mes = message.content
-        mes_te = mes.split("\n", 2)[1]
-        if mes_te != "グー" or mes_te != "ぐー" or mes_te != "チョキ" or mes_te != "チョキ" or mes_te != "パー" or mes_te != "ぱー":
+        try:
+            mes_te = mes.split(" ", 2)[1]
+        except BaseException as err:
+            embed = discord.Embed(title="Error", description=f"な、なんかエラー出たけど！？\n```n!jyanken [グー/チョキ/パー]```\n{err}", color=0xff0000)
+            await message.reply(embed=embed)
+            return
+        if mes_te != "グー" and mes_te != "ぐー" and mes_te != "チョキ" and mes_te != "チョキ" and mes_te != "パー" and mes_te != "ぱー":
             embed = discord.Embed(title="Error", description="じゃんけんっていのは、「グー」「チョキ」「パー」のどれかを出して遊ぶゲームだよ。\n[ルール解説](https://ja.wikipedia.org/wiki/%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93#:~:text=%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93%E3%81%AF2%E4%BA%BA%E4%BB%A5%E4%B8%8A,%E3%81%A8%E6%95%97%E8%80%85%E3%82%92%E6%B1%BA%E5%AE%9A%E3%81%99%E3%82%8B%E3%80%82)\n```n!jyanken [グー/チョキ/パー]```", color=0xff0000)
             await message.reply(embed=embed)
             return
-        embed = discord.Embed(title="ニラbot HELP", description="ニラちゃんの扱い方", color=0xffffff)
+        embed = discord.Embed(title="にらにらじゃんけん", description="```n!jyanken [グー/チョキ/パー]```", color=0x00ff00)
         if mes_te == "グー" or mes_te == "ぐー":
             mes_te = "グー"
-            embed.add_field(name=message.author.mention, value=mes_te, inline=False)
-            embed.set_image(url="https://nattyan-tv.github.io/tensei_disko/images/jyanken_gu.png", inline=False)
+            embed.add_field(name="あなた", value=mes_te, inline=False)
+            embed.set_image(url="https://nattyan-tv.github.io/tensei_disko/images/jyanken_gu.png")
         elif mes_te == "チョキ" or mes_te == "ちょき":
             mes_te = "チョキ"
-            embed.add_field(name=message.author.mention, value=mes_te, inline=False)
-            embed.set_image(url="https://nattyan-tv.github.io/tensei_disko/images/jyanken_choki.png", inline=False)
+            embed.add_field(name="あなた", value=mes_te, inline=False)
+            embed.set_image(url="https://nattyan-tv.github.io/tensei_disko/images/jyanken_choki.png")
         elif mes_te == "パー" or mes_te == "ぱー":
             mes_te = "パー"
-            embed.add_field(name=message.author.mention, value=mes_te, inline=False)
-            embed.set_image(url="https://nattyan-tv.github.io/tensei_disko/images/jyanken_pa.png", inline=False)
+            embed.add_field(name="あなた", value=mes_te, inline=False)
+            embed.set_image(url="https://nattyan-tv.github.io/tensei_disko/images/jyanken_pa.png")
         rnd_jyanken = random.randint(1, 3)
         if rnd_jyanken == 1:
             mes_te_e = "グー"
-            embed.add_field(name="@にら#4828", value=mes_te_e, inline=False)
-            embed.set_image(url="https://nattyan-tv.github.io/tensei_disko/images/jyanken_gu.png", inline=False)
+            embed.add_field(name="にら", value=mes_te_e, inline=False)
+            embed.set_image(url="https://nattyan-tv.github.io/tensei_disko/images/jyanken_gu.png")
+            if mes_te == "グー":
+                res_jyan = ":thinking: あいこですね..."
+            elif mes_te == "チョキ":
+                res_jyan = ":laughing: 私の勝ちです！！"
+            elif mes_te == "パー":
+                res_jyan = ":pensive: あなたの勝ちですね..."
         elif rnd_jyanken == 2:
             mes_te_e = "チョキ"
-            embed.add_field(name="@にら#4828", value=mes_te, inline=False)
-            embed.set_image(url="https://nattyan-tv.github.io/tensei_disko/images/jyanken_choki.png", inline=False)
+            embed.add_field(name="にら", value=mes_te_e, inline=False)
+            embed.set_image(url="https://nattyan-tv.github.io/tensei_disko/images/jyanken_choki.png")
+            if mes_te == "チョキ":
+                res_jyan = ":thinking: あいこですね..."
+            elif mes_te == "パー":
+                res_jyan = ":laughing: 私の勝ちです！！"
+            elif mes_te == "グー":
+                res_jyan = ":pensive: あなたの勝ちですね..."
         elif rnd_jyanken == 3:
             mes_te_e = "パー"
-            embed.add_field(name="@にら#4828", value=mes_te, inline=False)
-            embed.set_image(url="https://nattyan-tv.github.io/tensei_disko/images/jyanken_pa.png", inline=False)
-        if (mes_te == "グー" and mes_te_e == "グー") or (mes_te == "チョキ" and mes_te_e == "チョキ") or (mes_te == "パー" and mes_te_e == "パー"):
-            embed.add_field(name="RESULT", value=":thinking: あいこですね...", inline=False)
-        elif (mes_te == "グー" and mes_te_e == "パー") or (mes_te == "チョキ" and mes_te_e == "グー") or (mes_te == "パー" and mes_te_e == "チョキ"):
-            embed.add_field(name="RESULT", value=":laughing: 私の勝ちです！！", inline=False)
-        elif (mes_te == "グー" and mes_te_e == "チョキ") or (mes_te == "チョキ" and mes_te_e == "パー") or (mes_te == "パー" and mes_te_e == "グー"):
-            embed.add_field(name="RESULT", value=":pensive: あなたの勝ちですね...", inline=False)
+            embed.add_field(name="にら", value=mes_te_e, inline=False)
+            embed.set_image(url="https://nattyan-tv.github.io/tensei_disko/images/jyanken_pa.png")
+            if mes_te == "パー":
+                res_jyan = ":thinking: あいこですね..."
+            elif mes_te == "グー":
+                res_jyan = ":laughing: 私の勝ちです！！"
+            elif mes_te == "チョキ":
+                res_jyan = ":pensive: あなたの勝ちですね..."
+        print(mes_te,mes_te_e,rnd_jyanken)
+        embed.add_field(name="RESULT", value=res_jyan, inline=False)
         await message.reply(embed=embed)
         return
     if message.content == "n!uranai":
