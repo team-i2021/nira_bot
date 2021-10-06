@@ -147,11 +147,25 @@ async def on_message(message):
         try:
             a2s.info(ark_1)
             embed.add_field(name="RAGNALOK(Server1)", value=":white_check_mark:Success!", inline=False)
+            ark_1_users = a2s.players(ark_1)
+            user_1 = ""
+            ark_1_users = ""
+            for i in range(len(a2s.players(ark_1))):
+                user_1 = user_1 + "\n" + ark_1_users[-1].split(", ", 4)[1]
+                ark_1_users.pop()
+            embed.add_field(name="Online User", value=f"ユーザー数:{len(a2s.players(ark_1))}人{ark_1_users}", inline=False)
         except BaseException:
             embed.add_field(name="RAGNALOK(Server1)", value=":x:Failure", inline=False)
         try:
             a2s.info(ark_2)
             embed.add_field(name="THE ISLAND(Server2)", value=":white_check_mark:Success!", inline=False)
+            ark_2_users = a2s.players(ark_2)
+            user_2 = ""
+            ark_2_users = ""
+            for i in range(len(a2s.players(ark_2))):
+                user_2 = user_2 + "\n" + ark_2_users[-1].split(", ", 4)[1]
+                ark_2_users.pop()
+            embed.add_field(name="Online User", value=f"ユーザー数:{len(a2s.players(ark_1))}人{ark_1_users}", inline=False)
         except BaseException:
             embed.add_field(name="THE ISLAND(Server2)", value=":x:Failure", inline=False)
         await ark.edit(embed=embed)
