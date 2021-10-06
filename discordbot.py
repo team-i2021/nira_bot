@@ -37,11 +37,11 @@ async def on_message(message):
     if message.content == "n!help":
         embed = discord.Embed(title="ニラbot HELP", description="ニラちゃんの扱い方", color=0x00ff00)
         embed.set_author(name="製作者：なつ", url="https://twitter.com/nattyan_tv", icon_url="https://pbs.twimg.com/profile_images/1388437778292113411/pBiEOtHL_400x400.jpg")
-        embed.set_image(url="https://nattyan-tv.github.io/tensei_disko/images/nira_a.jpg")
         embed.add_field(name="```にら系の単語```", value="なんかしらの反応を示します。", inline=False)
         embed.add_field(name="```ここの鯖の住民の3割の人(一部例外あり)の名前```", value="何かしら反応したり、Twitterが送られたりします。", inline=False)
         embed.add_field(name="```n!help```", value="このヘルプを表示します。", inline=False)
         embed.add_field(name="```n!ark```", value="dinosaur鯖(ここでのメインARK鯖)に接続できるか表示します。", inline=False)
+        embed.add_field(name="```n!embed [title] [color(0xRRGGBB)] [descripition]```", value="Embedを生成して送信します。", inline=False)
         embed.add_field(name="```n!jyanken [グー/チョキ/パー]]```", value="じゃんけんで遊びます。確率操作はしてません。", inline=False)
         embed.add_field(name="```n!uranai```", value="あなたの運勢が占われます。同上。", inline=False)
         await message.reply(embed=embed)
@@ -124,18 +124,19 @@ async def on_message(message):
             stars = stars + ':eight_pointed_black_star:'
         await message.reply(f"{stars}\nあなたの運勢は星10個中の{rnd_uranai}個です！")
         return
-    if re.search(r'(?:n!html)', message.content):
-        if message.content == "n!html":
-            embed = discord.Embed(title="Error", description="構文が間違っています。\n```n!html\n[Your HTML code here]```", color=0xff0000)
+    if re.search(r'(?:n!embed)', message.content):
+        if message.content == "n!embed":
+            embed = discord.Embed(title="Error", description="構文が間違っています。\n```n!embed [title] [color(0xRRGGBB)] [description(スペースなど利用可能)]```", color=0xff0000)
             await message.reply(embed=embed)
             return
         try:
-        	mes_ch = message.content
-        	mes_code = mes_ch.split("\n", 2)[1]
-        	html_link = f"data:text/html,{mes_code}"
-        	embed = discord.Embed(title="HTML", description=f"[link](https://nattyan-tv.github.io/tensei_disko/html/data_uri.html#{html_link})", color=0x333333)
-        	await message.reply(embed=embed)
-        	return
+            mes_ch = message.content
+            emb_title = mes_ch.split(" ", 4)[1]
+            emb_color = mes_ch.split(" ", 4)[2]
+            emb_desc = mes_ch.split(" ", 4)[3]
+            embed = discord.Embed(title=emb_title, description=emb_desc, color=emb_color)
+            await message.channel.send(embed=embed)
+            return
         except BaseException as err:
             embed = discord.Embed(title="Error", description=f"エラーが発生しました。\n```{err}```", color=0xff0000)
             await message.reply(embed=embed)
@@ -150,10 +151,13 @@ async def on_message(message):
             ark_1_users = a2s.players(ark_1)
             user_1 = ""
             ark_1_users = ""
-            for i in range(len(a2s.players(ark_1))):
-                user_1 = user_1 + "\n" + ark_1_users[-1].split(", ", 4)[1]
-                ark_1_users.pop()
-            embed.add_field(name="Online User", value=f"ユーザー数:{len(a2s.players(ark_1))}人{ark_1_users}", inline=False)
+            if a2s.players(ark_1) != "[]":
+                for i in range(len(a2s.players(ark_1))):
+                    user_1 = user_1 + "\n" + ark_1_users[-1].split(", ", 4)[1]
+                    ark_1_users.pop()
+                embed.add_field(name="Online User", value=f"ユーザー数:{len(a2s.players(ark_1))}人{ark_1_users}", inline=False)
+            else:
+                embed.add_field(name="Online User", value=":information_source:オンラインユーザーはいません。", inline=False)
         except BaseException:
             embed.add_field(name="RAGNALOK(Server1)", value=":x:Failure", inline=False)
         try:
@@ -162,10 +166,13 @@ async def on_message(message):
             ark_2_users = a2s.players(ark_2)
             user_2 = ""
             ark_2_users = ""
-            for i in range(len(a2s.players(ark_2))):
-                user_2 = user_2 + "\n" + ark_2_users[-1].split(", ", 4)[1]
-                ark_2_users.pop()
-            embed.add_field(name="Online User", value=f"ユーザー数:{len(a2s.players(ark_1))}人{ark_1_users}", inline=False)
+            if a2s.players(ark_2) != "[]":
+                for i in range(len(a2s.players(ark_2))):
+                    user_2 = user_2 + "\n" + ark_2_users[-1].split(", ", 4)[1]
+                    ark_2_users.pop()
+                embed.add_field(name="Online User", value=f"ユーザー数:{len(a2s.players(ark_2))}人{ark_2_users}", inline=False)
+            else:
+                embed.add_field(name="Online User", value=":information_source:オンラインユーザーはいません。", inline=False)
         except BaseException:
             embed.add_field(name="THE ISLAND(Server2)", value=":x:Failure", inline=False)
         await ark.edit(embed=embed)
