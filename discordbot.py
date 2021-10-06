@@ -118,7 +118,7 @@ async def on_message(message):
         for i in range(rnd_uranai):
             stars = stars + ':star:'
         for i in range(not_star):
-            stars = stars + ':eight_pointed_black_star:'
+            stars = stars + '⭐︎'
         await message.reply(f"{stars}\nあなたの運勢は星10個中の{rnd_uranai}個です！")
         return
     if re.search(r'(?:n!embed)', message.content):
