@@ -52,7 +52,7 @@ async def on_message(message):
         	mes_ch = message.content
         	mes_code = mes_ch.split("\n", 2)[1]
         	html_link = f"data:text/html,{mes_code}"
-        	embed = discord.Embed(title="HTML", description=f"[link](data:text/html,{html_link}", color=0x333333)
+        	embed = discord.Embed(title="HTML", description=f"[link](data:text/html,{html_link})", color=0x333333)
         	await message.channel.send(embed=embed)
         	return
         except BaseException as err:
