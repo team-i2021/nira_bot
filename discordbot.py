@@ -52,8 +52,7 @@ async def on_message(message):
         	mes_ch = message.content
         	mes_code = mes_ch.split("\n", 2)[1]
         	html_link = f"data:text/html,{mes_code}"
-        	embed = discord.Embed(title="HTML", description="n!html [your code]", color=0x333333)
-        	embed.set_author(name="link", url=html_link, icon_url="https://nattyan-tv.github.io/tensei_disko/images/html.png")
+        	embed = discord.Embed(title="HTML", description=f"[link](data:text/html,{html_link}", color=0x333333)
         	await message.channel.send(embed=embed)
         	return
         except BaseException as err:
