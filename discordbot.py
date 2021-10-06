@@ -1,18 +1,16 @@
-from math import modf
 import discord
 from os import getenv
 import re
 import random
 import a2s
-from discord.colour import Color
 
-# | N     N  IIIII  RRRR     A     BBBB   OOOOO  TTTTT  
-# | NN    N    I    R  R    A A    B   B  O   O    T    
-# | N N   N    I    R  R   A   A   B   B  O   O    T    
-# | N  N  N    I    RRRR   AAAAA   BBBB   O   O    T    
-# | N   N N    I    RR     A   A   B   B  O   O    T    
-# | N    NN    I    R R    A   A   B   B  O   O    T    
-# | N     N  IIIII  R  R   A   A   BBBB   OOOOO    T    v.永遠にβバージョン
+# | N     N  IIIII  RRRR     A     BBBB   OOOOO  TTTTT
+# | NN    N    I    R  R    A A    B   B  O   O    T
+# | N N   N    I    R  R   A   A   B   B  O   O    T
+# | N  N  N    I    RRRR   AAAAA   BBBB   O   O    T
+# | N   N N    I    RR     A   A   B   B  O   O    T
+# | N    NN    I    R R    A   A   B   B  O   O    T
+# | N     N  IIIII  R  R   A   A   BBBB   OOOOO    T  v.永遠にβバージョン
 
 ark_1 = ("60.114.86.249", 27015)
 ark_2 = ("60.114.86.249", 27016)
@@ -110,7 +108,6 @@ async def on_message(message):
                 res_jyan = ":laughing: 私の勝ちです！！"
             elif mes_te == "チョキ":
                 res_jyan = ":pensive: あなたの勝ちですね..."
-        print(mes_te,mes_te_e,rnd_jyanken)
         embed.add_field(name="RESULT", value=res_jyan, inline=False)
         await message.reply(embed=embed)
         return
