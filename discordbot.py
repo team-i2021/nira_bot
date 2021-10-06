@@ -39,7 +39,7 @@ async def on_message(message):
         embed.add_field(name="```ここの鯖の住民の3割の人(一部例外あり)の名前```", value="何かしら反応したり、Twitterが送られたりします。", inline=False)
         embed.add_field(name="```n!help```", value="このヘルプを表示します。", inline=False)
         embed.add_field(name="```n!ark```", value="dinosaur鯖(ここでのメインARK鯖)に接続できるか表示します。", inline=False)
-        embed.add_field(name="```n!embed [title] [color(0xRRGGBB)] [descripition]```", value="Embedを生成して送信します。", inline=False)
+        embed.add_field(name="```n!embed [title] [descripition]```", value="Embedを生成して送信します。", inline=False)
         embed.add_field(name="```n!jyanken [グー/チョキ/パー]]```", value="じゃんけんで遊びます。確率操作はしてません。", inline=False)
         embed.add_field(name="```n!uranai```", value="あなたの運勢が占われます。同上。", inline=False)
         await message.reply(embed=embed)
@@ -123,15 +123,14 @@ async def on_message(message):
         return
     if re.search(r'(?:n!embed)', message.content):
         if message.content == "n!embed":
-            embed = discord.Embed(title="Error", description="構文が間違っています。\n```n!embed [title] [color(0xRRGGBB)] [description(スペースなど利用可能)]```", color=0xff0000)
+            embed = discord.Embed(title="Error", description="構文が間違っています。\n```n!embed [title] [description(スペースなど利用可能)]```", color=0xff0000)
             await message.reply(embed=embed)
             return
         try:
             mes_ch = message.content
             emb_title = mes_ch.split(" ", 4)[1]
-            emb_color = mes_ch.split(" ", 4)[2]
-            emb_desc = mes_ch.split(" ", 4)[3]
-            embed = discord.Embed(title=emb_title, description=emb_desc, color=emb_color)
+            emb_desk = mes_ch.split(" ", 3)[2]
+            embed = discord.Embed(title=emb_title, description=emb_desc, color=0x000000)
             await message.channel.send(embed=embed)
             return
         except BaseException as err:
