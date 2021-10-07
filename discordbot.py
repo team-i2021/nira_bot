@@ -146,7 +146,7 @@ async def on_message(message):
             embed.add_field(name="RAGNALOK(Server1)", value=":white_check_mark:Success!", inline=False)
             ark_1_users = a2s.players(ark_1)
             user_1 = ""
-            ark_1_users = ""
+            ark_1_users = []
             if a2s.players(ark_1) != "[]":
                 for i in range(len(a2s.players(ark_1))):
                     user_1 = user_1 + "\n" + ark_1_users[-1].split(", ", 4)[1]
@@ -161,7 +161,7 @@ async def on_message(message):
             embed.add_field(name="THE ISLAND(Server2)", value=":white_check_mark:Success!", inline=False)
             ark_2_users = a2s.players(ark_2)
             user_2 = ""
-            ark_2_users = ""
+            ark_2_users = []
             if a2s.players(ark_2) != "[]":
                 for i in range(len(a2s.players(ark_2))):
                     user_2 = user_2 + "\n" + ark_2_users[-1].split(", ", 4)[1]
