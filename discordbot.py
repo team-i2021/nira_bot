@@ -66,49 +66,49 @@ async def on_message(message):
             return
         embed = discord.Embed(title="にらにらじゃんけん", description="```n!jyanken [グー/チョキ/パー]```", color=0x00ff00)
         if mes_te == "グー" or mes_te == "ぐー":
-            mes_te = "グー"
+            mes_te = "```グー```"
             embed.add_field(name="あなた", value=mes_te, inline=False)
             embed.set_image(url="https://nattyan-tv.github.io/tensei_disko/images/jyanken_gu.png")
         elif mes_te == "チョキ" or mes_te == "ちょき":
-            mes_te = "チョキ"
+            mes_te = "```チョキ```"
             embed.add_field(name="あなた", value=mes_te, inline=False)
             embed.set_image(url="https://nattyan-tv.github.io/tensei_disko/images/jyanken_choki.png")
         elif mes_te == "パー" or mes_te == "ぱー":
-            mes_te = "パー"
+            mes_te = "```パー```"
             embed.add_field(name="あなた", value=mes_te, inline=False)
             embed.set_image(url="https://nattyan-tv.github.io/tensei_disko/images/jyanken_pa.png")
         rnd_jyanken = random.randint(1, 3)
         if rnd_jyanken == 1:
-            mes_te_e = "グー"
+            mes_te_e = "```グー```"
             embed.add_field(name="にら", value=mes_te_e, inline=False)
             embed.set_image(url="https://nattyan-tv.github.io/tensei_disko/images/jyanken_gu.png")
-            if mes_te == "グー":
+            if mes_te == "```グー```":
                 res_jyan = ":thinking: あいこですね..."
-            elif mes_te == "チョキ":
+            elif mes_te == "```チョキ```":
                 res_jyan = ":laughing: 私の勝ちです！！"
-            elif mes_te == "パー":
+            elif mes_te == "```パー```":
                 res_jyan = ":pensive: あなたの勝ちですね..."
         elif rnd_jyanken == 2:
-            mes_te_e = "チョキ"
+            mes_te_e = "```チョキ```"
             embed.add_field(name="にら", value=mes_te_e, inline=False)
             embed.set_image(url="https://nattyan-tv.github.io/tensei_disko/images/jyanken_choki.png")
-            if mes_te == "チョキ":
+            if mes_te == "```チョキ```":
                 res_jyan = ":thinking: あいこですね..."
-            elif mes_te == "パー":
+            elif mes_te == "```パー```":
                 res_jyan = ":laughing: 私の勝ちです！！"
-            elif mes_te == "グー":
+            elif mes_te == "```グー```":
                 res_jyan = ":pensive: あなたの勝ちですね..."
         elif rnd_jyanken == 3:
-            mes_te_e = "パー"
+            mes_te_e = "```パー```"
             embed.add_field(name="にら", value=mes_te_e, inline=False)
             embed.set_image(url="https://nattyan-tv.github.io/tensei_disko/images/jyanken_pa.png")
-            if mes_te == "パー":
+            if mes_te == "```パー```":
                 res_jyan = ":thinking: あいこですね..."
-            elif mes_te == "グー":
+            elif mes_te == "```グー```":
                 res_jyan = ":laughing: 私の勝ちです！！"
-            elif mes_te == "チョキ":
+            elif mes_te == "```チョキ```":
                 res_jyan = ":pensive: あなたの勝ちですね..."
-        embed.add_field(name="RESULT", value=res_jyan, inline=False)
+        embed.add_field(name="\n```RESULT```\n", value=res_jyan, inline=False)
         await message.reply(embed=embed)
         return
     if message.content == "n!uranai":
@@ -116,7 +116,7 @@ async def on_message(message):
         not_star = 10 - rnd_uranai
         stars = ""
         for i in range(rnd_uranai):
-            stars = stars + ':star:'
+            stars = stars + '★'
         for i in range(not_star):
             stars = stars + '⭐︎'
         await message.reply(f"{stars}\nあなたの運勢は星10個中の{rnd_uranai}個です！")
