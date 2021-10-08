@@ -4,7 +4,6 @@ from os import getenv
 import re
 import random
 import a2s
-from discord import message
 
 # | N     N  IIIII  RRRR     A     BBBB   OOOOO  TTTTT
 # | NN    N    I    R  R    A A    B   B  O   O    T
@@ -14,18 +13,19 @@ from discord import message
 # | N    NN    I    R R    A   A   B   B  O   O    T
 # | N     N  IIIII  R  R   A   A   BBBB   OOOOO    T  v.永遠にβバージョン
 
-ark_1 = ("60.114.86.249", 27015) # アイランド
+ark_1 = ("60.114.86.249", 27015)  # アイランド
 ark_1_nm = "The Island :free:"
-ark_2 = ("60.114.86.249", 27016) # アベレーション
+ark_2 = ("60.114.86.249", 27016)  # アベレーション
 ark_2_nm = "Aberration :dollar:"
-ark_3 = ("60.114.86.249", 27017) # エクスティンクション
+ark_3 = ("60.114.86.249", 27017)  # エクスティンクション
 ark_3_nm = "Extinction :dollar:"
-ark_4 = ("60.114.86.249", 27018) # ジェネシス1
+ark_4 = ("60.114.86.249", 27018)  # ジェネシス1
 ark_4_nm = "Genesis: Part 1 :dollar:"
-ark_5 = ("60.114.86.249", 27019) # ジェネシス2
+ark_5 = ("60.114.86.249", 27019)  # ジェネシス2
 ark_5_nm = "Genesis: Part 2 :dollar:"
-ark_6 = ("60.114.86.249", 27020) # ラグナロク
+ark_6 = ("60.114.86.249", 27020)  # ラグナロク
 ark_6_nm = "Ragnarok :free:"
+
 
 client = discord.Client()
 TOKEN = getenv('DISCORD_BOT_TOKEN')
@@ -33,7 +33,7 @@ TOKEN = getenv('DISCORD_BOT_TOKEN')
 def server_check(embed, sv_ad, sv_nm):
     try:
         print(f"{sv_nm}/{sv_ad} への接続")
-        a2s.info(sv_ad) #ServerStatusLoad
+        a2s.info(sv_ad)
         print(a2s.info(sv_ad))
         embed.add_field(name=f"> {sv_nm}", value=":white_check_mark:Success!", inline=False)
         user = ""
@@ -64,7 +64,6 @@ async def on_ready():
 # メッセージ受信時処理
 @client.event
 async def on_message(message):
-    print(message.content)
     if message.content == "そうだよ(便乗)":
         await message.reply('黙れよ(便乗)')
         return
@@ -313,9 +312,9 @@ async def on_message(message):
 # リアクション受信時
 @client.event
 async def on_raw_reaction_add(payload):
-    guild= client.get_guild(payload.guild_id)
-    channel= guild.get_channel(payload.channel_id)
-    message= await channel.fetch_message(payload.message_id)
+    guild = client.get_guild(payload.guild_id)
+    channel = guild.get_channel(payload.channel_id)
+    message = await channel.fetch_message(payload.message_id)
     actioned_user = payload.user_id
     if actioned_user != 892759276152573953 and message.author.id == 892759276152573953 and discord.PartialEmoji(name='<:trash:896021635470082048>'):
         channel_del = message.channel.id
