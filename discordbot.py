@@ -64,6 +64,7 @@ async def on_ready():
 # メッセージ受信時処理
 @client.event
 async def on_message(message):
+    sended_mes = ""
     if message.content == "そうだよ(便乗)":
         await message.reply('黙れよ(便乗)')
         return
