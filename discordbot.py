@@ -307,7 +307,8 @@ async def on_message(message):
         sended_mes = await message.reply(embed=embed)
     if re.search(r'(?:かなしい|つらい|ぴえん|:pleading_face:|:cry:|:sob:|:weary:|:smiling_face_with_tear:|辛|悲しい|ピエン|泣く|泣きそう|いやだ|かわいそうに|可哀そうに)', message.content):
         sended_mes = await message.reply("https://nattyan-tv.github.io/tensei_disko/images/kawaisou.png")
-    await sended_mes.add_reaction("<:trash:896021635470082048>")
+    if sended_mes != "":
+        await sended_mes.add_reaction("<:trash:896021635470082048>")
 
 # リアクション受信時
 @client.event
