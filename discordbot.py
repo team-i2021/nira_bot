@@ -1,8 +1,10 @@
+# coding: utf-8
 import discord
 from os import getenv
 import re
 import random
 import a2s
+from discord import message
 
 # | N     N  IIIII  RRRR     A     BBBB   OOOOO  TTTTT
 # | NN    N    I    R  R    A A    B   B  O   O    T
@@ -12,20 +14,57 @@ import a2s
 # | N    NN    I    R R    A   A   B   B  O   O    T
 # | N     N  IIIII  R  R   A   A   BBBB   OOOOO    T  v.永遠にβバージョン
 
-ark_1 = ("60.114.86.249", 27015)
-ark_2 = ("60.114.86.249", 27016)
-TOKEN = getenv('DISCORD_BOT_TOKEN')
-client = discord.Client()
+ark_1 = ("60.114.86.249", 27015) # アイランド
+ark_1_nm = "The Island :free:"
+ark_2 = ("60.114.86.249", 27016) # アベレーション
+ark_2_nm = "Aberration :dollar:"
+ark_3 = ("60.114.86.249", 27017) # エクスティンクション
+ark_3_nm = "Extinction :dollar:"
+ark_4 = ("60.114.86.249", 27018) # ジェネシス1
+ark_4_nm = "Genesis: Part 1 :dollar:"
+ark_5 = ("60.114.86.249", 27019) # ジェネシス2
+ark_5_nm = "Genesis: Part 2 :dollar:"
+ark_6 = ("60.114.86.249", 27020) # ラグナロク
+ark_6_nm = "Ragnarok :free:"
 
-# 起動時に動作する処理
+client = discord.Client()
+TOKEN = getenv('DISCORD_BOT_TOKEN')
+
+def server_check(embed, sv_ad, sv_nm):
+    try:
+        print(f"{sv_nm}/{sv_ad} への接続")
+        a2s.info(sv_ad) #ServerStatusLoad
+        print(a2s.info(sv_ad))
+        embed.add_field(name=f"> {sv_nm}", value=":white_check_mark:Success!", inline=False)
+        user = ""
+        print(a2s.players(sv_ad))
+        if a2s.players(sv_ad) != []:
+            sv_users_str = str(a2s.players(sv_ad)).replace("[Player(", "").replace("]", "")
+            sv_users_str = sv_users_str + ",("
+            sv_users_list = sv_users_str.split("),(")
+            for i in range(len(a2s.players(sv_ad))):
+                sp_info = sv_users_list[-2]
+                splited = sp_info.split(", ", 4)[1]
+                user_add = splited.replace("name='", "").replace("'", "")
+                user = user + "\n" + f"```{user_add}```"
+                sv_users_list.pop()
+            embed.add_field(name="> Online User", value=f"ユーザー数:{len(a2s.players(sv_ad))}人{user}\n==========", inline=False)
+        else:
+            embed.add_field(name="> Online User", value=":information_source:オンラインユーザーはいません。\n==========", inline=False)
+    except BaseException as err:
+        embed.add_field(name=f"> {sv_nm}", value=":x: Failure\n==========", inline=False)
+        print(err)
+
+# 起動時処理
 @client.event
 async def on_ready():
     print('Launched! NIRABOT v.永遠にβバージョン')
     await client.change_presence(activity=discord.Game(name="n!help | にらゲー", type=1))
 
-# メッセージ受信時に動作する処理
+# メッセージ受信時処理
 @client.event
 async def on_message(message):
+    print(message.content)
     if message.content == "そうだよ(便乗)":
         await message.reply('黙れよ(便乗)')
         return
@@ -40,31 +79,32 @@ async def on_message(message):
         embed.add_field(name="```n!help```", value="このヘルプを表示します。", inline=False)
         embed.add_field(name="```n!ark```", value="dinosaur鯖(ここでのメインARK鯖)に接続できるか表示します。", inline=False)
         embed.add_field(name="```n!embed [title] [descripition]```", value="Embedを生成して送信します。", inline=False)
-        embed.add_field(name="```n!jyanken [グー/チョキ/パー]]```", value="じゃんけんで遊びます。確率操作はしてません。", inline=False)
-        embed.add_field(name="```n!uranai```", value="あなたの運勢が占われます。同上。", inline=False)
+        embed.add_field(name="```n!janken [グー/チョキ/パー]]```", value="じゃんけんで遊びます。確率操作はしてません。", inline=False)
+        embed.add_field(name="```n!uranai```", value="あなたの運勢が占われます。同上。\n==========", inline=False)
+        embed.add_field(name="・リアクションについて", value="このbotの発したメッセージの一部には、<:trash:896021635470082048>のリアクションが自動的に付きます。\nこのリアクションを押すとそのメッセージが削除されます。", inline=False)
         await message.reply(embed=embed)
         if message.author.id == 669178357371371522:
             embed = discord.Embed(title="Error?", description="ってかお前俺の開発者だろ\n自分でコード見るなりして考えろ\nhttps://github.com/nattyan-tv/tensei_disko", color=0xff0000)
             await message.reply(embed=embed)
             return
         return
-    if re.search(r'(?:n!jyanken)', message.content):
-        if message.content == "n!jyanken":
-            embed = discord.Embed(title="Error", description="じゃんけんっていのは、「グー」「チョキ」「パー」のどれかを出して遊ぶゲームだよ。\n[ルール解説](https://ja.wikipedia.org/wiki/%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93#:~:text=%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93%E3%81%AF2%E4%BA%BA%E4%BB%A5%E4%B8%8A,%E3%81%A8%E6%95%97%E8%80%85%E3%82%92%E6%B1%BA%E5%AE%9A%E3%81%99%E3%82%8B%E3%80%82)\n```n!jyanken [グー/チョキ/パー]```", color=0xff0000)
+    if re.search(r'(?:n!janken)', message.content):
+        if message.content == "n!janken":
+            embed = discord.Embed(title="Error", description="じゃんけんっていのは、「グー」「チョキ」「パー」のどれかを出して遊ぶゲームだよ。\n[ルール解説](https://ja.wikipedia.org/wiki/%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93#:~:text=%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93%E3%81%AF2%E4%BA%BA%E4%BB%A5%E4%B8%8A,%E3%81%A8%E6%95%97%E8%80%85%E3%82%92%E6%B1%BA%E5%AE%9A%E3%81%99%E3%82%8B%E3%80%82)\n```n!janken [グー/チョキ/パー]```", color=0xff0000)
             await message.reply(embed=embed)
             return
         mes = message.content
         try:
             mes_te = mes.split(" ", 2)[1]
         except BaseException as err:
-            embed = discord.Embed(title="Error", description=f"な、なんかエラー出たけど！？\n```n!jyanken [グー/チョキ/パー]```\n{err}", color=0xff0000)
+            embed = discord.Embed(title="Error", description=f"な、なんかエラー出たけど！？\n```n!janken [グー/チョキ/パー]```\n{err}", color=0xff0000)
             await message.reply(embed=embed)
             return
-        if mes_te != "グー" and mes_te != "ぐー" and mes_te != "チョキ" and mes_te != "チョキ" and mes_te != "パー" and mes_te != "ぱー":
-            embed = discord.Embed(title="Error", description="じゃんけんっていのは、「グー」「チョキ」「パー」のどれかを出して遊ぶゲームだよ。\n[ルール解説](https://ja.wikipedia.org/wiki/%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93#:~:text=%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93%E3%81%AF2%E4%BA%BA%E4%BB%A5%E4%B8%8A,%E3%81%A8%E6%95%97%E8%80%85%E3%82%92%E6%B1%BA%E5%AE%9A%E3%81%99%E3%82%8B%E3%80%82)\n```n!jyanken [グー/チョキ/パー]```", color=0xff0000)
+        if mes_te != "グー" and mes_te != "ぐー" and mes_te != "チョキ" and mes_te != "ちょき" and mes_te != "パー" and mes_te != "ぱー":
+            embed = discord.Embed(title="Error", description="じゃんけんっていのは、「グー」「チョキ」「パー」のどれかを出して遊ぶゲームだよ。\n[ルール解説](https://ja.wikipedia.org/wiki/%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93#:~:text=%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93%E3%81%AF2%E4%BA%BA%E4%BB%A5%E4%B8%8A,%E3%81%A8%E6%95%97%E8%80%85%E3%82%92%E6%B1%BA%E5%AE%9A%E3%81%99%E3%82%8B%E3%80%82)\n```n!janken [グー/チョキ/パー]```", color=0xff0000)
             await message.reply(embed=embed)
             return
-        embed = discord.Embed(title="にらにらじゃんけん", description="```n!jyanken [グー/チョキ/パー]```", color=0x00ff00)
+        embed = discord.Embed(title="にらにらじゃんけん", description="```n!janken [グー/チョキ/パー]```", color=0x00ff00)
         if mes_te == "グー" or mes_te == "ぐー":
             mes_te = "```グー```"
             embed.add_field(name="あなた", value=mes_te, inline=False)
@@ -139,157 +179,148 @@ async def on_message(message):
             return
     if message.content == "n!ark":
         embed = discord.Embed(title="ARK: Survival Evolved\ndinosaur Server", description=":arrows_counterclockwise:Connecting...\nPlease wait...", color=0x333333)
-        ark = await message.reply(embed=embed)
-        embed = discord.Embed(title="ARK: Survival Evolved\ndinosaur Server", description=f"{message.author.mention}\n:globe_with_meridians:Status", color=0x333333)
-        try:
-            a2s.info(ark_1)
-            embed.add_field(name="RAGNALOK(Server1)", value=":white_check_mark:Success!", inline=False)
-            ark_1_users = a2s.players(ark_1)
-            user_1 = ""
-            ark_1_users = []
-            if a2s.players(ark_1) != "[]":
-                for i in range(len(a2s.players(ark_1))):
-                    user_1 = user_1 + "\n" + ark_1_users[-1].split(", ", 4)[1]
-                    ark_1_users.pop()
-                embed.add_field(name="Online User", value=f"ユーザー数:{len(a2s.players(ark_1))}人{ark_1_users}", inline=False)
-            else:
-                embed.add_field(name="Online User", value=":information_source:オンラインユーザーはいません。", inline=False)
-        except BaseException:
-            embed.add_field(name="RAGNALOK(Server1)", value=":x:Failure", inline=False)
-        try:
-            a2s.info(ark_2)
-            embed.add_field(name="THE ISLAND(Server2)", value=":white_check_mark:Success!", inline=False)
-            ark_2_users = a2s.players(ark_2)
-            user_2 = ""
-            ark_2_users = []
-            if a2s.players(ark_2) != "[]":
-                for i in range(len(a2s.players(ark_2))):
-                    user_2 = user_2 + "\n" + ark_2_users[-1].split(", ", 4)[1]
-                    ark_2_users.pop()
-                embed.add_field(name="Online User", value=f"ユーザー数:{len(a2s.players(ark_2))}人{ark_2_users}", inline=False)
-            else:
-                embed.add_field(name="Online User", value=":information_source:オンラインユーザーはいません。", inline=False)
-        except BaseException:
-            embed.add_field(name="THE ISLAND(Server2)", value=":x:Failure", inline=False)
-        await ark.edit(embed=embed)
+        ark_emb = await message.reply(embed=embed)
+        embed = discord.Embed(title="ARK: Survival Evolved\ndinosaur Server", description=":globe_with_meridians:Status\n==========", color=0x00ff00)
+        server_check(embed, ark_1, ark_1_nm)
+        server_check(embed, ark_2, ark_2_nm)
+        server_check(embed, ark_3, ark_3_nm)
+        server_check(embed, ark_4, ark_4_nm)
+        server_check(embed, ark_5, ark_5_nm)
+        server_check(embed, ark_6, ark_6_nm)
+        await ark_emb.edit(embed=embed)
+        await ark_emb.reply(f"{message.author.mention}")
         return
     if re.search(r'(?:煮裸族|にらぞく|ニラゾク)', message.content):
-        await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_zoku.mp4')
+        sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_zoku.mp4')
     if re.search(r'(?:コイキング|イトコイ|いとこい|コイキング|itokoi)', message.content):
-        await message.reply('https://nattyan-tv.github.io/tensei_disko/images/koikingu.jpg')
+        sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/koikingu.jpg')
     if re.search(r'(?:にら|ニラ|nira|garlic|韮|Chinese chives|Allium tuberosum|てりじの|テリジノ)', message.content):
         if re.search(r'(?:栽培|さいばい|サイバイ)', message.content):
             if re.search(r'(?:水|みず|ミズ)', message.content):
-                await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_water.jpg')
+                sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_water.jpg')
             else:
-                await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_sand.jpeg')
+                sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_sand.jpeg')
         elif re.search(r'(?:伊藤|いとう|イトウ)', message.content):
-            await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_itou.png')
+            sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_itou.png')
         elif re.search(r'(?:枯|かれ|カレ)', message.content):
-            await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_kare.png')
+            sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_kare.png')
         elif re.search(r'(?:魚|さかな|fish|サカナ|ざかな|ザカナ)', message.content):
-            await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_fish.png')
+            sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_fish.png')
         elif re.search(r'(?:独裁|どくさい|ドクサイ)', message.content):
-            await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_dokusai.png')
+            sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_dokusai.png')
         elif re.search(r'(?:成長|せいちょう|セイチョウ)', message.content):
-            await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_seityou.jpeg')
+            sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_seityou.jpeg')
         elif re.search(r'(?:なべ|鍋|ナベ)', message.content):
-            await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_nabe.jpg')
-            await message.reply('https://cookpad.com/search/%E3%83%8B%E3%83%A9%E9%8D%8B')
+            sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_nabe.jpg')
+            sended_mes = await message.reply('https://cookpad.com/search/%E3%83%8B%E3%83%A9%E9%8D%8B')
         elif re.search(r'(?:かりばー|カリバー|剣)', message.content):
-            await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_sword.png')
+            sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_sword.png')
         elif re.search(r'(?:あんど|and|アンド)', message.content):
-            await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_and.png')
+            sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_and.png')
         else:
             rnd = random.randint(1, 4)
             if rnd == 1:
-                await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_a.jpg')
+                sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_a.jpg')
             elif rnd == 2:
-                await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_b.jpg')
+                sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_b.jpg')
             elif rnd == 3:
-                await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_c.png')
+                sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_c.png')
             elif rnd == 4:
-                await message.reply('https://twitter.com/DR36Hl04ZUwnEnJ')
+                sended_mes = await message.reply('https://twitter.com/DR36Hl04ZUwnEnJ')
     if re.search(r'(?:てぃらみす|ティラミス|tiramisu)', message.content):
         rnd = random.randint(1, 2)
         if rnd == 1:
-            await message.reply('https://nattyan-tv.github.io/tensei_disko/images/tiramisu_a.png')
+            sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/tiramisu_a.png')
         elif rnd == 2:
-            await message.reply('https://nattyan-tv.github.io/tensei_disko/images/tiramisu_b.png')
+            sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/tiramisu_b.png')
     if re.search(r'(?:ぴの|ピノ|pino)', message.content):
         rnd = random.randint(1, 3)
         if rnd == 1:
-            await message.reply('https://nattyan-tv.github.io/tensei_disko/images/pino_nm.jpg')
+            sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/pino_nm.jpg')
         elif rnd == 2:
-            await message.reply('https://nattyan-tv.github.io/tensei_disko/images/pino_st.jpg')
+            sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/pino_st.jpg')
         elif rnd == 3:
-            await message.reply('https://nattyan-tv.github.io/tensei_disko/images/pino_cool.jpg')
+            sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/pino_cool.jpg')
     if re.search(r'(?:きつね|キツネ|狐)', message.content):
         rnd = random.randint(1, 3)
         if rnd == 1:
-            await message.reply('https://nattyan-tv.github.io/tensei_disko/images/kitune_a.jpg')
+            sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/kitune_a.jpg')
         elif rnd == 2:
-            await message.reply('https://nattyan-tv.github.io/tensei_disko/images/kitune_b.png')
+            sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/kitune_b.png')
         elif rnd == 3:
-            await message.reply('https://twitter.com/rougitune')
+            sended_mes = await message.reply('https://twitter.com/rougitune')
     if re.search(r'(?:いくもん|イクモン|ikumon|Ikumon|村人|囚人)', message.content):
-        await message.reply('https://www.youtube.com/IkumonTV')
+        sended_mes = await message.reply('https://www.youtube.com/IkumonTV')
     if re.search(r'(?:りんご|リンゴ|apple|Apple|App1e|app1e|アップル|あっぷる|林檎|maçã)', message.content):
         rnd = random.randint(1, 2)
         if rnd == 1:
-            await message.reply('https://nattyan-tv.github.io/tensei_disko/images/apple.jpg')
+            sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/apple.jpg')
         elif rnd == 2:
-            await message.reply('https://twitter.com/RINGOSANDAO')
+            sended_mes = await message.reply('https://twitter.com/RINGOSANDAO')
     if re.search(r'(?:しゃけ|シャケ|さけ|サケ|鮭|syake|salmon|さーもん|サーモン)', message.content):
         rnd = random.randint(1, 3)
         if rnd == 1:
-            await message.reply('https://nattyan-tv.github.io/tensei_disko/images/sarmon_a.jpg')
+            sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/sarmon_a.jpg')
         elif rnd == 2:
-            await message.reply('https://nattyan-tv.github.io/tensei_disko/images/sarmon_b.jpg')
+            sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/sarmon_b.jpg')
         elif rnd == 3:
-            await message.reply('https://nattyan-tv.github.io/tensei_disko/images/sarmon_c.jpg')
+            sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/sarmon_c.jpg')
     if re.search(r'(?:なつ|なっちゃん|Nattyan|nattyan)', message.content):
         if message.content == "なつき":
             channel = message.channel.id
             del_mes_id = message.id
-            await client.http.delete_message(channel, del_mes_id)
-            await message.reply('なつ....き...? :thinking:')
+            sended_mes = await client.http.delete_message(channel, del_mes_id)
+            sended_mes = await message.reply('なつ....き...? :thinking:')
         elif re.search(r'(?:なつき)', message.content):
-            await message.reply('なつ....き...? :thinking:')
+            sended_mes = await message.reply('なつ....き...? :thinking:')
         else:
-            await message.reply('https://twitter.com/nattyan_tv')
-            await message.reply('https://www.youtube.com/なっちゃんTV')
+            sended_mes = await message.reply('https://twitter.com/nattyan_tv')
+            sended_mes = await message.reply('https://www.youtube.com/なっちゃんTV')
     if re.search(r'(?:12pp|12PP)', message.content):
-        await message.reply('https://nattyan-tv.github.io/tensei_disko/images/12pp.jpg')
+        sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/12pp.jpg')
     if re.search(r'(?:名前|なまえ|ナマエ|name)', message.content):
         rnd = random.randint(1, 2)
         if rnd == 1:
-            await message.reply('https://twitter.com/namae_1216')
+            sended_mes = await message.reply('https://twitter.com/namae_1216')
         elif rnd == 2:
-            await message.reply('ｳﾋｮﾋｮﾋｮﾋﾋﾋｸﾞﾍｯﾍﾍ‪‪ :heart:')
+            sended_mes = await message.reply('ｳﾋｮﾋｮﾋｮﾋﾋﾋｸﾞﾍｯﾍﾍ‪‪ :heart:')
     if re.search(r'(?:みけ|ミケ|三毛)', message.content):
-        await message.reply('https://nattyan-tv.github.io/tensei_disko/images/mike.mp4')
+        sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/mike.mp4')
     if re.search(r'(?:あう|アウ)', message.content):
-        await message.reply('https://nattyan-tv.github.io/tensei_disko/images/au.png')
+        sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/au.png')
     if re.search(r'(?:りーぱー|リーパー|犯|罪|はんざい|つみ|ろり|ロリ)', message.content):
         if re.search(r'(?:せろり|セロリ)', message.content):
-            await message.reply('https://nattyan-tv.github.io/tensei_disko/images/serori.jpg')
+            sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/serori.jpg')
         else:
-            await message.reply('https://nattyan-tv.github.io/tensei_disko/images/ri_par.png')
+            sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/ri_par.png')
     if re.search(r'(?:tasuren|たすれん|タスレン)', message.content):
         rnd = random.randint(1, 2)
         if rnd == 1:
-            await message.reply('毎晩10時が全盛期')
+            sended_mes = await message.reply('毎晩10時が全盛期')
         elif rnd == 2:
-            await message.reply('すごいひと')
+            sended_mes = await message.reply('すごいひと')
     if re.search(r'(?:ｸｧ|きよわらい|きよ笑い|くあっ|クアッ|クァ|くぁ|くわぁ|クワァ)', message.content):
-        await message.reply('ﾜｰｽｹﾞｪｽｯｹﾞｸｧｯｸｧｯｸｧwwwww')
+        sended_mes = await message.reply('ﾜｰｽｹﾞｪｽｯｹﾞｸｧｯｸｧｯｸｧwwwww')
     if re.search(r'(?:ふぇにっくす|フェニックス|不死鳥|ふしちょう|phoenix|焼き鳥|やきとり)', message.content):
-        await message.reply("https://www.google.com/search?q=%E3%81%93%E3%81%AE%E8%BF%91%E3%81%8F%E3%81%AE%E7%84%BC%E3%81%8D%E9%B3%A5%E5%B1%8B&oq=%E3%81%93%E3%81%AE%E8%BF%91%E3%81%8F%E3%81%AE%E7%84%BC%E3%81%8D%E9%B3%A5%E5%B1%8B")
+        sended_mes = await message.reply("https://www.google.com/search?q=%E3%81%93%E3%81%AE%E8%BF%91%E3%81%8F%E3%81%AE%E7%84%BC%E3%81%8D%E9%B3%A5%E5%B1%8B&oq=%E3%81%93%E3%81%AE%E8%BF%91%E3%81%8F%E3%81%AE%E7%84%BC%E3%81%8D%E9%B3%A5%E5%B1%8B")
     if re.search(r'(?:ark|ARK|あーく|アーク|Ark)', message.content):
         embed = discord.Embed(title="ARK: Survival Evolved", description="[Launch ARK(Steam)](https://nattyan-tv.github.io/tensei_disko/html/launch_ark_steam.html)", color=0x555555)
-        await message.reply(embed=embed)
+        sended_mes = await message.reply(embed=embed)
+    if re.search(r'(?:かなしい|つらい|ぴえん|:pleading_face:|:cry:|:sob:|:weary:|:smiling_face_with_tear:|辛|悲しい|ピエン|泣く|泣きそう|いやだ|かわいそうに|可哀そうに)', message.content):
+        sended_mes = await message.reply("https://nattyan-tv.github.io/tensei_disko/images/kawaisou.png")
+    await sended_mes.add_reaction("<:trash:896021635470082048>")
 
+# リアクション受信時
+@client.event
+async def on_raw_reaction_add(payload):
+    guild= client.get_guild(payload.guild_id)
+    channel= guild.get_channel(payload.channel_id)
+    message= await channel.fetch_message(payload.message_id)
+    actioned_user = payload.user_id
+    if actioned_user != 892759276152573953 and message.author.id == 892759276152573953 and discord.PartialEmoji(name='<:trash:896021635470082048>'):
+        channel_del = message.channel.id
+        await client.http.delete_message(channel_del, payload.message_id)
+    return
 
 # Botの起動とDiscordサーバーへの接続
-# client.run(TOKEN)
+client.run(TOKEN)
