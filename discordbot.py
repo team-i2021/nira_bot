@@ -55,6 +55,8 @@ def server_check(embed, sv_ad, sv_nm):
         embed.add_field(name=f"> {sv_nm}", value=":x: Failure\n==========", inline=False)
         print(err)
 
+あああああ
+
 # 起動時処理
 @client.event
 async def on_ready():
