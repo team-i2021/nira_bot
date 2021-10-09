@@ -322,6 +322,7 @@ async def on_raw_reaction_add(payload):
     actioned_user = payload.user_id
     print(actioned_user)
     if actioned_user != 892759276152573953 and message.author.id == 892759276152573953 and discord.PartialEmoji(name='<:trash:896021635470082048>'):
+        print(client.get_user(actioned_user))
         channel_del = message.channel.id
         await client.http.delete_message(channel_del, payload.message_id)
     return
