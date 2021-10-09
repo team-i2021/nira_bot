@@ -4,9 +4,6 @@ from os import getenv
 import re
 import random
 import a2s
-import asyncio
-import nest_asyncio
-nest_asyncio.apply()
 
 # | N     N  IIIII  RRRR     A     BBBB   OOOOO  TTTTT
 # | NN    N    I    R  R    A A    B   B  O   O    T
@@ -318,12 +315,6 @@ async def on_message(message):
         sended_mes = await message.reply("https://nattyan-tv.github.io/tenesi_disko/images/kawaisou.png")
     if sended_mes != "":
         await sended_mes.add_reaction("<:trash:896021635470082048>")
-        await asyncio.sleep(2)
-        try:
-            await sended_mes.remove_reaction("<:trash:896021635470082048>", client.user)
-            return
-        except BaseException:
-            return
 
 
 # リアクション受信時
