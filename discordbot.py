@@ -258,13 +258,15 @@ async def on_message(message):
         elif rnd == 2:
             sended_mes = await message.reply('https://twitter.com/RINGOSANDAO')
     if re.search(r'(?:しゃけ|シャケ|さけ|サケ|鮭|syake|salmon|さーもん|サーモン)', message.content):
-        rnd = random.randint(1, 3)
+        rnd = random.randint(1, 4)
         if rnd == 1:
             sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/sarmon_a.jpg')
         elif rnd == 2:
             sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/sarmon_b.jpg')
         elif rnd == 3:
             sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/sarmon_c.jpg')
+        elif rnd == 4:
+            sended_mes = await message.reply('https://twitter.com/Shake_Yuyu')
     if re.search(r'(?:なつ|なっちゃん|Nattyan|nattyan)', message.content):
         if message.content == "なつき":
             channel = message.channel.id
