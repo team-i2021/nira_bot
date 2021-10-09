@@ -55,15 +55,12 @@ def server_check(embed, sv_ad, sv_nm):
         embed.add_field(name=f"> {sv_nm}", value=":x: Failure\n==========", inline=False)
         print(err)
 
-あああああ
-
 # 起動時処理
 @client.event
 async def on_ready():
     print('Launched! NIRABOT v.永遠にβバージョン')
     await client.change_presence(activity=discord.Game(name="n!help | にらゲー", type=1))
 
-# メッセージ受信時処理
 @client.event
 async def on_message(message):
     sended_mes = ""
@@ -219,6 +216,9 @@ async def on_message(message):
             sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_sword.png')
         elif re.search(r'(?:あんど|and|アンド)', message.content):
             sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_and.png')
+        elif re.search(r'(?:んど|ンド|nd)', message.content):
+            sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_land.png')
+            sended_mes = await sended_mes.reply('https://sites.google.com/view/nirand/%E3%83%9B%E3%83%BC%E3%83%A0')
         else:
             rnd = random.randint(1, 4)
             if rnd == 1:
@@ -311,22 +311,20 @@ async def on_message(message):
         embed = discord.Embed(title="ARK: Survival Evolved", description="[Launch ARK(Steam)](https://nattyan-tv.github.io/tensei_disko/html/launch_ark_steam.html)", color=0x555555)
         sended_mes = await message.reply(embed=embed)
     if re.search(r'(?:かなしい|つらい|ぴえん|:pleading_face:|:cry:|:sob:|:weary:|:smiling_face_with_tear:|辛|悲しい|ピエン|泣く|泣きそう|いやだ|かわいそうに|可哀そうに)', message.content):
-        sended_mes = await message.reply("https://nattyan-tv.github.io/tensei_disko/images/kawaisou.png")
+        sended_mes = await message.reply("https://nattyan-tv.github.io/tenesi_disko/images/kawaisou.png")
     if sended_mes != "":
         await sended_mes.add_reaction("<:trash:896021635470082048>")
 
+
 # リアクション受信時
 @client.event
-async def on_raw_reaction_add(payload):
-    guild = client.get_guild(payload.guild_id)
-    channel = guild.get_channel(payload.channel_id)
-    message = await channel.fetch_message(payload.message_id)
-    actioned_user = payload.user_id
-    print(actioned_user)
-    if actioned_user != 892759276152573953 and message.author.id == 892759276152573953 and discord.PartialEmoji(name='<:trash:896021635470082048>'):
-        print(client.get_user(actioned_user))
-        channel_del = message.channel.id
-        await client.http.delete_message(channel_del, payload.message_id)
+async def on_reaction_add(react, mem):
+    if mem.id != 892759276152573953 and react.message.author.id == 892759276152573953 and discord.PartialEmoji(name='<:trash:896021635470082048>'):
+        role_list = []
+        for role in mem.roles:
+            role_list.add(role.id)
+        if 894843810566266900 in role_list or 876433165105897482 in role_list or 894365538724237353 in role_list or 885492941261524992 in role_list or 890861951842942978 in role_list:
+            await client.http.delete_message(react.message.channel.id, react.message.id)
     return
 
 # Botの起動とDiscordサーバーへの接続
