@@ -5,8 +5,6 @@ import re
 import random
 import a2s
 import asyncio
-import nest_asyncio
-nest_asyncio.apply()
 
 # | N     N  IIIII  RRRR     A     BBBB   OOOOO  TTTTT
 # | NN    N    I    R  R    A A    B   B  O   O    T
@@ -37,11 +35,27 @@ async def rmv_act(mes, usr):
     await asyncio.sleep(2)
     await mes.remove_reaction("<:trash:89021635470082048>", usr)
 
-
-def server_check(embed, sv_ad, sv_nm):
+def server_check(embed, n):
+    if n == "1":
+        sv_ad = ark_1
+        sv_nm = ark_1_nm
+    elif n == "2":
+        sv_ad = ark_2
+        sv_nm = ark_2_nm
+    elif n == "3":
+        sv_ad = ark_3
+        sv_nm = ark_3_nm
+    elif n == "4":
+        sv_ad = ark_4
+        sv_nm = ark_4_nm
+    elif n == "5":
+        sv_ad = ark_5
+        sv_nm = ark_5_nm
+    elif n == "6":
+        sv_ad = ark_6
+        sv_nm = ark_6_nm
     try:
         print(f"{sv_nm}/{sv_ad} への接続")
-        a2s.info(sv_ad)
         print(a2s.info(sv_ad))
         embed.add_field(name=f"> {sv_nm}", value=":white_check_mark:Success!", inline=False)
         user = ""
@@ -51,7 +65,6 @@ def server_check(embed, sv_ad, sv_nm):
             sv_users_str = sv_users_str[7:]
             sv_users_str = sv_users_str + ", Player("
             sv_users_list = sv_users_str.split("), Player(")
-            print(sv_users_list)
             for i in range(len(a2s.players(sv_ad))):
                 sp_info = sv_users_list[-2]
                 splited = sp_info.split(", ", 4)[1]
@@ -63,7 +76,7 @@ def server_check(embed, sv_ad, sv_nm):
             embed.add_field(name="> Online User", value=":information_source:オンラインユーザーはいません。\n==========", inline=False)
     except BaseException as err:
         embed.add_field(name=f"> {sv_nm}", value=":x: Failure\n==========", inline=False)
-        print(err)
+    return True
 
 # 起動時処理
 @client.event
@@ -74,6 +87,8 @@ async def on_ready():
 # メッセージ受信時処理
 @client.event
 async def on_message(message):
+    if message.author.id != 669178357371371522:
+        return
     sended_mes = ""
     if message.content == "そうだよ(便乗)":
         await message.reply('黙れよ(便乗)')
@@ -87,7 +102,9 @@ async def on_message(message):
         embed.add_field(name="```にら系の単語```", value="なんかしらの反応を示します。", inline=False)
         embed.add_field(name="```ここの鯖の住民の3割の人(一部例外あり)の名前```", value="何かしら反応したり、Twitterが送られたりします。", inline=False)
         embed.add_field(name="```n!help```", value="このヘルプを表示します。", inline=False)
-        embed.add_field(name="```n!ark```", value="dinosaur鯖(ここでのメインARK鯖)に接続できるか表示します。", inline=False)
+        embed.add_field(name="```n!ark [server]```", value="dinosaur鯖(ここでのメインARK鯖)に接続できるか表示します。", inline=False)
+        embed.add_field(name="> Server list", value="`1`:The Island\n`2`:Aberration\n`3`:Exctinction\n`4`:Genesis: Part 1\n`5`:Genesis: Part 2\n`6`:Ragnarok", inline=False)
+        embed.add_field(name="> [server]を指定しないと", value="全てのサーバーの状態が表示されます。", inline=False)
         embed.add_field(name="```n!embed [title] [descripition]```", value="Embedを生成して送信します。", inline=False)
         embed.add_field(name="```n!janken [グー/チョキ/パー]]```", value="じゃんけんで遊びます。確率操作はしてません。", inline=False)
         embed.add_field(name="```n!uranai```", value="あなたの運勢が占われます。同上。\n==========", inline=False)
@@ -187,16 +204,35 @@ async def on_message(message):
             embed = discord.Embed(title="Error", description=f"エラーが発生しました。\n```{err}```", color=0xff0000)
             await message.reply(embed=embed)
             return
-    if message.content == "n!ark":
+    if re.search(r'(?:n!ark)', message.content):
+        if message.content == "n!ark":
+            embed = discord.Embed(title="ARK: Survival Evolved\ndinosaur Server", description=":arrows_counterclockwise:Connecting...\nPlease wait...", color=0x333333)
+            ark_emb = await message.reply(embed=embed)
+            embed = discord.Embed(title="ARK: Survival Evolved\ndinosaur Server", description=":globe_with_meridians:Status\n==========", color=0x00ff00)
+            server_check(embed, "1")
+            server_check(embed, "2")
+            server_check(embed, "3")
+            server_check(embed, "4")
+            server_check(embed, "5")
+            server_check(embed, "6")
+            await ark_emb.edit(embed=embed)
+            await ark_emb.reply(f"{message.author.mention}")
+            return
+        mes = message.content
+        try:
+            mes_te = mes.split(" ", 2)[1]
+            print(mes_te)
+        except BaseException as err:
+            embe = discord.Embed(title="Error", description=f"不明なエラーが発生しました。\n```{err}```", color=0xff0000)
+            await message.reply(embed=embe)
+        if mes_te != "1" and mes_te != "2" and mes_te != "3" and mes_te != "4" and mes_te != "5" and mes_te != "6":
+            embe = discord.Embed(title="Error", description="```n!ark [server]```\nServer引数を`1～6`で指定してください。\n\n> Server list\n`1`:The Island\n`2`:Aberration\n`3`:Exctinction\n`4`:Genesis: Part 1\n`5`:Genesis: Part 2\n`6`:Ragnarok", color=0xff0000)
+            await message.reply(embed=embe)
+            return
         embed = discord.Embed(title="ARK: Survival Evolved\ndinosaur Server", description=":arrows_counterclockwise:Connecting...\nPlease wait...", color=0x333333)
         ark_emb = await message.reply(embed=embed)
         embed = discord.Embed(title="ARK: Survival Evolved\ndinosaur Server", description=":globe_with_meridians:Status\n==========", color=0x00ff00)
-        server_check(embed, ark_1, ark_1_nm)
-        server_check(embed, ark_2, ark_2_nm)
-        server_check(embed, ark_3, ark_3_nm)
-        server_check(embed, ark_4, ark_4_nm)
-        server_check(embed, ark_5, ark_5_nm)
-        server_check(embed, ark_6, ark_6_nm)
+        server_check(embed, mes_te)
         await ark_emb.edit(embed=embed)
         await ark_emb.reply(f"{message.author.mention}")
         return
@@ -325,7 +361,7 @@ async def on_message(message):
         sended_mes = await message.reply("https://nattyan-tv.github.io/tensei_disko/images/kawaisou.png")
     if sended_mes != "":
         await sended_mes.add_reaction("<:trash:896021635470082048>")
-        await asyncio.sleep(2)
+        await asyncio.sleep(3)
         try:
             await sended_mes.remove_reaction("<:trash:896021635470082048>", client.user)
             return
