@@ -87,8 +87,6 @@ async def on_ready():
 # メッセージ受信時処理
 @client.event
 async def on_message(message):
-    if message.author.id != 669178357371371522:
-        return
     sended_mes = ""
     if message.content == "そうだよ(便乗)":
         await message.reply('黙れよ(便乗)')
