@@ -33,6 +33,11 @@ ark_6_nm = "Ragnarok :free:"
 client = discord.Client()
 TOKEN = getenv('DISCORD_BOT_TOKEN')
 
+async def rmv_act(mes, usr):
+    await asyncio.sleep(2)
+    await mes.remove_reaction("<:trash:89021635470082048>", usr)
+
+
 def server_check(embed, sv_ad, sv_nm):
     try:
         print(f"{sv_nm}/{sv_ad} への接続")
@@ -42,9 +47,11 @@ def server_check(embed, sv_ad, sv_nm):
         user = ""
         print(a2s.players(sv_ad))
         if a2s.players(sv_ad) != []:
-            sv_users_str = str(a2s.players(sv_ad)).replace("[Player(", "").replace("]", "")
-            sv_users_str = sv_users_str + ",("
-            sv_users_list = sv_users_str.split("),(")
+            sv_users_str = str(a2s.players(sv_ad)).replace("[", "").replace("]", "")
+            sv_users_str = sv_users_str[7:]
+            sv_users_str = sv_users_str + ", Player("
+            sv_users_list = sv_users_str.split("), Player(")
+            print(sv_users_list)
             for i in range(len(a2s.players(sv_ad))):
                 sp_info = sv_users_list[-2]
                 splited = sp_info.split(", ", 4)[1]
@@ -223,16 +230,16 @@ async def on_message(message):
         elif re.search(r'(?:んど|ンド|nd)', message.content):
             sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_land.png')
             sended_mes = await sended_mes.reply('https://sites.google.com/view/nirand/%E3%83%9B%E3%83%BC%E3%83%A0')
+        elif re.search(r'(?:twitter|Twitter|TWITTER|ついったー|ツイッター)', message.content):
+            sended_mes = await message.reply('https://twitter.com/DR36Hl04ZUwnEnJ')
         else:
-            rnd = random.randint(1, 4)
+            rnd = random.randint(1, 3)
             if rnd == 1:
                 sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_a.jpg')
             elif rnd == 2:
                 sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_b.jpg')
             elif rnd == 3:
                 sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_c.png')
-            elif rnd == 4:
-                sended_mes = await message.reply('https://twitter.com/DR36Hl04ZUwnEnJ')
     if re.search(r'(?:てぃらみす|ティラミス|tiramisu)', message.content):
         rnd = random.randint(1, 2)
         if rnd == 1:
@@ -329,7 +336,7 @@ async def on_message(message):
 # リアクション受信時
 @client.event
 async def on_reaction_add(react, mem):
-    if mem.id != 892759276152573953 and react.message.author.id == 892759276152573953 and discord.PartialEmoji(name='<:trash:896021635470082048>'):
+    if mem.id != 892759276152573953 and react.message.author.id == 892759276152573953 and str(react.emoji) == '<:trash:896021635470082048>':
         role_list = []
         for role in mem.roles:
             role_list.append(role.id)
