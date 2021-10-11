@@ -365,7 +365,8 @@ async def on_message(message):
         try:
             await sended_mes.remove_reaction("<:trash:896021635470082048>", client.user)
             return
-        except BaseException:
+        except BaseException as err:
+            print(err)
             return
 
 
@@ -373,12 +374,7 @@ async def on_message(message):
 @client.event
 async def on_reaction_add(react, mem):
     if mem.id != 892759276152573953 and react.message.author.id == 892759276152573953 and str(react.emoji) == '<:trash:896021635470082048>':
-        role_list = []
-        for role in mem.roles:
-            role_list.append(role.id)
-        print(894843810566266900 in role_list, 876433165105897482 in role_list, 894365538724237353 in role_list, 885492941261524992 in role_list, 890861951842942978 in role_list)
-        if 894843810566266900 in role_list or 876433165105897482 in role_list or 894365538724237353 in role_list or 885492941261524992 in role_list or 890861951842942978 in role_list:
-            await client.http.delete_message(react.message.channel.id, react.message.id)
+        await client.http.delete_message(react.message.channel.id, react.message.id)
     return
 
 # Botの起動とDiscordサーバーへの接続
