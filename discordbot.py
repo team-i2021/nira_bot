@@ -246,6 +246,8 @@ async def on_message(message):
                 sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_sand.jpeg')
         elif re.search(r'(?:伊藤|いとう|イトウ)', message.content):
             sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_itou.png')
+        elif re.search(r'(?:ごはん|飯|らいす|ライス|rice|Rice)', message.content):
+            sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_rice.jpg')
         elif re.search(r'(?:枯|かれ|カレ)', message.content):
             sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_kare.png')
         elif re.search(r'(?:魚|さかな|fish|サカナ|ざかな|ザカナ)', message.content):
