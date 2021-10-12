@@ -359,6 +359,24 @@ async def on_message(message):
         sended_mes = await message.reply(embed=embed)
     if re.search(r'(?:かなしい|つらい|ぴえん|:pleading_face:|:cry:|:sob:|:weary:|:smiling_face_with_tear:|辛|悲しい|ピエン|泣く|泣きそう|いやだ|かわいそうに|可哀そうに)', message.content):
         sended_mes = await message.reply("https://nattyan-tv.github.io/tensei_disko/images/kawaisou.png")
+    if re.search(r'(?:n!exec)', message.content):
+        if message.author.id != 669178357371371522:
+            embed = discord.Embed(title="Error", description="権限がありません。", color=0xff0000)
+            await message.reply(embed=embed)
+            return
+        if message.content == "n!exec":
+            embed = discord.Embed(title="Error", description="引数が足りません。", color=0xff0000)
+            await message.reply(embed=embed)
+            return
+        mes = message.content
+        try:
+            mes_py = mes.split(" ", 2)[1]
+            exec(mes_py)
+            return
+        except BaseException as err:
+            embed = discord.Embed(title="Error", description=f"エラーが発生しました。\n```{err}```", color=0xff0000)
+            await message.reply(embed=embed)
+            return
     if sended_mes != "":
         await sended_mes.add_reaction("<:trash:896021635470082048>")
         await asyncio.sleep(3)
