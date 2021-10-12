@@ -120,7 +120,7 @@ async def on_message(message):
             return
         mes = message.content
         try:
-            mes_te = mes.split(" ", 2)[1]
+            mes_te = mes.split(" ", 1)[1]
         except BaseException as err:
             embed = discord.Embed(title="Error", description=f"な、なんかエラー出たけど！？\n```n!janken [グー/チョキ/パー]```\n{err}", color=0xff0000)
             await message.reply(embed=embed)
@@ -193,8 +193,8 @@ async def on_message(message):
             return
         try:
             mes_ch = message.content
-            emb_title = mes_ch.split(" ", 4)[1]
-            emb_desc = mes_ch.split(" ", 3)[2]
+            emb_title = mes_ch.split(" ", 1)[1]
+            emb_desc = mes_ch.split(" ", 2)[2]
             embed = discord.Embed(title=emb_title, description=emb_desc, color=0x000000)
             await message.channel.send(embed=embed)
             return
@@ -218,7 +218,7 @@ async def on_message(message):
             return
         mes = message.content
         try:
-            mes_te = mes.split(" ", 2)[1]
+            mes_te = mes.split(" ", 1)[1]
             print(mes_te)
         except BaseException as err:
             embe = discord.Embed(title="Error", description=f"不明なエラーが発生しました。\n```{err}```", color=0xff0000)
@@ -370,7 +370,7 @@ async def on_message(message):
             return
         mes = message.content
         try:
-            mes_py = mes.split(" ", 2)[1]
+            mes_py = mes.split(" ", 1)[1]
             exec(mes_py)
             return
         except BaseException as err:
