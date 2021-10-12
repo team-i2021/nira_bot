@@ -369,14 +369,22 @@ async def on_message(message):
             await message.reply(embed=embed)
             return
         mes = message.content
-        try:
-            mes_py = mes.split(" ", 1)[1]
-            exec(mes_py)
-            return
-        except BaseException as err:
-            embed = discord.Embed(title="Error", description=f"エラーが発生しました。\n```{err}```", color=0xff0000)
-            await message.reply(embed=embed)
-            return
+        if re.search(r'(?:n!exec await)', message.content):
+            try:
+                mes_py = mes.split(" ", 2)[2]
+                await eval(mes_py)
+            except BaseException as err:
+                embed = discord.Embed(title="Error", description=f"エラーが発生しました。\n```{err}```", color=0xff0000)
+                await message.reply(embed=embed)
+        else:
+            try:
+                mes_py = mes.split(" ", 1)[1]
+                eval(mes_py)
+            except BaseException as err:
+                embed = discord.Embed(title="Error", description=f"エラーが発生しました。\n```{err}```", color=0xff0000)
+                await message.reply(embed=embed)
+                return
+        return
     if sended_mes != "":
         await sended_mes.add_reaction("<:trash:896021635470082048>")
         await asyncio.sleep(3)
