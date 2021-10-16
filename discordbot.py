@@ -35,6 +35,11 @@ async def rmv_act(mes, usr):
     await asyncio.sleep(2)
     await mes.remove_reaction("<:trash:89021635470082048>", usr)
 
+async def server_check_async(loop, embed, n):
+    return await loop.run_in_executor(
+        None, server_check, embed, n
+    )
+
 def server_check(embed, n):
     if n == "1":
         sv_ad = ark_1
@@ -207,12 +212,8 @@ async def on_message(message):
             embed = discord.Embed(title="ARK: Survival Evolved\ndinosaur Server", description=":arrows_counterclockwise:Connecting...\nPlease wait...", color=0x333333)
             ark_emb = await message.reply(embed=embed)
             embed = discord.Embed(title="ARK: Survival Evolved\ndinosaur Server", description=":globe_with_meridians:Status\n==========", color=0x00ff00)
-            server_check(embed, "1")
-            server_check(embed, "2")
-            server_check(embed, "3")
-            server_check(embed, "4")
-            server_check(embed, "5")
-            server_check(embed, "6")
+            for i in map(str, range(1, 7)):
+                await server_check_async(client.loop, embed, i)
             await ark_emb.edit(embed=embed)
             await ark_emb.reply(f"{message.author.mention}")
             return
