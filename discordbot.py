@@ -182,14 +182,75 @@ async def on_message(message):
         await message.reply(embed=embed)
         return
     if message.content == "n!uranai":
-        rnd_uranai = random.randint(0, 10)
-        not_star = 10 - rnd_uranai
-        stars = ""
-        for i in range(rnd_uranai):
-            stars = stars + '★'
-        for i in range(not_star):
-            stars = stars + '⭐︎'
-        await message.reply(f"{stars}\nあなたの運勢は星10個中の{rnd_uranai}個です！")
+        rnd_uranai = random.randint(1, 100)
+        if rnd_uranai >= 1 and rnd_uranai <= 50:
+            ur_w = 5
+        elif rnd_uranai >= 51 and rnd_uranai <= 69:
+            rn_u = random.randint(0, 1)
+            if rn_u == 1:
+                ur_w = 6
+            else:
+                ur_w = 4
+        elif rnd_uranai >= 70 and rnd_uranai <= 78:
+            rn_u = random.randint(0, 1)
+            if rn_u == 1:
+                ur_w = 7
+            else:
+                ur_w = 3
+        elif rnd_uranai >= 79 and rnd_uranai <= 87:
+            rn_u = random.randint(0, 1)
+            if rn_u == 1:
+                ur_w = 8
+            else:
+                ur_w = 3
+        elif rnd_uranai >= 88 and rnd_uranai <= 94:
+            rn_u = random.randint(0, 1)
+            if rn_u == 1:
+                ur_w = 9
+            else:
+                ur_w = 2
+        elif rnd_uranai >= 95 and rnd_uranai <= 98:
+            rn_u = random.randint(0, 1)
+            if rn_u == 1:
+                ur_w = 1
+            else:
+                ur_w = 0
+        elif rnd_uranai >= 99 and rnd_uranai <= 100:
+            ur_w = 10
+        if ur_w == 0:
+            stars = ""
+            ur_m = "逆に素晴らしいです！（笑）"
+        elif ur_w == 1:
+            stars = "★"
+            ur_m = "星０じゃないだけマシですよ（笑）"
+        elif ur_w == 2:
+            stars = "★★"
+            ur_m = "まぁまぁ、そんなもんですよwwwwww"
+        elif ur_w == 3:
+            stars = "★★★"
+            ur_m = "10段階で見たらギリ赤点じゃないしいいんじゃないっすか？wwww"
+        elif ur_w == 4:
+            stars = "★★★★"
+            ur_m = "ガルパとかプロセカで見たら良い評価だよ！wwwwwwww"
+        elif ur_w == 5:
+            stars = "★★★★★"
+            ur_m = "まぁ、中途半端っすね"
+        elif ur_w == 6:
+            stars = "★★★★★★"
+            ur_m = "おっおっおっ！まぁいいんじゃない？"
+        elif ur_w == 7:
+            stars = "★★★★★★★"
+            ur_m = "ラッキーセブン！凄いじゃん！"
+        elif ur_w == 8:
+            stars = "★★★★★★★★"
+            ur_m = "あなたの運勢めっちゃええで！！"
+        elif ur_w == 9:
+            stars = "★★★★★★★★★"
+            ur_m = "ここまで来て星10も出せないんですか？www\n中途半端ですねぇ！wwwww"
+        elif ur_w == 10:
+            stars = "★★★★★★★★★★"
+            ur_m = "星10！！！　最高の運勢です！！！！！！\n私にも分けてほしいぐらいです！！"
+        await message.reply(f"{stars}\nあなたの運勢は星10個中の{ur_w}個です！\n{ur_m}")
         return
     if re.search(r'(?:n!embed)', message.content):
         if message.content == "n!embed":
