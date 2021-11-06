@@ -102,3 +102,7 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+reaction_bool_list.nira
+steam_server_list.nira
+bot_token.py
