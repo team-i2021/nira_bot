@@ -16,10 +16,15 @@ sys.setrecursionlimit(10000)#エラー回避
 import pickle
 from discord.flags import MessageFlags
 
+global steam_server_list
 steam_server_list = {}
-admin_role_list = {}
+global ex_reaction_list
+ex_reaction_list = {}
+global reaction_bool_list
 reaction_bool_list = {}
+global welcome_id_list
 welcome_id_list = {}
+
 on_ali = ["1", "on", "On", "ON", "true", "True", "TRUE", "yes", "Yes", "YES"]
 off_ali = ["0", "off", "Off", "OFF", "false", "False", "FALSE", "no", "No", "NO"]
 
@@ -344,6 +349,7 @@ async def nira_check(message, client):
         embed.add_field(name="```n!janken [グー/チョキ/パー]]```", value="じゃんけんで遊びます。確率操作はしてません。", inline=False)
         embed.add_field(name="```n!uranai```", value="あなたの運勢が占われます。同上。\n==========", inline=False)
         embed.add_field(name="```n!nr [on/off]```", value="通常反応の設定を変更します。", inline=False)
+        embed.add_field(name="```n!er [add/list/del] (add:[トリガー] [返事])```", value="追加返事機能の設定を行います。", inline=False)
         embed.add_field(name="・リアクションについて", value="このbotの発したメッセージの一部には、<:trash:896021635470082048>のリアクションが自動的に付きます。\nこのリアクションを押すとそのメッセージが削除されます。", inline=False)
         await message.reply(embed=embed)
         if message.author.id in py_admin:
@@ -484,6 +490,9 @@ async def nira_check(message, client):
     if message.content[:4] == "n!ss":
         print(steam_server_list, type(steam_server_list))
         if message.content[:8] == "n!ss add":
+            if message.content == "n!ss add":
+                await message.reply("構文が異なります。\n```n!ss add [表示名] [IPアドレス],[ポート番号]```")
+                return
             try:
                 if str(message.guild.id) not in steam_server_list:
                     steam_server_list[str(message.guild.id)] = {"value": "0"}
@@ -510,10 +519,14 @@ async def nira_check(message, client):
                 await message.reply(str(steam_server_list[str(message.guild.id)]).replace('value', '保存数').replace('ad', 'アドレス').replace('nm', '名前').replace('_', '\_').replace('{', '').replace('}', ''))
                 return
         if message.content == "n!ss del":
-            del_re = await message.reply("リストを削除しますか？リスト削除には管理者権限が必要です。\n\n:o:：削除\n:x:：キャンセル")
-            await del_re.add_reaction("\U00002B55")
-            await del_re.add_reaction("\U0000274C")
-            return
+            if str(message.guild.id) not in steam_server_list:
+                await message.reply("サーバーは登録されていません。")
+                return
+            else:
+                del_re = await message.reply("サーバーリストを削除しますか？リスト削除には管理者権限が必要です。\n\n:o:：削除\n:x:：キャンセル")
+                await del_re.add_reaction("\U00002B55")
+                await del_re.add_reaction("\U0000274C")
+                return
         print(datetime.datetime.now())
         if message.content == "n!ss":
             if str(message.guild.id) not in steam_server_list:
@@ -560,6 +573,47 @@ async def nira_check(message, client):
     if message.content[:5] == "n!ark":
         await message.reply(embed=discord.Embed(title="Notice", description="`n!ark`のサポートは終了しました。\n以降は`n!ss`をご利用ください。\n\n※詳しくは`n!help`でヘルプを表示してください。", color=0xffff00))
         return
+    if message.content[:4] == "n!er":
+        if message.content[:8] == "n!er add":
+            if message.content == "n!er add":
+                await message.reply("構文が異なります。\n```n!er add [トリガー] [返信文]```")
+                return
+            try:
+                if str(message.guild.id) not in ex_reaction_list:
+                    ex_reaction_list[str(message.guild.id)] = {"value":0}
+                value = ex_reaction_list[str(message.guild.id)]["value"]
+                ra = message.content[9:].split(" ", 1)
+                react_triger = ra[0]
+                react_return = ra[1]
+                ex_reaction_list[str(message.guild.id)]["value"] = ex_reaction_list[str(message.guild.id)]["value"]+1
+                ex_reaction_list[str(message.guild.id)][f'{value+1}_tr'] = str(react_triger)
+                ex_reaction_list[str(message.guild.id)][f'{value+1}_re'] = str(react_return)
+                await message.reply(f"トリガー：{ra[0]}\nリターン：{ra[1]}")
+                with open('ex_reaction_list.nira', 'wb') as f:
+                    pickle.dump(ex_reaction_list, f)
+                return
+            except BaseException as err:
+                await message.reply(embed=eh(err))
+        if message.content[:9] == "n!er list":
+            if str(message.guild.id) not in ex_reaction_list or ex_reaction_list[str(message.guild.id)]["value"] == 0:
+                await message.reply("追加返答は設定されていません。")
+                return
+            else:
+                embed = discord.Embed(title="追加返答リスト", description="- にらBOT", color=0x00ff00)
+                for i in range(int(ex_reaction_list[str(message.guild.id)]["value"])):
+                    embed.add_field(name=f"トリガー：{ex_reaction_list[str(message.guild.id)][f'{i+1}_tr']}", value=f"リターン：{ex_reaction_list[str(message.guild.id)][f'{i+1}_re']}", inline=False)
+                await message.reply(embed=embed)
+                return
+        if message.content == "n!er del":
+            if str(message.guild.id) not in ex_reaction_list:
+                await message.reply("追加返答は設定されていません。")
+                return
+            else:
+                del_re = await message.reply("追加返答のリストを削除してもよろしいですか？リスト削除には管理者権限が必要です。\n\n:o:：削除\n:x:：キャンセル")
+                await del_re.add_reaction("\U00002B55")
+                await del_re.add_reaction("\U0000274C")
+                return
+        return
     if message.content[:3] == "n!d":
         if message.content == "n!d":
             user = await client.fetch_user(message.author.id)
@@ -580,3 +634,6 @@ async def nira_check(message, client):
             except BaseException:
                 await message.reply(embed=discord.Embed(title="Error", description="ユーザーが存在しないか、データが取得できませんでした。", color=0xff0000))
                 return
+
+def new_func():
+    global ex_reaction_list

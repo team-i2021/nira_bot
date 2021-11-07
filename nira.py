@@ -53,6 +53,12 @@ async def on_ready():
         print("変数[welcome_id_list]のファイル読み込みに成功しました。")
     except BaseException:
         print("変数[welcome_id_list]のファイル読み込みに失敗しましたが続行します。")
+    try:
+        with open('ex_reaction_list.nira', 'rb') as f:
+            n_cmd.ex_reaction_list = pickle.load(f)
+        print("変数[ex_reaction_list]のファイル読み込みに成功しました。")
+    except BaseException:
+        print("変数[ex_reaction_list]のファイル読み込みに失敗しましたが続行します。")
     await client.change_presence(activity=discord.Game(name="n!help | にらゲー", type=1), status=discord.Status.online)
     print('Launched! NIRABOT v.永遠にβバージョン')
 
@@ -60,10 +66,11 @@ async def on_ready():
 @client.event
 async def on_message(message):
     # 自分自身には反応しない
-    if message.author.id == 892759276152573953:
+    if message.author.bot:
         return
     # 略したけど、コマンド系
     await n_cmd.nira_check(message, client)
+    
     ###############################
     # 通常反応のブール値存在チェック #
     ###############################
@@ -76,6 +83,13 @@ async def on_message(message):
     # 「n!nr [on/off]」で変更できます
     #########################################
     if n_cmd.reaction_bool_list[str(message.guild.id)] == 1:
+        # 追加反応
+        if str(message.guild.id) in n_cmd.ex_reaction_list:
+            if n_cmd.ex_reaction_list[str(message.guild.id)]["value"] != 0:
+                for i in range(n_cmd.ex_reaction_list[str(message.guild.id)]["value"]):
+                    if re.search(n_cmd.ex_reaction_list[str(message.guild.id)][f"{i+1}_tr"], message.content):
+                        sended_mes = await message.reply(n_cmd.ex_reaction_list[str(message.guild.id)][f"{i+1}_re"])
+                        return
         sended_mes = ""
         if re.search(r'(?:(。∀ ﾟ))', message.content):
             sended_mes = await message.reply("おっ、かわいいな")
@@ -119,7 +133,7 @@ async def on_message(message):
                 sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_sword.png')
             elif re.search(r'(?:あんど|and|アンド)', message.content):
                 sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_and.png')
-            elif re.search(r'(?:んど|ンド|nd)', message.content):
+            elif re.search(r'(?:にらんど|ニランド|nirand|niland)', message.content):
                 sended_mes = await message.reply('https://nattyan-tv.github.io/tensei_disko/images/nira_land.png')
                 sended_mes = await sended_mes.reply('https://sites.google.com/view/nirand/%E3%83%9B%E3%83%BC%E3%83%A0')
             elif re.search(r'(?:饅頭|まんじゅう|マンジュウ)', message.content):
@@ -247,19 +261,17 @@ async def on_message(message):
 # リアクション受信時
 @client.event
 async def on_reaction_add(react, mem):
+    # SteamServerListのリスト
     try:
-        if mem.id != 892759276152573953 and react.message.author.id == 892759276152573953 and react.message.content == "リストを削除しますか？リスト削除には管理者権限が必要です。\n\n:o:：削除\n:x:：キャンセル":
-            role_list = []
-            for role in mem.roles:
-                role_list.append(role.id)
-            if 876433165105897482 in role_list or 894365538724237353 in role_list or mem.id == 669178357371371522:
+        if mem.id != 892759276152573953 and react.message.author.id == 892759276152573953 and react.message.content == "サーバーリストを削除しますか？リスト削除には管理者権限が必要です。\n\n:o:：削除\n:x:：キャンセル":
+            if n_cmd.admin_check(react.message.guild, mem):
                 if str(react.emoji) == "\U00002B55":
                     del n_cmd.steam_server_list[str(react.message.guild.id)]
                     with open('steam_server_list.nira', 'wb') as f:
                         pickle.dump(n_cmd.steam_server_list, f)
                     embed = discord.Embed(title="リスト削除", description=f"{mem.mention}\nリストは正常に削除されました。", color=0xffffff)
                     if mem.id == 669178357371371522:
-                        embed = discord.Embed(title="リスト削除", description=f"{mem.mention}\nlistはホームディレクトリに「`steam_server_list.nira`」という形式で保存されています。\n全てのguildのリストを削除するには、Pythonコード`os.remove([filename])`を使用して削除することが可能です。", color=0xffffff)
+                        embed = discord.Embed(title="リスト削除", description=f"{mem.mention}\ndeleted.", color=0xffffff)
                     await react.message.channel.send(embed=embed)
                     await client.http.delete_message(react.message.channel.id, react.message.id)
                     return
@@ -268,7 +280,34 @@ async def on_reaction_add(react, mem):
                     return
             else:
                 user = await client.fetch_user(mem.id)
-                await user.send(embed=discord.Embed(title="リスト削除", description=f"{react.message.guild.name}のサーバーのリスト削除メッセージにインタラクトされましたが、あなたには権限がないため実行できませんでした。", color=0xff0000))
+                await user.send(embed=discord.Embed(title="リスト削除", description=f"{react.message.guild.name}のサーバーのカスタムサーバーリスト削除メッセージにインタラクトされましたが、あなたには権限がないため実行できませんでした。", color=0xff0000))
+                return
+    except KeyError as err:
+        await react.message.channel.send(embed=discord.Embed(title="エラー", description=f"{mem.mention}\nこのサーバーにはリストが登録されていません。\n```{err}```", color=0xff0000))
+        return
+    except BaseException as err:
+        await react.message.channel.send(embed=discord.Embed(title="エラー", description=f"{mem.mention}\n大変申し訳ございません。エラーが発生しました。\n```{err}```", color=0xff0000))
+        return
+    # 追加返答のリスト
+    try:
+        if mem.id != 892759276152573953 and react.message.author.id == 892759276152573953 and react.message.content == "追加返答のリストを削除してもよろしいですか？リスト削除には管理者権限が必要です。\n\n:o:：削除\n:x:：キャンセル":
+            if n_cmd.admin_check(react.message.guild, mem):
+                if str(react.emoji) == "\U00002B55":
+                    del n_cmd.ex_reaction_list[str(react.message.guild.id)]
+                    with open('ex_reaction_list.nira', 'wb') as f:
+                        pickle.dump(n_cmd.ex_reaction_list, f)
+                    embed = discord.Embed(title="リスト削除", description=f"{mem.mention}\nリストは正常に削除されました。", color=0xffffff)
+                    if mem.id == 669178357371371522:
+                        embed = discord.Embed(title="リスト削除", description=f"{mem.mention}\ndeleted.", color=0xffffff)
+                    await react.message.channel.send(embed=embed)
+                    await client.http.delete_message(react.message.channel.id, react.message.id)
+                    return
+                elif str(react.emoji) == "\U0000274C":
+                    await client.http.delete_message(react.message.channel.id, react.message.id)
+                    return
+            else:
+                user = await client.fetch_user(mem.id)
+                await user.send(embed=discord.Embed(title="リスト削除", description=f"{react.message.guild.name}のサーバーの追加返答リスト削除メッセージにインタラクトされましたが、あなたには権限がないため実行できませんでした。", color=0xff0000))
                 return
     except KeyError as err:
         await react.message.channel.send(embed=discord.Embed(title="エラー", description=f"{mem.mention}\nこのサーバーにはリストが登録されていません。\n```{err}```", color=0xff0000))
