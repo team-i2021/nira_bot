@@ -105,4 +105,7 @@ venv.bak/
 
 reaction_bool_list.nira
 steam_server_list.nira
+welcome_id_list.nira
 bot_token.py
+nira copy.py
+nira_copy.py
