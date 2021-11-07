@@ -23,8 +23,10 @@ welcome_id_list = {}
 on_ali = ["1", "on", "On", "ON", "true", "True", "TRUE", "yes", "Yes", "YES"]
 off_ali = ["0", "off", "Off", "OFF", "false", "False", "FALSE", "no", "No", "NO"]
 
+# 開発者用コマンド(stop/restart/exec/create/read)を利用できるユーザーのID
 py_admin = [669178357371371522]
 
+# ユーザーが管理者権限を付与された「「「「「ロール」」」」」を所持しているか確認
 def admin_check(guild, memb):
     role_list = []
     for role in memb.roles:
@@ -35,24 +37,17 @@ def admin_check(guild, memb):
             return True
     return False
 
-def check(guild_id, role):
-    global admin_role_list
-    get_role_ch = admin_role_list[str(guild_id)]
-    for i in role:
-        if get_role_ch[i-1] in role:
-            return True
-    return False
-
+# エラーのembedを7文字で出せるようにする
 def eh(err):
     return discord.Embed(title="Error", description=f"大変申し訳ございません。エラーが発生しました。\n```{err}```\n\n[サポートサーバー](https://discord.gg/awfFpCYTcP)", color=0xff0000)
 
-
+# ステータスチェック中にメッセージ返信ができないものを修正する(Created by tasuren)
 async def server_check_async(loop, embed, type, g_id, n):
     return await loop.run_in_executor(
         None, server_check, embed, type, g_id, n
     )
 
-
+# サーバーのステータスをチェックする
 def server_check(embed, type, g_id, n):
     try:
         sv_ad = steam_server_list[str(g_id)][f"{n}_ad"]
@@ -99,7 +94,7 @@ def server_check(embed, type, g_id, n):
             embed.add_field(name=f"> {sv_nm}", value=f"```{err}```", inline=False)
     return True
 
-
+# メッセージチェック
 async def nira_check(message, client):
     #############################
     # Pythonコードを含むコマンド
@@ -331,7 +326,6 @@ async def nira_check(message, client):
         else:
             await message.reply(embed=discord.Embed(title="ADMIN", description=f"権限がないようです。\n**（管理者権限を付与したロールがありませんでした。）**\n自分が管理者の場合は、自分に管理者権限を付与したロールを付けてください。", color=0xff0000))
         return
-# check(message.guild.id, role_list)
     # ヘルプコマンド
     if message.content == "n!help":
         embed = discord.Embed(title="ニラbot HELP", description="ニラちゃんの扱い方", color=0x00ff00)
@@ -346,7 +340,7 @@ async def nira_check(message, client):
             embed.add_field(name="```n!ark [server]```", value="dinosaur鯖(ここでのメインARK鯖)に接続できるか表示します。", inline=False)
             embed.add_field(name="> Server list", value="`1`:The Island\n`2`:Aberration\n`3`:Exctinction\n`4`:Genesis: Part 1\n`5`:Genesis: Part 2\n`6`:Ragnarok", inline=False)
             embed.add_field(name="> [server]を指定しないと", value="全てのサーバーの状態が表示されます。", inline=False)
-        embed.add_field(name="```n!embed [title] [descripition]```", value="Embedを生成して送信します。", inline=False)
+        embed.add_field(name="```n!embed [color(000000~ffffff)] [title]\n[description]```", value="Embedを生成して送信します。", inline=False)
         embed.add_field(name="```n!janken [グー/チョキ/パー]]```", value="じゃんけんで遊びます。確率操作はしてません。", inline=False)
         embed.add_field(name="```n!uranai```", value="あなたの運勢が占われます。同上。\n==========", inline=False)
         embed.add_field(name="```n!nr [on/off]```", value="通常反応の設定を変更します。", inline=False)
@@ -472,14 +466,15 @@ async def nira_check(message, client):
         return
     if re.search(r'(?:n!embed)', message.content):
         if message.content == "n!embed":
-            embed = discord.Embed(title="Error", description="構文が間違っています。\n```n!embed [title] [description(スペースなど利用可能)]```", color=0xff0000)
+            embed = discord.Embed(title="Error", description="構文が間違っています。\n```n!embed [color(000000～ffffff)] [title]\n[description]```", color=0xff0000)
             await message.reply(embed=embed)
             return
         try:
-            mes_ch = message.content
-            emb_title = mes_ch.split(" ", 2)[1]
-            emb_desc = mes_ch.split(" ", 2)[2]
-            embed = discord.Embed(title=emb_title, description=emb_desc, color=0x000000)
+            mes_ch = message.content.splitlines()
+            emb_clr = int("".join(re.findall(r'[0-9]|[a-f]', str(mes_ch[0].split(" ", 2)[1]))), 16)
+            emb_title = str(mes_ch[0].split(" ", 2)[2])
+            emb_desc = "\n".join(mes_ch[1:])
+            embed = discord.Embed(title=emb_title, description=emb_desc, color=emb_clr)
             await message.channel.send(embed=embed)
             return
         except BaseException as err:
