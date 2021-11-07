@@ -351,7 +351,7 @@ async def nira_check(message, client):
             await message.reply(embed=embed)
             return
         return
-    if re.search(r'(?:n!janken)', message.content):
+    if message.content[:9] == "n!janken":
         if message.content == "n!janken":
             embed = discord.Embed(title="Error", description="じゃんけんっていのは、「グー」「チョキ」「パー」のどれかを出して遊ぶゲームだよ。\n[ルール解説](https://ja.wikipedia.org/wiki/%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93#:~:text=%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93%E3%81%AF2%E4%BA%BA%E4%BB%A5%E4%B8%8A,%E3%81%A8%E6%95%97%E8%80%85%E3%82%92%E6%B1%BA%E5%AE%9A%E3%81%99%E3%82%8B%E3%80%82)\n```n!janken [グー/チョキ/パー]```", color=0xff0000)
             await message.reply(embed=embed)
@@ -464,7 +464,7 @@ async def nira_check(message, client):
         embed.add_field(name=f"あなたの運勢は**星10個中の{ur_w}個**です！", value=f"> {ur_m}")
         await message.reply(embed=embed)
         return
-    if re.search(r'(?:n!embed)', message.content):
+    if message.content[:7] == "n!embed":
         if message.content == "n!embed":
             embed = discord.Embed(title="Error", description="構文が間違っています。\n```n!embed [color(000000～ffffff)] [title]\n[description]```", color=0xff0000)
             await message.reply(embed=embed)
@@ -563,13 +563,19 @@ async def nira_check(message, client):
     if message.content[:3] == "n!d":
         if message.content == "n!d":
             user = await client.fetch_user(message.author.id)
-            await message.reply(user.created_at)
+            embed = discord.Embed(title="User Info", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
+            embed.set_thumbnail(url=f"https://cdn.discordapp.com/avatars/{user.id}/{str(user.avatar)}")
+            embed.add_field(name="アカウント製作日", value=f"```{user.created_at}```")
+            await message.reply(embed=embed)
             return
         else:
-            user_id = message.content[4:]
+            user_id = int("".join(re.findall(r'[0-9]', message.content[4:])))
             try:
                 user = await client.fetch_user(user_id)
-                await message.reply(user.created_at)
+                embed = discord.Embed(title="User Info", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
+                embed.set_thumbnail(url=f"https://cdn.discordapp.com/avatars/{user.id}/{str(user.avatar)}")
+                embed.add_field(name="アカウント製作日", value=f"```{user.created_at}```")
+                await message.reply(embed=embed)
                 return
             except BaseException:
                 await message.reply(embed=discord.Embed(title="Error", description="ユーザーが存在しないか、データが取得できませんでした。", color=0xff0000))
