@@ -11,7 +11,6 @@ import datetime
 import bot_token
 import n_cmd
 
-
 from discord.embeds import Embed
 sys.setrecursionlimit(10000)#エラー回避
 import pickle
