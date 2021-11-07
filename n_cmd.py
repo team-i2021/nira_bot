@@ -10,6 +10,10 @@ import asyncio
 import datetime
 import bot_token
 from discord.utils import get
+import git
+
+git_url = 'https://github.com/imind-inc/blog.git'
+git_repo = git.Repo("/home/pi/tensei_disko")
 
 from discord.embeds import Embed
 sys.setrecursionlimit(10000)#エラー回避
