@@ -69,8 +69,15 @@ async def on_message(message):
     if message.author.bot:
         return
     # 略したけど、コマンド系
-    await n_cmd.nira_check(message, client)
-    
+    if await n_cmd.nira_check(message, client) == "exec":
+        return
+    # 追加反応
+    if str(message.guild.id) in n_cmd.ex_reaction_list:
+        if n_cmd.ex_reaction_list[str(message.guild.id)]["value"] != 0:
+            for i in range(n_cmd.ex_reaction_list[str(message.guild.id)]["value"]):
+                if re.search(n_cmd.ex_reaction_list[str(message.guild.id)][f"{i+1}_tr"], message.content):
+                    sended_mes = await message.reply(n_cmd.ex_reaction_list[str(message.guild.id)][f"{i+1}_re"])
+                    return
     ###############################
     # 通常反応のブール値存在チェック #
     ###############################
@@ -83,13 +90,6 @@ async def on_message(message):
     # 「n!nr [on/off]」で変更できます
     #########################################
     if n_cmd.reaction_bool_list[str(message.guild.id)] == 1:
-        # 追加反応
-        if str(message.guild.id) in n_cmd.ex_reaction_list:
-            if n_cmd.ex_reaction_list[str(message.guild.id)]["value"] != 0:
-                for i in range(n_cmd.ex_reaction_list[str(message.guild.id)]["value"]):
-                    if re.search(n_cmd.ex_reaction_list[str(message.guild.id)][f"{i+1}_tr"], message.content):
-                        sended_mes = await message.reply(n_cmd.ex_reaction_list[str(message.guild.id)][f"{i+1}_re"])
-                        return
         sended_mes = ""
         if re.search(r'(?:(。∀ ﾟ))', message.content):
             sended_mes = await message.reply("おっ、かわいいな")
@@ -271,7 +271,7 @@ async def on_reaction_add(react, mem):
                         pickle.dump(n_cmd.steam_server_list, f)
                     embed = discord.Embed(title="リスト削除", description=f"{mem.mention}\nリストは正常に削除されました。", color=0xffffff)
                     if mem.id == 669178357371371522:
-                        embed = discord.Embed(title="リスト削除", description=f"{mem.mention}\ndeleted.", color=0xffffff)
+                        embed = discord.Embed(title="リスト削除", description=f"{mem.mention}\ndic deleted.", color=0xffffff)
                     await react.message.channel.send(embed=embed)
                     await client.http.delete_message(react.message.channel.id, react.message.id)
                     return
@@ -298,7 +298,7 @@ async def on_reaction_add(react, mem):
                         pickle.dump(n_cmd.ex_reaction_list, f)
                     embed = discord.Embed(title="リスト削除", description=f"{mem.mention}\nリストは正常に削除されました。", color=0xffffff)
                     if mem.id == 669178357371371522:
-                        embed = discord.Embed(title="リスト削除", description=f"{mem.mention}\ndeleted.", color=0xffffff)
+                        embed = discord.Embed(title="リスト削除", description=f"{mem.mention}\ndic deleted.", color=0xffffff)
                     await react.message.channel.send(embed=embed)
                     await client.http.delete_message(react.message.channel.id, react.message.id)
                     return
