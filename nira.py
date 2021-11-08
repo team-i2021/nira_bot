@@ -10,6 +10,7 @@ import asyncio
 import datetime
 import bot_token
 import n_cmd
+import status_c
 
 from discord.embeds import Embed
 sys.setrecursionlimit(10000)#エラー回避
@@ -38,6 +39,7 @@ async def on_ready():
     try:
         with open('steam_server_list.nira', 'rb') as f:
             n_cmd.steam_server_list = pickle.load(f)
+        print(n_cmd.steam_server_list)
         print("変数[steam_server_list]のファイル読み込みに成功しました。")
     except BaseException:
         print("変数[steam_server_list]のファイル読み込みに失敗しましたが続行します。")
@@ -45,21 +47,24 @@ async def on_ready():
         with open('reaction_bool_list.nira', 'rb') as f:
             n_cmd.reaction_bool_list = pickle.load(f)
         print("変数[reaction_bool_list]のファイル読み込みに成功しました。")
+        print(n_cmd.reaction_bool_list)
     except BaseException:
         print("変数[reaction_bool_list]のファイル読み込みに失敗しましたが続行します。")
     try:
         with open('welcome_id_list.nira', 'rb') as f:
             n_cmd.welcome_id_list = pickle.load(f)
         print("変数[welcome_id_list]のファイル読み込みに成功しました。")
+        print(n_cmd.welcome_id_list)
     except BaseException:
         print("変数[welcome_id_list]のファイル読み込みに失敗しましたが続行します。")
     try:
         with open('ex_reaction_list.nira', 'rb') as f:
             n_cmd.ex_reaction_list = pickle.load(f)
         print("変数[ex_reaction_list]のファイル読み込みに成功しました。")
+        print(n_cmd.ex_reaction_list)
     except BaseException:
         print("変数[ex_reaction_list]のファイル読み込みに失敗しましたが続行します。")
-    await client.change_presence(activity=discord.Game(name="n!help | にらゲー", type=1), status=discord.Status.online)
+    await status_c.change(client)
     print('Launched! NIRABOT v.永遠にβバージョン')
 
 # メッセージ受信時処理

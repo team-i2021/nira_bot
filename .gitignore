@@ -110,5 +110,4 @@ welcome_id_list.nira
 ex_reaction_list.nira
 
 bot_token.py
-nira copy.py
-nira_copy.py
+nira_dev.py

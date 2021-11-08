@@ -10,6 +10,9 @@ import asyncio
 import datetime
 import bot_token
 from discord.utils import get
+import math
+import shutil
+import help_command
 
 
 from discord.embeds import Embed
@@ -121,6 +124,22 @@ async def nira_check(message, client):
                 return "exec"
         else:
             await message.reply(embed=discord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000))
+    # Pythonファイル実行
+    # n!exec [filename]
+    if message.content[:6] == "n!exec":
+        if message.author.id in py_admin:
+            if message.content == "n!exec":
+                await message.reply(embed=discord.Embed(title="Error", description="The command has no enough arguments!", color=0xff0000))
+                return "exec"
+            e_file = str((message.content).split(" ", 1)[1])
+            try:
+                exec(open(e_file).read())
+                return "exec"
+            except BaseException as err:
+                await message.reply(embed=discord.Embed(title="Error", description=f"Python error has occurred!\n```{err}```", color=0xff0000))
+                return "exec"
+        else:
+            await message.reply(embed=discord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000))
     # ソースコード取得(n!read)
     # nira.pyのコードを取得したい場合に便利です。
     if message.content == "n!read":
@@ -128,7 +147,9 @@ async def nira_check(message, client):
             await message.reply(embed=discord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000))
             return "exec"
         try:
-            await message.reply('`nira.py`', file=discord.File('nira.py'))
+            shutil.copyfile("nira.py", "nira_copy.txt")
+            await message.reply('`nira.py（コピー）`', file=discord.File('nira_copy.txt'))
+            os.remove('nira_copy.py')
             return "exec"
         except BaseException as err:
             embed = discord.Embed(title="Error", description=f"Python error has occurred!\n```{err}```", color=0xff0000)
@@ -156,7 +177,7 @@ async def nira_check(message, client):
                 await client.change_presence(activity=discord.Game(name="n!help | にらゲー", type=1), status=discord.Status.idle)
                 return "exec"
         else:
-            embed = discord.Embed(title="Error", description="権限がありません。", color=0xff0000)
+            embed = discord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000)
             await message.reply(embed=embed)
             return "exec"
     # bot停止(n!stop)
@@ -179,36 +200,36 @@ async def nira_check(message, client):
                 await message.reply(err)
                 return "exec"
         else:
-            embed = discord.Embed(title="Error", description="権限がありません。", color=0xff0000)
+            embed = discord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000)
             await message.reply(embed=embed)
             return "exec"
     # !!!!!Pythonコード実行!!!!!
     # このコマンドは「大変危険」です！！！（まぁちゃんと権限設定してるけど）
     # Pythonコードを実行させたい場合はこれを利用してください。
     # (コードの返りは全て「cmd_rt」という配列に追加されます。cmd_rt[0]などと指定してください。)
-    if message.content[:6] == "n!exec":
+    if message.content[:4] == "n!py":
         if message.author.id not in py_admin:
             embed = discord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000)
             await message.reply(embed=embed)
             await message.add_reaction("\U0000274C")
             return "exec"
-        if message.content == "n!exec":
+        if message.content == "n!py":
             embed = discord.Embed(title="Error", description="The command has no enough arguments!", color=0xff0000)
             await message.reply(embed=embed)
             await message.add_reaction("\U0000274C")
             return "exec"
-        if re.search(r'(?:n!exec await)', message.content):
+        if message.content[:10] == "n!py await":
             if message.author.id not in py_admin:
                 embed = discord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000)
                 await message.reply(embed=embed)
                 await message.add_reaction("\U0000274C")
                 return "exec"
-            if message.content == "n!exec await":
+            if message.content == "n!py await":
                 embed = discord.Embed(title="Error", description="The command has no enough arguments!", color=0xff0000)
                 await message.reply(embed=embed)
                 await message.add_reaction("\U0000274C")
                 return "exec"
-        mes = message.content[7:].splitlines()
+        mes = message.content[5:].splitlines()
         cmd_nm = len(mes)
         cmd_rt = []
         print(mes)
@@ -233,6 +254,7 @@ async def nira_check(message, client):
                     return "exec"
         await message.add_reaction("\U0001F197")
         return "exec"
+    # 変数のファイル化(保存)
     if message.content == "n!save":
         try:
             with open('steam_server_list.nira', 'wb') as f:
@@ -333,30 +355,8 @@ async def nira_check(message, client):
             await message.reply(embed=discord.Embed(title="ADMIN", description=f"権限がないようです。\n**（管理者権限を付与したロールがありませんでした。）**\n自分が管理者の場合は、自分に管理者権限を付与したロールを付けてください。", color=0xff0000))
         return "exec"
     # ヘルプコマンド
-    if message.content == "n!help":
-        embed = discord.Embed(title="ニラbot HELP", description="ニラちゃんの扱い方", color=0x00ff00)
-        embed.set_author(name="製作者：なつ", url="https://twitter.com/nattyan_tv", icon_url="https://pbs.twimg.com/profile_images/1388437778292113411/pBiEOtHL_400x400.jpg")
-        embed.add_field(name="```にら系の単語+α```", value="(きっと)なんかしらの反応を示します。\n(通常反応設定が無効になってる場合は反応しません。)", inline=False)
-        embed.add_field(name="```n!help```", value="このヘルプを表示します。", inline=False)
-        embed.add_field(name="```n!ss [value]```", value="指定されたValueのカスタムSteamServerのステータス表示を行います。(※valueを指定しないと、リストの全てのサーバーを表示します。)", inline=False)
-        embed.add_field(name="```n!ss add [ServerName] [ServerIP],[ServerPort]```", value="カスタムSteamServerのリストに追加します。", inline=False)
-        embed.add_field(name="```n!ss list```", value="カスタムSteamServerのリストを表示します。", inline=False)
-        embed.add_field(name="```n!ss del```", value="カスタムSteamServerのリストを初期化します。", inline=False)
-        if message.guild.id == 870642671415337001:
-            embed.add_field(name="```n!ark [server]```", value="dinosaur鯖(ここでのメインARK鯖)に接続できるか表示します。", inline=False)
-            embed.add_field(name="> Server list", value="`1`:The Island\n`2`:Aberration\n`3`:Exctinction\n`4`:Genesis: Part 1\n`5`:Genesis: Part 2\n`6`:Ragnarok", inline=False)
-            embed.add_field(name="> [server]を指定しないと", value="全てのサーバーの状態が表示されます。", inline=False)
-        embed.add_field(name="```n!embed [color(000000~ffffff)] [title]\n[description]```", value="Embedを生成して送信します。", inline=False)
-        embed.add_field(name="```n!janken [グー/チョキ/パー]]```", value="じゃんけんで遊びます。確率操作はしてません。", inline=False)
-        embed.add_field(name="```n!uranai```", value="あなたの運勢が占われます。確率ｓ。\n==========", inline=False)
-        embed.add_field(name="```n!nr [on/off]```", value="通常反応の設定を変更します。", inline=False)
-        embed.add_field(name="```n!er [add/list/del] (add:[トリガー] [返事])```", value="追加返事機能の設定を行います。", inline=False)
-        embed.add_field(name="・リアクションについて", value="このbotの発したメッセージの一部には、<:trash:896021635470082048>のリアクションが自動的に付きます。\nこのリアクションを押すとそのメッセージが削除されます。", inline=False)
-        await message.reply(embed=embed)
-        if message.author.id in py_admin:
-            embed = discord.Embed(title="Error?", description="ってかお前俺の開発者だろ\n自分でコード見るなりして考えろ\n(今はGitHubにあんまプッシュしてないから、`home/pi/nira.py`を見てね)", color=0xff0000)
-            await message.reply(embed=embed)
-            return "exec"
+    if message.content[:6] == "n!help":
+        await help_command.n_help(message, client)
         return "exec"
     if message.content[:9] == "n!janken":
         if message.content == "n!janken":
@@ -519,6 +519,33 @@ async def nira_check(message, client):
             else:
                 await message.reply(str(steam_server_list[str(message.guild.id)]).replace('value', '保存数').replace('ad', 'アドレス').replace('nm', '名前').replace('_', '\_').replace('{', '').replace('}', ''))
                 return "exec"
+        if message.content[:9] == "n!ss edit":
+            if message.content == "n!ss edit":
+                await message.reply("構文が異なります。\n```n!ss edit [サーバーナンバー] [名前] [IPアドレス],[ポート番号]```")
+                return "exec"
+            if str(message.guild.id) not in steam_server_list:
+                await message.reply("サーバーは登録されていません。")
+                return "exec"
+            adre = message.content[10:].split(" ", 3)
+            s_id = int("".join(re.findall(r'[0-9]', adre[0])))
+            s_nm = str(adre[1])
+            s_adre = str(adre[2]).split(",", 2)
+            s_port = int(s_adre[1])
+            s_ip = str("".join(re.findall(r'[0-9]|\.', s_adre[0])))
+            b_value = int(steam_server_list[str(message.guild.id)]["value"])
+            if b_value < s_id:
+                await message.reply("そのサーバーナンバーのサーバーは登録されていません！\n`n!ss list`で確認してみてください。")
+                return "exec"
+            try:
+                steam_server_list[str(message.guild.id)][f"{s_id}_ad"] = (s_ip, s_port)
+                steam_server_list[str(message.guild.id)][f"{s_id}_nm"] = s_nm
+                await message.reply(f"サーバーナンバー：{s_id}\nサーバー名：{s_nm}\nサーバーアドレス：{s_ip},{s_port}")
+                with open('steam_server_list.nira', 'wb') as f:
+                    pickle.dump(steam_server_list, f)
+                return "exec"
+            except BaseException as err:
+                await message.reply(embed=eh(err))
+                return "exec"
         if message.content == "n!ss del":
             if str(message.guild.id) not in steam_server_list:
                 await message.reply("サーバーは登録されていません。")
@@ -605,6 +632,39 @@ async def nira_check(message, client):
                     embed.add_field(name=f"トリガー：{ex_reaction_list[str(message.guild.id)][f'{i+1}_tr']}", value=f"リターン：{ex_reaction_list[str(message.guild.id)][f'{i+1}_re']}", inline=False)
                 await message.reply(embed=embed)
                 return "exec"
+        if message.content[:9] == "n!er edit":
+            if message.content == "n!er edit":
+                await message.reply("構文が異なります。\n```n!er edit [トリガー] [返信文]```")
+                return "exec"
+            if str(message.guild.id) not in ex_reaction_list:
+                await message.reply("追加反応は登録されていません。")
+                return "exec"
+            if ex_reaction_list[str(message.guild.id)]["value"] == 0:
+                await message.reply("追加反応は登録されていません。")
+                return "exec"
+            ssrt = message.content[10:].split(" ", 2)
+            b_tr = ssrt[0]
+            b_re = ssrt[1]
+            try:
+                rt_e = 0
+                for i in range(math.floor((len(ex_reaction_list[str(message.guild.id)])-1)/2)):
+                    if ex_reaction_list[str(message.guild.id)][f"{i+1}_tr"] == b_tr:
+                        await message.reply((ex_reaction_list[str(message.guild.id)][f"{i+1}_tr"], ex_reaction_list[str(message.guild.id)][f"{i+1}_re"]))
+                        ex_reaction_list[str(message.guild.id)][f"{i+1}_re"] = b_re
+                        await message.reply((ex_reaction_list[str(message.guild.id)][f"{i+1}_tr"], ex_reaction_list[str(message.guild.id)][f"{i+1}_re"]))
+                        rt_e = 1
+                        break
+                if rt_e == 1:
+                    await message.reply(f"トリガー：{b_tr}\nリターン：{b_re}")
+                    with open('ex_reaction_list.nira', 'wb') as f:
+                        pickle.dump(ex_reaction_list, f)
+                    return "exec"
+                elif rt_e == 0:
+                    await message.reply("そのトリガーは登録されていません！")
+                    return "exec"
+            except BaseException as err:
+                await message.reply(embed=eh(err))
+                return "exec"
         if message.content == "n!er del":
             if str(message.guild.id) not in ex_reaction_list:
                 await message.reply("追加返答は設定されていません。")
@@ -635,6 +695,3 @@ async def nira_check(message, client):
             except BaseException:
                 await message.reply(embed=discord.Embed(title="Error", description="ユーザーが存在しないか、データが取得できませんでした。", color=0xff0000))
                 return "exec"
-
-def new_func():
-    global ex_reaction_list
