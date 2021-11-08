@@ -149,7 +149,7 @@ async def nira_check(message, client):
         try:
             shutil.copyfile("nira.py", "nira_copy.txt")
             await message.reply('`nira.py（コピー）`', file=discord.File('nira_copy.txt'))
-            os.remove('nira_copy.py')
+            os.remove('nira_copy.txt')
             return "exec"
         except BaseException as err:
             embed = discord.Embed(title="Error", description=f"Python error has occurred!\n```{err}```", color=0xff0000)
