@@ -111,3 +111,6 @@ ex_reaction_list.nira
 
 bot_token.py
 nira_dev.py
+
+n_cmd_backup.py
+nira_backup.py

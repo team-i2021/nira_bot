@@ -80,7 +80,7 @@ async def on_message(message):
     if message.guild.id in n_cmd.ex_reaction_list:
         if n_cmd.ex_reaction_list[message.guild.id]["value"] != 0:
             for i in range(n_cmd.ex_reaction_list[message.guild.id]["value"]):
-                if re.search(n_cmd.ex_reaction_list[message.guild.id][f"{i+1}_tr"], message.content):
+                if re.search(rf'{n_cmd.ex_reaction_list[message.guild.id][f"{i+1}_tr"]}', message.content):
                     sended_mes = await message.reply(n_cmd.ex_reaction_list[message.guild.id][f"{i+1}_re"])
                     return
     ###############################
