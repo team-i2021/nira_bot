@@ -59,8 +59,8 @@ async def server_check_async(loop, embed, type, g_id, n):
 # サーバーのステータスをチェックする
 def server_check(embed, type, g_id, n):
     try:
-        sv_ad = steam_server_list[g_id][f"{n}_ad"]
-        sv_nm = steam_server_list[g_id][f"{n}_nm"]
+        sv_ad = steam_server_list[str(g_id)][f"{n}_ad"]
+        sv_nm = steam_server_list[str(g_id)][f"{n}_nm"]
     except BaseException:
         embed.add_field(name=f"サーバーは{n}にはセットされていません。", value="`n!ss list`でサーバーリストを確認してみましょう！", inline=False)
         return
@@ -256,34 +256,29 @@ async def nira_check(message, client):
         return "exec"
     # 変数のファイル化(保存)
     if message.content == "n!save":
-        if message.author.id in py_admin:
-            try:
-                with open('steam_server_list.nira', 'wb') as f:
-                    pickle.dump(steam_server_list, f)
-                with open('reaction_bool_list.nira', 'wb') as f:
-                    pickle.dump(reaction_bool_list, f)
-                with open('welcome_id_list.nira', 'wb') as f:
-                    pickle.dump(welcome_id_list, f)
-                await message.reply("Saved.")
-            except BaseException as err:
-                await message.reply(f"Error happend.\n{err}")
-            return "exec"
-        else:
-            embed = discord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000)
-            await message.reply(embed=embed)
-            return "exec"
+        try:
+            with open('steam_server_list.nira', 'wb') as f:
+                pickle.dump(steam_server_list, f)
+            with open('reaction_bool_list.nira', 'wb') as f:
+                pickle.dump(reaction_bool_list, f)
+            with open('welcome_id_list.nira', 'wb') as f:
+                pickle.dump(welcome_id_list, f)
+            await message.reply("Saved.")
+        except BaseException as err:
+            await message.reply(f"Error happend.\n{err}")
+        return "exec"          
     #################
     # 通常コマンド
     #################
     if message.content[:4] == "n!ui":
-        if admin_check(message.guild, message.author) or message.author.id in py_admin:
+        if admin_check(message.guild, message.author):
             if message.content[:8] == "n!ui set":
                 try:
                     set_id = int("".join(re.findall(r'[0-9]', message.content[9:])))
-                    welcome_id_list[message.guild.id] = set_id
+                    welcome_id_list[str(message.guild.id)] = set_id
                     with open('welcome_id_list.nira', 'wb') as f:
                         pickle.dump(welcome_id_list, f)
-                    channel = client.get_channel(welcome_id_list[message.guild.id])
+                    channel = client.get_channel(welcome_id_list[str(message.guild.id)])
                     await channel.send("追加完了メッセージ\nこのメッセージが指定のチャンネルに送信されていれば完了です。")
                     await message.reply("追加完了のメッセージを指定されたチャンネルに送信しました。\n送信されていない場合はにらBOTに適切な権限が与えられているかご確認ください。")
                     return "exec"
@@ -292,9 +287,9 @@ async def nira_check(message, client):
                     return "exec"
             elif message.content == "n!ui del":
                 try:
-                    if message.guild.id not in reaction_bool_list:
-                        seted_id = welcome_id_list[message.guild.id]
-                        del welcome_id_list[message.guild.id]
+                    if str(message.guild.id) not in reaction_bool_list:
+                        seted_id = welcome_id_list[str(message.guild.id)]
+                        del welcome_id_list[str(message.guild.id)]
                         with open('welcome_id_list.nira', 'wb') as f:
                             pickle.dump(welcome_id_list, f)
                         await message.reply(f"削除しました。\n再度同じ設定をする場合は```n!ui set {seted_id}```と送信してください。")
@@ -307,9 +302,9 @@ async def nira_check(message, client):
                     return "exec"
             elif message.content == "n!ui":
                 try:
-                    if message.guild.id in reaction_bool_list:
-                        seted_id = int(welcome_id_list[message.guild.id])
-                        channel = client.get_channel(welcome_id_list[message.guild.id])
+                    if str(message.guild.id) in reaction_bool_list:
+                        seted_id = int(welcome_id_list[str(message.guild.id)])
+                        channel = client.get_channel(welcome_id_list[str(message.guild.id)])
                         await message.reply(f"チャンネル：{channel.name}")
                         return "exec"
                     else:
@@ -323,26 +318,26 @@ async def nira_check(message, client):
             return "exec"
     if message.content[:4] == "n!nr":
         try:
-            if message.guild.id not in reaction_bool_list: # 通常反応のブール値存在チェック
-                reaction_bool_list[message.guild.id] = 1
+            if str(message.guild.id) not in reaction_bool_list: # 通常反応のブール値存在チェック
+                reaction_bool_list[str(message.guild.id)] = 1
                 with open('reaction_bool_list.nira', 'wb') as f:
                     pickle.dump(reaction_bool_list, f)
             if message.content == "n!nr":
-                if reaction_bool_list[message.guild.id] == 1:
+                if reaction_bool_list[str(message.guild.id)] == 1:
                     setting = "有効"
-                elif reaction_bool_list[message.guild.id] == 0:
+                elif reaction_bool_list[str(message.guild.id)] == 0:
                     setting = "無効"
                 else:
                     setting = "読み込めませんでした。"
                 await message.reply(embed=discord.Embed(title="Normal Reaction Setting", description=f"通常反応の設定:{setting}\n\n`n!nr [on/off]`で変更できます。", color=0x00ff00))
                 return "exec"
-            if admin_check(message.guild, message.author) or message.author.id in py_admin:
+            if admin_check(message.guild, message.author):
                 nr_setting = str((message.content).split(" ", 1)[1])
                 if nr_setting in on_ali:
-                    reaction_bool_list[message.guild.id] = 1
+                    reaction_bool_list[str(message.guild.id)] = 1
                     await message.reply(embed=discord.Embed(title="Normal Reaction Setting", description="通常反応を有効にしました。", color=0x00ff00))
                 elif nr_setting in off_ali:
-                    reaction_bool_list[message.guild.id] = 0
+                    reaction_bool_list[str(message.guild.id)] = 0
                     await message.reply(embed=discord.Embed(title="Normal Reaction Setting", description="通常反応を無効にしました。", color=0x00ff00))
                 else:
                     await message.reply(embed=discord.Embed(title="Normal Reaction Setting", description="コマンド使用方法:`n!nr [on/off]`", color=0xff0000))
@@ -356,8 +351,6 @@ async def nira_check(message, client):
     if message.content == "n!admin":
         if admin_check(message.guild, message.author):
             await message.reply(embed=discord.Embed(title="ADMIN", description=f"権限があるようです。", color=0x00ff00))
-        elif message.author.id in py_admin:
-            await message.reply(embed=discord.Embed(title="ADMIN", description=f"サーバー権限はありませんが、コマンドは実行できます。(開発者)\n**開発者として不用意な行動は慎んでください。**", color=0xffff00))
         else:
             await message.reply(embed=discord.Embed(title="ADMIN", description=f"権限がないようです。\n**（管理者権限を付与したロールがありませんでした。）**\n自分が管理者の場合は、自分に管理者権限を付与したロールを付けてください。", color=0xff0000))
         return "exec"
@@ -502,17 +495,17 @@ async def nira_check(message, client):
                 await message.reply("構文が異なります。\n```n!ss add [表示名] [IPアドレス],[ポート番号]```")
                 return "exec"
             try:
-                if message.guild.id not in steam_server_list:
-                    steam_server_list[message.guild.id] = {"value": "0"}
+                if str(message.guild.id) not in steam_server_list:
+                    steam_server_list[str(message.guild.id)] = {"value": "0"}
                 ad = message.content[9:].split(" ", 1)
                 ad_name = str(ad[0])
                 ad = ad[1].split(",", 1)
                 ad_port = int(ad[1])
                 ad_ip = str("".join(re.findall(r'[0-9]|\.', ad[0])))
-                sset_point = int(steam_server_list[message.guild.id]["value"])
-                steam_server_list[message.guild.id][f"{sset_point + 1}_ad"] = (ad_ip, ad_port)
-                steam_server_list[message.guild.id][f"{sset_point + 1}_nm"] = ad_name
-                steam_server_list[message.guild.id]["value"] = str(sset_point + 1)
+                sset_point = int(steam_server_list[str(message.guild.id)]["value"])
+                steam_server_list[str(message.guild.id)][f"{sset_point + 1}_ad"] = (ad_ip, ad_port)
+                steam_server_list[str(message.guild.id)][f"{sset_point + 1}_nm"] = ad_name
+                steam_server_list[str(message.guild.id)]["value"] = str(sset_point + 1)
                 await message.reply(f"サーバー名：{ad_name}\nサーバーアドレス：({ad_ip},{ad_port})")
                 with open('steam_server_list.nira', 'wb') as f:
                     pickle.dump(steam_server_list, f)
@@ -520,17 +513,17 @@ async def nira_check(message, client):
             except BaseException as err:
                 await message.reply(embed=eh(err))
         if message.content[:9] == "n!ss list":
-            if message.guild.id not in steam_server_list:
+            if str(message.guild.id) not in steam_server_list:
                 await message.reply("サーバーは登録されていません。")
                 return "exec"
             else:
-                await message.reply(str(steam_server_list[message.guild.id]).replace('value', '保存数').replace('ad', 'アドレス').replace('nm', '名前').replace('_', '\_').replace('{', '').replace('}', ''))
+                await message.reply(str(steam_server_list[str(message.guild.id)]).replace('value', '保存数').replace('ad', 'アドレス').replace('nm', '名前').replace('_', '\_').replace('{', '').replace('}', ''))
                 return "exec"
         if message.content[:9] == "n!ss edit":
             if message.content == "n!ss edit":
                 await message.reply("構文が異なります。\n```n!ss edit [サーバーナンバー] [名前] [IPアドレス],[ポート番号]```")
                 return "exec"
-            if message.guild.id not in steam_server_list:
+            if str(message.guild.id) not in steam_server_list:
                 await message.reply("サーバーは登録されていません。")
                 return "exec"
             adre = message.content[10:].split(" ", 3)
@@ -539,13 +532,13 @@ async def nira_check(message, client):
             s_adre = str(adre[2]).split(",", 2)
             s_port = int(s_adre[1])
             s_ip = str("".join(re.findall(r'[0-9]|\.', s_adre[0])))
-            b_value = int(steam_server_list[message.guild.id]["value"])
+            b_value = int(steam_server_list[str(message.guild.id)]["value"])
             if b_value < s_id:
                 await message.reply("そのサーバーナンバーのサーバーは登録されていません！\n`n!ss list`で確認してみてください。")
                 return "exec"
             try:
-                steam_server_list[message.guild.id][f"{s_id}_ad"] = (s_ip, s_port)
-                steam_server_list[message.guild.id][f"{s_id}_nm"] = s_nm
+                steam_server_list[str(message.guild.id)][f"{s_id}_ad"] = (s_ip, s_port)
+                steam_server_list[str(message.guild.id)][f"{s_id}_nm"] = s_nm
                 await message.reply(f"サーバーナンバー：{s_id}\nサーバー名：{s_nm}\nサーバーアドレス：{s_ip},{s_port}")
                 with open('steam_server_list.nira', 'wb') as f:
                     pickle.dump(steam_server_list, f)
@@ -554,7 +547,7 @@ async def nira_check(message, client):
                 await message.reply(embed=eh(err))
                 return "exec"
         if message.content == "n!ss del":
-            if message.guild.id not in steam_server_list:
+            if str(message.guild.id) not in steam_server_list:
                 await message.reply("サーバーは登録されていません。")
                 return "exec"
             else:
@@ -564,12 +557,12 @@ async def nira_check(message, client):
                 return "exec"
         print(datetime.datetime.now())
         if message.content == "n!ss":
-            if message.guild.id not in steam_server_list:
+            if str(message.guild.id) not in steam_server_list:
                 await message.reply("サーバーは登録されていません。")
                 return "exec"
             async with message.channel.typing():
                 embed = discord.Embed(title="Server Status Checker", description=f"{message.author.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
-                for i in map(str, range(1, int(steam_server_list[message.guild.id]["value"])+1)):
+                for i in map(str, range(1, int(steam_server_list[str(message.guild.id)]["value"])+1)):
                     print(i)
                     await server_check_async(client.loop, embed, 0, message.guild.id, i)
                 await asyncio.sleep(1)
@@ -584,7 +577,7 @@ async def nira_check(message, client):
             await message.reply(embed=eh(err))
             return "exec"
         if mes_te != "all":
-            if message.guild.id not in steam_server_list:
+            if str(message.guild.id) not in steam_server_list:
                 await message.reply("サーバーは登録されていません。")
                 return "exec"
             async with message.channel.typing():
@@ -593,12 +586,12 @@ async def nira_check(message, client):
                 await asyncio.sleep(1)
                 await message.reply(embed=embed)
         elif mes_te == "all":
-            if message.guild.id not in steam_server_list:
+            if str(message.guild.id) not in steam_server_list:
                 await message.reply("サーバーは登録されていません。")
                 return "exec"
             async with message.channel.typing():
                 embed = discord.Embed(title="Server Status Checker", description=f"{message.author.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
-                for i in map(str, range(1, int(steam_server_list[message.guild.id]["value"])+1)):
+                for i in map(str, range(1, int(steam_server_list[str(message.guild.id)]["value"])+1)):
                     print(i)
                     await server_check_async(client.loop, embed, 1, message.guild.id, i)
                 await asyncio.sleep(1)
@@ -614,15 +607,15 @@ async def nira_check(message, client):
                 await message.reply("構文が異なります。\n```n!er add [トリガー] [返信文]```")
                 return "exec"
             try:
-                if message.guild.id not in ex_reaction_list:
-                    ex_reaction_list[message.guild.id] = {"value":0}
-                value = ex_reaction_list[message.guild.id]["value"]
+                if str(message.guild.id) not in ex_reaction_list:
+                    ex_reaction_list[str(message.guild.id)] = {"value":0}
+                value = ex_reaction_list[str(message.guild.id)]["value"]
                 ra = message.content[9:].split(" ", 1)
                 react_triger = ra[0]
                 react_return = ra[1]
-                ex_reaction_list[message.guild.id]["value"] = ex_reaction_list[message.guild.id]["value"]+1
-                ex_reaction_list[message.guild.id][f'{value+1}_tr'] = str(react_triger)
-                ex_reaction_list[message.guild.id][f'{value+1}_re'] = str(react_return)
+                ex_reaction_list[str(message.guild.id)]["value"] = ex_reaction_list[str(message.guild.id)]["value"]+1
+                ex_reaction_list[str(message.guild.id)][f'{value+1}_tr'] = str(react_triger)
+                ex_reaction_list[str(message.guild.id)][f'{value+1}_re'] = str(react_return)
                 await message.reply(f"トリガー：{ra[0]}\nリターン：{ra[1]}")
                 with open('ex_reaction_list.nira', 'wb') as f:
                     pickle.dump(ex_reaction_list, f)
@@ -630,23 +623,23 @@ async def nira_check(message, client):
             except BaseException as err:
                 await message.reply(embed=eh(err))
         if message.content[:9] == "n!er list":
-            if message.guild.id not in ex_reaction_list or ex_reaction_list[message.guild.id]["value"] == 0:
+            if str(message.guild.id) not in ex_reaction_list or ex_reaction_list[str(message.guild.id)]["value"] == 0:
                 await message.reply("追加返答は設定されていません。")
                 return "exec"
             else:
                 embed = discord.Embed(title="追加返答リスト", description="- にらBOT", color=0x00ff00)
-                for i in range(int(ex_reaction_list[message.guild.id]["value"])):
-                    embed.add_field(name=f"トリガー：{ex_reaction_list[message.guild.id][f'{i+1}_tr']}", value=f"リターン：{ex_reaction_list[message.guild.id][f'{i+1}_re']}", inline=False)
+                for i in range(int(ex_reaction_list[str(message.guild.id)]["value"])):
+                    embed.add_field(name=f"トリガー：{ex_reaction_list[str(message.guild.id)][f'{i+1}_tr']}", value=f"リターン：{ex_reaction_list[str(message.guild.id)][f'{i+1}_re']}", inline=False)
                 await message.reply(embed=embed)
                 return "exec"
         if message.content[:9] == "n!er edit":
             if message.content == "n!er edit":
                 await message.reply("構文が異なります。\n```n!er edit [トリガー] [返信文]```")
                 return "exec"
-            if message.guild.id not in ex_reaction_list:
+            if str(message.guild.id) not in ex_reaction_list:
                 await message.reply("追加反応は登録されていません。")
                 return "exec"
-            if ex_reaction_list[message.guild.id]["value"] == 0:
+            if ex_reaction_list[str(message.guild.id)]["value"] == 0:
                 await message.reply("追加反応は登録されていません。")
                 return "exec"
             ssrt = message.content[10:].split(" ", 2)
@@ -654,11 +647,11 @@ async def nira_check(message, client):
             b_re = ssrt[1]
             try:
                 rt_e = 0
-                for i in range(math.floor((len(ex_reaction_list[message.guild.id])-1)/2)):
-                    if ex_reaction_list[message.guild.id][f"{i+1}_tr"] == b_tr:
-                        await message.reply((ex_reaction_list[message.guild.id][f"{i+1}_tr"], ex_reaction_list[message.guild.id][f"{i+1}_re"]))
-                        ex_reaction_list[message.guild.id][f"{i+1}_re"] = b_re
-                        await message.reply((ex_reaction_list[message.guild.id][f"{i+1}_tr"], ex_reaction_list[message.guild.id][f"{i+1}_re"]))
+                for i in range(math.floor((len(ex_reaction_list[str(message.guild.id)])-1)/2)):
+                    if ex_reaction_list[str(message.guild.id)][f"{i+1}_tr"] == b_tr:
+                        await message.reply((ex_reaction_list[str(message.guild.id)][f"{i+1}_tr"], ex_reaction_list[str(message.guild.id)][f"{i+1}_re"]))
+                        ex_reaction_list[str(message.guild.id)][f"{i+1}_re"] = b_re
+                        await message.reply((ex_reaction_list[str(message.guild.id)][f"{i+1}_tr"], ex_reaction_list[str(message.guild.id)][f"{i+1}_re"]))
                         rt_e = 1
                         break
                 if rt_e == 1:
@@ -673,7 +666,7 @@ async def nira_check(message, client):
                 await message.reply(embed=eh(err))
                 return "exec"
         if message.content == "n!er del":
-            if message.guild.id not in ex_reaction_list:
+            if str(message.guild.id) not in ex_reaction_list:
                 await message.reply("追加返答は設定されていません。")
                 return "exec"
             else:

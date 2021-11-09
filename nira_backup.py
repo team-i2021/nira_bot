@@ -77,24 +77,24 @@ async def on_message(message):
     if await n_cmd.nira_check(message, client) == "exec":
         return
     # 追加反応
-    if message.guild.id in n_cmd.ex_reaction_list:
-        if n_cmd.ex_reaction_list[message.guild.id]["value"] != 0:
-            for i in range(n_cmd.ex_reaction_list[message.guild.id]["value"]):
-                if re.search(n_cmd.ex_reaction_list[message.guild.id][f"{i+1}_tr"], message.content):
-                    sended_mes = await message.reply(n_cmd.ex_reaction_list[message.guild.id][f"{i+1}_re"])
+    if str(message.guild.id) in n_cmd.ex_reaction_list:
+        if n_cmd.ex_reaction_list[str(message.guild.id)]["value"] != 0:
+            for i in range(n_cmd.ex_reaction_list[str(message.guild.id)]["value"]):
+                if re.search(n_cmd.ex_reaction_list[str(message.guild.id)][f"{i+1}_tr"], message.content):
+                    sended_mes = await message.reply(n_cmd.ex_reaction_list[str(message.guild.id)][f"{i+1}_re"])
                     return
     ###############################
     # 通常反応のブール値存在チェック #
     ###############################
-    if message.guild.id not in n_cmd.reaction_bool_list:
-                n_cmd.reaction_bool_list[message.guild.id] = 1
+    if str(message.guild.id) not in n_cmd.reaction_bool_list:
+                n_cmd.reaction_bool_list[str(message.guild.id)] = 1
                 with open('reaction_bool_list.nira', 'wb') as f:
                     pickle.dump(n_cmd.reaction_bool_list, f)
     #########################################
     # 通常反応
     # 「n!nr [on/off]」で変更できます
     #########################################
-    if n_cmd.reaction_bool_list[message.guild.id] == 1:
+    if n_cmd.reaction_bool_list[str(message.guild.id)] == 1:
         sended_mes = ""
         if re.search(r'(?:(。∀ ﾟ))', message.content):
             sended_mes = await message.reply("おっ、かわいいな")
@@ -269,9 +269,9 @@ async def on_reaction_add(react, mem):
     # SteamServerListのリスト
     try:
         if mem.id != 892759276152573953 and react.message.author.id == 892759276152573953 and react.message.content == "サーバーリストを削除しますか？リスト削除には管理者権限が必要です。\n\n:o:：削除\n:x:：キャンセル":
-            if n_cmd.admin_check(react.message.guild, mem) or react.message.author.id in py_admin:
+            if n_cmd.admin_check(react.message.guild, mem):
                 if str(react.emoji) == "\U00002B55":
-                    del n_cmd.steam_server_list[react.message.guild.id]
+                    del n_cmd.steam_server_list[str(react.message.guild.id)]
                     with open('steam_server_list.nira', 'wb') as f:
                         pickle.dump(n_cmd.steam_server_list, f)
                     embed = discord.Embed(title="リスト削除", description=f"{mem.mention}\nリストは正常に削除されました。", color=0xffffff)
@@ -296,9 +296,9 @@ async def on_reaction_add(react, mem):
     # 追加返答のリスト
     try:
         if mem.id != 892759276152573953 and react.message.author.id == 892759276152573953 and react.message.content == "追加返答のリストを削除してもよろしいですか？リスト削除には管理者権限が必要です。\n\n:o:：削除\n:x:：キャンセル":
-            if n_cmd.admin_check(react.message.guild, mem) or react.message.author.id in py_admin:
+            if n_cmd.admin_check(react.message.guild, mem):
                 if str(react.emoji) == "\U00002B55":
-                    del n_cmd.ex_reaction_list[react.message.guild.id]
+                    del n_cmd.ex_reaction_list[str(react.message.guild.id)]
                     with open('ex_reaction_list.nira', 'wb') as f:
                         pickle.dump(n_cmd.ex_reaction_list, f)
                     embed = discord.Embed(title="リスト削除", description=f"{mem.mention}\nリストは正常に削除されました。", color=0xffffff)
@@ -329,7 +329,7 @@ async def on_member_join(member):
     user_id = member.id
     try:
         user = await client.fetch_user(user_id)
-        if member.guild.id not in n_cmd.welcome_id_list:
+        if str(member.guild.id) not in n_cmd.welcome_id_list:
             return
         channel = client.get_channel(n_cmd.welcome_id_list[str(member.guild.id)])
         embed = discord.Embed(title="User Info", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
