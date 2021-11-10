@@ -71,7 +71,7 @@ async def on_ready():
 @client.event
 async def on_message(message):
     # 自分自身には反応しない
-    if message.author.bot:
+    if message.author.id != 907111002041118750 and message.author.bot:
         return
     # 略したけど、コマンド系
     if await n_cmd.nira_check(message, client) == "exec":
@@ -331,7 +331,7 @@ async def on_member_join(member):
         user = await client.fetch_user(user_id)
         if member.guild.id not in n_cmd.welcome_id_list:
             return
-        channel = client.get_channel(n_cmd.welcome_id_list[str(member.guild.id)])
+        channel = client.get_channel(n_cmd.welcome_id_list[member.guild.id])
         embed = discord.Embed(title="User Info", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
         embed.set_thumbnail(url=f"https://cdn.discordapp.com/avatars/{user.id}/{str(user.avatar)}")
         embed.add_field(name="アカウント製作日", value=f"```{user.created_at}```")
