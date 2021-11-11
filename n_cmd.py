@@ -385,20 +385,20 @@ async def nira_check(message, client):
         if mes_te == "グー" or mes_te == "ぐー":
             mes_te = "```グー```"
             embed.add_field(name="あなた", value=mes_te, inline=False)
-            embed.set_image(url="https://nattyan-tv.github.io/tensei_disko/images/jyanken_gu.png")
+            embed.set_image(url="https://nattyan-tv.github.io/nira_bot/images/jyanken_gu.png")
         elif mes_te == "チョキ" or mes_te == "ちょき":
             mes_te = "```チョキ```"
             embed.add_field(name="あなた", value=mes_te, inline=False)
-            embed.set_image(url="https://nattyan-tv.github.io/tensei_disko/images/jyanken_choki.png")
+            embed.set_image(url="https://nattyan-tv.github.io/nira_bot/images/jyanken_choki.png")
         elif mes_te == "パー" or mes_te == "ぱー":
             mes_te = "```パー```"
             embed.add_field(name="あなた", value=mes_te, inline=False)
-            embed.set_image(url="https://nattyan-tv.github.io/tensei_disko/images/jyanken_pa.png")
+            embed.set_image(url="https://nattyan-tv.github.io/nira_bot/images/jyanken_pa.png")
         rnd_jyanken = random.randint(1, 3)
         if rnd_jyanken == 1:
             mes_te_e = "```グー```"
             embed.add_field(name="にら", value=mes_te_e, inline=False)
-            embed.set_image(url="https://nattyan-tv.github.io/tensei_disko/images/jyanken_gu.png")
+            embed.set_image(url="https://nattyan-tv.github.io/nira_bot/images/jyanken_gu.png")
             if mes_te == "```グー```":
                 res_jyan = ":thinking: あいこですね..."
             elif mes_te == "```チョキ```":
@@ -408,7 +408,7 @@ async def nira_check(message, client):
         elif rnd_jyanken == 2:
             mes_te_e = "```チョキ```"
             embed.add_field(name="にら", value=mes_te_e, inline=False)
-            embed.set_image(url="https://nattyan-tv.github.io/tensei_disko/images/jyanken_choki.png")
+            embed.set_image(url="https://nattyan-tv.github.io/nira_bot/images/jyanken_choki.png")
             if mes_te == "```チョキ```":
                 res_jyan = ":thinking: あいこですね..."
             elif mes_te == "```パー```":
@@ -418,7 +418,7 @@ async def nira_check(message, client):
         elif rnd_jyanken == 3:
             mes_te_e = "```パー```"
             embed.add_field(name="にら", value=mes_te_e, inline=False)
-            embed.set_image(url="https://nattyan-tv.github.io/tensei_disko/images/jyanken_pa.png")
+            embed.set_image(url="https://nattyan-tv.github.io/nira_bot/images/jyanken_pa.png")
             if mes_te == "```パー```":
                 res_jyan = ":thinking: あいこですね..."
             elif mes_te == "```グー```":
