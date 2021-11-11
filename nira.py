@@ -11,6 +11,7 @@ import datetime
 import bot_token
 import n_cmd
 import status_c
+import srtr
 
 from discord.embeds import Embed
 sys.setrecursionlimit(10000)#エラー回避
@@ -64,6 +65,13 @@ async def on_ready():
         print(n_cmd.ex_reaction_list)
     except BaseException:
         print("変数[ex_reaction_list]のファイル読み込みに失敗しましたが続行します。")
+    try:
+        with open('srtr_bool_list.nira', 'rb') as f:
+            n_cmd.srtr_bool_list = pickle.load(f)
+        print("変数[srtr_bool_list]のファイル読み込みに成功しました。")
+        print(n_cmd.srtr_bool_list)
+    except BaseException:
+        print("変数[srtr_bool_list]のファイル読み込みに失敗しましたが続行します。")
     await status_c.change(client)
     print('Launched! NIRABOT v.永遠にβバージョン')
 
@@ -76,6 +84,11 @@ async def on_message(message):
     # 略したけど、コマンド系
     if await n_cmd.nira_check(message, client) == "exec":
         return
+    # しりとりブール
+    if message.guild.id in n_cmd.srtr_bool_list:
+        if message.channel.id in n_cmd.srtr_bool_list[message.guild.id]:
+            await srtr.on_srtr(message, client)
+            return
     # 追加反応
     if message.guild.id in n_cmd.ex_reaction_list:
         if n_cmd.ex_reaction_list[message.guild.id]["value"] != 0:
@@ -87,9 +100,9 @@ async def on_message(message):
     # 通常反応のブール値存在チェック #
     ###############################
     if message.guild.id not in n_cmd.reaction_bool_list:
-                n_cmd.reaction_bool_list[message.guild.id] = 1
-                with open('reaction_bool_list.nira', 'wb') as f:
-                    pickle.dump(n_cmd.reaction_bool_list, f)
+        n_cmd.reaction_bool_list[message.guild.id] = 1
+        with open('reaction_bool_list.nira', 'wb') as f:
+            pickle.dump(n_cmd.reaction_bool_list, f)
     #########################################
     # 通常反応
     # 「n!nr [on/off]」で変更できます

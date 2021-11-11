@@ -36,6 +36,12 @@ async def n_help(message, client):
         embed.add_field(name="`[タイトル]`", value="サーバーのアドレスを追加します。（グローバルIPアドレス）", inline=False)
         embed.add_field(name="`[本文]`", value="サーバーのポートを追加します。", inline=False)
         embed.add_field(name="例", value="```n!embed 00ff00 これはにら。\nにらってうまいよなぁ...\nレバニラとかおいしいよな...```", inline=False)
+    elif cn == "srtr":
+        embed.add_field(name="```srtr```", value="しりとり（風の対話）を始めます。", inline=False)
+        embed.add_field(name="```n!srtr start```", value="そのチャンネルでしりとり（風の対話）を始めます。", inline=False)
+        embed.add_field(name="例", value="```n!srtr start```\n", inline=False)
+        embed.add_field(name="```n!srtr stop```", value="そのチャンネルでのしりとりを終了します。", inline=False)
+        embed.add_field(name="例", value="```n!srtr stop```", inline=False)
     elif cn == "janken":
         embed.add_field(name="```janken```", value="じゃんけんで遊びます。確率操作はしてません。", inline=False)
         embed.add_field(name="```n!janken [出す手]```", value="じゃんけんできます。それだけです。", inline=False)
@@ -88,6 +94,7 @@ async def n_help(message, client):
         embed.add_field(name="```help```", value="このヘルプを表示します。", inline=False)
         embed.add_field(name="```ss```", value="Steam個人サーバーの状況をチェックします。", inline=False)
         embed.add_field(name="```embed```", value="Embedを作成して送信します。", inline=False)
+        embed.add_field(name="```srtr```", value="しりとり（風の対話）を始めます。", inline=False)
         embed.add_field(name="```janken```", value="じゃんけんで遊びます。確率操作はしてません。", inline=False)
         embed.add_field(name="```uranai```", value="あなたの運勢が占われます。確率ｓ(ry", inline=False)
         embed.add_field(name="```nr```", value="通常反応の設定を変更します。", inline=False)

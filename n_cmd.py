@@ -13,6 +13,7 @@ from discord.utils import get
 import math
 import shutil
 import help_command
+import srtr
 
 
 from discord.embeds import Embed
@@ -28,6 +29,8 @@ global reaction_bool_list
 reaction_bool_list = {}
 global welcome_id_list
 welcome_id_list = {}
+global srtr_bool_list
+srtr_bool_list = {}
 
 on_ali = ["1", "on", "On", "ON", "true", "True", "TRUE", "yes", "Yes", "YES"]
 off_ali = ["0", "off", "Off", "OFF", "false", "False", "FALSE", "no", "No", "NO"]
@@ -320,6 +323,44 @@ async def nira_check(message, client):
                     return "exec"
         else:
             await message.reply(embed=discord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
+            return "exec"
+    if message.content[:6] == "n!srtr":
+        if message.content == "n!srtr":
+            embed = discord.Embed(title="しりとり", description=f"`n!srtr start`でそのチャンネルでしりとり（風対話）を実行し、`n!srtr stop`でしりとりを停止します。", color=0x00ff00)
+            await message.reply(embed=embed)
+            return "exec"
+        if message.content == "n!srtr start":
+            try:
+                if message.guild.id in srtr_bool_list:
+                    if message.channel.id in srtr_bool_list:
+                        embed = discord.Embed(title="しりとり", description=f"{message.channel.name}でしりとりは既にに実行されています。", color=0x00ff00)
+                        await message.reply(embed=embed)
+                        return "exec"
+                    else:
+                        srtr_bool_list[message.guild.id] = {message.channel.id:1}
+                if message.guild.id not in srtr_bool_list:
+                    srtr_bool_list[message.guild.id] = {message.channel.id:1}
+            except BaseException as err:
+                    await message.reply(embed=eh(err))
+                    return "exec"
+            embed = discord.Embed(title="しりとり", description=f"{message.channel.name}でしりとりを始めます。", color=0x00ff00)
+            await message.reply(embed=embed)
+            return "exec"
+        if message.content == "n!srtr stop":
+            try:
+                if message.guild.id not in srtr_bool_list:
+                    embed = discord.Embed(title="しりとり", description=f"{message.guild.name}でしりとりは実行されていません。", color=0x00ff00)
+                    await message.reply(embed=embed)
+                    return "exec"
+                if message.channel.id not in srtr_bool_list[message.guild.id]:
+                    embed = discord.Embed(title="しりとり", description=f"{message.channel.name}でしりとりは実行されていません。", color=0x00ff00)
+                    await message.reply(embed=embed)
+                    return "exec"
+                del srtr_bool_list[message.guild.id][message.channel.id]
+            except BaseException as err:
+                await message.reply(embed=eh(err))
+            embed = discord.Embed(title="しりとり", description=f"{message.channel.name}でのしりとりを終了します。", color=0x00ff00)
+            await message.reply(embed=embed)
             return "exec"
     if message.content[:4] == "n!nr":
         try:
