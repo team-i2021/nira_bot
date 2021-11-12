@@ -82,7 +82,8 @@ async def on_message(message):
     if message.author.id != 907111002041118750 and message.author.bot:
         return
     # 略したけど、コマンド系
-    if await n_cmd.nira_check(message, client) == "exec":
+    if message.content[2:] == "n!":
+        await n_cmd.nira_check(message, client)
         return
     # しりとりブール
     if message.guild.id in n_cmd.srtr_bool_list:
