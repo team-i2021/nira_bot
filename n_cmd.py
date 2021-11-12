@@ -766,7 +766,7 @@ async def nira_check(message, client):
                 await message.reply(embed=discord.Embed(title="Error", description="ユーザーが存在しないか、データが取得できませんでした。", color=0xff0000))
                 return
     elif message.content == "n!ping":
-        embed = discord.Embed(title="Ping", description=f"現在のPing値は`{round(client.latency * 1000)}`msです。", color=0x002ae6)
+        embed = discord.Embed(title="Ping", description=f"現在のPing値は`{round(client.latency * 1000)}`msです。", color=0x00ff00)
         await message.reply(embed=embed)
         return
     else:
