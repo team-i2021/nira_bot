@@ -100,10 +100,16 @@ def server_check(embed, type, g_id, n):
             embed.add_field(name="> Online User", value=f"```{sv_us}```", inline=False)
     except BaseException as err:
         print(err)
-        if type == 0:
-            embed.add_field(name=f"> {sv_nm}", value=":x: Failure\n==========", inline=False)
-        if type == 1:
-            embed.add_field(name=f"> {sv_nm}", value=f"```{err}```", inline=False)
+        if str(err) == "timed out":
+            if type == 0:
+                embed.add_field(name=f"> {sv_nm}", value=":ng:サーバーに接続できませんでした。\n==========", inline=False)
+            if type == 1:
+                embed.add_field(name=f"> {sv_nm}", value=f"```{err}```", inline=False)
+        else:
+            if type == 0:
+                embed.add_field(name=f"> {sv_nm}", value=":x:不明なエラーが発生しました。\n==========", inline=False)
+            if type == 1:
+                embed.add_field(name=f"> {sv_nm}", value=f"```{err}```", inline=False)
     return True
 
 # メッセージチェック
@@ -171,6 +177,10 @@ async def nira_check(message, client):
                     pickle.dump(reaction_bool_list, f)
                 with open('welcome_id_list.nira', 'wb') as f:
                     pickle.dump(welcome_id_list, f)
+                with open('ex_reaction_list.nira', 'wb') as f:
+                    pickle.dump(ex_reaction_list, f)
+                with open('srtr_bool_list.nira', 'wb') as f:
+                    pickle.dump(srtr_bool_list, f)
                 await restart_code.edit(content="RESTART:`nira.py`\n再起動します")
                 print("-----[n!restart]コマンドが実行されたため、再起動します。-----")
                 os.execl(sys.executable, 'python3.7', "nira.py")
@@ -195,6 +205,10 @@ async def nira_check(message, client):
                     pickle.dump(reaction_bool_list, f)
                 with open('welcome_id_list.nira', 'wb') as f:
                     pickle.dump(welcome_id_list, f)
+                with open('ex_reaction_list.nira', 'wb') as f:
+                    pickle.dump(ex_reaction_list, f)
+                with open('srtr_bool_list.nira', 'wb') as f:
+                    pickle.dump(srtr_bool_list, f)
                 await stop_code.edit(content="STOP:`nira.py`\n終了します")
                 await client.logout()
                 exit()
@@ -267,6 +281,10 @@ async def nira_check(message, client):
                     pickle.dump(reaction_bool_list, f)
                 with open('welcome_id_list.nira', 'wb') as f:
                     pickle.dump(welcome_id_list, f)
+                with open('ex_reaction_list.nira', 'wb') as f:
+                    pickle.dump(ex_reaction_list, f)
+                with open('srtr_bool_list.nira', 'wb') as f:
+                    pickle.dump(srtr_bool_list, f)
                 await message.reply("Saved.")
             except BaseException as err:
                 await message.reply(f"Error happend.\n{err}")
@@ -340,6 +358,8 @@ async def nira_check(message, client):
                         srtr_bool_list[message.guild.id] = {message.channel.id:1}
                 if message.guild.id not in srtr_bool_list:
                     srtr_bool_list[message.guild.id] = {message.channel.id:1}
+                    with open('srtr_bool_list.nira', 'wb') as f:
+                        pickle.dump(srtr_bool_list, f)
             except BaseException as err:
                     await message.reply(embed=eh(err))
                     return "exec"
@@ -357,6 +377,8 @@ async def nira_check(message, client):
                     await message.reply(embed=embed)
                     return "exec"
                 del srtr_bool_list[message.guild.id][message.channel.id]
+                with open('srtr_bool_list.nira', 'wb') as f:
+                        pickle.dump(srtr_bool_list, f)
             except BaseException as err:
                 await message.reply(embed=eh(err))
             embed = discord.Embed(title="しりとり", description=f"{message.channel.name}でのしりとりを終了します。", color=0x00ff00)

@@ -108,10 +108,9 @@ reaction_bool_list.nira
 steam_server_list.nira
 welcome_id_list.nira
 ex_reaction_list.nira
-
+srtr_bool_list.nira
+n_cmd_backup.py
 bot_token.py
 nira_dev.py
-
 n_cmd_backup.py
 nira_backup.py
-
