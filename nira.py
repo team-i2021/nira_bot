@@ -221,7 +221,7 @@ async def on_message(message):
             elif rnd == 4:
                 sended_mes = await message.reply('https://twitter.com/Shake_Yuyu')
         if re.search(r'(?:なつ|なっちゃん|Nattyan|nattyan)', message.content):
-            await message.add_reaction("<:shiro:892787951673692161>")
+            await message.add_reaction("<:natsu:908565532268179477>")
         if re.search(r'(?:12pp|12PP)', message.content):
             if message.guild.id == 870642671415337001:
                 sended_mes = await message.reply('https://nattyan-tv.github.io/nira_bot/images/12pp.jpg')
@@ -267,10 +267,10 @@ async def on_message(message):
             if message.guild.id == 870642671415337001:
                 sended_mes = await message.reply("https://twitter.com/Aibell__game")
         if sended_mes != "":
-            await sended_mes.add_reaction("<:trash:896021635470082048>")
+            await sended_mes.add_reaction("<:trash:908565976407236608>")
             await asyncio.sleep(3)
             try:
-                await sended_mes.remove_reaction("<:trash:896021635470082048>", client.user)
+                await sended_mes.remove_reaction("<:trash:908565976407236608>", client.user)
                 return
             except BaseException:
                 return
@@ -333,7 +333,7 @@ async def on_reaction_add(react, mem):
     except BaseException as err:
         await react.message.channel.send(embed=discord.Embed(title="エラー", description=f"{mem.mention}\n大変申し訳ございません。エラーが発生しました。\n```{err}```", color=0xff0000))
         return
-    if mem.id != 892759276152573953 and react.message.author.id == 892759276152573953 and str(react.emoji) == '<:trash:896021635470082048>':
+    if mem.id != 892759276152573953 and react.message.author.id == 892759276152573953 and str(react.emoji) == '<:trash:908565976407236608>':
         await client.http.delete_message(react.message.channel.id, react.message.id)
         return
 
