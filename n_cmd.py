@@ -14,6 +14,7 @@ import math
 import shutil
 import help_command
 import srtr
+import server_check
 
 
 from discord.embeds import Embed
@@ -53,64 +54,7 @@ def admin_check(guild, memb):
 def eh(err):
     return discord.Embed(title="Error", description=f"大変申し訳ございません。エラーが発生しました。\n```{err}```\n\n[サポートサーバー](https://discord.gg/awfFpCYTcP)", color=0xff0000)
 
-# ステータスチェック中にメッセージ返信ができないものを修正する(Created by tasuren)
-async def server_check_async(loop, embed, type, g_id, n):
-    return await loop.run_in_executor(
-        None, server_check, embed, type, g_id, n
-    )
 
-# サーバーのステータスをチェックする
-def server_check(embed, type, g_id, n):
-    try:
-        sv_ad = steam_server_list[g_id][f"{n}_ad"]
-        sv_nm = steam_server_list[g_id][f"{n}_nm"]
-    except BaseException:
-        embed.add_field(name=f"サーバーは{n}にはセットされていません。", value="`n!ss list`でサーバーリストを確認してみましょう！", inline=False)
-        return
-    sv_dt = "None"
-    try:
-        print(f"{sv_nm}/{sv_ad} への接続")
-        sv_dt = a2s.info(sv_ad)
-        print(a2s.info(sv_ad))
-        if type == 0:
-            embed.add_field(name=f"> {sv_nm}", value=":white_check_mark:Success!", inline=False)
-        elif type == 1:
-            embed.add_field(name=f"> {sv_nm}", value=f"```{sv_dt}```", inline=False)
-        user = ""
-        sv_us = a2s.players(sv_ad)
-        if type == 0:
-            if a2s.players(sv_ad) != []:
-                sv_users_str = str(a2s.players(sv_ad)).replace("[", "").replace("]", "")
-                sv_users_str = sv_users_str[7:]
-                sv_users_str = sv_users_str + ", Player("
-                sv_users_list = sv_users_str.split("), Player(")
-                for i in range(len(a2s.players(sv_ad))):
-                    sp_info = sv_users_list[-2]
-                    splited = sp_info.split(", ", 4)[1]
-                    user_add = splited.replace("name='", "").replace("'", "")
-                    if user_add != "":
-                        user = user + "\n" + f"```{user_add}```"
-                    sv_users_list.pop()
-                if user == "":
-                    user = "（ユーザーデータが取得出来ませんでした。）"
-                embed.add_field(name="> Online User", value=f"ユーザー数:{len(a2s.players(sv_ad))}人{user}\n==========", inline=False)
-            else:
-                embed.add_field(name="> Online User", value=":information_source:オンラインユーザーはいません。\n==========", inline=False)
-        elif type == 1:
-            embed.add_field(name="> Online User", value=f"```{sv_us}```", inline=False)
-    except BaseException as err:
-        print(err)
-        if str(err) == "timed out":
-            if type == 0:
-                embed.add_field(name=f"> {sv_nm}", value=":ng:サーバーに接続できませんでした。\n==========", inline=False)
-            if type == 1:
-                embed.add_field(name=f"> {sv_nm}", value=f"```{err}```", inline=False)
-        else:
-            if type == 0:
-                embed.add_field(name=f"> {sv_nm}", value=":x:不明なエラーが発生しました。\n==========", inline=False)
-            if type == 1:
-                embed.add_field(name=f"> {sv_nm}", value=f"```{err}```", inline=False)
-    return True
 
 # メッセージチェック
 async def nira_check(message, client):
@@ -634,7 +578,7 @@ async def nira_check(message, client):
                 embed = discord.Embed(title="Server Status Checker", description=f"{message.author.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
                 for i in map(str, range(1, int(steam_server_list[message.guild.id]["value"])+1)):
                     print(i)
-                    await server_check_async(client.loop, embed, 0, message.guild.id, i)
+                    await server_check.server_check_async(client.loop, embed, 0, message.guild.id, i)
                 await asyncio.sleep(1)
                 await message.reply(embed=embed)
             print("end")
@@ -652,7 +596,7 @@ async def nira_check(message, client):
                 return
             async with message.channel.typing():
                 embed = discord.Embed(title="Server Status Checker", description=f"{message.author.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
-                server_check(embed, 0, message.guild.id, mes_te)
+                server_check.server_check(embed, 0, message.guild.id, mes_te)
                 await asyncio.sleep(1)
                 await message.reply(embed=embed)
         elif mes_te == "all":
@@ -663,7 +607,7 @@ async def nira_check(message, client):
                 embed = discord.Embed(title="Server Status Checker", description=f"{message.author.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
                 for i in map(str, range(1, int(steam_server_list[message.guild.id]["value"])+1)):
                     print(i)
-                    await server_check_async(client.loop, embed, 1, message.guild.id, i)
+                    await server_check.server_check_async(client.loop, embed, 1, message.guild.id, i)
                 await asyncio.sleep(1)
                 await message.reply(embed=embed)
         print("end")
