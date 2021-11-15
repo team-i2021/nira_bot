@@ -26,6 +26,7 @@ from discord.flags import MessageFlags
 # | N    NN    I    R R    A   A   B   B  O   O    T
 # | N     N  IIIII  R  R   A   A   BBBB   OOOOO    T  v.永遠にβバージョン
 
+# Pythonコマンドを実行できる、管理者の方々(どうせ一生1人)
 py_admin = [669178357371371522]
 
 intents = discord.Intents.default()  # デフォルトのIntentsオブジェクトを生成

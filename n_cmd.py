@@ -15,7 +15,11 @@ import shutil
 import help_command
 import srtr
 import server_check
-
+import subprocess
+from subprocess import PIPE
+import chardet
+import urllib.request
+import music
 
 from discord.embeds import Embed
 sys.setrecursionlimit(10000)#エラー回避
@@ -137,33 +141,6 @@ async def nira_check(message, client):
             embed = discord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000)
             await message.reply(embed=embed)
             return
-    # bot停止(n!stop)
-    # botを停止させたい場合にこれを使うと便利です。
-    elif message.content == "n!stop":
-        if message.author.id in py_admin:
-            stop_code = await message.reply("STOP:`nira.py`\n終了準備中...")
-            try:
-                with open('steam_server_list.nira', 'wb') as f:
-                    pickle.dump(steam_server_list, f)
-                with open('reaction_bool_list.nira', 'wb') as f:
-                    pickle.dump(reaction_bool_list, f)
-                with open('welcome_id_list.nira', 'wb') as f:
-                    pickle.dump(welcome_id_list, f)
-                with open('ex_reaction_list.nira', 'wb') as f:
-                    pickle.dump(ex_reaction_list, f)
-                with open('srtr_bool_list.nira', 'wb') as f:
-                    pickle.dump(srtr_bool_list, f)
-                await stop_code.edit(content="STOP:`nira.py`\n終了します")
-                await client.logout()
-                exit()
-                return
-            except BaseException as err:
-                await message.reply(err)
-                return
-        else:
-            embed = discord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000)
-            await message.reply(embed=embed)
-            return
     # !!!!!Pythonコード実行!!!!!
     # このコマンドは「大変危険」です！！！（まぁちゃんと権限設定してるけど）
     # Pythonコードを実行させたい場合はこれを利用してください。
@@ -215,6 +192,41 @@ async def nira_check(message, client):
                     return
         await message.add_reaction("\U0001F197")
         return
+    ############################
+    # 危険すぎてやばいコマンド
+    # シェルスクリプトを実行するけど！
+    # なんかあんまよろしくない！いつか修正予定！
+    #############################
+    if message.content[:4] == "n!sh":
+        if message.author.id not in py_admin:
+            embed = discord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000)
+            await message.reply(embed=embed)
+            await message.add_reaction("\U0000274C")
+            return
+        else:
+            if message.content == "n!sh":
+                embed = discord.Embed(title="Error", description="The command has no enough arguments!", color=0xff0000)
+                await message.reply(embed=embed)
+                await message.add_reaction("\U0000274C")
+                return
+            mes_sh = message.content[5:].splitlines()
+            sh_nm = len(mes_sh)
+            sh_rt = []
+            print(mes_sh)
+            for i in range(sh_nm):
+                try:
+                    export = subprocess.run(f'{mes_sh[i]}', stdout=PIPE, stderr=PIPE, shell=True, text=True)
+                    sh_rt.append(export.stdout)
+                except BaseException as err:
+                    await message.add_reaction("\U0000274C")
+                    embed = discord.Embed(title="Error", description=f"Shell error has occurred!\n・Pythonエラー```{err}```\n・スクリプトエラー```{export.stdout}```", color=0xff0000)
+                    await message.reply(embed=embed)
+                    return
+            await message.add_reaction("\U0001F197")
+            for i in range(len(sh_rt)):
+                rt_sh = "\n".join(sh_rt)
+            await message.reply(f"```{rt_sh}```")
+            return
     # 変数のファイル化(保存)
     elif message.content == "n!save":
         if message.author.id in py_admin:
@@ -713,7 +725,31 @@ async def nira_check(message, client):
         embed = discord.Embed(title="Ping", description=f"現在のPing値は`{round(client.latency * 1000)}`msです。", color=0x00ff00)
         await message.reply(embed=embed)
         return
+    # VC系
+    elif message.content == "n!join":
+        if message.author.id not in py_admin:
+            await message.reply(embed=discord.Embed(title="ちょっとまって！", description="まだVC系は整ってないよ！もうちょっと待ってね！", color=0xffff00))
+            return
+        await music.join_channel(message, client)
+        return
+    elif message.content == "n!pause":
+        await music.pause_music(message, client)
+        return
+    elif message.content[:6] == "n!play":
+        await music.play_music(message, client)
+        return
+    elif message.content == "n!resume":
+        await music.resume_music(message, client)
+        return
+    elif message.content == "n!leave":
+        await music.leave_channel(message, client)
+        return
+    ############
+    #ここ最後だよ
+    ############
     else:
         embed = discord.Embed(title="エラー", description=f"`{message.content}`は存在しないコマンドです。`n!help`でコマンドを確認してください。", color=0xff0000)
         await message.reply(embed=embed)
         return
+
+    

@@ -4,6 +4,8 @@ import asyncio
 import status_check
 import a2s
 
+# 主にサーバーステータスを取得するコード
+
 # ステータスチェック中にメッセージ返信ができないものを修正する(Created by tasuren)
 async def server_check_async(loop, embed, type, g_id, n):
     return await loop.run_in_executor(
