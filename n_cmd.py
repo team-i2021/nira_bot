@@ -364,7 +364,7 @@ async def nira_check(message, client):
                     reaction_bool_list[message.guild.id] = 0
                     await message.reply(embed=discord.Embed(title="Normal Reaction Setting", description="通常反応を無効にしました。", color=0x00ff00))
                 else:
-                    await message.reply(embed=discord.Embed(title="Normal Reaction Setting", description="コマンド使用方法:`n!nr [on/off]`", color=0xff0000))
+                    await message.reply(embed=discord.Embed(title="Normal Reaction Setting", description="コマンド使用方法:`n!nr [all] [on/off]`", color=0xff0000))
                 return
             else:
                 await message.reply(embed=discord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
