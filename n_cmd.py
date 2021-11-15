@@ -727,9 +727,7 @@ async def nira_check(message, client):
         return
     # VC系
     elif message.content == "n!join":
-        if message.author.id not in py_admin:
-            await message.reply(embed=discord.Embed(title="ちょっとまって！", description="まだVC系は整ってないよ！もうちょっと待ってね！", color=0xffff00))
-            return
+        await message.reply(embed=discord.Embed(title="お！？", description="まだVC系は整ってないよ！完成まではもうちょっと待ってね！", color=0xffff00))
         await music.join_channel(message, client)
         return
     elif message.content == "n!pause":
@@ -740,6 +738,9 @@ async def nira_check(message, client):
         return
     elif message.content == "n!resume":
         await music.resume_music(message, client)
+        return
+    elif message.content == "n!stop":
+        await music.stop_music(message, client)
         return
     elif message.content == "n!leave":
         await music.leave_channel(message, client)
