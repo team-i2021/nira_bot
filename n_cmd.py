@@ -386,7 +386,7 @@ async def nira_check(message, client):
         return
     elif message.content[:6] == "n!info":
         return
-        embed = discord.Embed(title="にらBOTにすいて", description="にらBOTはかの有名なARK廃人の「にら」を元ネタとする、多機能DiscordBOTです！", color=0x00ff00)
+        embed = discord.Embed(title="にらBOTについて", description="にらBOTはかの有名なARK廃人の「にら」を元ネタとする、多機能DiscordBOTです！", color=0x00ff00)
         embed.add_field(name="ニラは繊細！", value="にらBOT(もといにら君)は、とっても繊細です！\nコマンドなどを沢山送ったりすると、落ちちゃうかもしれません！\n丁寧に扱ってください！", inline=False)
         embed.add_field(name="音声再生について", value="`n!join`及び`n!play [URL]`コマンドを使用した音楽再生は、大体サーバーのスペックの問題で再生出来ません。まぁ気にしないでね！", inline=False)
         embed.add_field(name="詳しくは...", value="[こちら](url)からにらBOTの詳細をご確認いただけます！どうぞご覧ください！", inline=False)
