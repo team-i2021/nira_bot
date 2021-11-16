@@ -384,6 +384,16 @@ async def nira_check(message, client):
     elif message.content[:6] == "n!help":
         await help_command.n_help(message, client)
         return
+    elif message.content[:6] == "n!info":
+        return
+        embed = discord.Embed(title="にらBOTにすいて", description="にらBOTはかの有名なARK廃人の「にら」を元ネタとする、多機能DiscordBOTです！", color=0x00ff00)
+        embed.add_field(name="ニラは繊細！", value="にらBOT(もといにら君)は、とっても繊細です！\nコマンドなどを沢山送ったりすると、落ちちゃうかもしれません！\n丁寧に扱ってください！", inline=False)
+        embed.add_field(name="音声再生について", value="`n!join`及び`n!play [URL]`コマンドを使用した音楽再生は、大体サーバーのスペックの問題で再生出来ません。まぁ気にしないでね！", inline=False)
+        embed.add_field(name="詳しくは...", value="[こちら](url)からにらBOTの詳細をご確認いただけます！どうぞご覧ください！", inline=False)
+        if message.author.id in py_admin:
+            embed.add_field(name="ってかお前って...", value="開発者だよなお前...\n\n[メインレポジトリ](https://github.com/nattyan-tv/nira_bot) / [ウェブページレポジトリ](https://github.com/nattyan-tv/)")
+        await message.reply(embed=embed)
+        return
     elif message.content[:9] == "n!janken":
         if message.content == "n!janken":
             embed = discord.Embed(title="Error", description="じゃんけんっていのは、「グー」「チョキ」「パー」のどれかを出して遊ぶゲームだよ。\n[ルール解説](https://ja.wikipedia.org/wiki/%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93#:~:text=%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93%E3%81%AF2%E4%BA%BA%E4%BB%A5%E4%B8%8A,%E3%81%A8%E6%95%97%E8%80%85%E3%82%92%E6%B1%BA%E5%AE%9A%E3%81%99%E3%82%8B%E3%80%82)\n```n!janken [グー/チョキ/パー]```", color=0xff0000)
