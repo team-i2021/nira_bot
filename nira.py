@@ -213,7 +213,7 @@ async def on_message(message):
             if message.guild.id == 870642671415337001:
                 rnd = random.randint(1, 4)
             else:
-                rnd = random.randint(1, 3)
+                rnd = random.randint(1, 2)
             if rnd == 1:
                 sended_mes = await message.reply('https://nattyan-tv.github.io/nira_bot/images/sarmon_a.jpg')
             elif rnd == 2:
