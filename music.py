@@ -96,7 +96,7 @@ async def play_music(message, client):
                     except BaseException as err:
                         await message.reply(embed=discord.Embed(title="エラー(リンク取得)",description=f"```{err}```",color=0xff0000))
                         return
-                elif re.search("youtube.com", url):
+                elif re.search("youtube.com", url) or re.search("youtu.be", url):
                     try:
                         music_list[message.guild.id] = await YTDLSource.from_url(url, stream=True)
                         url_type[message.guild.id] = "yt"
