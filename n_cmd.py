@@ -20,6 +20,7 @@ from subprocess import PIPE
 import chardet
 import urllib.request
 import music
+import line
 
 from discord.embeds import Embed
 sys.setrecursionlimit(10000)#エラー回避
@@ -56,7 +57,7 @@ def admin_check(guild, memb):
 
 # エラーのembedを7文字で出せるようにする
 def eh(err):
-    return discord.Embed(title="Error", description=f"大変申し訳ございません。エラーが発生しました。\n```{err}```\n\n[サポートサーバー](https://discord.gg/awfFpCYTcP)", color=0xff0000)
+    return discord.Embed(title="Error", description=f"大変申し訳ございません。エラーが発生しました。\n```{err}```\n```sh\n{sys.exc_info()}```\n\n[サポートサーバー](https://discord.gg/awfFpCYTcP)", color=0xff0000)
 
 
 
@@ -178,7 +179,7 @@ async def nira_check(message, client):
                     cmd_rt.append(await eval(mes_py))
                 except BaseException as err:
                     await message.add_reaction("\U0000274C")
-                    embed = discord.Embed(title="Error", description=f"Python error has occurred!\n```{err}```", color=0xff0000)
+                    embed = discord.Embed(title="Error", description=f"Python error has occurred!\n```{err}```\n```sh\n{sys.exc_info()}```", color=0xff0000)
                     await message.reply(embed=embed)
                     return
             else:
@@ -187,7 +188,7 @@ async def nira_check(message, client):
                     cmd_rt.append("")
                 except BaseException as err:
                     await message.add_reaction("\U0000274C")
-                    embed = discord.Embed(title="Error", description=f"Python error has occurred!\n```{err}```", color=0xff0000)
+                    embed = discord.Embed(title="Error", description=f"Python error has occurred!\n```{err}```\n```sh\n{sys.exc_info()}```", color=0xff0000)
                     await message.reply(embed=embed)
                     return
         await message.add_reaction("\U0001F197")

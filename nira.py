@@ -12,6 +12,7 @@ import bot_token
 import n_cmd
 import status_c
 import srtr
+import line
 
 from discord.embeds import Embed
 sys.setrecursionlimit(10000)#エラー回避
@@ -79,6 +80,7 @@ async def on_ready():
 # メッセージ受信時処理
 @client.event
 async def on_message(message):
+    # LINEでのメッセージ送信
     # 自分自身には反応しない
     if message.author.id != 907111002041118750 and message.author.bot:
         return

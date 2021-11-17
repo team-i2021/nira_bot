@@ -6,6 +6,7 @@ import subprocess
 from subprocess import PIPE
 import math
 import time
+import sys
 import youtube_dl
 music_list = {}
 music_f = {}
@@ -14,6 +15,10 @@ url_type = {}
 # Suppress noise about console usage from errors
 youtube_dl.utils.bug_reports_message = lambda: ''
 
+options = {
+    'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+    'options': '-vn',
+}
 
 ytdl_format_options = {
     'format': 'bestaudio/best',
@@ -28,7 +33,8 @@ ytdl_format_options = {
     'default_search': 'auto',
     'source_address': '0.0.0.0' # bind to ipv4 since ipv6 addresses cause issues sometimes
 }
-
+ #   import traceback
+  #  traceback.print_exc()
 ffmpeg_options = {
     'options': '-vn'
 }
@@ -68,7 +74,7 @@ async def join_channel(message, client):
             await message.reply(embed=discord.Embed(title="にら",description="今はまだ、テスト中なので動作が不安定です！\n`n!play [URL]`/`n!pause`/`n!resume`/`n!stop`/`n!leave`",color=0x00ff00))
             return
     except BaseException as err:
-        await message.reply(embed=discord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
+        await message.reply(embed=discord.Embed(title="エラー",description=f"```{err}```\n```sh\n{sys.exc_info()}```",color=0xff0000))
         return
 
 async def play_music(message, client):
@@ -88,39 +94,32 @@ async def play_music(message, client):
             else:
                 url = message.content[7:]
                 if re.search("nicovideo.jp",url) or re.search("nico.ms",url):
-                    try:
-                        music_f[message.guild.id] = niconico_dl.NicoNicoVideo(url)
-                        music_f[message.guild.id].connect()
-                        music_list[message.guild.id] = music_f[message.guild.id].get_download_link()
-                        url_type[message.guild.id] = "nc"
-                    except BaseException as err:
-                        await message.reply(embed=discord.Embed(title="エラー(リンク取得)",description=f"```{err}```",color=0xff0000))
-                        return
+                    music_f[message.guild.id] = niconico_dl.NicoNicoVideo(url)
+                    music_f[message.guild.id].connect()
+                    music_list[message.guild.id] = music_f[message.guild.id].get_download_link()
+                    url_type[message.guild.id] = "nc"
                 elif re.search("youtube.com", url) or re.search("youtu.be", url):
-                    try:
-                        music_list[message.guild.id] = await YTDLSource.from_url(url, stream=True)
-                        url_type[message.guild.id] = "yt"
-                    except BaseException as err:
-                        await message.reply(embed=discord.Embed(title="エラー(リンク取得)",description=f"```{err}```",color=0xff0000))
-                        return
+                    music_list[message.guild.id] = await YTDLSource.from_url(url, stream=True)
+                    url_type[message.guild.id] = "yt"
             if music_list[message.guild.id] == "none":
                 await message.reply(embed=discord.Embed(title="エラー",description="ニコニコ動画かYouTubeのリンクを入れてね！",color=0xff0000))
                 return
             if url_type[message.guild.id] == "nc":
                 music_time = subprocess.run(f'ffprobe "{music_list[message.guild.id]}" -show_entries format=duration -v quiet -of csv="p=0"', stdout=PIPE, stderr=PIPE, shell=True, text=True)
                 prti = music_time.stdout.find(".")
-                message.guild.voice_client.play(discord.FFmpegPCMAudio(music_list[message.guild.id]))
+                message.guild.voice_client.play(discord.FFmpegPCMAudio(music_list[message.guild.id],**options))
                 await asyncio.sleep(math.floor(int(music_time.stdout[:prti])))
                 music_f[message.guild.id].close()
                 return
             elif url_type[message.guild.id] == "yt":
                 music_time = subprocess.run(f'ffprobe "{music_list[message.guild.id].url}" -show_entries format=duration -v quiet -of csv="p=0"', stdout=PIPE, stderr=PIPE, shell=True, text=True)
                 prti = music_time.stdout.find(".")
-                message.guild.voice_client.play(discord.FFmpegPCMAudio(music_list[message.guild.id].url))
+                message.guild.voice_client.play(discord.FFmpegPCMAudio(music_list[message.guild.id].url,**options))
                 await asyncio.sleep(math.floor(int(music_time.stdout[:prti])))
                 return
     except BaseException as err:
-        await message.reply(embed=discord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
+        await message.reply(embed=discord.Embed(title="エラー",description=f"```{err}```\n```sh\n{sys.exc_info()}```",color=0xff0000))
+        print(url, url_type[message.guild,id], music_list[message.guild.id], prti, music_time.stdout[:prti])
         return
 
 async def pause_music(message, client):
