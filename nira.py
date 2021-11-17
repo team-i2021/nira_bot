@@ -158,6 +158,8 @@ async def on_message(message):
                 sended_mes = await sended_mes.reply('https://sites.google.com/view/nirand/%E3%83%9B%E3%83%BC%E3%83%A0')
             elif re.search(r'(?:饅頭|まんじゅう|マンジュウ)', message.content):
                 sended_mes = await message.reply('https://nattyan-tv.github.io/nira_bot/images/nira_manju.png')
+            elif re.search(r'(?:レバ|れば)', message.content):
+                sended_mes = await message.reply('https://nattyan-tv.github.io/nira_bot/image/rebanira.jpg')
             elif re.search(r'(?:twitter|Twitter|TWITTER|ついったー|ツイッター)', message.content):
                 if message.guild.id == 870642671415337001:
                     sended_mes = await message.reply('https://twitter.com/DR36Hl04ZUwnEnJ')
