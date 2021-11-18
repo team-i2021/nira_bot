@@ -41,6 +41,11 @@ ffmpeg_options = {
 
 ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 
+async def mess(message, played_type, close_obj):
+    if played_type == "nc":
+        close_obj.close()
+    return await message.reply(embed=discord.Embed(title="Finished.", description="再生が終わったよ！\n次は何の曲が流れるのかな～？", color=0x00ff00))
+
 
 class YTDLSource(discord.PCMVolumeTransformer):
     def __init__(self, source, *, data, volume=0.5):
@@ -77,6 +82,7 @@ async def join_channel(message, client):
         await message.reply(embed=discord.Embed(title="エラー",description=f"```{err}```\n```sh\n{sys.exc_info()}```",color=0xff0000))
         return
 
+
 async def play_music(message, client):
     try:
         if message.author.voice is None:
@@ -101,26 +107,17 @@ async def play_music(message, client):
                 elif re.search("youtube.com", url) or re.search("youtu.be", url):
                     music_list[message.guild.id] = await YTDLSource.from_url(url, stream=True)
                     url_type[message.guild.id] = "yt"
+                    music_f[message.guild.id] = None
             if music_list[message.guild.id] == "none":
                 await message.reply(embed=discord.Embed(title="エラー",description="ニコニコ動画かYouTubeのリンクを入れてね！",color=0xff0000))
                 return
-            if url_type[message.guild.id] == "nc":
-                music_time = subprocess.run(f'ffprobe "{music_list[message.guild.id]}" -show_entries format=duration -v quiet -of csv="p=0"', stdout=PIPE, stderr=PIPE, shell=True, text=True)
-                prti = music_time.stdout.find(".")
-                message.guild.voice_client.play(discord.FFmpegPCMAudio(music_list[message.guild.id],**options))
-                await asyncio.sleep(math.floor(int(music_time.stdout[:prti])))
-                music_f[message.guild.id].close()
-                return
-            elif url_type[message.guild.id] == "yt":
-                music_time = subprocess.run(f'ffprobe "{music_list[message.guild.id].url}" -show_entries format=duration -v quiet -of csv="p=0"', stdout=PIPE, stderr=PIPE, shell=True, text=True)
-                prti = music_time.stdout.find(".")
-                message.guild.voice_client.play(discord.FFmpegPCMAudio(music_list[message.guild.id].url,**options))
-                await asyncio.sleep(math.floor(int(music_time.stdout[:prti])))
-                return
+            message.guild.voice_client.play(discord.FFmpegPCMAudio(music_list[message.guild.id].url,**options), after = lambda e: client.loop.create_task(mess(message, url_type[message.guild.id], music_f[message.guild.id])))
+            return
     except BaseException as err:
         await message.reply(embed=discord.Embed(title="エラー",description=f"```{err}```\n```sh\n{sys.exc_info()}```",color=0xff0000))
-        print(url, url_type[message.guild,id], music_list[message.guild.id], prti, music_time.stdout[:prti])
+        print(url, url_type[message.guild.id], music_list[message.guild.id])
         return
+
 
 async def pause_music(message, client):
     if message.author.voice is None:
@@ -138,6 +135,7 @@ async def pause_music(message, client):
             await message.reply(embed=discord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
             return
 
+
 async def resume_music(message, client):
     if message.author.voice is None:
             await message.reply(embed=discord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
@@ -154,6 +152,7 @@ async def resume_music(message, client):
             await message.reply(embed=discord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
             return
 
+
 async def stop_music(message, client):
     if message.author.voice is None:
             await message.reply(embed=discord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
@@ -169,6 +168,7 @@ async def stop_music(message, client):
         except BaseException as err:
             await message.reply(embed=discord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
             return
+
 
 async def leave_channel(message, client):
     try:
