@@ -162,6 +162,12 @@ async def on_message(message):
                 sended_mes = await message.reply('https://nattyan-tv.github.io/nira_bot/images/nira_manju.png')
             elif re.search(r'(?:レバ|れば)', message.content):
                 sended_mes = await message.reply('https://nattyan-tv.github.io/nira_bot/images/rebanira.jpg')
+            elif re.search(r'(?:とり|トリ|bird|鳥)', message.content):
+                rnd = random.randint(1, 2)
+                if rnd == 1:
+                    sended_mes = await message.reply('https://nattyan-tv.github.io/nira_bot/images/nirabird_a.png')
+                elif rnd == 2:
+                    sended_mes = await message.reply('https://nattyan-tv.github.io/nira_bot/images/nirabird_b.png')
             elif re.search(r'(?:twitter|Twitter|TWITTER|ついったー|ツイッター)', message.content):
                 if message.guild.id == 870642671415337001:
                     sended_mes = await message.reply('https://twitter.com/DR36Hl04ZUwnEnJ')
