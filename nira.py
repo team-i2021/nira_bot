@@ -10,7 +10,6 @@ import asyncio
 import datetime
 import bot_token
 import n_cmd
-import status_c
 import srtr
 import line
 
@@ -74,7 +73,7 @@ async def on_ready():
         print(n_cmd.srtr_bool_list)
     except BaseException:
         print("変数[srtr_bool_list]のファイル読み込みに失敗しましたが続行します。")
-    await status_c.change(client)
+    await client.change_presence(activity=discord.Game(name="n!help | 栽培ゲーム", type=1), status=discord.Status.online)
     print('Launched! NIRABOT v.永遠にβバージョン')
 
 # メッセージ受信時処理

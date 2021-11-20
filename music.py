@@ -111,6 +111,7 @@ async def play_music(message, client):
             if music_list[message.guild.id] == "none":
                 await message.reply(embed=discord.Embed(title="エラー",description="ニコニコ動画かYouTubeのリンクを入れてね！",color=0xff0000))
                 return
+            print(url, url_type[message.guild.id], music_list[message.guild.id])
             message.guild.voice_client.play(discord.FFmpegPCMAudio(music_list[message.guild.id].url,**options), after = lambda e: client.loop.create_task(mess(message, url_type[message.guild.id], music_f[message.guild.id])))
             return
     except BaseException as err:
