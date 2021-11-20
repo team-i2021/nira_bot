@@ -8,6 +8,7 @@ import math
 import time
 import sys
 import youtube_dl
+import datetime
 music_list = {}
 music_f = {}
 url_type = {}
@@ -77,9 +78,11 @@ async def join_channel(message, client):
         else:
             await message.author.voice.channel.connect()
             await message.reply(embed=discord.Embed(title="にら",description="今はまだ、テスト中なので動作が不安定です！\n`n!play [URL]`/`n!pause`/`n!resume`/`n!stop`/`n!leave`",color=0x00ff00))
+            print(f"{datetime.datetime.now()} - {message.guild.name}でVCに接続")
             return
     except BaseException as err:
         await message.reply(embed=discord.Embed(title="エラー",description=f"```{err}```\n```sh\n{sys.exc_info()}```",color=0xff0000))
+        print(f"[VC接続時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
         return
 
 
@@ -111,12 +114,12 @@ async def play_music(message, client):
             if music_list[message.guild.id] == "none":
                 await message.reply(embed=discord.Embed(title="エラー",description="ニコニコ動画かYouTubeのリンクを入れてね！",color=0xff0000))
                 return
-            print(url, url_type[message.guild.id], music_list[message.guild.id])
+            print(f"{datetime.datetime.now()} - {url} {url_type[message.guild.id]} {music_list[message.guild.id]}")
             message.guild.voice_client.play(discord.FFmpegPCMAudio(music_list[message.guild.id].url,**options), after = lambda e: client.loop.create_task(mess(message, url_type[message.guild.id], music_f[message.guild.id])))
             return
     except BaseException as err:
         await message.reply(embed=discord.Embed(title="エラー",description=f"```{err}```\n```sh\n{sys.exc_info()}```",color=0xff0000))
-        print(url, url_type[message.guild.id], music_list[message.guild.id])
+        print(f"[楽曲再生時or再生中のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
         return
 
 
@@ -134,6 +137,7 @@ async def pause_music(message, client):
             return
         except BaseException as err:
             await message.reply(embed=discord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
+            print(f"[楽曲中断時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
             return
 
 
@@ -151,6 +155,7 @@ async def resume_music(message, client):
             return
         except BaseException as err:
             await message.reply(embed=discord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
+            print(f"[楽曲中断時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
             return
 
 
@@ -168,6 +173,7 @@ async def stop_music(message, client):
             return
         except BaseException as err:
             await message.reply(embed=discord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
+            print(f"[楽曲停止時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
             return
 
 
@@ -182,7 +188,9 @@ async def leave_channel(message, client):
         else:
             await message.guild.voice_client.disconnect()
             await message.reply(embed=discord.Embed(title="にら",description="Disconnected",color=0x00ff00))
+            print(f"{datetime.datetime.now()} - {message.guild.name}のVCから切断")
             return
     except BaseException as err:
         await message.reply(embed=discord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
+        print(f"[VC切断時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
         return

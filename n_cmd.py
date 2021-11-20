@@ -526,7 +526,6 @@ async def nira_check(message, client):
             return
     # 超凄いサーバー監視システム
     elif message.content[:4] == "n!ss":
-        print(steam_server_list, type(steam_server_list))
         if message.content[:8] == "n!ss add":
             if message.content == "n!ss add":
                 await message.reply("構文が異なります。\n```n!ss add [表示名] [IPアドレス],[ポート番号]```")
@@ -604,12 +603,10 @@ async def nira_check(message, client):
                     await server_check.server_check_async(client.loop, embed, 0, message.guild.id, i)
                 await asyncio.sleep(1)
                 await message.reply(embed=embed)
-            print("end")
             return
         mes = message.content
         try:
             mes_te = mes.split(" ", 1)[1]
-            print(mes_te)
         except BaseException as err:
             await message.reply(embed=eh(err))
             return

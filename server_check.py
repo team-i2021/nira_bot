@@ -22,15 +22,13 @@ def server_check(embed, type, g_id, n):
         return
     sv_dt = "None"
     try:
-        print(f"{sv_nm}/{sv_ad} への接続")
         if status_check.server_status(sv_ad[0], sv_ad[1]) == False:
             if type == 0:
-                embed.add_field(name=f"> {sv_nm}", value=":ng:サーバーに接続できませんでした。\n==========", inline=False)
+                embed.add_field(name=f"> {sv_nm}", value=":ng:Steam WEB APIでサーバーが認識されていません。\n==========", inline=False)
             if type == 1:
                 embed.add_field(name=f"> {sv_nm}", value=f"```Steam WEB APIによる未然ストップ```", inline=False)
             return True
         sv_dt = a2s.info(sv_ad)
-        print(a2s.info(sv_ad))
         if type == 0:
             embed.add_field(name=f"> {sv_nm}", value=":white_check_mark:Success!", inline=False)
         elif type == 1:
