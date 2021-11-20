@@ -136,7 +136,37 @@ async def nira_check(message, client):
                 return
             except BaseException as err:
                 await message.reply(err)
-                await client.change_presence(activity=discord.Game(name="n!help | にらゲー", type=1), status=discord.Status.idle)
+                await client.change_presence(activity=discord.Game(name="n!help", type=1), status=discord.Status.idle)
+                return
+        else:
+            embed = discord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000)
+            await message.reply(embed=embed)
+            return
+    # n!exit
+    # 察せ。
+    elif message.content == "n!exit":
+        if message.author.id in py_admin:
+            await client.change_presence(activity=discord.Game(name="終了中...", type=1), status=discord.Status.dnd)
+            exit_code = await message.reply("終了準備中...")
+            try:
+                with open('steam_server_list.nira', 'wb') as f:
+                    pickle.dump(steam_server_list, f)
+                with open('reaction_bool_list.nira', 'wb') as f:
+                    pickle.dump(reaction_bool_list, f)
+                with open('welcome_id_list.nira', 'wb') as f:
+                    pickle.dump(welcome_id_list, f)
+                with open('ex_reaction_list.nira', 'wb') as f:
+                    pickle.dump(ex_reaction_list, f)
+                with open('srtr_bool_list.nira', 'wb') as f:
+                    pickle.dump(srtr_bool_list, f)
+                await exit_code.edit(content="STOPT:`nira.py`\n再起動します")
+                print("-----[n!exit]コマンドが実行されたため、終了します。-----")
+                await client.logout()
+                exit()
+                return
+            except BaseException as err:
+                await message.reply(err)
+                await client.change_presence(activity=discord.Game(name="n!help", type=1), status=discord.Status.idle)
                 return
         else:
             embed = discord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000)
