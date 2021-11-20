@@ -629,7 +629,6 @@ async def nira_check(message, client):
             async with message.channel.typing():
                 embed = discord.Embed(title="Server Status Checker", description=f"{message.author.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
                 for i in map(str, range(1, int(steam_server_list[message.guild.id]["value"])+1)):
-                    print(i)
                     await server_check.server_check_async(client.loop, embed, 0, message.guild.id, i)
                 await asyncio.sleep(1)
                 await message.reply(embed=embed)
@@ -656,7 +655,6 @@ async def nira_check(message, client):
             async with message.channel.typing():
                 embed = discord.Embed(title="Server Status Checker", description=f"{message.author.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
                 for i in map(str, range(1, int(steam_server_list[message.guild.id]["value"])+1)):
-                    print(i)
                     await server_check.server_check_async(client.loop, embed, 1, message.guild.id, i)
                 await asyncio.sleep(1)
                 await message.reply(embed=embed)

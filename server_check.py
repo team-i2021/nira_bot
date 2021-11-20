@@ -56,7 +56,6 @@ def server_check(embed, type, g_id, n):
         elif type == 1:
             embed.add_field(name="> Online User", value=f"```{sv_us}```", inline=False)
     except BaseException as err:
-        print(err)
         if str(err) == "timed out":
             if type == 0:
                 embed.add_field(name=f"> {sv_nm}", value=":ng:サーバーに接続できませんでした。\n==========", inline=False)
