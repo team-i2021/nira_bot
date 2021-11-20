@@ -159,7 +159,7 @@ async def nira_check(message, client):
                     pickle.dump(ex_reaction_list, f)
                 with open('srtr_bool_list.nira', 'wb') as f:
                     pickle.dump(srtr_bool_list, f)
-                await exit_code.edit(content="STOPT:`nira.py`\n再起動します")
+                await exit_code.edit(content="STOP:`nira.py`\n終了します")
                 print("-----[n!exit]コマンドが実行されたため、終了します。-----")
                 await client.logout()
                 exit()
