@@ -5,7 +5,7 @@ import discord
 import asyncio
 import n_cmd
 
-async def n_help(message, bot):
+async def n_help(message, client):
     if message.content == "n!help":
         cn = "help"
     else:

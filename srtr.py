@@ -16,7 +16,7 @@ kakasi = kakasi()
 kakasi.setMode('J', 'H')
 conv = kakasi.getConverter()
 
-async def on_srtr(message, bot):
+async def on_srtr(message, client):
     global ply_dt
     ply_dt = []
     if message.author.bot:
