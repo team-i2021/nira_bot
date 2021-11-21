@@ -32,12 +32,12 @@ py_admin = [669178357371371522]
 intents = discord.Intents.default()  # デフォルトのIntentsオブジェクトを生成
 intents.typing = False # typingを受け取らないように
 intents.members = True # メンバーに関する情報を受け取る
-client = discord.Client(intents=intents)
+bot = discord.Bot(intents=intents)
 
 # 起動時処理
-@client.event
+@bot.event
 async def on_ready():
-    await client.change_presence(activity=discord.Game(name="読み込み中...", type=1), status=discord.Status.dnd)
+    await bot.change_presence(activity=discord.Game(name="読み込み中...", type=1), status=discord.Status.dnd)
     try:
         with open('steam_server_list.nira', 'rb') as f:
             n_cmd.steam_server_list = pickle.load(f)
@@ -73,11 +73,11 @@ async def on_ready():
         print(n_cmd.srtr_bool_list)
     except BaseException:
         print("変数[srtr_bool_list]のファイル読み込みに失敗しましたが続行します。")
-    await client.change_presence(activity=discord.Game(name="n!help | 栽培ゲーム", type=1), status=discord.Status.online)
+    await bot.change_presence(activity=discord.Game(name="n!help | 栽培ゲーム", type=1), status=discord.Status.online)
     print('Launched! NIRABOT v.永遠にβバージョン')
 
 # メッセージ受信時処理
-@client.event
+@bot.event
 async def on_message(message):
     # LINEでのメッセージ送信
     # 自分自身には反応しない
@@ -85,12 +85,12 @@ async def on_message(message):
         return
     # 略したけど、コマンド系
     if message.content[:2] == "n!":
-        await n_cmd.nira_check(message, client)
+        await n_cmd.nira_check(message, bot)
         return
     # しりとりブール
     if message.guild.id in n_cmd.srtr_bool_list:
         if message.channel.id in n_cmd.srtr_bool_list[message.guild.id]:
-            await srtr.on_srtr(message, client)
+            await srtr.on_srtr(message, bot)
             return
     # 追加反応
     if message.guild.id in n_cmd.ex_reaction_list:
@@ -281,14 +281,14 @@ async def on_message(message):
             await sended_mes.add_reaction("<:trash:908565976407236608>")
             await asyncio.sleep(3)
             try:
-                await sended_mes.remove_reaction("<:trash:908565976407236608>", client.user)
+                await sended_mes.remove_reaction("<:trash:908565976407236608>", bot.user)
                 return
             except BaseException:
                 return
 
                 
 # リアクション受信時
-@client.event
+@bot.event
 async def on_reaction_add(react, mem):
     # SteamServerListのリスト
     try:
@@ -302,13 +302,13 @@ async def on_reaction_add(react, mem):
                     if mem.id == 669178357371371522:
                         embed = discord.Embed(title="リスト削除", description=f"{mem.mention}\ndic deleted.", color=0xffffff)
                     await react.message.channel.send(embed=embed)
-                    await client.http.delete_message(react.message.channel.id, react.message.id)
+                    await bot.http.delete_message(react.message.channel.id, react.message.id)
                     return
                 elif str(react.emoji) == "\U0000274C":
-                    await client.http.delete_message(react.message.channel.id, react.message.id)
+                    await bot.http.delete_message(react.message.channel.id, react.message.id)
                     return
             else:
-                user = await client.fetch_user(mem.id)
+                user = await bot.fetch_user(mem.id)
                 await user.send(embed=discord.Embed(title="リスト削除", description=f"{react.message.guild.name}のサーバーのカスタムサーバーリスト削除メッセージにインタラクトされましたが、あなたには権限がないため実行できませんでした。", color=0xff0000))
                 return
     except KeyError as err:
@@ -329,13 +329,13 @@ async def on_reaction_add(react, mem):
                     if mem.id == 669178357371371522:
                         embed = discord.Embed(title="リスト削除", description=f"{mem.mention}\ndic deleted.", color=0xffffff)
                     await react.message.channel.send(embed=embed)
-                    await client.http.delete_message(react.message.channel.id, react.message.id)
+                    await bot.http.delete_message(react.message.channel.id, react.message.id)
                     return
                 elif str(react.emoji) == "\U0000274C":
-                    await client.http.delete_message(react.message.channel.id, react.message.id)
+                    await bot.http.delete_message(react.message.channel.id, react.message.id)
                     return
             else:
-                user = await client.fetch_user(mem.id)
+                user = await bot.fetch_user(mem.id)
                 await user.send(embed=discord.Embed(title="リスト削除", description=f"{react.message.guild.name}のサーバーの追加返答リスト削除メッセージにインタラクトされましたが、あなたには権限がないため実行できませんでした。", color=0xff0000))
                 return
     except KeyError as err:
@@ -345,17 +345,17 @@ async def on_reaction_add(react, mem):
         await react.message.channel.send(embed=discord.Embed(title="エラー", description=f"{mem.mention}\n大変申し訳ございません。エラーが発生しました。\n```{err}```", color=0xff0000))
         return
     if mem.id != 892759276152573953 and react.message.author.id == 892759276152573953 and str(react.emoji) == '<:trash:908565976407236608>':
-        await client.http.delete_message(react.message.channel.id, react.message.id)
+        await bot.http.delete_message(react.message.channel.id, react.message.id)
         return
 
-@client.event
+@bot.event
 async def on_member_join(member):
     user_id = member.id
     try:
-        user = await client.fetch_user(user_id)
+        user = await bot.fetch_user(user_id)
         if member.guild.id not in n_cmd.welcome_id_list:
             return
-        channel = client.get_channel(n_cmd.welcome_id_list[member.guild.id])
+        channel = bot.get_channel(n_cmd.welcome_id_list[member.guild.id])
         embed = discord.Embed(title="User Info", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
         embed.set_thumbnail(url=f"https://cdn.discordapp.com/avatars/{user.id}/{str(user.avatar)}")
         embed.add_field(name="アカウント製作日", value=f"```{user.created_at}```")
@@ -366,4 +366,4 @@ async def on_member_join(member):
         return
 
 # Botの起動とDiscordサーバーへの接続
-client.run(bot_token.nira_token)
+bot.run(bot_token.nira_token)
