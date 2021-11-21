@@ -24,13 +24,13 @@ def server_check(embed, type, g_id, n):
     try:
         if status_check.server_status(sv_ad[0], sv_ad[1]) == False:
             if type == 0:
-                embed.add_field(name=f"> {sv_nm}", value=":ng:Steam WEB APIでサーバーが認識されていません。\n==========", inline=False)
+                embed.add_field(name=f"> {sv_nm}", value=":ng:オフライン\n==========", inline=False)
             if type == 1:
-                embed.add_field(name=f"> {sv_nm}", value=f"```Steam WEB APIによる未然ストップ```", inline=False)
+                embed.add_field(name=f"> {sv_nm}", value=f"```Steam WEB APIでサーバーが認識されていません。```", inline=False)
             return True
         sv_dt = a2s.info(sv_ad)
         if type == 0:
-            embed.add_field(name=f"> {sv_nm}", value=":white_check_mark:Success!", inline=False)
+            embed.add_field(name=f"> {sv_nm}", value=":white_check_mark:オンライン", inline=False)
         elif type == 1:
             embed.add_field(name=f"> {sv_nm}", value=f"```{sv_dt}```", inline=False)
         user = ""
@@ -58,7 +58,7 @@ def server_check(embed, type, g_id, n):
     except BaseException as err:
         if str(err) == "timed out":
             if type == 0:
-                embed.add_field(name=f"> {sv_nm}", value=":ng:サーバーに接続できませんでした。\n==========", inline=False)
+                embed.add_field(name=f"> {sv_nm}", value=":ng:サーバーに接続できませんでした。(タイムアウト)\n==========", inline=False)
             if type == 1:
                 embed.add_field(name=f"> {sv_nm}", value=f"```{err}```", inline=False)
         else:
