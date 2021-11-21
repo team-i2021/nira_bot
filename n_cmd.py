@@ -62,7 +62,7 @@ def eh(err):
 
 
 # メッセージチェック
-async def nira_check(message, client):
+async def nira_check(message, bot):
     #############################
     # Pythonコードを含むコマンド
     #############################
@@ -117,7 +117,7 @@ async def nira_check(message, client):
     # コードに変更を加えた際にこれを使うと便利です。
     elif message.content == "n!restart":
         if message.author.id in py_admin:
-            await client.change_presence(activity=discord.Game(name="再起動中...", type=1), status=discord.Status.dnd)
+            await bot.change_presence(activity=discord.Game(name="再起動中...", type=1), status=discord.Status.dnd)
             restart_code = await message.reply("再起動準備中...")
             try:
                 with open('steam_server_list.nira', 'wb') as f:
@@ -136,7 +136,7 @@ async def nira_check(message, client):
                 return
             except BaseException as err:
                 await message.reply(err)
-                await client.change_presence(activity=discord.Game(name="n!help", type=1), status=discord.Status.idle)
+                await bot.change_presence(activity=discord.Game(name="n!help", type=1), status=discord.Status.idle)
                 return
         else:
             embed = discord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000)
@@ -146,7 +146,7 @@ async def nira_check(message, client):
     # 察せ。
     elif message.content == "n!exit":
         if message.author.id in py_admin:
-            await client.change_presence(activity=discord.Game(name="終了中...", type=1), status=discord.Status.dnd)
+            await bot.change_presence(activity=discord.Game(name="終了中...", type=1), status=discord.Status.dnd)
             exit_code = await message.reply("終了準備中...")
             try:
                 with open('steam_server_list.nira', 'wb') as f:
@@ -161,12 +161,12 @@ async def nira_check(message, client):
                     pickle.dump(srtr_bool_list, f)
                 await exit_code.edit(content="STOP:`nira.py`\n終了します")
                 print("-----[n!exit]コマンドが実行されたため、終了します。-----")
-                await client.logout()
+                await bot.logout()
                 exit()
                 return
             except BaseException as err:
                 await message.reply(err)
-                await client.change_presence(activity=discord.Game(name="n!help", type=1), status=discord.Status.idle)
+                await bot.change_presence(activity=discord.Game(name="n!help", type=1), status=discord.Status.idle)
                 return
         else:
             embed = discord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000)
@@ -291,7 +291,7 @@ async def nira_check(message, client):
                     welcome_id_list[message.guild.id] = set_id
                     with open('welcome_id_list.nira', 'wb') as f:
                         pickle.dump(welcome_id_list, f)
-                    channel = client.get_channel(welcome_id_list[message.guild.id])
+                    channel = bot.get_channel(welcome_id_list[message.guild.id])
                     await channel.send("追加完了メッセージ\nこのメッセージが指定のチャンネルに送信されていれば完了です。")
                     await message.reply("追加完了のメッセージを指定されたチャンネルに送信しました。\n送信されていない場合はにらBOTに適切な権限が与えられているかご確認ください。")
                     return
@@ -317,7 +317,7 @@ async def nira_check(message, client):
                 try:
                     if message.guild.id in reaction_bool_list:
                         seted_id = int(welcome_id_list[message.guild.id])
-                        channel = client.get_channel(welcome_id_list[message.guild.id])
+                        channel = bot.get_channel(welcome_id_list[message.guild.id])
                         await message.reply(f"チャンネル：{channel.name}")
                         return
                     else:
@@ -413,7 +413,7 @@ async def nira_check(message, client):
         return
     # ヘルプコマンド
     elif message.content[:6] == "n!help":
-        await help_command.n_help(message, client)
+        await help_command.n_help(message, bot)
         return
     elif message.content[:6] == "n!info":
         embed = discord.Embed(title="にらBOTについて", description="にらBOTは、かの有名なARK廃人の「にら」を元ネタとする、多機能DiscordBOTです！", color=0x00ff00)
@@ -629,7 +629,7 @@ async def nira_check(message, client):
             async with message.channel.typing():
                 embed = discord.Embed(title="Server Status Checker", description=f"{message.author.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
                 for i in map(str, range(1, int(steam_server_list[message.guild.id]["value"])+1)):
-                    await server_check.server_check_async(client.loop, embed, 0, message.guild.id, i)
+                    await server_check.server_check_async(bot.loop, embed, 0, message.guild.id, i)
                 await asyncio.sleep(1)
                 await message.reply(embed=embed)
             return
@@ -655,7 +655,7 @@ async def nira_check(message, client):
             async with message.channel.typing():
                 embed = discord.Embed(title="Server Status Checker", description=f"{message.author.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
                 for i in map(str, range(1, int(steam_server_list[message.guild.id]["value"])+1)):
-                    await server_check.server_check_async(client.loop, embed, 1, message.guild.id, i)
+                    await server_check.server_check_async(bot.loop, embed, 1, message.guild.id, i)
                 await asyncio.sleep(1)
                 await message.reply(embed=embed)
         print("end")
@@ -739,7 +739,7 @@ async def nira_check(message, client):
         return
     elif message.content[:3] == "n!d":
         if message.content == "n!d":
-            user = await client.fetch_user(message.author.id)
+            user = await bot.fetch_user(message.author.id)
             embed = discord.Embed(title="User Info", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
             embed.set_thumbnail(url=f"https://cdn.discordapp.com/avatars/{user.id}/{str(user.avatar)}")
             embed.add_field(name="アカウント製作日", value=f"```{user.created_at}```")
@@ -748,7 +748,7 @@ async def nira_check(message, client):
         else:
             user_id = int("".join(re.findall(r'[0-9]', message.content[4:])))
             try:
-                user = await client.fetch_user(user_id)
+                user = await bot.fetch_user(user_id)
                 embed = discord.Embed(title="User Info", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
                 embed.set_thumbnail(url=f"https://cdn.discordapp.com/avatars/{user.id}/{str(user.avatar)}")
                 embed.add_field(name="アカウント製作日", value=f"```{user.created_at}```")
@@ -758,28 +758,28 @@ async def nira_check(message, client):
                 await message.reply(embed=discord.Embed(title="Error", description="ユーザーが存在しないか、データが取得できませんでした。", color=0xff0000))
                 return
     elif message.content == "n!ping":
-        embed = discord.Embed(title="Ping", description=f"現在のPing値は`{round(client.latency * 1000)}`msです。", color=0x00ff00)
+        embed = discord.Embed(title="Ping", description=f"現在のPing値は`{round(bot.latency * 1000)}`msです。", color=0x00ff00)
         await message.reply(embed=embed)
         return
     # VC系
     elif message.content == "n!join":
         await message.reply(embed=discord.Embed(title="お！？", description="まだVC系は整ってないよ！完成まではもうちょっと待ってね！", color=0xffff00))
-        await music.join_channel(message, client)
+        await music.join_channel(message, bot)
         return
     elif message.content == "n!pause":
-        await music.pause_music(message, client)
+        await music.pause_music(message, bot)
         return
     elif message.content[:6] == "n!play":
-        await music.play_music(message, client)
+        await music.play_music(message, bot)
         return
     elif message.content == "n!resume":
-        await music.resume_music(message, client)
+        await music.resume_music(message, bot)
         return
     elif message.content == "n!stop":
-        await music.stop_music(message, client)
+        await music.stop_music(message, bot)
         return
     elif message.content == "n!leave":
-        await music.leave_channel(message, client)
+        await music.leave_channel(message, bot)
         return
     ############
     #ここ最後だよ

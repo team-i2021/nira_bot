@@ -70,7 +70,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
 
-async def join_channel(message, client):
+async def join_channel(message, bot):
     try:
         if message.author.voice is None:
             await message.reply(embed=discord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
@@ -86,12 +86,12 @@ async def join_channel(message, client):
         return
 
 
-async def play_music(message, client):
+async def play_music(message, bot):
     try:
         if message.author.voice is None:
             await message.reply(embed=discord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
             return
-        elif message.guild.voice_client is None:
+        elif message.guild.voice_bot is None:
             await message.reply(embed=discord.Embed(title="エラー",description="先に`n!join`でボイスチャンネルに入れてください！",color=0xff0000))
             return
         else:
@@ -115,7 +115,7 @@ async def play_music(message, client):
                 await message.reply(embed=discord.Embed(title="エラー",description="ニコニコ動画かYouTubeのリンクを入れてね！",color=0xff0000))
                 return
             print(f"{datetime.datetime.now()} - {url} {url_type[message.guild.id]} {music_list[message.guild.id]}")
-            message.guild.voice_client.play(discord.FFmpegPCMAudio(music_list[message.guild.id].url,**options), after = lambda e: client.loop.create_task(mess(message, url_type[message.guild.id], music_f[message.guild.id])))
+            message.guild.voice_bot.play(discord.FFmpegPCMAudio(music_list[message.guild.id].url,**options), after = lambda e: bot.loop.create_task(mess(message, url_type[message.guild.id], music_f[message.guild.id])))
             return
     except BaseException as err:
         await message.reply(embed=discord.Embed(title="エラー",description=f"```{err}```\n```sh\n{sys.exc_info()}```",color=0xff0000))
@@ -123,16 +123,16 @@ async def play_music(message, client):
         return
 
 
-async def pause_music(message, client):
+async def pause_music(message, bot):
     if message.author.voice is None:
             await message.reply(embed=discord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
             return
-    elif message.guild.voice_client is None:
+    elif message.guild.voice_bot is None:
         await message.reply(embed=discord.Embed(title="エラー",description="先に`n!join`でボイスチャンネルに入れてください！",color=0xff0000))
         return
     else:
         try:
-            message.guild.voice_client.pause()
+            message.guild.voice_bot.pause()
             await message.reply("paused")
             return
         except BaseException as err:
@@ -141,16 +141,16 @@ async def pause_music(message, client):
             return
 
 
-async def resume_music(message, client):
+async def resume_music(message, bot):
     if message.author.voice is None:
             await message.reply(embed=discord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
             return
-    elif message.guild.voice_client is None:
+    elif message.guild.voice_bot is None:
         await message.reply(embed=discord.Embed(title="エラー",description="先に`n!join`でボイスチャンネルに入れてください！",color=0xff0000))
         return
     else:
         try:
-            message.guild.voice_client.resume()
+            message.guild.voice_bot.resume()
             await message.reply("resume!")
             return
         except BaseException as err:
@@ -159,16 +159,16 @@ async def resume_music(message, client):
             return
 
 
-async def stop_music(message, client):
+async def stop_music(message, bot):
     if message.author.voice is None:
             await message.reply(embed=discord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
             return
-    elif message.guild.voice_client is None:
+    elif message.guild.voice_bot is None:
         await message.reply(embed=discord.Embed(title="エラー",description="先に`n!join`でボイスチャンネルに入れてください！",color=0xff0000))
         return
     else:
         try:
-            message.guild.voice_client.stop()
+            message.guild.voice_bot.stop()
             await message.reply("stopped")
             return
         except BaseException as err:
@@ -177,16 +177,16 @@ async def stop_music(message, client):
             return
 
 
-async def leave_channel(message, client):
+async def leave_channel(message, bot):
     try:
         if message.author.voice is None:
             await message.reply(embed=discord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
             return
-        elif message.guild.voice_client is None:
+        elif message.guild.voice_bot is None:
             await message.reply(embed=discord.Embed(title="エラー",description="先に`n!join`でボイスチャンネルに入れてください！",color=0xff0000))
             return
         else:
-            await message.guild.voice_client.disconnect()
+            await message.guild.voice_bot.disconnect()
             await message.reply(embed=discord.Embed(title="にら",description="Disconnected",color=0x00ff00))
             print(f"{datetime.datetime.now()} - {message.guild.name}のVCから切断")
             return
