@@ -18,7 +18,7 @@ from tkinter import ttk
 from tkinter import messagebox
 import subprocess
 from subprocess import PIPE
-import line
+import web_api
 from discord.embeds import Embed
 sys.setrecursionlimit(10000)#エラー回避
 import pickle
@@ -222,14 +222,14 @@ async def line_send(ctx):
             await ctx.message.reply(embed = discord.Embed(title="エラー", description="なんか...足りなくね？", color=0xff0000))
             return
         add_token = ctx.message.content[10:]
-        if ctx.message.guild.id not in line.tokens:
-            line.tokens[ctx.message.guild.id] = {ctx.message.channel.id:add_token}
-        elif ctx.message.guild.id in line.tokens:
-            if ctx.message.channel.id in line.tokens[ctx.message.guild.id]:
+        if ctx.message.guild.id not in web_api.tokens:
+            web_api.tokens[ctx.message.guild.id] = {ctx.message.channel.id:add_token}
+        elif ctx.message.guild.id in web_api.tokens:
+            if ctx.message.channel.id in web_api.tokens[ctx.message.guild.id]:
                 await ctx.message.reply("上書きしますで...？")
-                line.tokens[ctx.message.guild.id][ctx.message.channel.id] = add_token
+                web_api.tokens[ctx.message.guild.id][ctx.message.channel.id] = add_token
             else:
-                line.tokens[ctx.message.guild.id][ctx.message.channel.id] = add_token
+                web_api.tokens[ctx.message.guild.id][ctx.message.channel.id] = add_token
         await ctx.message.reply("多分終わったよっ")
         return
     except BaseException as err:

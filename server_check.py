@@ -1,7 +1,7 @@
 # coding: utf-8
 import n_fc
 import asyncio
-import status_check
+import web_api
 import a2s
 import datetime
 
@@ -23,7 +23,7 @@ def server_check(embed, type, g_id, n):
         return
     sv_dt = "None"
     try:
-        if status_check.server_status(sv_ad[0], sv_ad[1]) == False:
+        if web_api.server_status(sv_ad[0], sv_ad[1]) == False:
             if type == 0:
                 embed.add_field(name=f"> {sv_nm}", value=":ng:オフライン\n==========", inline=False)
             if type == 1:
