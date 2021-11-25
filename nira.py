@@ -34,7 +34,6 @@ from discord_buttons_plugin import *
 from discord.embeds import Embed
 sys.setrecursionlimit(10000)#エラー回避
 import pickle
-from discord.flags import MessageFlags
 
 
 on_ali = ["1", "on", "On", "ON", "true", "True", "TRUE", "yes", "Yes", "YES"]
@@ -851,6 +850,23 @@ async def embed(ctx):
         await ctx.message.reply(embed=eh(err))
         return
 
+
+@buttons.click
+async def del_ss_list_all(ctx):
+    setting_del = ctx.message.content[13:].split("/",1)
+    del_guild = bot.get_guild(int(setting_del[1][6:]))
+    del_user = del_guild.get_member(int(setting_del[0][5:]))
+    if admin_check(del_guild, del_user) == False:
+        await ctx.reply("あなたは管理者ではないため削除できません！", flags = MessageFlags().EPHEMERAL)
+        return
+    del n_fc.steam_server_list[ctx.message.guild.id]
+    with open('steam_server_list.nira', 'wb') as f:
+        pickle.dump(n_fc.steam_server_list, f)
+    await bot.http.delete_message(ctx.message.channel.id, ctx.message.id)
+    await ctx.reply("リストを削除しました。", flags = MessageFlags().EPHEMERAL)
+    return
+
+
 @bot.command()
 async def ss(ctx):
     if ctx.message.content[:8] == "n!ss add":
@@ -909,14 +925,40 @@ async def ss(ctx):
         except BaseException as err:
             await ctx.message.reply(embed=eh(err))
             return
-    if ctx.message.content == "n!ss del":
+    if ctx.message.content[:8] == "n!ss del":
         if ctx.message.guild.id not in n_fc.steam_server_list:
             await ctx.message.reply("サーバーは登録されていません。")
             return
+        if ctx.message.content != "n!ss del all":
+            del_num = ctx.message.content[9:]
+            if admin_check(ctx.message.guild, ctx.message.author):
+                if del_num not in n_fc.steam_server_list[ctx.message.guild.id]:
+                    await ctx.message.reply(embed=discord.Embed(title="エラー", description="そのサーバーは登録されていません！\n`n!ss list`で確認してみてください！", color=0xff0000))
+                    return
+                try:
+                    del n_fc.steam_server_list[ctx.message.guild.id][del_num]
+                    await ctx.message.reply(embed=discord.Embed(title="削除", description=f"ID:{del_num}のサーバーをリストから削除しました。", color=0xff0000))
+                    return
+                except BaseException as err:
+                    await ctx.message.reply(embed=eh(err))
+                    return
+            else:
+                await ctx.message.reply(embed=discord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
+                return
         else:
-            del_re = await ctx.message.reply("サーバーリストを削除しますか？リスト削除には管理者権限が必要です。\n\n:o:：削除\n:x:：キャンセル")
-            await del_re.add_reaction("\U00002B55")
-            await del_re.add_reaction("\U0000274C")
+            await buttons.send(
+                content = f"追加反応リストの削除 - USER:{ctx.message.author.id}/GUILD:{ctx.message.guild.id}", 
+                channel = ctx.channel.id,
+                components = [ 
+                    ActionRow([
+                        Button(
+                            label="削除する",
+                            style=ButtonType().Danger,
+                            custom_id="del_ss_list_all"
+                        )
+                    ])
+                ]
+            )
             return
     print(datetime.datetime.now())
     if ctx.message.content == "n!ss":
@@ -1093,6 +1135,85 @@ async def leave(ctx):
     await music.leave_channel(ctx.message, bot)
     return
 
-    
+
+# リアクション受信時
+@bot.event
+async def on_reaction_add(react, mem):
+    # SteamServerListのリスト
+    try:
+        if mem.id != 892759276152573953 and react.message.author.id == 892759276152573953 and react.message.content == "サーバーリストを削除しますか？リスト削除には管理者権限が必要です。\n\n:o:：削除\n:x:：キャンセル":
+            if n_fc.admin_check(react.message.guild, mem) or react.message.author.id in n_fc.py_admin:
+                if str(react.emoji) == "\U00002B55":
+                    del n_fc.steam_server_list[react.message.guild.id]
+                    with open('steam_server_list.nira', 'wb') as f:
+                        pickle.dump(n_fc.steam_server_list, f)
+                    embed = discord.Embed(title="リスト削除", description=f"{mem.mention}\nリストは正常に削除されました。", color=0xffffff)
+                    if mem.id == 669178357371371522:
+                        embed = discord.Embed(title="リスト削除", description=f"{mem.mention}\ndic deleted.", color=0xffffff)
+                    await react.message.channel.send(embed=embed)
+                    await bot.http.delete_message(react.message.channel.id, react.message.id)
+                    return
+                elif str(react.emoji) == "\U0000274C":
+                    await bot.http.delete_message(react.message.channel.id, react.message.id)
+                    return
+            else:
+                user = await bot.fetch_user(mem.id)
+                await user.send(embed=discord.Embed(title="リスト削除", description=f"{react.message.guild.name}のサーバーのカスタムサーバーリスト削除メッセージにインタラクトされましたが、あなたには権限がないため実行できませんでした。", color=0xff0000))
+                return
+    except KeyError as err:
+        await react.message.channel.send(embed=discord.Embed(title="エラー", description=f"{mem.mention}\nこのサーバーにはリストが登録されていません。\n```{err}```", color=0xff0000))
+        return
+    except BaseException as err:
+        await react.message.channel.send(embed=discord.Embed(title="エラー", description=f"{mem.mention}\n大変申し訳ございません。エラーが発生しました。\n```{err}```", color=0xff0000))
+        return
+    # 追加返答のリスト
+    try:
+        if mem.id != 892759276152573953 and react.message.author.id == 892759276152573953 and react.message.content == "追加返答のリストを削除してもよろしいですか？リスト削除には管理者権限が必要です。\n\n:o:：削除\n:x:：キャンセル":
+            if n_fc.admin_check(react.message.guild, mem) or react.message.author.id in n_fc.py_admin:
+                if str(react.emoji) == "\U00002B55":
+                    del n_fc.ex_reaction_list[react.message.guild.id]
+                    with open('ex_reaction_list.nira', 'wb') as f:
+                        pickle.dump(n_fc.ex_reaction_list, f)
+                    embed = discord.Embed(title="リスト削除", description=f"{mem.mention}\nリストは正常に削除されました。", color=0xffffff)
+                    if mem.id == 669178357371371522:
+                        embed = discord.Embed(title="リスト削除", description=f"{mem.mention}\ndic deleted.", color=0xffffff)
+                    await react.message.channel.send(embed=embed)
+                    await bot.http.delete_message(react.message.channel.id, react.message.id)
+                    return
+                elif str(react.emoji) == "\U0000274C":
+                    await bot.http.delete_message(react.message.channel.id, react.message.id)
+                    return
+            else:
+                user = await bot.fetch_user(mem.id)
+                await user.send(embed=discord.Embed(title="リスト削除", description=f"{react.message.guild.name}のサーバーの追加返答リスト削除メッセージにインタラクトされましたが、あなたには権限がないため実行できませんでした。", color=0xff0000))
+                return
+    except KeyError as err:
+        await react.message.channel.send(embed=discord.Embed(title="エラー", description=f"{mem.mention}\nこのサーバーにはリストが登録されていません。\n```{err}```", color=0xff0000))
+        return
+    except BaseException as err:
+        await react.message.channel.send(embed=discord.Embed(title="エラー", description=f"{mem.mention}\n大変申し訳ございません。エラーが発生しました。\n```{err}```", color=0xff0000))
+        return
+    if mem.id != 892759276152573953 and react.message.author.id == 892759276152573953 and str(react.emoji) == '<:trash:908565976407236608>':
+        await bot.http.delete_message(react.message.channel.id, react.message.id)
+        return
+
+@bot.event
+async def on_member_join(member):
+    user_id = member.id
+    try:
+        user = await bot.fetch_user(user_id)
+        if member.guild.id not in n_fc.welcome_id_list:
+            return
+        channel = bot.get_channel(n_fc.welcome_id_list[member.guild.id])
+        embed = discord.Embed(title="User Info", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
+        embed.set_thumbnail(url=f"https://cdn.discordapp.com/avatars/{user.id}/{str(user.avatar)}")
+        embed.add_field(name="アカウント製作日", value=f"```{user.created_at}```")
+        await channel.send(embed=embed)
+        return
+    except BaseException as err:
+        print(err)
+        return
+
+
 # Botの起動とDiscordサーバーへの接続
 bot.run(bot_token.nira_dev)
