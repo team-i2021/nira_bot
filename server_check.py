@@ -1,8 +1,9 @@
 # coding: utf-8
-import n_cmd
+import n_fc
 import asyncio
 import status_check
 import a2s
+import datetime
 
 # 主にサーバーステータスを取得するコード
 
@@ -15,8 +16,8 @@ async def server_check_async(loop, embed, type, g_id, n):
 # サーバーのステータスをチェックする
 def server_check(embed, type, g_id, n):
     try:
-        sv_ad = n_cmd.steam_server_list[g_id][f"{n}_ad"]
-        sv_nm = n_cmd.steam_server_list[g_id][f"{n}_nm"]
+        sv_ad = n_fc.steam_server_list[g_id][f"{n}_ad"]
+        sv_nm = n_fc.steam_server_list[g_id][f"{n}_nm"]
     except BaseException:
         embed.add_field(name=f"サーバーは{n}にはセットされていません。", value="`n!ss list`でサーバーリストを確認してみましょう！", inline=False)
         return
@@ -56,6 +57,7 @@ def server_check(embed, type, g_id, n):
         elif type == 1:
             embed.add_field(name="> Online User", value=f"```{sv_us}```", inline=False)
     except BaseException as err:
+        print(f"{datetime.datatime.now()} - ServerCheck ERR\n{err}")
         if str(err) == "timed out":
             if type == 0:
                 embed.add_field(name=f"> {sv_nm}", value=":ng:サーバーに接続できませんでした。(タイムアウト)\n==========", inline=False)

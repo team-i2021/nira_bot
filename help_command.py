@@ -3,7 +3,7 @@ from math import e
 from re import M
 import discord
 import asyncio
-import n_cmd
+import n_fc
 
 async def n_help(message, client):
     if message.content == "n!help":
@@ -103,7 +103,7 @@ async def n_help(message, client):
         embed.add_field(name="```d```", value="指定されたユーザーの情報を表示します。", inline=False)
         embed.add_field(name="・リアクションについて", value="このbotの発したメッセージの一部には、<:trash:896021635470082048>のリアクションが自動的に付きます。\nこのリアクションを押すとそのメッセージが削除されます。", inline=False)
     await message.reply(embed=embed)
-    if message.author.id in n_cmd.py_admin:
+    if message.author.id in n_fc.py_admin:
         embed = discord.Embed(title="for DEV", description="developer tool\n(Only py_admin user)", color=0xff0000)
         embed.add_field(name="```exec [path]```", value="任意のPythonファイルを実行します。", inline=False)
         embed.add_field(name="```py [code]```", value="任意のPythonコードを実行します。", inline=False)
