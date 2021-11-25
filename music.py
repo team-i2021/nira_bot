@@ -34,8 +34,8 @@ ytdl_format_options = {
     'default_search': 'auto',
     'source_address': '0.0.0.0' # bind to ipv4 since ipv6 addresses cause issues sometimes
 }
- #   import traceback
-  #  traceback.print_exc()
+#   import traceback
+#  traceback.print_exc()
 ffmpeg_options = {
     'options': '-vn'
 }
