@@ -112,7 +112,7 @@ async def n_help(message, client):
         embed = discord.Embed(title="for DEV", description="developer tool\n(Only py_admin user)", color=0xff0000)
         embed.add_field(name="```exec [path]```", value="任意のPythonファイルを実行します。", inline=False)
         embed.add_field(name="```py [code]```", value="任意のPythonコードを実行します。", inline=False)
-        embed.add_field(name="```stop```", value="にらBOTを停止させます。", inline=False)
+        embed.add_field(name="```exit```", value="にらBOTを停止させます。", inline=False)
         embed.add_field(name="```restart```", value="にらBOTを再起動させます。", inline=False)
         embed.add_field(name="```create [path]```", value="ファイルを生成します。", inline=False)
         embed.add_field(name="```read```", value="`nira.py`のコードを送信します。", inline=False)
