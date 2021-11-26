@@ -868,7 +868,7 @@ async def del_ss_list_all(ctx):
 
 
 @bot.command()
-async def ss(ctx: command.Conetext):
+async def ss(ctx: commands.Conetext):
     if ctx.message.content[:8] == "n!ss add":
         if ctx.message.content == "n!ss add":
             await ctx.message.reply("構文が異なります。\n```n!ss add [表示名] [IPアドレス],[ポート番号]```")
