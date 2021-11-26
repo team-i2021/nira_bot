@@ -936,8 +936,11 @@ async def ss(ctx: commands.Context):
                 await ctx.message.reply(embed=eh(err))
                 return
             if admin_check(ctx.message.guild, ctx.message.author):
-                if del_num > n_fc.steam_server_list[ctx.message.guild.id]["value"]:
+                if del_num > int(n_fc.steam_server_list[ctx.message.guild.id]["value"]):
                     await ctx.message.reply(embed=discord.Embed(title="エラー", description="そのサーバーは登録されていません！\n`n!ss list`で確認してみてください！", color=0xff0000))
+                    return
+                if del_num <= 0:
+                    await ctx.message.reply(embed=discord.Embed(title="エラー", description="リストで0以下のナンバーは振り当てられていません。", color=0xff0000))
                     return
                 try:
                     all_value = steam_server_list[ctx.message.guild.id]["value"]
