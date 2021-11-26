@@ -62,13 +62,13 @@ def eh(err):
 intents = discord.Intents.default()  # デフォルトのIntentsオブジェクトを生成
 intents.typing = False # typingを受け取らないように
 intents.members = True # メンバーに関する情報を受け取る
-bot = commands.Bot(command_prefix="n!", intents=intents)
+bot = commands.Bot(command_prefix="n!", intents=intents, help_command=None)
 buttons = ButtonsClient(bot)
 bot.load_extension("jishaku")
 async def is_owner(author):
     return author.id in n_fc.py_admin
 bot.is_owner = is_owner
-
+bot.remove_command("help")
 
 ##### 通常反応 #####
 @bot.listen()
@@ -699,7 +699,7 @@ async def admin(ctx):
     return
 
 @bot.command()
-async def show_help(ctx):
+async def help(ctx):
     await help_command.n_help(ctx.message, bot)
     return
 

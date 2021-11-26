@@ -106,7 +106,7 @@ async def n_help(message, client):
         embed.add_field(name="```er```", value="追加返事機能の設定を行います。", inline=False)
         embed.add_field(name="```ui```", value="サーバーにユーザーが入ってきたときにそのユーザーの情報を表示するようにします。", inline=False)
         embed.add_field(name="```d```", value="指定されたユーザーの情報を表示します。", inline=False)
-        embed.add_field(name="・リアクションについて", value="このbotの発したメッセージの一部には、<:trash:896021635470082048>のリアクションが自動的に付きます。\nこのリアクションを押すとそのメッセージが削除されます。", inline=False)
+        embed.add_field(name="・リアクションについて", value="このbotの発したメッセージの一部には、<:trash:908565976407236608>のリアクションが自動的に付きます。\nこのリアクションを押すとそのメッセージが削除されます。", inline=False)
     await message.reply(embed=embed)
     if message.author.id in n_fc.py_admin:
         embed = discord.Embed(title="for DEV", description="developer tool\n(Only py_admin user)", color=0xff0000)
