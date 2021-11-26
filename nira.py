@@ -932,7 +932,7 @@ async def ss(ctx: commands.Context):
         if ctx.message.content != "n!ss del all":
             del_num = ctx.message.content[9:]
             if admin_check(ctx.message.guild, ctx.message.author):
-                if del_num not in n_fc.steam_server_list[ctx.message.guild.id]:
+                if del_num > n_fc.steam_server_list["value"]:
                     await ctx.message.reply(embed=discord.Embed(title="エラー", description="そのサーバーは登録されていません！\n`n!ss list`で確認してみてください！", color=0xff0000))
                     return
                 try:
