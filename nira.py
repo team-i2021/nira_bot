@@ -1232,4 +1232,4 @@ async def on_member_join(member):
 
 
 # Botの起動とDiscordサーバーへの接続
-bot.run(bot_token.nira_dev)
+bot.run(bot_token.nira_token)
