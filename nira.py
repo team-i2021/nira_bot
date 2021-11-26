@@ -936,9 +936,14 @@ async def ss(ctx):
                     await ctx.message.reply(embed=discord.Embed(title="エラー", description="そのサーバーは登録されていません！\n`n!ss list`で確認してみてください！", color=0xff0000))
                     return
                 try:
-                    # ここにさっきの時間に考えたコードを書き込む
-                    await ctx.message.reply(embed=discord.Embed(title="削除", description=f"ID:{del_num}のサーバーをリストから削除しました。", color=0xff0000))
-                    return
+                    all_value = steam_server_list[ctx.message.guild.id]["value"]
+                    for i in range(all_value - del_num):
+                        n_fc.steam_server_list[ctx.message.guild.id][f"{del_num + i - 1}_nm"] = steam_server_list[ctx.message.guild.id][f"{del_num + i}_nm"]
+                        n_fc.steam_server_list[ctx.message.guild.id][f"{del_num + i - 1}_ad"] = steam_server_list[ctx.message.guild.id][f"{del_num + i}_ad"]
+                    del n_fc.steam_server_list[ctx.message.guild.id][f"{all_value}_nm"]
+                    del n_fc.steam_server_list[ctx.message.guild.id][f"{all_value}_ad"]
+                    n_fc.steam_server_list[ctx.message.guild.id]["value"] = all_value - 1
+                    await ctx.message.reply(embed=discord.Embed(title="削除", description=f"ID:{del_num}のサーバーをリストから削除しました。", color=0xff0000))   
                 except BaseException as err:
                     await ctx.message.reply(embed=eh(err))
                     return
