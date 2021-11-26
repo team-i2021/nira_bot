@@ -943,7 +943,7 @@ async def ss(ctx: commands.Context):
                     await ctx.message.reply(embed=discord.Embed(title="エラー", description="リストで0以下のナンバーは振り当てられていません。", color=0xff0000))
                     return
                 try:
-                    all_value = n_fc.steam_server_list[ctx.message.guild.id]["value"]
+                    all_value = int(n_fc.steam_server_list[ctx.message.guild.id]["value"])
                     print(all_value)
                     for i in range(all_value - del_num):
                         print(i)
