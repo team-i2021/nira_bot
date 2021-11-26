@@ -975,6 +975,7 @@ async def ss(ctx: commands.Context):
                 ]
             )
             return
+        return
     print(datetime.datetime.now())
     if ctx.message.content == "n!ss":
         if ctx.message.guild.id not in n_fc.steam_server_list:
