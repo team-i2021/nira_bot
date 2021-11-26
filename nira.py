@@ -930,14 +930,20 @@ async def ss(ctx: commands.Context):
             await ctx.message.reply("サーバーは登録されていません。")
             return
         if ctx.message.content != "n!ss del all":
-            del_num = ctx.message.content[9:]
+            try:
+                del_num = int(ctx.message.content[9:])
+            except BaseException as err:
+                await ctx.message.reply(embed=eh(err))
+                return
             if admin_check(ctx.message.guild, ctx.message.author):
                 if del_num > n_fc.steam_server_list["value"]:
                     await ctx.message.reply(embed=discord.Embed(title="エラー", description="そのサーバーは登録されていません！\n`n!ss list`で確認してみてください！", color=0xff0000))
                     return
                 try:
                     all_value = steam_server_list[ctx.message.guild.id]["value"]
+                    print(all_value)
                     for i in range(all_value - del_num):
+                        print(i)
                         n_fc.steam_server_list[ctx.message.guild.id][f"{del_num + i - 1}_nm"] = steam_server_list[ctx.message.guild.id][f"{del_num + i}_nm"]
                         n_fc.steam_server_list[ctx.message.guild.id][f"{del_num + i - 1}_ad"] = steam_server_list[ctx.message.guild.id][f"{del_num + i}_ad"]
                     del n_fc.steam_server_list[ctx.message.guild.id][f"{all_value}_nm"]
@@ -945,6 +951,7 @@ async def ss(ctx: commands.Context):
                     n_fc.steam_server_list[ctx.message.guild.id]["value"] = all_value - 1
                     await ctx.message.reply(embed=discord.Embed(title="削除", description=f"ID:{del_num}のサーバーをリストから削除しました。", color=0xff0000))   
                 except BaseException as err:
+                    print(err)
                     await ctx.message.reply(embed=eh(err))
                     return
             else:
