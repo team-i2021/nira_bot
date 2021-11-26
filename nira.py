@@ -936,7 +936,7 @@ async def ss(ctx):
                     await ctx.message.reply(embed=discord.Embed(title="エラー", description="そのサーバーは登録されていません！\n`n!ss list`で確認してみてください！", color=0xff0000))
                     return
                 try:
-                    del n_fc.steam_server_list[ctx.message.guild.id][del_num]
+                    # ここにさっきの時間に考えたコードを書き込む
                     await ctx.message.reply(embed=discord.Embed(title="削除", description=f"ID:{del_num}のサーバーをリストから削除しました。", color=0xff0000))
                     return
                 except BaseException as err:
