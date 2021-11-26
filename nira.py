@@ -947,8 +947,8 @@ async def ss(ctx: commands.Context):
                     print(all_value)
                     for i in range(all_value - del_num):
                         print(i)
-                        n_fc.steam_server_list[ctx.message.guild.id][f"{del_num + i - 1}_nm"] = steam_server_list[ctx.message.guild.id][f"{del_num + i}_nm"]
-                        n_fc.steam_server_list[ctx.message.guild.id][f"{del_num + i - 1}_ad"] = steam_server_list[ctx.message.guild.id][f"{del_num + i}_ad"]
+                        n_fc.steam_server_list[ctx.message.guild.id][f"{del_num + i - 1}_nm"] = n_fc.steam_server_list[ctx.message.guild.id][f"{del_num + i}_nm"]
+                        n_fc.steam_server_list[ctx.message.guild.id][f"{del_num + i - 1}_ad"] = n_fc.steam_server_list[ctx.message.guild.id][f"{del_num + i}_ad"]
                     del n_fc.steam_server_list[ctx.message.guild.id][f"{all_value}_nm"]
                     del n_fc.steam_server_list[ctx.message.guild.id][f"{all_value}_ad"]
                     n_fc.steam_server_list[ctx.message.guild.id]["value"] = all_value - 1
