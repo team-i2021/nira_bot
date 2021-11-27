@@ -42,7 +42,7 @@ ffmpeg_options = {
 
 ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 
-async def mess(message, played_type, close_obj):
+async def end_mes(message, played_type, close_obj):
     if played_type == "nc":
         close_obj.close()
     return await message.reply(embed=discord.Embed(title="Finished.", description="再生が終わったよ！\n次は何の曲が流れるのかな～？", color=0x00ff00))

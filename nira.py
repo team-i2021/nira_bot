@@ -24,7 +24,8 @@ import chardet
 import urllib.request
 import music
 import web_api
-import n_fc
+from util import n_fc
+from util import admin_check
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
@@ -71,6 +72,11 @@ async def is_owner(author):
     return author.id in n_fc.py_admin
 bot.is_owner = is_owner
 bot.remove_command("help")
+bot.load_extension("cogs.greed")
+bot.load_extension("cogs.ping")
+bot.load_extension("cogs.music")
+bot.load_extension("cogs.user")
+
 
 ##### 通常反応 #####
 @bot.listen()
@@ -83,7 +89,7 @@ async def on_message(message):
     # しりとりブール
     if message.guild.id in n_fc.srtr_bool_list:
         if message.channel.id in n_fc.srtr_bool_list[message.guild.id]:
-            await srtr.on_srtr(message, bot)
+            await srtr.on_srtr(message)
             return
     # 追加反応
     if message.guild.id in n_fc.ex_reaction_list:
@@ -546,54 +552,6 @@ async def save(ctx):
     else:
         embed = discord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000)
         await ctx.message.reply(embed=embed)
-        return
-
-@bot.command()
-async def ui(ctx):
-    if admin_check(ctx.message.guild, ctx.message.author) or ctx.message.author.id in n_fc.py_admin:
-        if ctx.message.content[:8] == "n!ui set":
-            try:
-                set_id = int("".join(re.findall(r'[0-9]', ctx.message.content[9:])))
-                n_fc.welcome_id_list[ctx.message.guild.id] = set_id
-                with open('welcome_id_list.nira', 'wb') as f:
-                    pickle.dump(n_fc.welcome_id_list, f)
-                channel = bot.get_channel(n_fc.welcome_id_list[ctx.message.guild.id])
-                await channel.send("追加完了メッセージ\nこのメッセージが指定のチャンネルに送信されていれば完了です。")
-                await ctx.message.reply("追加完了のメッセージを指定されたチャンネルに送信しました。\n送信されていない場合はにらBOTに適切な権限が与えられているかご確認ください。")
-                return
-            except BaseException as err:
-                await ctx.message.reply(embed=discord.Embed(title="Error", description=f"大変申し訳ございません。エラーが発生しました。\n```{err}```", color=0xff0000))
-                return
-        elif ctx.message.content == "n!ui del":
-            try:
-                if ctx.message.guild.id not in n_fc.reaction_bool_list:
-                    seted_id = n_fc.welcome_id_list[ctx.message.guild.id]
-                    del n_fc.welcome_id_list[ctx.message.guild.id]
-                    with open('welcome_id_list.nira', 'wb') as f:
-                        pickle.dump(n_fc.welcome_id_list, f)
-                    await ctx.message.reply(f"削除しました。\n再度同じ設定をする場合は```n!ui set {seted_id}```と送信してください。")
-                    return
-                else:
-                    await ctx.message.reply("設定されていません。")
-                    return
-            except BaseException as err:
-                await ctx.message.reply(embed=discord.Embed(title="Error", description=f"大変申し訳ございません。エラーが発生しました。\n```{err}```", color=0xff0000))
-                return
-        elif ctx.message.content == "n!ui":
-            try:
-                if ctx.message.guild.id in n_fc.reaction_bool_list:
-                    seted_id = int(n_fc.welcome_id_list[ctx.message.guild.id])
-                    channel = bot.get_channel(n_fc.welcome_id_list[ctx.message.guild.id])
-                    await ctx.message.reply(f"チャンネル：{channel.name}")
-                    return
-                else:
-                    await ctx.message.reply("設定されていません。\n\n・追加```n!ui set [チャンネルID]```・削除```n!ui del```")
-                    return
-            except BaseException as err:
-                await ctx.message.reply(embed=discord.Embed(title="Error", description=f"大変申し訳ございません。エラーが発生しました。\n```{err}```", color=0xff0000))
-                return
-    else:
-        await ctx.message.reply(embed=discord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
         return
 
 @bot.command()
@@ -1103,66 +1061,6 @@ async def er(ctx):
             await del_re.add_reaction("\U0000274C")
             return
     return
-
-@bot.command()
-async def d(ctx):
-    if ctx.message.content == "n!d":
-        user = await bot.fetch_user(ctx.message.author.id)
-        embed = discord.Embed(title="User Info", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
-        embed.set_thumbnail(url=f"https://cdn.discordapp.com/avatars/{user.id}/{str(user.avatar)}")
-        embed.add_field(name="アカウント製作日", value=f"```{user.created_at}```")
-        await ctx.message.reply(embed=embed)
-        return
-    else:
-        user_id = int("".join(re.findall(r'[0-9]', ctx.message.content[4:])))
-        try:
-            user = await bot.fetch_user(user_id)
-            embed = discord.Embed(title="User Info", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
-            embed.set_thumbnail(url=f"https://cdn.discordapp.com/avatars/{user.id}/{str(user.avatar)}")
-            embed.add_field(name="アカウント製作日", value=f"```{user.created_at}```")
-            await ctx.message.reply(embed=embed)
-            return
-        except BaseException:
-            await ctx.message.reply(embed=discord.Embed(title="Error", description="ユーザーが存在しないか、データが取得できませんでした。", color=0xff0000))
-            return
-
-@bot.command()
-async def ping(ctx):
-    embed = discord.Embed(title="Ping", description=f"現在のPing値は`{round(bot.latency * 1000)}`msです。", color=0x00ff00)
-    await ctx.message.reply(embed=embed)
-    return
-
-@bot.command()
-async def join(ctx):
-    await ctx.message.reply(embed=discord.Embed(title="お！？", description="まだVC系は整ってないよ！完成まではもうちょっと待ってね！", color=0xffff00))
-    await music.join_channel(ctx.message, bot)
-    return
-
-@bot.command()
-async def pause(ctx):
-    await music.pause_music(ctx.message, bot)
-    return
-
-@bot.command()
-async def play(ctx):
-    await music.play_music(ctx.message, bot)
-    return
-
-@bot.command()
-async def resume(ctx):
-    await music.resume_music(ctx.message, bot)
-    return
-
-@bot.command()
-async def stop(ctx):
-    await music.stop_music(ctx.message, bot)
-    return
-
-@bot.command()
-async def leave(ctx):
-    await music.leave_channel(ctx.message, bot)
-    return
-
 
 # リアクション受信時
 @bot.event
