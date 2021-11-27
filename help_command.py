@@ -13,7 +13,7 @@ async def n_help(message, client):
     embed = discord.Embed(title="にらBOT HELP", description=f"```n!{cn}```", color=0x00ff00)
     embed.set_author(name="製作者：なつ", url="https://twitter.com/nattyan_tv", icon_url="https://pbs.twimg.com/profile_images/1388437778292113411/pBiEOtHL_400x400.jpg")
     if cn == "ss":
-        embed.add_field(name="```ss```", value="Steam個人サーバーの状況をチェックします。\n`n!ss list`以外は管理者権限が必要です。", inline=False)
+        embed.add_field(name="```ss```", value="Steam個人サーバーの状況をチェックします。\n`n!ss`以外は管理者権限が必要です。", inline=False)
         embed.add_field(name="```n!ss add [サーバー名] [アドレス],[ポート番号]```", value="サーバーのリストに追加します。", inline=False)
         embed.add_field(name="`[サーバー名]`", value="サーバーに付ける名前を入力します。", inline=False)
         embed.add_field(name="`[アドレス]`", value="サーバーのアドレスを追加します。（グローバルIPアドレス）", inline=False)

@@ -896,8 +896,16 @@ async def ss(ctx: commands.Context):
             await ctx.message.reply("サーバーは登録されていません。")
             return
         else:
-            await ctx.message.reply(str(n_fc.steam_server_list[ctx.message.guild.id]).replace('value', '保存数').replace('ad', 'アドレス').replace('nm', '名前').replace('_', '\_').replace('{', '').replace('}', ''))
-            return
+            if admin_check(ctx.message.guild, ctx.message.author):
+                user = await bot.fetch_user(ctx.message.author.id)
+                embed = discord.Embed(title="Steam Server List", description=f"{ctx.message.guild.name}のサーバーのリスト\n```保存数：{str(n_fc.steam_server_list[ctx.message.guild.id]['value'])}```", color=0xff0000)
+                for i in range(int(n_fc.steam_server_list[ctx.message.guild.id]['value'])):
+                    embed.add_field(name=f"保存名：`{str(n_fc.steam_server_list[ctx.message.guild.id][f'{i+1}_nm'])}`", value=f"アドレス：`{str(n_fc.steam_server_list[ctx.message.guild.id][f'{i+1}_ad'])}`")
+                await user.send(embed=embed)
+                return
+            else:
+                await ctx.message.reply(embed=discord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
+                return
     if ctx.message.content[:9] == "n!ss edit":
         if ctx.message.content == "n!ss edit":
             await ctx.message.reply("構文が異なります。\n```n!ss edit [サーバーナンバー] [名前] [IPアドレス],[ポート番号]```")
