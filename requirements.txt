@@ -1,5 +1,0 @@
-discord.py[voice]>=1.7.3
-requests
-python-a2s
-nest-asyncio
-//もう何もわかんない

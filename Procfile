@@ -1,1 +1,0 @@
-discordbot: python nira.py
