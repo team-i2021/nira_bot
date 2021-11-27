@@ -900,7 +900,7 @@ async def ss(ctx: commands.Context):
         else:
             if admin_check(ctx.message.guild, ctx.message.author):
                 user = await bot.fetch_user(ctx.message.author.id)
-                embed = discord.Embed(title="Steam Server List", description=f"{ctx.message.guild.name}のサーバーのリスト\n```保存数：{str(n_fc.steam_server_list[ctx.message.guild.id]['value'])}```", color=0xff0000)
+                embed = discord.Embed(title="Steam Server List", description=f"「{ctx.message.guild.name}」のサーバーリスト\n```保存数：{str(n_fc.steam_server_list[ctx.message.guild.id]['value'])}```", color=0x00ff00)
                 for i in range(int(n_fc.steam_server_list[ctx.message.guild.id]['value'])):
                     embed.add_field(name=f"保存名：`{str(n_fc.steam_server_list[ctx.message.guild.id][f'{i+1}_nm'])}`", value=f"アドレス：`{str(n_fc.steam_server_list[ctx.message.guild.id][f'{i+1}_ad'])}`")
                 await user.send(embed=embed)
