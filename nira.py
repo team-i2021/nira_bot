@@ -75,7 +75,7 @@ bot.remove_command("help")
 ##### 通常反応 #####
 @bot.listen()
 async def on_message(message):
-    print(f"[{message.guild.name}]/[{message.channel.name}]/[{message.author.name}]{message.content}")
+    print(f"[{datetime.datetime.now()}][{message.guild.name}]/[{message.channel.name}]/[{message.author.name}]{message.content}")
     # LINEでのメッセージ送信
     # 自分自身には反応しない
     if message.author.bot:
