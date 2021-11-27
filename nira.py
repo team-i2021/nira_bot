@@ -49,7 +49,7 @@ def admin_check(guild, memb):
         role = get(guild.roles, id=role_list[i])
         if (role.permissions).administrator:
             return True
-    if memb.author.id in n_fc.py_admin:
+    if memb.id in n_fc.py_admin:
         return True
     return False
 
