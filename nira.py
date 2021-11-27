@@ -904,6 +904,7 @@ async def ss(ctx: commands.Context):
                 for i in range(int(n_fc.steam_server_list[ctx.message.guild.id]['value'])):
                     embed.add_field(name=f"保存名：`{str(n_fc.steam_server_list[ctx.message.guild.id][f'{i+1}_nm'])}`", value=f"アドレス：`{str(n_fc.steam_server_list[ctx.message.guild.id][f'{i+1}_ad'])}`")
                 await user.send(embed=embed)
+                await ctx.message.add_reaction("\U00002705")
                 return
             else:
                 await ctx.message.reply(embed=discord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
