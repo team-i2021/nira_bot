@@ -162,7 +162,7 @@ class normal_reaction(commands.Cog):
                 if rnd == 1:
                     sended_mes = await message.reply('https://nattyan-tv.github.io/nira_bot/images/apple.jpg')
                 elif rnd == 2:
-                    sended_mes = await message.reply('https://twitter.com/RINGOSANDAO')
+                    sended_mes = await message.reply('https://twitter.com/RINGODESU4321')
             if re.search(r'(?:しゃけ|シャケ|さけ|サケ|鮭|syake|salmon|さーもん|サーモン)', message.content):
                 if message.guild.id == 870642671415337001:
                     rnd = random.randint(1, 4)
