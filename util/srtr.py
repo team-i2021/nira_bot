@@ -4,7 +4,7 @@ from os import getenv
 import re
 import random
 import jaconv
-import word_data
+import util.word_data as word_data
 from pykakasi import kakasi
 
 re_hiragana = re.compile(r'^[あ-ん]+$')

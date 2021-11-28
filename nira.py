@@ -5,7 +5,7 @@ from discord.ext import commands
 from discord.ext.commands.bot import Bot
 from discord.utils import get
 from os import getenv
-import sys, re, asyncio, datetime, bot_token, server_check
+import sys, re, asyncio, datetime, bot_token, util.server_check as server_check
 from subprocess import PIPE
 from util import n_fc, admin_check, eh
 from discord_buttons_plugin import *
