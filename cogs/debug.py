@@ -81,6 +81,10 @@ class debug(commands.Cog):
                     pickle.dump(n_fc.ex_reaction_list, f)
                 with open('srtr_bool_list.nira', 'wb') as f:
                     pickle.dump(n_fc.srtr_bool_list, f)
+                with open('all_reaction_list.nira', 'wb') as f:
+                    pickle.dump(n_fc.all_reaction_list, f)
+                with open('bump_list.nira', 'wb') as f:
+                    pickle.dump(n_fc.bump_list, f)
                 await restart_code.edit(content="RESTART:`nira.py`\n再起動します")
                 print("-----[n!restart]コマンドが実行されたため、再起動します。-----")
                 os.execl(sys.executable, 'python3.7', "nira.py")
@@ -110,6 +114,10 @@ class debug(commands.Cog):
                     pickle.dump(n_fc.ex_reaction_list, f)
                 with open('srtr_bool_list.nira', 'wb') as f:
                     pickle.dump(n_fc.srtr_bool_list, f)
+                with open('all_reaction_list.nira', 'wb') as f:
+                    pickle.dump(n_fc.all_reaction_list, f)
+                with open('bump_list.nira', 'wb') as f:
+                    pickle.dump(n_fc.bump_list, f)
                 await exit_code.edit(content="STOP:`nira.py`\n終了します")
                 print("-----[n!exit]コマンドが実行されたため、終了します。-----")
                 await self.bot.logout()
@@ -219,6 +227,10 @@ class debug(commands.Cog):
                     pickle.dump(n_fc.ex_reaction_list, f)
                 with open('srtr_bool_list.nira', 'wb') as f:
                     pickle.dump(n_fc.srtr_bool_list, f)
+                with open('all_reaction_list.nira', 'wb') as f:
+                    pickle.dump(n_fc.all_reaction_list, f)
+                with open('bump_list.nira', 'wb') as f:
+                    pickle.dump(n_fc.bump_list, f)
                 await ctx.message.reply("Saved.")
                 print("[save]")
             except BaseException as err:
@@ -236,6 +248,7 @@ class debug(commands.Cog):
                 embed = discord.Embed(title="cogs", description="`extension`", color=0x00ff00)
                 embed.add_field(name="Cog Names", value="表示されている名前は、`cog.[Cog name]`のcog nameです。", inline=False)
                 embed.add_field(name="amuse", value="娯楽系のコマンド。\n`janken`/`uranai`")
+                embed.add_field(name="bump", value="bump通知の設定コマンド及び、Bump取得とメッセージ送信。\n`bump`")
                 embed.add_field(name="check", value="管理者チェックをするコマンド。\n`check`")
                 embed.add_field(name="debug", value="管理者用コマンド。\n`create`/`py_exec`/`read`/`restart`/`exit`/`py`/`sh`/`save`/`cog`")
                 embed.add_field(name="embed", value="Embed送信用コマンド。\n`embed`")
@@ -244,7 +257,7 @@ class debug(commands.Cog):
                 embed.add_field(name="music", value="音楽再生(VC)に関するコマンド。\n`join`/`play`/`pause`/`resume`/`stop`/`leave`")
                 embed.add_field(name="normal_reaction", value="送信されたメッセージに反応するイベント。")
                 embed.add_field(name="ping", value="pingコマンド。\n`ping`")
-                embed.add_field(name="reaction", value="反応系コマンド。\n`nr`/`er`")
+                embed.add_field(name="reaction", value="反応系コマンド。\n`nr`/`er`/`ar`")
                 embed.add_field(name="siritori", value="しりとり系コマンド。\n`srtr`")
                 embed.add_field(name="user_join", value="ユーザーがguildに入った際のイベント。")
                 embed.add_field(name="user", value="ユーザー情報表示系コマンド。\n`d`/`ui`")

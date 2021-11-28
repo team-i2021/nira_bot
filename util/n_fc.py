@@ -8,6 +8,10 @@ global welcome_id_list
 welcome_id_list = {}
 global srtr_bool_list
 srtr_bool_list = {}
+global all_reaction_list
+all_reaction_list = {}
+global bump_list
+bump_list = {}
 
 on_ali = ["1", "on", "On", "ON", "true", "True", "TRUE", "yes", "Yes", "YES"]
 off_ali = ["0", "off", "Off", "OFF", "false", "False", "FALSE", "no", "No", "NO"]

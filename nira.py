@@ -31,6 +31,7 @@ bot.remove_command("help")
 
 #cogのロード(そのうちちゃんとまとめます)
 bot.load_extension("cogs.amuse")
+bot.load_extension("cogs.bump")
 bot.load_extension("cogs.check")
 bot.load_extension("cogs.debug")
 bot.load_extension("cogs.embed")
@@ -82,6 +83,20 @@ async def on_ready():
         print(n_fc.srtr_bool_list)
     except BaseException as err:
         print(f"変数[srtr_bool_list]のファイル読み込みに失敗しましたが続行します。\n{err}")
+    try:
+        with open('all_reaction_list.nira', 'rb') as f:
+            n_fc.all_reaction_list = pickle.load(f)
+        print("変数[all_reaction_list]のファイル読み込みに成功しました。")
+        print(n_fc.all_reaction_list)
+    except BaseException as err:
+        print(f"変数[all_reaction_list]のファイル読み込みに失敗しましたが続行します。\n{err}")
+    try:
+        with open('bump_list.nira', 'rb') as f:
+            n_fc.bump_list = pickle.load(f)
+        print("変数[bump_list]のファイル読み込みに成功しました。")
+        print(n_fc.bump_list)
+    except BaseException as err:
+        print(f"変数[bump_list]のファイル読み込みに失敗しましたが続行します。\n{err}")
     await bot.change_presence(activity=discord.Game(name="n!help | にらゲー", type=1), status=discord.Status.online)
     print('初期セットアップ終了')
     print("Ready!")

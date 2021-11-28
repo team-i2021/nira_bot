@@ -34,7 +34,7 @@ class reaction(commands.Cog):
                     pickle.dump(n_fc.ex_reaction_list, f)
                 return
             except BaseException as err:
-                await ctx.message.reply(embed=eh(err))
+                await ctx.message.reply(embed=eh.eh(err))
         if ctx.message.content[:9] == "n!er list":
             if ctx.message.guild.id not in n_fc.ex_reaction_list or n_fc.ex_reaction_list[ctx.message.guild.id]["value"] == 0:
                 await ctx.message.reply("追加返答は設定されていません。")
@@ -76,7 +76,7 @@ class reaction(commands.Cog):
                     await ctx.message.reply("そのトリガーは登録されていません！")
                     return
             except BaseException as err:
-                await ctx.message.reply(embed=eh(err))
+                await ctx.message.reply(embed=eh.eh(err))
                 return
         if ctx.message.content == "n!er del":
             if ctx.message.guild.id not in n_fc.ex_reaction_list:
@@ -93,7 +93,8 @@ class reaction(commands.Cog):
     async def nr(self, ctx: commands.Context):
         try:
             if ctx.message.guild.id not in n_fc.reaction_bool_list: # 通常反応のブール値存在チェック
-                n_fc.reaction_bool_list[ctx.message.guild.id] = {[ctx.message.channel.id]:1}
+                n_fc.reaction_bool_list[ctx.message.guild.id] = {}
+                n_fc.reaction_bool_list[ctx.message.guild.id][ctx.message.channel.id] = 1
                 n_fc.reaction_bool_list[ctx.message.guild.id]["all"] = 1
                 with open('reaction_bool_list.nira', 'wb') as f:
                     pickle.dump(n_fc.reaction_bool_list, f)
@@ -112,7 +113,7 @@ class reaction(commands.Cog):
                     setting = "読み込めませんでした。"
                 await ctx.message.reply(embed=discord.Embed(title="Normal Reaction Setting", description=f"通常反応の設定:{setting}\n\n`n!nr [on/off]`で変更できます。", color=0x00ff00))
                 return
-            if admin_check(ctx.message.guild, ctx.message.author) or ctx.message.author.id in n_fc.py_admin:
+            if admin_check.admin_check(ctx.message.guild, ctx.message.author) or ctx.message.author.id in n_fc.py_admin:
                 nr_setting = str((ctx.message.content).split(" ", 1)[1])
                 if nr_setting in n_fc.on_ali:
                     n_fc.reaction_bool_list[ctx.message.guild.id][ctx.message.channel.id] = 1
@@ -136,7 +137,46 @@ class reaction(commands.Cog):
                 await ctx.message.reply(embed=discord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
                 return
         except BaseException as err:
-            await ctx.message.reply(embed=eh(err))
+            await ctx.message.reply(embed=eh.eh(err))
+            return
+    
+    @commands.command()
+    async def ar(self, ctx: commands.Context):
+        try:
+            if ctx.message.guild.id not in n_fc.all_reaction_list:
+                print(n_fc.all_reaction_list)
+                n_fc.all_reaction_list[ctx.message.guild.id] = {}
+                with open('all_reaction_list.nira', 'wb') as f:
+                    pickle.dump(n_fc.all_reaction_list, f)
+            if ctx.message.channel.id not in n_fc.all_reaction_list[ctx.message.guild.id]:
+                n_fc.all_reaction_list[ctx.message.guild.id][ctx.message.channel.id] = 1
+                with open('all_reaction_list.nira', 'wb') as f:
+                    pickle.dump(n_fc.all_reaction_list, f)
+            if ctx.message.content == "n!ar":
+                if n_fc.all_reaction_list[ctx.message.guild.id][ctx.message.channel.id] == 1:
+                    setting = "有効"
+                elif n_fc.all_reaction_list[ctx.message.guild.id][ctx.message.channel.id] == 0:
+                    setting = "無効"
+                else:
+                    setting = "読み込めませんでした。"
+                await ctx.message.reply(embed=discord.Embed(title="All Reaction Setting", description=f"「通常反応」及び「追加反応」（Bump通知および各種コマンドは除く）の設定:{setting}\n\n`n!ar [on/off]`で変更できます。", color=0x00ff00))
+                return
+            if admin_check.admin_check(ctx.message.guild, ctx.message.author) or ctx.message.author.id in n_fc.py_admin:
+                ar_setting = str((ctx.message.content).split(" ", 1)[1])
+                if ar_setting in n_fc.on_ali:
+                    n_fc.all_reaction_list[ctx.message.guild.id][ctx.message.channel.id] = 1
+                    await ctx.message.reply(embed=discord.Embed(title="All Reaction Setting", description="チャンネルでの全反応を有効にしました。", color=0x00ff00))
+                elif ar_setting in n_fc.off_ali:
+                    n_fc.all_reaction_list[ctx.message.guild.id][ctx.message.channel.id] = 0
+                    await ctx.message.reply(embed=discord.Embed(title="All Reaction Setting", description="チャンネルでの全反応を無効にしました。", color=0x00ff00))
+                else:
+                    await ctx.message.reply(embed=discord.Embed(title="All Reaction Setting", description="コマンド使用方法:`n!ar [all] [on/off]`", color=0xff0000))
+                return
+            else:
+                await ctx.message.reply(embed=discord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
+                return
+        except BaseException as err:
+            await ctx.message.reply(embed=eh.eh(err))
             return
 
 def setup(bot):
