@@ -1,9 +1,10 @@
 # coding: utf-8
-import n_fc
+from util import n_fc
 import asyncio
 import web_api
 import a2s
 import datetime
+import sys
 
 # 主にサーバーステータスを取得するコード
 

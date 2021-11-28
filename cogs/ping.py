@@ -1,6 +1,8 @@
 from discord.ext import commands
 import discord
 
+#pingを送信するだけ
+
 class ping(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot

@@ -1,6 +1,6 @@
 from discord.utils import get
 
-import n_fc
+from util import n_fc
 
 #ユーザーがそのサーバーで管理者権限を持っているか確認する。
 
@@ -12,6 +12,4 @@ def admin_check(guild, memb):
         role = get(guild.roles, id=role_list[i])
         if (role.permissions).administrator:
             return True
-    if memb.id in n_fc.py_admin:
-        return True
     return False

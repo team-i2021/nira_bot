@@ -5,7 +5,9 @@ import pickle
 
 import sys
 sys.path.append('../')
-from util import admin_check, n_fc
+from util import admin_check, n_fc, eh
+
+#ユーザー情報表示系
 
 class user(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -47,7 +49,7 @@ class user(commands.Cog):
                     await ctx.message.reply("追加完了のメッセージを指定されたチャンネルに送信しました。\n送信されていない場合はにらBOTに適切な権限が与えられているかご確認ください。")
                     return
                 except BaseException as err:
-                    await ctx.message.reply(embed=discord.Embed(title="Error", description=f"大変申し訳ございません。エラーが発生しました。\n```{err}```", color=0xff0000))
+                    await ctx.message.reply(embed=eh.eh(err))
                     return
             elif ctx.message.content == "n!ui del":
                 try:
@@ -62,20 +64,20 @@ class user(commands.Cog):
                         await ctx.message.reply("設定されていません。")
                         return
                 except BaseException as err:
-                    await ctx.message.reply(embed=discord.Embed(title="Error", description=f"大変申し訳ございません。エラーが発生しました。\n```{err}```", color=0xff0000))
+                    await ctx.message.reply(embed=eh.eh(err))
                     return
             elif ctx.message.content == "n!ui":
                 try:
                     if ctx.message.guild.id in n_fc.reaction_bool_list:
                         seted_id = int(n_fc.welcome_id_list[ctx.message.guild.id])
-                        channel = self.bot.get_channel(n_fc.welcome_id_list[ctx.message.guild.id])
+                        channel = self.bot.get_channel(int(n_fc.welcome_id_list[ctx.message.guild.id]))
                         await ctx.message.reply(f"チャンネル：{channel.name}")
                         return
                     else:
                         await ctx.message.reply("設定されていません。\n\n・追加```n!ui set [チャンネルID]```・削除```n!ui del```")
                         return
                 except BaseException as err:
-                    await ctx.message.reply(embed=discord.Embed(title="Error", description=f"大変申し訳ございません。エラーが発生しました。\n```{err}```", color=0xff0000))
+                    await ctx.message.reply(embed=eh.eh(err))
                     return
         else:
             await ctx.message.reply(embed=discord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))

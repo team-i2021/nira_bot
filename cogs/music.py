@@ -9,6 +9,8 @@ import re
 import niconico_dl
 import youtube_dl
 
+# 音楽再生
+
 music_list = dict()
 music_f = dict()
 url_type = dict()
@@ -45,8 +47,6 @@ async def end_mes(message, played_type, close_obj):
         close_obj.close()
     return await message.reply(embed=discord.Embed(title="Finished.", description="再生が終わったよ！\n次は何の曲が流れるのかな～？", color=0x00ff00))
 
-
-
 class YTDLSource(discord.PCMVolumeTransformer):
     def __init__(self, source, *, data, volume=0.5):
         super().__init__(source, volume)
@@ -73,7 +73,7 @@ class music(commands.Cog):
         self.bot = bot
     
     @commands.command()
-    async def join_channel(self, ctx: commands.Context):
+    async def join(self, ctx: commands.Context):
         try:
             if ctx.message.author.voice is None:
                 await ctx.message.reply(embed=discord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
@@ -89,7 +89,7 @@ class music(commands.Cog):
             return
 
     @commands.command()
-    async def play_music(self, ctx: commands.Context):
+    async def play(self, ctx: commands.Context):
         try:
             if ctx.message.author.voice is None:
                 await ctx.message.reply(embed=discord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
@@ -126,7 +126,7 @@ class music(commands.Cog):
             return
 
     @commands.command()
-    async def pause_music(self, ctx: commands.Context):
+    async def pause(self, ctx: commands.Context):
         if ctx.message.author.voice is None:
                 await ctx.message.reply(embed=discord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
                 return
