@@ -16,7 +16,7 @@ class get_reaction(commands.Cog):
         # SteamServerListのリスト
         try:
             if mem.id != 892759276152573953 and react.message.author.id == 892759276152573953 and react.message.content == "サーバーリストを削除しますか？リスト削除には管理者権限が必要です。\n\n:o:：削除\n:x:：キャンセル":
-                if n_fc.admin_check(react.message.guild, mem) or react.message.author.id in n_fc.py_admin:
+                if admin_check.admin_check(react.message.guild, mem) or react.message.author.id in n_fc.py_admin:
                     if str(react.emoji) == "\U00002B55":
                         del n_fc.steam_server_list[react.message.guild.id]
                         with open('steam_server_list.nira', 'wb') as f:
@@ -43,7 +43,7 @@ class get_reaction(commands.Cog):
         # 追加返答のリスト
         try:
             if mem.id != 892759276152573953 and react.message.author.id == 892759276152573953 and react.message.content == "追加返答のリストを削除してもよろしいですか？リスト削除には管理者権限が必要です。\n\n:o:：削除\n:x:：キャンセル":
-                if n_fc.admin_check(react.message.guild, mem) or react.message.author.id in n_fc.py_admin:
+                if admin_check.admin_check(react.message.guild, mem) or react.message.author.id in n_fc.py_admin:
                     if str(react.emoji) == "\U00002B55":
                         del n_fc.ex_reaction_list[react.message.guild.id]
                         with open('ex_reaction_list.nira', 'wb') as f:
