@@ -69,7 +69,7 @@ except BaseException as err:
         "username": "エラーが発生しました",
         "content": f"BOTを起動時にエラーが発生しました。Cogの読み込みエラーです。\n```{err}```\nサービスは終了します。"
     }
-    requests.post("https://discord.com/api/webhooks/918124219378851911/PPjA2Sff4r0dsjK4oYqEhyW-iran0h9tIJSfs4O8MbbhcVzQWyIE-niMz1xwEoRHHSjg", main_content)
+    requests.post("https://discord.com/api/webhooks/918125489405714452/-NQMQMuuafLyoRAYNw-tBWKT1hsJRKcWjilYrZX1gPdce8en1FqgR1TK0p-Kn02b1Aom", main_content)
 
 
 @bot.event
@@ -137,7 +137,7 @@ async def on_ready():
             "username": "エラーが発生しました",
             "content": f"BOTを起動時にエラーが発生しました。変数の読み込みエラーです。\n`エラーコード:{func_error_count}`\nなおそのまま実行することは推奨されません。"
         }
-        requests.post("https://discord.com/api/webhooks/918124219378851911/PPjA2Sff4r0dsjK4oYqEhyW-iran0h9tIJSfs4O8MbbhcVzQWyIE-niMz1xwEoRHHSjg", main_content)
+        requests.post("https://discord.com/api/webhooks/918125489405714452/-NQMQMuuafLyoRAYNw-tBWKT1hsJRKcWjilYrZX1gPdce8en1FqgR1TK0p-Kn02b1Aom", main_content)
     await bot.change_presence(activity=discord.Game(name="n!help | にらゲー", type=1), status=discord.Status.online)
     logging.info('初期セットアップ終了')
     logging.info("Ready!")
