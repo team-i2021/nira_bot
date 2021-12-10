@@ -49,11 +49,11 @@ class normal_reaction(commands.Cog):
         ###############################
         if message.guild.id not in n_fc.reaction_bool_list:
             n_fc.reaction_bool_list[message.guild.id] = {"all": 1, message.channel.id: 1}
-            with open('reaction_bool_list.nira', 'wb') as f:
+            with open('/home/nattyantv/nira_bot_rewrite/reaction_bool_list.nira', 'wb') as f:
                 pickle.dump(n_fc.reaction_bool_list, f)
         if message.channel.id not in n_fc.reaction_bool_list[message.guild.id]:
             n_fc.reaction_bool_list[message.guild.id][message.channel.id] = 1
-            with open('reaction_bool_list.nira', 'wb') as f:
+            with open('/home/nattyantv/nira_bot_rewrite/reaction_bool_list.nira', 'wb') as f:
                 pickle.dump(n_fc.reaction_bool_list, f)
         #########################################
         # 通常反応
@@ -172,18 +172,19 @@ class normal_reaction(commands.Cog):
                 elif rnd == 2:
                     sended_mes = await message.reply('https://twitter.com/RINGODESU4321')
             if re.search(r'(?:しゃけ|シャケ|さけ|サケ|鮭|syake|salmon|さーもん|サーモン)', message.content):
-                if message.guild.id == 870642671415337001:
-                    rnd = random.randint(1, 4)
-                else:
-                    rnd = random.randint(1, 2)
-                if rnd == 1:
-                    sended_mes = await message.reply('https://nattyan-tv.github.io/nira_bot/images/sarmon_a.jpg')
-                elif rnd == 2:
-                    sended_mes = await message.reply('https://nattyan-tv.github.io/nira_bot/images/sarmon_b.jpg')
-                elif rnd == 3:
-                    sended_mes = await message.reply('https://nattyan-tv.github.io/nira_bot/images/sarmon_c.jpg')
-                elif rnd == 4:
+                if re.search(r'(?:twitter|Twitter|TWITTER|ついったー|ツイッター)', message.content):
                     sended_mes = await message.reply('https://twitter.com/Shake_Yuyu')
+                else:
+                    if message.guild.id == 870642671415337001:
+                        rnd = random.randint(1, 3)
+                    else:
+                        rnd = random.randint(1, 2)
+                    if rnd == 1:
+                        sended_mes = await message.reply('https://nattyan-tv.github.io/nira_bot/images/sarmon_a.jpg')
+                    elif rnd == 2:
+                        sended_mes = await message.reply('https://nattyan-tv.github.io/nira_bot/images/sarmon_b.jpg')
+                    elif rnd == 3:
+                        sended_mes = await message.reply('https://nattyan-tv.github.io/nira_bot/images/sarmon_c.jpg')
             if re.search(r'(?:なつ|なっちゃん|Nattyan|nattyan)', message.content):
                 await message.add_reaction("<:natsu:908565532268179477>")
             if re.search(r'(?:12pp|12PP)', message.content):

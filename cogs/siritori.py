@@ -29,7 +29,7 @@ class siritori(commands.Cog):
                         n_fc.srtr_bool_list[ctx.message.guild.id] = {ctx.message.channel.id:1}
                 if ctx.message.guild.id not in n_fc.srtr_bool_list:
                     n_fc.srtr_bool_list[ctx.message.guild.id] = {ctx.message.channel.id:1}
-                    with open('srtr_bool_list.nira', 'wb') as f:
+                    with open('/home/nattyantv/nira_bot_rewrite/srtr_bool_list.nira', 'wb') as f:
                         pickle.dump(n_fc.srtr_bool_list, f)
             except BaseException as err:
                     await ctx.message.reply(embed=eh(err))
@@ -48,7 +48,7 @@ class siritori(commands.Cog):
                     await ctx.message.reply(embed=embed)
                     return
                 del n_fc.srtr_bool_list[ctx.message.guild.id][ctx.message.channel.id]
-                with open('srtr_bool_list.nira', 'wb') as f:
+                with open('/home/nattyantv/nira_bot_rewrite/srtr_bool_list.nira', 'wb') as f:
                         pickle.dump(n_fc.srtr_bool_list, f)
             except BaseException as err:
                 await ctx.message.reply(embed=eh(err))

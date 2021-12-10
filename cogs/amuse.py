@@ -1,6 +1,9 @@
 from discord.ext import commands
 import discord
 import random
+import re
+
+from discord.ext.commands.core import command
 
 #娯楽系
 
@@ -9,7 +12,17 @@ class amuse(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    async def janken(ctx):
+    async def dice(self, ctx: commands.context):
+        if ctx.message.content == "n!dice":
+            await ctx.reply(embed=discord.Embed(title="エラー",description="サイコロだよ！\n`n!dice [max]`",color=0xff0000))
+            return
+        max_count = int("".join(re.findall(r'[0-9]', ctx.message.content[7:])))
+        rnd_ex = random.randint(0, max_count)
+        await ctx.reply(embed=discord.Embed(title="サイコロ", description=f"```{rnd_ex}```", color=0x00ff00))
+        return
+
+    @commands.command()
+    async def janken(self, ctx: commands.context):
         if ctx.message.content == "n!janken":
             embed = discord.Embed(title="Error", description="じゃんけんっていのは、「グー」「チョキ」「パー」のどれかを出して遊ぶゲームだよ。\n[ルール解説](https://ja.wikipedia.org/wiki/%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93#:~:text=%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93%E3%81%AF2%E4%BA%BA%E4%BB%A5%E4%B8%8A,%E3%81%A8%E6%95%97%E8%80%85%E3%82%92%E6%B1%BA%E5%AE%9A%E3%81%99%E3%82%8B%E3%80%82)\n```n!janken [グー/チョキ/パー]```", color=0xff0000)
             await ctx.message.reply(embed=embed)
@@ -74,7 +87,7 @@ class amuse(commands.Cog):
         return
 
     @commands.command()
-    async def uranai(ctx):
+    async def uranai(self, ctx: commands.context):
         rnd_uranai = random.randint(1, 100)
         if rnd_uranai >= 1 and rnd_uranai <= 5:
             ur_w = 0
@@ -124,7 +137,6 @@ class amuse(commands.Cog):
         embed.add_field(name=f"あなたの運勢は**星10個中の{ur_w}個**です！", value=f"> {ur_m}")
         await ctx.message.reply(embed=embed)
         return
-
 
 def setup(bot):
     bot.add_cog(amuse(bot))

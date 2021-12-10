@@ -8,6 +8,13 @@ import sys
 
 # 主にサーバーステータスを取得するコード
 
+async def server_check_loop(loop, g_id, n):
+    return await loop.run_in_executor(
+        None, ss_bool, g_id, n
+    )
+
+
+
 # ステータスチェック中にメッセージ返信ができないものを修正する(Created by tasuren)
 async def server_check_async(loop, embed, type, g_id, n):
     return await loop.run_in_executor(
@@ -58,7 +65,6 @@ def server_check(embed, type, g_id, n):
         elif type == 1:
             embed.add_field(name="> Online User", value=f"```{sv_us}```", inline=False)
     except BaseException as err:
-        print(f"{datetime.datetime.now()} - ServerCheck ERR\n```{err}```\n```sh{sys.exc_info()}```")
         if str(err) == "timed out":
             if type == 0:
                 embed.add_field(name=f"> {sv_nm}", value=":ng:サーバーに接続できませんでした。(タイムアウト)\n==========", inline=False)
@@ -70,3 +76,15 @@ def server_check(embed, type, g_id, n):
             if type == 1:
                 embed.add_field(name=f"> {sv_nm}", value=f"```{err}```", inline=False)
     return True
+
+#Embed返さないタイプ
+def ss_bool(g_id, n):
+    sv_ad = n_fc.steam_server_list[g_id][f"{n}_ad"]
+    try:
+        if web_api.server_status(sv_ad[0], sv_ad[1]) == False:
+            return False
+        sv_dt = a2s.info(sv_ad)
+        sv_us = a2s.players(sv_ad)
+        return True
+    except TimeoutError as err:
+        return False

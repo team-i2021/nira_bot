@@ -19,7 +19,7 @@ class get_reaction(commands.Cog):
                 if admin_check.admin_check(react.message.guild, mem) or react.message.author.id in n_fc.py_admin:
                     if str(react.emoji) == "\U00002B55":
                         del n_fc.steam_server_list[react.message.guild.id]
-                        with open('steam_server_list.nira', 'wb') as f:
+                        with open('/home/nattyantv/nira_bot_rewrite/steam_server_list.nira', 'wb') as f:
                             pickle.dump(n_fc.steam_server_list, f)
                         embed = discord.Embed(title="リスト削除", description=f"{mem.mention}\nリストは正常に削除されました。", color=0xffffff)
                         if mem.id == 669178357371371522:
@@ -46,7 +46,7 @@ class get_reaction(commands.Cog):
                 if admin_check.admin_check(react.message.guild, mem) or react.message.author.id in n_fc.py_admin:
                     if str(react.emoji) == "\U00002B55":
                         del n_fc.ex_reaction_list[react.message.guild.id]
-                        with open('ex_reaction_list.nira', 'wb') as f:
+                        with open('/home/nattyantv/nira_bot_rewrite/ex_reaction_list.nira', 'wb') as f:
                             pickle.dump(n_fc.ex_reaction_list, f)
                         embed = discord.Embed(title="リスト削除", description=f"{mem.mention}\nリストは正常に削除されました。", color=0xffffff)
                         if mem.id == 669178357371371522:

@@ -6,6 +6,7 @@ import shutil
 import subprocess
 from subprocess import PIPE
 import re
+import asyncio
 
 import sys
 from cogs.embed import embed
@@ -72,19 +73,19 @@ class debug(commands.Cog):
             await self.bot.change_presence(activity=discord.Game(name="再起動中...", type=1), status=discord.Status.dnd)
             restart_code = await ctx.message.reply("再起動準備中...")
             try:
-                with open('steam_server_list.nira', 'wb') as f:
+                with open('/home/nattyantv/nira_bot_rewrite/steam_server_list.nira', 'wb') as f:
                     pickle.dump(n_fc.steam_server_list, f)
-                with open('reaction_bool_list.nira', 'wb') as f:
+                with open('/home/nattyantv/nira_bot_rewrite/reaction_bool_list.nira', 'wb') as f:
                     pickle.dump(n_fc.reaction_bool_list, f)
-                with open('welcome_id_list.nira', 'wb') as f:
+                with open('/home/nattyantv/nira_bot_rewrite/welcome_id_list.nira', 'wb') as f:
                     pickle.dump(n_fc.welcome_id_list, f)
-                with open('ex_reaction_list.nira', 'wb') as f:
+                with open('/home/nattyantv/nira_bot_rewrite/ex_reaction_list.nira', 'wb') as f:
                     pickle.dump(n_fc.ex_reaction_list, f)
-                with open('srtr_bool_list.nira', 'wb') as f:
+                with open('/home/nattyantv/nira_bot_rewrite/srtr_bool_list.nira', 'wb') as f:
                     pickle.dump(n_fc.srtr_bool_list, f)
-                with open('all_reaction_list.nira', 'wb') as f:
+                with open('/home/nattyantv/nira_bot_rewrite/all_reaction_list.nira', 'wb') as f:
                     pickle.dump(n_fc.all_reaction_list, f)
-                with open('bump_list.nira', 'wb') as f:
+                with open('/home/nattyantv/nira_bot_rewrite/bump_list.nira', 'wb') as f:
                     pickle.dump(n_fc.bump_list, f)
                 await restart_code.edit(content="RESTART:`nira.py`\n再起動します")
                 print("-----[n!restart]コマンドが実行されたため、再起動します。-----")
@@ -105,19 +106,19 @@ class debug(commands.Cog):
             await self.bot.change_presence(activity=discord.Game(name="終了中...", type=1), status=discord.Status.dnd)
             exit_code = await ctx.message.reply("終了準備中...")
             try:
-                with open('steam_server_list.nira', 'wb') as f:
+                with open('/home/nattyantv/nira_bot_rewrite/steam_server_list.nira', 'wb') as f:
                     pickle.dump(n_fc.steam_server_list, f)
-                with open('reaction_bool_list.nira', 'wb') as f:
+                with open('/home/nattyantv/nira_bot_rewrite/reaction_bool_list.nira', 'wb') as f:
                     pickle.dump(n_fc.reaction_bool_list, f)
-                with open('welcome_id_list.nira', 'wb') as f:
+                with open('/home/nattyantv/nira_bot_rewrite/welcome_id_list.nira', 'wb') as f:
                     pickle.dump(n_fc.welcome_id_list, f)
-                with open('ex_reaction_list.nira', 'wb') as f:
+                with open('/home/nattyantv/nira_bot_rewrite/ex_reaction_list.nira', 'wb') as f:
                     pickle.dump(n_fc.ex_reaction_list, f)
-                with open('srtr_bool_list.nira', 'wb') as f:
+                with open('/home/nattyantv/nira_bot_rewrite/srtr_bool_list.nira', 'wb') as f:
                     pickle.dump(n_fc.srtr_bool_list, f)
-                with open('all_reaction_list.nira', 'wb') as f:
+                with open('/home/nattyantv/nira_bot_rewrite/all_reaction_list.nira', 'wb') as f:
                     pickle.dump(n_fc.all_reaction_list, f)
-                with open('bump_list.nira', 'wb') as f:
+                with open('/home/nattyantv/nira_bot_rewrite/bump_list.nira', 'wb') as f:
                     pickle.dump(n_fc.bump_list, f)
                 await exit_code.edit(content="STOP:`nira.py`\n終了します")
                 print("-----[n!exit]コマンドが実行されたため、終了します。-----")
@@ -218,19 +219,19 @@ class debug(commands.Cog):
     async def save(self, ctx: commands.Context):
         if ctx.message.author.id in n_fc.py_admin:
             try:
-                with open('steam_server_list.nira', 'wb') as f:
+                with open('/home/nattyantv/nira_bot_rewrite/steam_server_list.nira', 'wb') as f:
                     pickle.dump(n_fc.steam_server_list, f)
-                with open('reaction_bool_list.nira', 'wb') as f:
+                with open('/home/nattyantv/nira_bot_rewrite/reaction_bool_list.nira', 'wb') as f:
                     pickle.dump(n_fc.reaction_bool_list, f)
-                with open('welcome_id_list.nira', 'wb') as f:
+                with open('/home/nattyantv/nira_bot_rewrite/welcome_id_list.nira', 'wb') as f:
                     pickle.dump(n_fc.welcome_id_list, f)
-                with open('ex_reaction_list.nira', 'wb') as f:
+                with open('/home/nattyantv/nira_bot_rewrite/ex_reaction_list.nira', 'wb') as f:
                     pickle.dump(n_fc.ex_reaction_list, f)
-                with open('srtr_bool_list.nira', 'wb') as f:
+                with open('/home/nattyantv/nira_bot_rewrite/srtr_bool_list.nira', 'wb') as f:
                     pickle.dump(n_fc.srtr_bool_list, f)
-                with open('all_reaction_list.nira', 'wb') as f:
+                with open('/home/nattyantv/nira_bot_rewrite/all_reaction_list.nira', 'wb') as f:
                     pickle.dump(n_fc.all_reaction_list, f)
-                with open('bump_list.nira', 'wb') as f:
+                with open('/home/nattyantv/nira_bot_rewrite/bump_list.nira', 'wb') as f:
                     pickle.dump(n_fc.bump_list, f)
                 await ctx.message.reply("Saved.")
                 print("[save]")
@@ -248,7 +249,7 @@ class debug(commands.Cog):
             if ctx.message.content == "n!cog":
                 embed = discord.Embed(title="cogs", description="`extension`", color=0x00ff00)
                 embed.add_field(name="Cog Names", value="表示されている名前は、`cog.[Cog name]`のcog nameです。", inline=False)
-                embed.add_field(name="amuse", value="娯楽系のコマンド。\n`janken`/`uranai`")
+                embed.add_field(name="amuse", value="娯楽系のコマンド。\n`janken`/`uranai`/`dice`")
                 embed.add_field(name="bump", value="bump通知の設定コマンド及び、Bump取得とメッセージ送信。\n`bump`")
                 embed.add_field(name="check", value="管理者チェックをするコマンド。\n`check`")
                 embed.add_field(name="debug", value="管理者用コマンド。\n`create`/`py_exec`/`read`/`restart`/`exit`/`py`/`sh`/`save`/`cog`")

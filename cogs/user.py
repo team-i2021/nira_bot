@@ -4,6 +4,8 @@ import re
 import pickle
 
 import sys
+
+from discord.ext.commands.core import command
 sys.path.append('../')
 from util import admin_check, n_fc, eh
 
@@ -42,7 +44,7 @@ class user(commands.Cog):
                 try:
                     set_id = int("".join(re.findall(r'[0-9]', ctx.message.content[9:])))
                     n_fc.welcome_id_list[ctx.message.guild.id] = set_id
-                    with open('welcome_id_list.nira', 'wb') as f:
+                    with open('/home/nattyantv/nira_bot_rewrite/welcome_id_list.nira', 'wb') as f:
                         pickle.dump(n_fc.welcome_id_list, f)
                     channel = self.bot.get_channel(n_fc.welcome_id_list[ctx.message.guild.id])
                     await channel.send("追加完了メッセージ\nこのメッセージが指定のチャンネルに送信されていれば完了です。")
@@ -56,7 +58,7 @@ class user(commands.Cog):
                     if ctx.message.guild.id not in n_fc.reaction_bool_list:
                         seted_id = n_fc.welcome_id_list[ctx.message.guild.id]
                         del n_fc.welcome_id_list[ctx.message.guild.id]
-                        with open('welcome_id_list.nira', 'wb') as f:
+                        with open('/home/nattyantv/nira_bot_rewrite/welcome_id_list.nira', 'wb') as f:
                             pickle.dump(n_fc.welcome_id_list, f)
                         await ctx.message.reply(f"削除しました。\n再度同じ設定をする場合は```n!ui set {seted_id}```と送信してください。")
                         return

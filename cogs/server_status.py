@@ -15,13 +15,35 @@ import util.srtr as srtr
 import re
 import datetime
 import asyncio
+import os
+from multiprocessing import Process
 
+import subprocess
+from subprocess import PIPE
+
+global pid_ss
+pid_ss={}
+
+async def ss_loop_goes(self, ctx, message):
+    try:
+        await message.edit(content=f"実行されています。")
+        while True:
+            for i in map(str, range(1, int(n_fc.steam_server_list[message.guild.id]["value"])+1)):
+                if await server_check.server_check_loop(self.bot.loop, message.guild.id, i) == False:
+                    # 鯖落ちしてるよ
+                    await message.channel.send(f"{ctx.message.author.mention} - もしかして鯖落ちしてたりしません...？\n\nAutoSSが無効になりました。\n```n!ss```で確認してみましょう！")
+                    return False
+                # 正常だよ
+            await asyncio.sleep(60*30)
+    except BaseException as err:
+        await message.edit(content=err)
 
 class server_status(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
     @commands.command()
+    @commands.cooldown(1, 10, type=commands.BucketType.guild)
     async def ss(self, ctx: commands.Context):
         if ctx.message.content[:8] == "n!ss add":
             if ctx.message.content == "n!ss add":
@@ -40,7 +62,7 @@ class server_status(commands.Cog):
                 n_fc.steam_server_list[ctx.message.guild.id][f"{sset_point + 1}_nm"] = ad_name
                 n_fc.steam_server_list[ctx.message.guild.id]["value"] = str(sset_point + 1)
                 await ctx.message.reply(f"サーバー名：{ad_name}\nサーバーアドレス：({ad_ip},{ad_port})")
-                with open('steam_server_list.nira', 'wb') as f:
+                with open('/home/nattyantv/nira_bot_rewrite/steam_server_list.nira', 'wb') as f:
                     pickle.dump(n_fc.steam_server_list, f)
                 return
             except BaseException as err:
@@ -50,7 +72,7 @@ class server_status(commands.Cog):
                 await ctx.message.reply("サーバーは登録されていません。")
                 return
             else:
-                if admin_check.admin_check(ctx.message.guild, ctx.message.author):
+                if admin_check.admin_check(ctx.message.guild, ctx.message.author) or ctx.message.author.id in n_fc.py_admin:
                     user = await self.bot.fetch_user(ctx.message.author.id)
                     embed = discord.Embed(title="Steam Server List", description=f"「{ctx.message.guild.name}」のサーバーリスト\n```保存数：{str(n_fc.steam_server_list[ctx.message.guild.id]['value'])}```", color=0x00ff00)
                     for i in range(int(n_fc.steam_server_list[ctx.message.guild.id]['value'])):
@@ -61,6 +83,50 @@ class server_status(commands.Cog):
                 else:
                     await ctx.message.reply(embed=discord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
                     return
+        if ctx.message.content[:9] == "n!ss auto":
+            if ctx.message.content == "n!ss auto" and ctx.message.author.id in n_fc.py_admin:
+                await ctx.reply(embed=discord.Embed(title="エラー", description="引数が足りません。\n`n!ss auto on/off`"))
+                return
+            elif ctx.message.content[10:] == "on":
+                try:
+                    mes_ss = await ctx.reply(f"Starting process...")
+                    pid_ss[ctx.message.guild.id] = self.bot.loop.create_task(ss_loop_goes(self, ctx, mes_ss))
+                    return
+                except BaseException as err:
+                    await ctx.reply(embed=eh.eh(err))
+                    return
+            elif ctx.message.content[10:] == "off":
+                if ctx.message.guild.id not in pid_ss:
+                    await ctx.reply("既に無効になっているか、コマンドが実行されていません。")
+                try:
+                    if pid_ss[ctx.message.guild.id].done() == False:
+                        pid_ss[ctx.message.guild.id].cancel()
+                        await ctx.reply("AutoSSを無効にしました。")
+                        return
+                    else:
+                        await ctx.reply("既に無効になっているか、コマンドが実行されていません。")
+                except BaseException as err:
+                    await ctx.reply(embed=eh.eh(err))
+                    return
+            elif ctx.message.content[10:] == "test":
+                if ctx.message.author.id not in n_fc.py_admin:
+                    await ctx.reply("権限不足")
+                test_admin = await ctx.reply("Please test your command(in 10sec)")
+                await asyncio.sleep(10)
+                await test_admin.edit(content="End cooldown.")
+                return
+            else:
+                if ctx.message.guild.id not in pid_ss:
+                    await ctx.reply("`n!ss auto [on/off]`\nAutoSSは無効になっています。")
+                try:
+                    if pid_ss[ctx.message.guild.id].done() == True:
+                        await ctx.reply("`n!ss auto [on/off]`\nAutoSSは無効になっています。")
+                    else:
+                        await ctx.reply("`n!ss auto [on/off]`\nAutoSSは有効になっています。")
+                except BaseException as err:
+                    await ctx.reply(embed=eh.eh(err))
+                    return
+            return
         if ctx.message.content[:9] == "n!ss edit":
             if ctx.message.content == "n!ss edit":
                 await ctx.message.reply("構文が異なります。\n```n!ss edit [サーバーナンバー] [名前] [IPアドレス],[ポート番号]```")
@@ -82,7 +148,7 @@ class server_status(commands.Cog):
                 n_fc.steam_server_list[ctx.message.guild.id][f"{s_id}_ad"] = (s_ip, s_port)
                 n_fc.steam_server_list[ctx.message.guild.id][f"{s_id}_nm"] = s_nm
                 await ctx.message.reply(f"サーバーナンバー：{s_id}\nサーバー名：{s_nm}\nサーバーアドレス：{s_ip},{s_port}")
-                with open('steam_server_list.nira', 'wb') as f:
+                with open('/home/nattyantv/nira_bot_rewrite/steam_server_list.nira', 'wb') as f:
                     pickle.dump(n_fc.steam_server_list, f)
                 return
             except BaseException as err:

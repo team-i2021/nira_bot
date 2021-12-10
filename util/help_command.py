@@ -31,6 +31,9 @@ async def n_help(message, client):
         embed.add_field(name="例", value="```n!ss del 1```", inline=False)
         embed.add_field(name="```n!ss del all```", value="サーバーのリストを全て削除します。", inline=False)
         embed.add_field(name="例", value="```n!ss del all```", inline=False)
+        embed.add_field(name="```n!ss auto [on/off]```", value="30分ごとにサーバーステータスを取得して、鯖落ちしてたらメンションします。", inline=False)
+        embed.add_field(name="```[on/off]```", value="onにすると30分ごとにサーバーステータスを取得します。offにするか、鯖落ちが発生するまでずっと実行されます。\nここの値を指定しないと、AutoSSの状態を表示します。", inline=False)
+        embed.add_field(name="例", value="```n!ss auto on```", inline=False)
     elif cn == "embed":
         embed.add_field(name="```embed```", value="Embedを作成して送信します。", inline=False)
         embed.add_field(name="```n!embed [カラー] [タイトル]\n[本文]```", value="サーバーのリストに追加します。", inline=False)
@@ -108,13 +111,3 @@ async def n_help(message, client):
         embed.add_field(name="```d```", value="指定されたユーザーの情報を表示します。", inline=False)
         embed.add_field(name="・リアクションについて", value="このbotの発したメッセージの一部には、<:trash:908565976407236608>のリアクションが自動的に付きます。\nこのリアクションを押すとそのメッセージが削除されます。", inline=False)
     await message.reply(embed=embed)
-    if message.author.id in n_fc.py_admin:
-        embed = discord.Embed(title="for DEV", description="developer tool\n(Only py_admin user)", color=0xff0000)
-        embed.add_field(name="```exec [path]```", value="任意のPythonファイルを実行します。", inline=False)
-        embed.add_field(name="```py [code]```", value="任意のPythonコードを実行します。", inline=False)
-        embed.add_field(name="```exit```", value="にらBOTを停止させます。", inline=False)
-        embed.add_field(name="```restart```", value="にらBOTを再起動させます。", inline=False)
-        embed.add_field(name="```create [path]```", value="ファイルを生成します。", inline=False)
-        embed.add_field(name="```read```", value="`nira.py`のコードを送信します。", inline=False)
-        embed.add_field(name="```save```", value="グローバル変数をファイルに保存します。", inline=False)
-        await message.reply(embed=embed)
