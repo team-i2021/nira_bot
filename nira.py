@@ -56,11 +56,20 @@ token = setting["tokens"]["nira_bot"]
 
 
 #cogのロード
-cogs_dir = home_dir + "/cogs"
-cogs_num = sum(os.path.isfile(os.path.join(dir,name)) for name in os.listdir(dir))
-cogs_list = os.listdir(cogs_dir)
-for i in range(cogs_num):
-    bot.load_extension(f"cogs.{cogs_list[i][:-3]}")
+try:
+    cogs_dir = home_dir + "/cogs"
+    cogs_num = len([name for name in os.listdir(cogs_dir) if os.path.isfile(os.path.join(cogs_dir, name))])-1
+    cogs_list = os.listdir(cogs_dir)
+    for i in range(cogs_num):
+        if cogs_list[i] == "__pycache__":
+            continue
+        bot.load_extension(f"cogs.{cogs_list[i][:-3]}")
+except BaseException as err:
+    main_content = {
+        "username": "エラーが発生しました",
+        "content": f"BOTを起動時にエラーが発生しました。Cogの読み込みエラーです。\n```{err}```\nサービスは終了します。"
+    }
+    requests.post("https://discord.com/api/webhooks/918124219378851911/PPjA2Sff4r0dsjK4oYqEhyW-iran0h9tIJSfs4O8MbbhcVzQWyIE-niMz1xwEoRHHSjg", main_content)
 
 
 @bot.event
@@ -125,9 +134,8 @@ async def on_ready():
         func_error_count = func_error_count + 64
     if func_error_count > 0:
         main_content = {
-            "username": "にらBOT 起動時のエラーハンドリング",
-            "avatar_url": bot.user.avatar_url,
-            "content": f"にらBOTを起動時にエラーが発生しました。変数の読み込みエラーです。\n`エラーコード:{func_error_count}`\nなおそのまま実行することは推奨されません。"
+            "username": "エラーが発生しました",
+            "content": f"BOTを起動時にエラーが発生しました。変数の読み込みエラーです。\n`エラーコード:{func_error_count}`\nなおそのまま実行することは推奨されません。"
         }
         requests.post("https://discord.com/api/webhooks/918124219378851911/PPjA2Sff4r0dsjK4oYqEhyW-iran0h9tIJSfs4O8MbbhcVzQWyIE-niMz1xwEoRHHSjg", main_content)
     await bot.change_presence(activity=discord.Game(name="n!help | にらゲー", type=1), status=discord.Status.online)
