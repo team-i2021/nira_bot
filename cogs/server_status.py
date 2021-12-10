@@ -84,7 +84,10 @@ class server_status(commands.Cog):
                     await ctx.message.reply(embed=discord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
                     return
         if ctx.message.content[:9] == "n!ss auto":
-            if ctx.message.content == "n!ss auto" and ctx.message.author.id in n_fc.py_admin:
+            if admin_check.admin_check(ctx.message.guild, ctx.message.author) == False:
+                await ctx.message.reply(embed=discord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
+                return
+            if ctx.message.content == "n!ss auto":
                 await ctx.reply(embed=discord.Embed(title="エラー", description="引数が足りません。\n`n!ss auto on/off`"))
                 return
             elif ctx.message.content[10:] == "on":
@@ -108,13 +111,6 @@ class server_status(commands.Cog):
                 except BaseException as err:
                     await ctx.reply(embed=eh.eh(err))
                     return
-            elif ctx.message.content[10:] == "test":
-                if ctx.message.author.id not in n_fc.py_admin:
-                    await ctx.reply("権限不足")
-                test_admin = await ctx.reply("Please test your command(in 10sec)")
-                await asyncio.sleep(10)
-                await test_admin.edit(content="End cooldown.")
-                return
             else:
                 if ctx.message.guild.id not in pid_ss:
                     await ctx.reply("`n!ss auto [on/off]`\nAutoSSは無効になっています。")

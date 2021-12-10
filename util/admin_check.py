@@ -1,10 +1,11 @@
 from discord.utils import get
+import discord
 
 from util import n_fc
 
 #ユーザーがそのサーバーで管理者権限を持っているか確認する。
 
-def admin_check(guild, memb):
+def admin_check(guild: discord.Message.guild, memb: discord.Message.author) -> bool:
     role_list = []
     for role in memb.roles:
         role_list.append(role.id)
