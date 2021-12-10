@@ -50,7 +50,7 @@ bot.is_owner = is_owner
 bot.remove_command("help")
 
 #設定読み込み
-setting = json.load(open('setting.json', 'r'))
+setting = json.load(open('/home/nattyantv/nira_bot_rewrite/setting.json', 'r'))
 home_dir = setting["home_dir"]
 token = setting["tokens"]["nira_bot"]
 
