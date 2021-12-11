@@ -210,7 +210,7 @@ class normal_reaction(commands.Cog):
                     sended_mes = await message.reply(f'{image_root}/serori.jpg')
                 else:
                     if message.guild.id == 870642671415337001:
-                        sended_mes = await message.reply(f'{image_root}/ri_par.jpg')
+                        sended_mes = await message.reply(f'{image_root}/ri_par.png')
             if re.search(r'(?:tasuren|たすれん|タスレン)', message.content):
                 if message.guild.id == 870642671415337001:
                     rnd = random.randint(1, 2)
