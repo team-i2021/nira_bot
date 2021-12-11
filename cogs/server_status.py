@@ -4,6 +4,7 @@ import discord
 
 import pickle
 
+import datetime
 
 #pingを送信するだけ
 
@@ -24,19 +25,59 @@ from subprocess import PIPE
 global pid_ss
 pid_ss={}
 
-async def ss_loop_goes(self, ctx, message):
+#loggingの設定
+import logging
+class NoTokenLogFilter(logging.Filter):
+    def filter(self, record):
+        message = record.getMessage()
+        return 'token' not in message
+
+logger = logging.getLogger(__name__)
+logger.addFilter(NoTokenLogFilter())
+formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
+logging.basicConfig(format=formatter, filename='/home/nattyantv/nira.log', level=logging.INFO)
+
+
+async def ss_loop_goes(self, ment_id, message):
     try:
         await message.edit(content=f"実行されています。")
+        logging.info(f"{message.guild.name}にてAutoSSが有効になりました。")
         while True:
+            await message.edit(content=f"現在チェックを行っています...\n最終チェック時刻：`{datetime.datetime.now()}`")
+            logging.info(f"{message.guild.name}でのAutoSSチェックを実行します。")
             for i in map(str, range(1, int(n_fc.steam_server_list[message.guild.id]["value"])+1)):
                 if await server_check.server_check_loop(self.bot.loop, message.guild.id, i) == False:
-                    # 鯖落ちしてるよ
-                    await message.channel.send(f"{ctx.message.author.mention} - もしかして鯖落ちしてたりしません...？\n\nAutoSSが無効になりました。\n```n!ss```で確認してみましょう！")
+                    # 鯖落ちしてかもるよ
+                    await message.edit(content=f"チェック結果：失敗(1/3)\n最終チェック時刻：`{datetime.datetime.now()}`")
+                    logging.error(f"{message.guild.name}でのAutoSSチェック結果：失敗（1/3回目）")
+                    await asyncio.sleep(5)
+                    if await server_check.server_check_loop(self.bot.loop, message.guild.id, i) == False:
+                        await message.edit(content=f"チェック結果：失敗(2/3)\n最終チェック時刻：`{datetime.datetime.now()}`")
+                        logging.error(f"{message.guild.name}でのAutoSSチェック結果：失敗（2/3回目）")
+                        await asyncio.sleep(5)
+                        if await server_check.server_check_loop(self.bot.loop, message.guild.id, i) == False:
+                            await message.edit(content=f"チェック結果：失敗(3/3)\n最終チェック時刻：`{datetime.datetime.now()}`")
+                            logging.error(f"{message.guild.name}でのAutoSSチェック結果：失敗（3/3回目）")
+                            await asyncio.sleep(5)
+                            await message.edit(content=f"チェック結果：失敗(メッセージを送信して終了します。)\n最終チェック時刻：`{datetime.datetime.now()}`")
+                            await message.channel.send(f"<@{ment_id}> - もしかして鯖落ちしてたりしません...？\n\nAutoSSが無効になりました。\n一応```n!ss```で確認してみましょう！")
                     return False
                 # 正常だよ
-            await asyncio.sleep(60*30)
+                logging.info(f"{message.guild.name}でのAutoSSチェック結果：成功")
+                await message.edit(content=f"最後のチェック結果：成功\n最終チェック時刻：`{datetime.datetime.now()}`")
+            await asyncio.sleep(60*10) # 60秒*10＝10分
+    except TimeoutError as err:
+        await message.channel.send(f"<@{ment_id}> - タイムアウトが発生しました。もしかしたら鯖落ちしてるかも...？\n一応```n!ss```で確認してみましょう！\n```{err}```")
+        logging.error(f"AutoSSプログラム実行中のタイムアウト\n{err}")
+        return False
     except BaseException as err:
-        await message.edit(content=err)
+        if str(err) == "":
+            await message.edit(content="AutoSSを終了しました。")
+            logging.info(f"AutoSSプログラム終了")
+            return False
+        await message.channel.send(f"大変申し訳ございません。AutoSSのプログラム内でエラーが発生しました。\n```{err}```")
+        logging.error(f"AutoSSプログラム実行中のエラー\n{err}")
+        return False
 
 class server_status(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -56,7 +97,7 @@ class server_status(commands.Cog):
                 ad_name = str(ad[0])
                 ad = ad[1].split(",", 1)
                 ad_port = int(ad[1])
-                ad_ip = str("".join(re.findall(r'[0-9]|\.', ad[0])))
+                ad_ip = str(ad[0])
                 sset_point = int(n_fc.steam_server_list[ctx.message.guild.id]["value"])
                 n_fc.steam_server_list[ctx.message.guild.id][f"{sset_point + 1}_ad"] = (ad_ip, ad_port)
                 n_fc.steam_server_list[ctx.message.guild.id][f"{sset_point + 1}_nm"] = ad_name
@@ -90,15 +131,28 @@ class server_status(commands.Cog):
             if ctx.message.content == "n!ss auto":
                 await ctx.reply(embed=discord.Embed(title="エラー", description="引数が足りません。\n`n!ss auto on/off`"))
                 return
-            elif ctx.message.content[10:] == "on":
+            elif ctx.message.content[10:12] == "on":
                 try:
-                    mes_ss = await ctx.reply(f"Starting process...")
-                    pid_ss[ctx.message.guild.id] = self.bot.loop.create_task(ss_loop_goes(self, ctx, mes_ss))
+                    if ctx.message.guild.id not in n_fc.steam_server_list:
+                        await ctx.reply("サーバーが存在しません。")
+                        return
+                    if len(ctx.message.content) <= 13:
+                        ment_id = ctx.message.author.id
+                    else:
+                        ment_id = str("".join(re.findall(r'[0-9]', ctx.message.content[13:])))
+                        if ment_id == "":
+                            await ctx.reply("ユーザーIDが不正です。\n`n!ss auto on [UserID]`")
+                            return
+                        if self.bot.get_user(ment_id) == None:
+                            await ctx.reply("ユーザーが存在しません。")
+                            return
+                    mes_ss = await ctx.message.channel.send(f"Starting process...")
+                    pid_ss[ctx.message.guild.id] = self.bot.loop.create_task(ss_loop_goes(self, ment_id, mes_ss))
                     return
                 except BaseException as err:
                     await ctx.reply(embed=eh.eh(err))
                     return
-            elif ctx.message.content[10:] == "off":
+            elif ctx.message.content[10:13] == "off":
                 if ctx.message.guild.id not in pid_ss:
                     await ctx.reply("既に無効になっているか、コマンドが実行されていません。")
                 try:
@@ -114,6 +168,7 @@ class server_status(commands.Cog):
             else:
                 if ctx.message.guild.id not in pid_ss:
                     await ctx.reply("`n!ss auto [on/off]`\nAutoSSは無効になっています。")
+                    return
                 try:
                     if pid_ss[ctx.message.guild.id].done() == True:
                         await ctx.reply("`n!ss auto [on/off]`\nAutoSSは無効になっています。")
@@ -186,7 +241,7 @@ class server_status(commands.Cog):
                     await ctx.message.reply(embed=discord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
                     return
             else:
-                del_re = await ctx.reply("追加返答のリストを削除してもよろしいですか？リスト削除には管理者権限が必要です。\n\n:o:：削除\n:x:：キャンセル")
+                del_re = await ctx.reply("サーバーリストを削除しますか？リスト削除には管理者権限が必要です。\n\n:o:：削除\n:x:：キャンセル")
                 await del_re.add_reaction("\U00002B55")
                 await del_re.add_reaction("\U0000274C")
                 return

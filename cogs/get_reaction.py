@@ -1,11 +1,24 @@
 from discord.ext import commands
 import discord
 import pickle
+import requests
 
 import sys
 from cogs.embed import embed
 sys.path.append('../')
 from util import admin_check, n_fc, eh
+
+#loggingの設定
+import logging
+class NoTokenLogFilter(logging.Filter):
+    def filter(self, record):
+        message = record.getMessage()
+        return 'token' not in message
+
+logger = logging.getLogger(__name__)
+logger.addFilter(NoTokenLogFilter())
+formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
+logging.basicConfig(format=formatter, filename='/home/nattyantv/nira.log', level=logging.INFO)
 
 class get_reaction(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -35,7 +48,7 @@ class get_reaction(commands.Cog):
                     await user.send(embed=discord.Embed(title="リスト削除", description=f"{react.message.guild.name}のサーバーのカスタムサーバーリスト削除メッセージにインタラクトされましたが、あなたには権限がないため実行できませんでした。", color=0xff0000))
                     return
         except KeyError as err:
-            await react.message.channel.send(embed=discord.Embed(title="エラー", description=f"{mem.mention}\nこのサーバーにはリストが登録されていません。\n```{err}```", color=0xff0000))
+            await react.message.channel.send(embed=eh.eh(err))
             return
         except BaseException as err:
             await react.message.channel.send(embed=discord.Embed(title="エラー", description=f"{mem.mention}\n大変申し訳ございません。エラーが発生しました。\n```{err}```", color=0xff0000))
@@ -62,7 +75,7 @@ class get_reaction(commands.Cog):
                     await user.send(embed=discord.Embed(title="リスト削除", description=f"{react.message.guild.name}のサーバーの追加返答リスト削除メッセージにインタラクトされましたが、あなたには権限がないため実行できませんでした。", color=0xff0000))
                     return
         except KeyError as err:
-            await react.message.channel.send(embed=discord.Embed(title="エラー", description=f"{mem.mention}\nこのサーバーにはリストが登録されていません。\n```{err}```", color=0xff0000))
+            await react.message.channel.send(embed=eh.eh(err))
             return
         except BaseException as err:
             await react.message.channel.send(embed=discord.Embed(title="エラー", description=f"{mem.mention}\n大変申し訳ございません。エラーが発生しました。\n```{err}```", color=0xff0000))

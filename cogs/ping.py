@@ -8,6 +8,18 @@ sys.path.append('../')
 from util import admin_check, n_fc, eh
 #pingを送信するだけ
 
+#loggingの設定
+import logging
+class NoTokenLogFilter(logging.Filter):
+    def filter(self, record):
+        message = record.getMessage()
+        return 'token' not in message
+
+logger = logging.getLogger(__name__)
+logger.addFilter(NoTokenLogFilter())
+formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
+logging.basicConfig(format=formatter, filename='/home/nattyantv/nira.log', level=logging.INFO)
+
 async def ping_there(ctx, adr):
     async with ctx.message.channel.typing():
         res = subprocess.run(f"ping {adr} -c 3 -W 3", stdout=PIPE, stderr=PIPE, shell=True, text=True)
@@ -25,6 +37,7 @@ class ping(commands.Cog):
     async def ping(self, ctx: commands.Context):
         if ctx.message.content == "n!ping":
             embed = discord.Embed(title="Ping", description=f"現在のPing値は`{round(self.bot.latency * 1000)}`msです。", color=0x00ff00)
+            logger.info(f"DiscordサーバーとのPing値：{round(self.bot.latency * 1000)}ms")
             await ctx.reply(embed=embed)
             return
         adr = ctx.message.content[7:]

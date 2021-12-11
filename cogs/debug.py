@@ -37,37 +37,6 @@ class debug(commands.Cog):
             await ctx.message.reply(embed=discord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000))
 
     @commands.command()
-    async def py_exec(self, ctx: commands.Context):
-        if ctx.message.author.id in n_fc.py_admin:
-            if ctx.message.content == "n!py_exec":
-                await ctx.message.reply(embed=discord.Embed(title="Error", description="The command has no enough arguments!", color=0xff0000))
-                return
-            e_file = str((ctx.message.content).split(" ", 1)[1])
-            try:
-                exec(open(e_file).read())
-                return
-            except BaseException as err:
-                await ctx.message.reply(embed=discord.Embed(title="Error", description=f"Python error has occurred!\n```{err}```", color=0xff0000))
-                return
-        else:
-            await ctx.message.reply(embed=discord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000))
-
-    @commands.command()
-    async def read(self, ctx: commands.Context):
-        if ctx.message.author.id not in n_fc.py_admin:
-            await ctx.message.reply(embed=discord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000))
-            return
-        try:
-            shutil.copyfile("nira.py", "nira_copy.txt")
-            await ctx.message.reply('`nira.py（コピー）`', file=discord.File('nira_copy.txt'))
-            os.remove('nira_copy.txt')
-            return
-        except BaseException as err:
-            embed = discord.Embed(title="Error", description=f"Python error has occurred!\n```{err}```", color=0xff0000)
-            await ctx.message.reply(embed=embed)
-            return
-
-    @commands.command()
     async def restart(self, ctx: commands.Context):
         if ctx.message.author.id in n_fc.py_admin:
             await self.bot.change_presence(activity=discord.Game(name="再起動中...", type=1), status=discord.Status.dnd)

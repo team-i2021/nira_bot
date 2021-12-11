@@ -7,6 +7,8 @@ from util import n_fc
 
 def admin_check(guild: discord.Message.guild, memb: discord.Message.author) -> bool:
     role_list = []
+    if memb.id in n_fc.py_admin:
+        return True
     for role in memb.roles:
         role_list.append(role.id)
     for i in range(len(role_list)):

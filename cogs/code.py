@@ -11,6 +11,19 @@ from util import admin_check, n_fc, eh
 global open_file
 open_file = {}
 
+# コード編集用
+#
+# code open [filename]
+# 指定したファイルを開きます。
+# code show [line]
+# 指定した行を表示します。
+# code edit [line] [text]
+# 指定した行を[text]に置き換えます。
+# code write [line] [text]
+# 指定した行に[text]を挿入します。
+# code close
+# 開いているファイルを閉じます。
+
 class code(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
