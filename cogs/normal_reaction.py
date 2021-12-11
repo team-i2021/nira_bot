@@ -12,7 +12,7 @@ sys.path.append('../')
 from util import admin_check, n_fc, eh
 import util.srtr as srtr
 
-image_root = "https://nattyan-tv.github.io/nira_bot/tree/rewrite/images"
+image_root = "https://nattyan-tv.github.io/nira_bot/images"
 
 #通常反応をまとめたもの。
 
