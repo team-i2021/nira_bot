@@ -70,6 +70,7 @@ except BaseException as err:
         "content": f"BOTを起動時にエラーが発生しました。Cogの読み込みエラーです。\n```{err}```\nサービスは終了します。"
     }
     requests.post("https://discord.com/api/webhooks/918125489405714452/-NQMQMuuafLyoRAYNw-tBWKT1hsJRKcWjilYrZX1gPdce8en1FqgR1TK0p-Kn02b1Aom", main_content)
+    exit()
 
 
 @bot.event

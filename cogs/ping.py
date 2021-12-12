@@ -4,9 +4,12 @@ import discord
 import subprocess
 from subprocess import PIPE
 import sys
+
+from discord.ext.commands.errors import CommandNotFound
 sys.path.append('../')
 from util import admin_check, n_fc, eh
 #pingを送信するだけ
+
 
 #loggingの設定
 import logging
@@ -27,32 +30,45 @@ async def ping_there(ctx, adr):
             await ctx.reply(f"`{adr}`に接続できました。\n```{res.stdout}```")
         else:
             await ctx.reply(f"`{adr}`に接続できませんでした。")
-        
+
+
+
+async def base_ping(self, ctx: commands.Context, address):
+    if address == int:
+        adr = ctx.message.content[7:]
+    else:
+        adr = address
+    if ctx.message.content == "n!ping" or adr == None:
+        embed = discord.Embed(title="Ping", description=f"現在のPing値は`{round(self.bot.latency * 1000)}`msです。", color=0x00ff00)
+        logger.info(f"DiscordサーバーとのPing値：{round(self.bot.latency * 1000)}ms")
+        await ctx.reply(embed=embed)
+        return
+    if adr[8:] == "192.168." or adr == "127.0.0.1" or adr == "localhost" or adr == "0.0.0.0" or adr == "127.0.1" or adr == "127.1" or adr == "2130706433" or adr == "0x7F000001" or adr == "017700000001":
+        if ctx.message.author.id not in n_fc.py_admin:
+            await ctx.reply("localhost及びローカルIPにはping出来ません。")
+            return
+    try:
+        await asyncio.wait_for(ping_there(ctx, adr), timeout=8)
+    except asyncio.TimeoutError:
+        await ctx.reply(f"{adr}に時間内に接続できませんでした。")
+    return
+
+# add == None: スラッシュコマンドで、何も入れなかった場合
+# add == str: スラッシュコマンドで、addressを入れた場合
+# add == int: 「n!ping」を使った場合
 
 class ping(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
+    #@commands.slash_command()
+    #async def ping(self, ctx: commands.Context, address:str = None):
+    #    await base_ping(self, ctx, address)
+    
     @commands.command()
     async def ping(self, ctx: commands.Context):
-        if ctx.message.content == "n!ping":
-            embed = discord.Embed(title="Ping", description=f"現在のPing値は`{round(self.bot.latency * 1000)}`msです。", color=0x00ff00)
-            logger.info(f"DiscordサーバーとのPing値：{round(self.bot.latency * 1000)}ms")
-            await ctx.reply(embed=embed)
-            return
-        adr = ctx.message.content[7:]
-        if adr[8:] == "192.168." or adr == "127.0.0.1" or adr == "localhost" or adr == "0.0.0.0" or adr == "127.0.1" or adr == "127.1" or adr == "2130706433" or adr == "0x7F000001" or adr == "017700000001":
-            if ctx.message.author.id not in n_fc.py_admin:
-                await ctx.reply("localhost及びローカルIPにはping出来ません。")
-                return
-        try:
-            await asyncio.wait_for(ping_there(ctx, adr), timeout=8)
-        except asyncio.TimeoutError:
-            await ctx.reply(f"{adr}に時間内に接続できませんでした。")
-        return
-
-
-
+        address = int
+        await base_ping(self, ctx, address)
 
 def setup(bot):
     bot.add_cog(ping(bot))

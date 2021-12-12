@@ -163,6 +163,8 @@ class normal_reaction(commands.Cog):
                     sended_mes = await message.reply(f'{image_root}/kitune_b.jpg')
                 elif rnd == 3:
                     sended_mes = await message.reply('https://twitter.com/rougitune')
+            if re.search(r'(?:ういろ)', message.content):
+                sended_mes = await message.reply(f'{image_root}/uiro.jpg')
             if re.search(r'(?:いくもん|イクモン|ikumon|Ikumon|村人)', message.content):
                 if message.guild.id == 870642671415337001:
                     sended_mes = await message.reply('https://www.youtube.com/IkumonTV')
