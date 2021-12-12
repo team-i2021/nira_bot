@@ -8,8 +8,25 @@ import sys
 import re
 import niconico_dl
 import youtube_dl
+import sys
+from cogs.embed import embed
+sys.path.append('../')
+from util import admin_check, n_fc, eh, server_check
 
 # 音楽再生
+
+#loggingの設定
+import logging
+class NoTokenLogFilter(logging.Filter):
+    def filter(self, record):
+        message = record.getMessage()
+        return 'token' not in message
+
+logger = logging.getLogger(__name__)
+logger.addFilter(NoTokenLogFilter())
+formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
+logging.basicConfig(format=formatter, filename='/home/nattyantv/nira.log', level=logging.INFO)
+
 
 music_list = dict()
 music_f = dict()
@@ -33,9 +50,11 @@ ytdl_format_options = {
     'quiet': True,
     'no_warnings': True,
     'default_search': 'auto',
-    'source_address': '0.0.0.0'
+    'source_address': '0.0.0.0',
+    'cookiefile': '/home/nattyantv/nira_bot_rewrite/util/youtube-cookies.txt'
 }
 
+# ヨシ！
 ffmpeg_options = {
     'options': '-vn'
 }
@@ -50,9 +69,7 @@ async def end_mes(message, played_type, close_obj):
 class YTDLSource(discord.PCMVolumeTransformer):
     def __init__(self, source, *, data, volume=0.5):
         super().__init__(source, volume)
-
         self.data = data
-
         self.title = data.get('title')
         self.url = data.get('url')
 
@@ -87,7 +104,7 @@ class music(commands.Cog):
             await ctx.message.reply(embed=discord.Embed(title="エラー",description=f"```{err}```\n```sh\n{sys.exc_info()}```",color=0xff0000))
             print(f"[VC接続時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
             return
-
+    
     @commands.command()
     async def play(self, ctx: commands.Context):
         try:
@@ -117,15 +134,16 @@ class music(commands.Cog):
                 if music_list[ctx.message.guild.id] == "none":
                     await ctx.message.reply(embed=discord.Embed(title="エラー",description="ニコニコ動画かYouTubeのリンクを入れてね！",color=0xff0000))
                     return
-                print(f"{datetime.datetime.now()} - {url} {url_type[ctx.message.guild.id]} {music_list[ctx.message.guild.id]}")
-                ctx.message.guild.voice_client.play(discord.FFmpegPCMAudio(music_list[ctx.message.guild.id].url,**options), after = lambda e: self.bot.loop.create_task(end_mes(ctx.message, url_type[ctx.message.guild.id], music_f[ctx.message.guild.id])))
-                # discord.PCMVolumeTransformer(ctx.message.guild.voice_client.source, volume=0.5)
+                logging.info(f"{url} {url_type[ctx.message.guild.id]} {music_list[ctx.message.guild.id]}")
+                ctx.message.guild.voice_client.play(discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(music_list[ctx.message.guild.id].url, **options), volume=0.45), after = lambda e: self.bot.loop.create_task(end_mes(ctx.message, url_type[ctx.message.guild.id], music_f[ctx.message.guild.id])))
+                await ctx.message.add_reaction("\U0001F197")
+                # discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(music_list[ctx.message.guild.id].url,**options), volume=0.5)
                 return
         except BaseException as err:
             await ctx.message.reply(embed=discord.Embed(title="エラー",description=f"```{err}```\n```sh\n{sys.exc_info()}```",color=0xff0000))
-            print(f"[楽曲再生時or再生中のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
+            logging.error(f"[楽曲再生時or再生中のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
             return
-
+    
     @commands.command()
     async def pause(self, ctx: commands.Context):
         if ctx.message.author.voice is None:
