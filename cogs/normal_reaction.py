@@ -28,6 +28,8 @@ class normal_reaction(commands.Cog):
         # 自分自身には反応しない
         if message.author.bot:
             return
+        if message.content[:2] == "n!":
+            return
         # AllReactionSetting
         if message.guild.id in n_fc.all_reaction_list:
             if message.channel.id in n_fc.all_reaction_list[message.guild.id]:
