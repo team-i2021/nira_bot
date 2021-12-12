@@ -119,6 +119,7 @@ class music(commands.Cog):
                     return
                 print(f"{datetime.datetime.now()} - {url} {url_type[ctx.message.guild.id]} {music_list[ctx.message.guild.id]}")
                 ctx.message.guild.voice_client.play(discord.FFmpegPCMAudio(music_list[ctx.message.guild.id].url,**options), after = lambda e: self.bot.loop.create_task(end_mes(ctx.message, url_type[ctx.message.guild.id], music_f[ctx.message.guild.id])))
+                # discord.PCMVolumeTransformer(ctx.message.guild.voice_client.source, volume=0.5)
                 return
         except BaseException as err:
             await ctx.message.reply(embed=discord.Embed(title="エラー",description=f"```{err}```\n```sh\n{sys.exc_info()}```",color=0xff0000))
