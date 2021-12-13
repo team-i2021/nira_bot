@@ -21,7 +21,7 @@ from multiprocessing import Process
 
 import subprocess
 from subprocess import PIPE
-
+import importlib
 
 #loggingの設定
 import logging
@@ -62,10 +62,20 @@ async def ss_loop_goes(self, ment_id, message):
             # 正常だよ
             logging.info(f"{message.guild.name}でのAutoSSチェック結果：成功")
             await message.edit(content=f"最後のチェック結果：成功\n最終チェック時刻：`{datetime.datetime.now()}`")
-        await asyncio.sleep(60*10) # 60秒*10＝10分
+        await asyncio.sleep(60*30) # 60秒*30＝30分
 
 #コマンド内部
 async def ss_base(self, ctx: commands.Context):
+    if ctx.message.content == "n!ss reload":
+        if ctx.message.author.id not in n_fc.py_admin:
+            return
+        try:
+            importlib.reload(server_check)
+            await ctx.reply("Reloaded.")
+            return
+        except BaseException as err:
+            await ctx.reply(err)
+            return
     if ctx.message.content[:8] == "n!ss add":
         if ctx.message.content == "n!ss add":
             await ctx.message.reply("構文が異なります。\n```n!ss add [表示名] [IPアドレス],[ポート番号]```")
@@ -105,7 +115,6 @@ async def ss_base(self, ctx: commands.Context):
                 await ctx.message.reply(embed=discord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
                 return
     if ctx.message.content[:9] == "n!ss auto":
-        if admin_check.admin_check(ctx.message.guild, ctx.message.author) == False:
             await ctx.message.reply(embed=discord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
             return
         if ctx.message.content == "n!ss auto":
@@ -124,6 +133,9 @@ async def ss_base(self, ctx: commands.Context):
                         await ctx.reply("ユーザーIDが不正です。\n`n!ss auto on [UserID]`")
                         return
                 mes_ss = await ctx.message.channel.send(f"Starting process...")
+                if ctx.message.guild.id in n_fc.pid_ss:
+                    await mess_ss.edit(content=f"既に{ctx.message.guild.name}でタスクが実行されています。")
+                    return
                 n_fc.pid_ss[ctx.message.guild.id] = self.bot.loop.create_task(ss_loop_goes(self, ment_id, mes_ss))
                 return
             except BaseException as err:
