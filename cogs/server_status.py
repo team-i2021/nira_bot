@@ -115,6 +115,7 @@ async def ss_base(self, ctx: commands.Context):
                 await ctx.message.reply(embed=discord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
                 return
     if ctx.message.content[:9] == "n!ss auto":
+        if admin_check.admin_check(ctx.message.guild, ctx.message.author) == False:
             await ctx.message.reply(embed=discord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
             return
         if ctx.message.content == "n!ss auto":
