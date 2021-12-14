@@ -5,12 +5,12 @@ import discord
 from discord import message
 from discord.ext import commands
 from discord.ext.commands.bot import Bot
+from discord.ext.commands.core import command
 from discord.utils import get
 from os import getenv
 import sys, re, asyncio, datetime, bot_token, util.server_check as server_check
 from subprocess import PIPE
 from util import n_fc, admin_check, eh
-from discord_buttons_plugin import *
 import json
 import os
 import requests
@@ -18,7 +18,7 @@ import requests
 from discord.embeds import Embed
 sys.setrecursionlimit(10000)#エラー回避
 import pickle
-
+print("Imported")
 #loggingの設定
 import logging
 class NoTokenLogFilter(logging.Filter):
@@ -31,13 +31,13 @@ logger.addFilter(NoTokenLogFilter())
 formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
 logging.basicConfig(format=formatter, filename='/home/nattyantv/nira.log', level=logging.INFO)
 
+print("Logged")
 ##### BOTの設定 #####
 intents = discord.Intents.default()  # デフォルトのIntentsオブジェクトを生成
 intents.typing = False # typingを受け取らないように
 intents.members = True # メンバーに関する情報を受け取る
 bot = commands.Bot(command_prefix="n!", intents=intents, help_command=None)
-buttons = ButtonsClient(bot)
-
+print("bot setted")
 #じしゃく
 bot.load_extension("jishaku")
 
@@ -54,7 +54,7 @@ setting = json.load(open('/home/nattyantv/nira_bot_rewrite/setting.json', 'r'))
 home_dir = setting["home_dir"]
 token = setting["tokens"]["nira_bot"]
 
-
+print("all setting loaded")
 #cogのロード
 try:
     cogs_dir = home_dir + "/cogs"
@@ -65,13 +65,14 @@ try:
             continue
         bot.load_extension(f"cogs.{cogs_list[i][:-3]}")
 except BaseException as err:
+    print(err)
     main_content = {
         "username": "エラーが発生しました",
         "content": f"BOTを起動時にエラーが発生しました。Cogの読み込みエラーです。\n```{err}```\nサービスは終了します。"
     }
     requests.post("https://discord.com/api/webhooks/918125489405714452/-NQMQMuuafLyoRAYNw-tBWKT1hsJRKcWjilYrZX1gPdce8en1FqgR1TK0p-Kn02b1Aom", main_content)
     exit()
-
+print("cog loading")
 
 @bot.event
 async def on_ready():
@@ -143,6 +144,9 @@ async def on_ready():
     logging.info('初期セットアップ終了')
     logging.info("Ready!")
 
-# BOT起動
+print("func loaded")
 
+# BOT起動
+print("run")
 bot.run(token)
+print("exit")

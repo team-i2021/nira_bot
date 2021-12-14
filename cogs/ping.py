@@ -9,7 +9,7 @@ from discord.ext.commands.errors import CommandNotFound
 sys.path.append('../')
 from util import admin_check, n_fc, eh
 #pingを送信するだけ
-
+from nira import bot as tod
 
 #loggingの設定
 import logging
@@ -61,9 +61,9 @@ class ping(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    #@commands.slash_command()
-    #async def ping(self, ctx: commands.Context, address:str = None):
-    #    await base_ping(self, ctx, address)
+    @tod.slash_command()
+    async def ping(self, ctx: commands.Context, address:str = None):
+        await base_ping(self, ctx, address)
     
     @commands.command()
     async def ping(self, ctx: commands.Context):
@@ -72,3 +72,4 @@ class ping(commands.Cog):
 
 def setup(bot):
     bot.add_cog(ping(bot))
+    tod.add_application_command(ping)

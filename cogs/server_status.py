@@ -135,7 +135,7 @@ async def ss_base(self, ctx: commands.Context):
                         return
                 mes_ss = await ctx.message.channel.send(f"Starting process...")
                 if ctx.message.guild.id in n_fc.pid_ss:
-                    await mess_ss.edit(content=f"既に{ctx.message.guild.name}でタスクが実行されています。")
+                    await mes_ss.edit(content=f"既に{ctx.message.guild.name}でタスクが実行されています。")
                     return
                 n_fc.pid_ss[ctx.message.guild.id] = self.bot.loop.create_task(ss_loop_goes(self, ment_id, mes_ss))
                 return

@@ -53,29 +53,24 @@ def server_check(embed, type, g_id, n):
             return True
         sv_dt = a2s.info(sv_ad)
         if type == 0:
-            embed.add_field(name=f"> {sv_nm}", value=":white_check_mark:オンライン", inline=False)
+            embed.add_field(name=f"> {sv_dt.server_name} - {sv_dt.map_name}", value=":white_check_mark:オンライン", inline=False)
         elif type == 1:
-            embed.add_field(name=f"> {sv_nm}", value=f"```{sv_dt}```", inline=False)
+            embed.add_field(name=f"> {sv_dt.server_name} - {sv_dt.map_name}", value=f"```{sv_dt}```", inline=False)
         user = ""
         sv_us = a2s.players(sv_ad)
         if type == 0:
-            if a2s.players(sv_ad) != []:
-                sv_users_str = str(a2s.players(sv_ad)).replace("[", "").replace("]", "")
-                sv_users_str = sv_users_str[7:]
-                sv_users_str = sv_users_str + ", Player("
-                sv_users_list = sv_users_str.split("), Player(")
-                for i in range(len(a2s.players(sv_ad))):
-                    sp_info = sv_users_list[-2]
-                    user_sp = sp_info.split(", ", 4)[1]
-                    time = sp_info.split(", ", 4)[3]
-                    user_add = user_sp.replace("name='", "").replace("'", "")
-                    user_time = math.floor(int((time.replace("duration=", "").split(".",1)[0]))/60)
+            if sv_us != []:
+                for i in range(len(sv_us)):
+                    user_add = str(sv_us[i].name)
+                    user_time = int(sv_us[i].duration)/60
+                    logging.info((user_add,user_time))
+                    if user_time >= 60:
+                        user_time = f"{int(user_time // 60)}時間{int(user_time % 60)}"
                     if user_add != "":
                         user = user + "\n" + f"```{user_add} | {user_time}分```"
-                    sv_users_list.pop()
                 if user == "":
                     user = "（ユーザーデータが取得出来ませんでした。）"
-                embed.add_field(name="> Online User", value=f"ユーザー数:{len(a2s.players(sv_ad))}人{user}\n==========", inline=False)
+                embed.add_field(name="> Online User", value=f"プレーヤー数:{len(sv_us)}人{user}\n==========", inline=False)
             else:
                 embed.add_field(name="> Online User", value=":information_source:オンラインユーザーはいません。\n==========", inline=False)
         elif type == 1:

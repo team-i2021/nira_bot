@@ -11,9 +11,67 @@ import random
 import a2s
 import asyncio
 import datetime
+import math
 
 global task
 
+#loggingの設定
+import logging
+class NoTokenLogFilter(logging.Filter):
+    def filter(self, record):
+        message = record.getMessage()
+        return 'token' not in message
+
+logger = logging.getLogger(__name__)
+logger.addFilter(NoTokenLogFilter())
+formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
+logging.basicConfig(format=formatter, filename='/home/nattyantv/nira.log', level=logging.INFO)
+
+
+
+# サーバーのステータスをチェックする
+def server_check(embed, type, g_id, n):
+    sv_ad = ("0.0.0.0", 0)
+    sv_nm = "ServerName(Virtual)"
+    sv_dt = "None"
+    try:
+        sv_dt = a2s.SourceInfo(protocol=17, server_name='VirtualNetwork', map_name='VirtualMap', folder='virtual_games', game='VirtualGame', app_id=0, player_count=2, max_players=20, bot_count=0, server_type='d', platform='w', password_protected=True, vac_enabled=True, version='1.0.0.0', edf=177, port=80, steam_id=1, stv_port=None, stv_name=None, keywords=',OWNINGID:90154007008706560,OWNINGNAME:90154007008706560,NUMOPENPUBCONN:20,P2PADDR:1,P2PPORT:80,LEGACY_i:0', game_id=1, ping=0.001)
+        if type == 0:
+            embed.add_field(name=f"> {sv_dt.server_name} - {sv_dt.map_name}", value="OK", inline=False)
+        elif type == 1:
+            embed.add_field(name=f"> {sv_nm}", value=f"```{sv_dt}```", inline=False)
+        user = ""
+        sv_us = [a2s.Player(index=0, name='NattyanTV - Virtual1', score=0, duration=210.8592071533203), a2s.Player(index=0, name='NattyanTV - Virtual2', score=0, duration=2100.8592071533203)]
+        if type == 0:
+            if sv_us != []:
+                logging.info(f"{sv_us[0].name}")
+                for i in range(len(sv_us)):
+                    user_add = str(sv_us[i].name)
+                    user_time = int(sv_us[i].duration)
+                    if user_time >= 60:
+                        user_time = f"{user_time // 60}時間{user_time % 60}"
+                    if user_add != "":
+                        user = user + "\n" + f"```{user_add} | {user_time}分```"
+                if user == "":
+                    user = "（ユーザーデータが取得出来ませんでした。）"
+                embed.add_field(name="> Online User", value=f"content数:{len(sv_us)}人{user}\n==========", inline=False)
+            else:
+                embed.add_field(name="> Online User", value=":information_source:オンラインユーザーはいません。\n==========", inline=False)
+        elif type == 1:
+            embed.add_field(name="> Online User", value=f"```{sv_us}```", inline=False)
+    except BaseException as err:
+        if str(err) == "timed out":
+            if type == 0:
+                embed.add_field(name=f"> {sv_nm}", value=":ng:サーバーに接続できませんでした。(タイムアウト)\n==========", inline=False)
+            if type == 1:
+                embed.add_field(name=f"> {sv_nm}", value=f"```{err}```", inline=False)
+        else:
+            logging.error(f"an error has occured during ServerStatus checking\n{err}")
+            if type == 0:
+                embed.add_field(name=f"> {sv_nm}", value=":x:不明なエラーが発生しました。\n==========", inline=False)
+            if type == 1:
+                embed.add_field(name=f"> {sv_nm}", value=f"```{sys.exc_info()}```", inline=False)
+    return True
 
 #TEST
 test_id = 2
@@ -39,10 +97,15 @@ class test(commands.Cog):
             mes = await ctx.message.channel.send("ｹｲｿｸｽﾙﾖｰ")
             for i in range(18):
                 pass
-            await mes.edit(content=f"{i}ﾀﾞｯﾀﾖｰ")
+            await mes.edit(content=f"{i}ﾀﾞｯﾀﾖｰ\n{range(18)}")
             return
         elif ctx.message.content == "n!test 5":
             await ctx.message.channel.send(test_id)
+            return
+        elif ctx.message.content == "n!test 6":
+            embed = discord.Embed(title="VirtualMode", description=f"{ctx.message.author.mention}\n:globe_with_meridians:ss_test\n==========", color=0x00ff00)
+            server_check(embed, 0, ctx.message.guild.id, 1)
+            await ctx.reply("TEST Num6(ss)", embed=embed)
             return
 
 
