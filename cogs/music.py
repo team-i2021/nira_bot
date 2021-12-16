@@ -13,10 +13,12 @@ from cogs.embed import embed
 sys.path.append('../')
 from util import admin_check, n_fc, eh, server_check
 
+
 # 音楽再生
 
 #loggingの設定
 import logging
+from nira import home_dir as dir
 class NoTokenLogFilter(logging.Filter):
     def filter(self, record):
         message = record.getMessage()
@@ -25,7 +27,7 @@ class NoTokenLogFilter(logging.Filter):
 logger = logging.getLogger(__name__)
 logger.addFilter(NoTokenLogFilter())
 formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
-logging.basicConfig(format=formatter, filename='/home/nattyantv/nira.log', level=logging.INFO)
+logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
 
 
 music_list = dict()
@@ -51,7 +53,7 @@ ytdl_format_options = {
     'no_warnings': True,
     'default_search': 'auto',
     'source_address': '0.0.0.0',
-    'cookiefile': '/home/nattyantv/nira_bot_rewrite/util/youtube-cookies.txt'
+    'cookiefile': f'{dir}/util/youtube-cookies.txt'
 }
 
 # ヨシ！

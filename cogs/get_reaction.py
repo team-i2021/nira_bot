@@ -10,6 +10,7 @@ from util import admin_check, n_fc, eh
 
 #loggingの設定
 import logging
+from nira import home_dir as dir
 class NoTokenLogFilter(logging.Filter):
     def filter(self, record):
         message = record.getMessage()
@@ -18,7 +19,7 @@ class NoTokenLogFilter(logging.Filter):
 logger = logging.getLogger(__name__)
 logger.addFilter(NoTokenLogFilter())
 formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
-logging.basicConfig(format=formatter, filename='/home/nattyantv/nira.log', level=logging.INFO)
+logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
 
 class get_reaction(commands.Cog):
     def __init__(self, bot: commands.Bot):

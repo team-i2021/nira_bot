@@ -11,8 +11,10 @@ from util import admin_check, n_fc, eh
 #pingを送信するだけ
 from nira import bot as tod
 
+
 #loggingの設定
 import logging
+from nira import home_dir as dir
 class NoTokenLogFilter(logging.Filter):
     def filter(self, record):
         message = record.getMessage()
@@ -21,8 +23,7 @@ class NoTokenLogFilter(logging.Filter):
 logger = logging.getLogger(__name__)
 logger.addFilter(NoTokenLogFilter())
 formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
-logging.basicConfig(format=formatter, filename='/home/nattyantv/nira.log', level=logging.INFO)
-
+logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
 async def ping_there(ctx, adr):
     async with ctx.message.channel.typing():
         res = subprocess.run(f"ping {adr} -c 3 -W 3", stdout=PIPE, stderr=PIPE, shell=True, text=True)
@@ -61,9 +62,7 @@ class ping(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @tod.slash_command()
-    async def ping(self, ctx: commands.Context, address:str = None):
-        await base_ping(self, ctx, address)
+
     
     @commands.command()
     async def ping(self, ctx: commands.Context):
@@ -72,4 +71,4 @@ class ping(commands.Cog):
 
 def setup(bot):
     bot.add_cog(ping(bot))
-    tod.add_application_command(ping)
+    

@@ -19,5 +19,4 @@ pid_ss={}
 on_ali = ["1", "on", "On", "ON", "true", "True", "TRUE", "yes", "Yes", "YES"]
 off_ali = ["0", "off", "Off", "OFF", "false", "False", "FALSE", "no", "No", "NO"]
 
-# 開発者用コマンド(stop/restart/exec/create/read)を利用できるユーザーのID
-py_admin = [669178357371371522]
+py_admin = []

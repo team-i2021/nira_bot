@@ -7,8 +7,10 @@ import datetime
 import sys
 import math
 
+
 #loggingの設定
 import logging
+from nira import home_dir as dir
 class NoTokenLogFilter(logging.Filter):
     def filter(self, record):
         message = record.getMessage()
@@ -17,8 +19,7 @@ class NoTokenLogFilter(logging.Filter):
 logger = logging.getLogger(__name__)
 logger.addFilter(NoTokenLogFilter())
 formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
-logging.basicConfig(format=formatter, filename='/home/nattyantv/nira.log', level=logging.INFO)
-
+logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
 
 # 主にサーバーステータスを取得するコード
 
@@ -62,8 +63,7 @@ def server_check(embed, type, g_id, n):
             if sv_us != []:
                 for i in range(len(sv_us)):
                     user_add = str(sv_us[i].name)
-                    user_time = int(sv_us[i].duration)/60
-                    logging.info((user_add,user_time))
+                    user_time = int(sv_us[i].duration/60)
                     if user_time >= 60:
                         user_time = f"{int(user_time // 60)}時間{int(user_time % 60)}"
                     if user_add != "":

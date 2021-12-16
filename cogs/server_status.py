@@ -23,8 +23,10 @@ import subprocess
 from subprocess import PIPE
 import importlib
 
+
 #loggingの設定
 import logging
+from nira import home_dir as dir
 class NoTokenLogFilter(logging.Filter):
     def filter(self, record):
         message = record.getMessage()
@@ -33,7 +35,7 @@ class NoTokenLogFilter(logging.Filter):
 logger = logging.getLogger(__name__)
 logger.addFilter(NoTokenLogFilter())
 formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
-logging.basicConfig(format=formatter, filename='/home/nattyantv/nira.log', level=logging.INFO)
+logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
 
 
 async def ss_loop_goes(self, ment_id, message):
@@ -85,7 +87,7 @@ async def ss_base(self, ctx: commands.Context):
                 n_fc.steam_server_list[ctx.message.guild.id] = {"value": "0"}
             ad = ctx.message.content[9:].split(" ", 1)
             ad_name = str(ad[0])
-            ad = ad[1].split(",", 1)
+            ad = re.sub("[^0-9a-zA-Z._-]", "", ad[1].split(",", 1))
             ad_port = int(ad[1])
             ad_ip = str(ad[0])
             sset_point = int(n_fc.steam_server_list[ctx.message.guild.id]["value"])

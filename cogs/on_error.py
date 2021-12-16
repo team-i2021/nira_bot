@@ -1,9 +1,12 @@
 from discord.ext import commands
 import discord
 import re
+import sys
+import os
 
 #loggingの設定
 import logging
+from nira import home_dir as dir
 class NoTokenLogFilter(logging.Filter):
     def filter(self, record):
         message = record.getMessage()
@@ -12,7 +15,7 @@ class NoTokenLogFilter(logging.Filter):
 logger = logging.getLogger(__name__)
 logger.addFilter(NoTokenLogFilter())
 formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
-logging.basicConfig(format=formatter, filename='/home/nattyantv/nira.log', level=logging.INFO)
+logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
 
 #エラー時のイベント！
 class error(commands.Cog):
@@ -29,7 +32,7 @@ class error(commands.Cog):
             if re.search('Command \".*\" is not found', str(event)) or (str(event)[:9] == "Command \"" and str(event)[-14:] == "\" is not found"):
                 await ctx.reply(embed=discord.Embed(title="エラー", description=f"`n!{str(event)[9:-14]}`というコマンドは存在しません。\n`n!help`でコマンドを確認してください。", color=0xff0000))
             else:
-                await ctx.reply(embed=discord.Embed(title="エラー", description=f"エラーが発生しました。\n\n・エラー内容```py\n{str(event)}```\n\n[サポートサーバー](https://discord.gg/awfFpCYTcP)", color=0xff0000))
+                await ctx.reply(embed=discord.Embed(title="エラー", description=f"エラーが発生しました。\n\n・エラー内容```py\n{str(event)}```\n```sh\n{sys.exc_info()}```\n[サポートサーバー](https://discord.gg/awfFpCYTcP)", color=0xff0000))
                 logging.error(f"エラーが発生しました。\non_error：{str(event)}")
             return
         except BaseException as err:

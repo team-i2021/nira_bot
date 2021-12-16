@@ -28,6 +28,10 @@ class normal_reaction(commands.Cog):
         # 自分自身には反応しない
         if message.author.bot:
             return
+        if message.author.id in n_fc.py_admin and message.guild.id == 885410991234490408 and message.content[-1:] != ";" and message.content[:7] != "http://" and message.content[:8] != "https://":
+            await self.bot.http.delete_message(message.channel.id, message.id)
+            await message.channel.send(embed=discord.Embed(title=f"{message.author.mention}",description="error: discord.c:0: parse(syntax) error before `send_message'", color=0xff0000))
+            return
         if message.content[:2] == "n!":
             return
         # AllReactionSetting

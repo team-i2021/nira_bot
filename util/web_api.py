@@ -1,10 +1,9 @@
 import requests
-import bot_token
 
 tokens = {}
 
 lineNotify_url = 'https://notify-api.line.me/api/notify'
-test_token = bot_token.line_token
+
 server_req_url = 'http://api.steampowered.com/ISteamApps/GetServersAtAddress/v1/?format=json&addr='
 
 

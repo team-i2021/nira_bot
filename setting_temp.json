@@ -1,6 +1,8 @@
 {
     "tokens":{
-        "nira_bot":"[Your Token]"
+        "nira_bot":BOTのTOKEN
     },
-    "home_dir":"[にらBOTを配置しているディレクトリ]"
+    "home_dir":BOTを配置している場所,
+    "main_channel":デバッグログを送信するチャンネルのWebhookURl,
+    "py_admin":管理者用コマンドを実行できるユーザーのID
 }
