@@ -14,7 +14,8 @@ from util import n_fc
 import json
 import os
 import requests
-import cogs
+from cogs import ping as cogs_ping
+from cogs import debug as cogs_debug
 
 from discord.embeds import Embed
 sys.setrecursionlimit(10000)#エラー回避
@@ -87,12 +88,16 @@ print("cog loading")
 @bot.event
 async def on_ready():
     bot.add_application_command(ping)
+    bot.add_application_command(cog)
     await bot.change_presence(activity=discord.Game(name="起動中...", type=1), status=discord.Status.idle)
     func_error_count = 0
-    nira_f_num = len([name for name in os.listdir(cogs_dir) if os.path.isfile(os.path.join(cogs_dir, name))])+1
+    nira_f_num = len(os.listdir(home_dir))
     system_list = os.listdir(home_dir)
+    logging.info((nira_f_num,system_list))
     for i in range(nira_f_num):
+        logging.info(f"StartProcess:{system_list[i]}")
         if system_list[i][-5:] != ".nira":
+            logging.info(f"Skip:{system_list[i]}")
             continue
         try:
             cog_name = system_list[i][:-5]
@@ -115,9 +120,16 @@ async def on_ready():
 
 print("func loaded")
 
+@bot.slash_command(description="get_responce")
+async def ping(ctx: commands.Context, address: str = None):
+    await cogs_ping.base_ping(bot, ctx, address)
+    return
+
 @bot.slash_command()
-async def ping(self, ctx: commands.Context, address:str = None):
-    await cogs.ping.base_ping(self, ctx, address)
+async def cog(ctx: commands.Context, command: str = None, name: str = None):
+    await cogs_debug.base_cog(bot, ctx, command, name)
+    return
+
 
 # BOT起動
 print("run")

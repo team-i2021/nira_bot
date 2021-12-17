@@ -9,6 +9,8 @@ import re
 import asyncio
 
 import sys
+
+from discord.ext.commands.core import command
 from cogs.embed import embed
 sys.path.append('../')
 from util import admin_check, n_fc, eh
@@ -29,11 +31,91 @@ logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.
 
 #管理者向けdebug
 
+async def base_cog(bot, ctx, command, name):
+    if ctx.message == None:
+        type = 0
+    else:
+        type = 1
+    if ctx.author.id in n_fc.py_admin:
+        if type == 0 and command == None and name == None or type == 1 and ctx.message.content == "n!cog":
+            embed = discord.Embed(title="cogs", description="`extension`", color=0x00ff00)
+            embed.add_field(name="Cog Names", value="表示されている名前は、`cog.[Cog name]`のcog nameです。", inline=False)
+            embed.add_field(name="amuse", value="娯楽系のコマンド。\n`janken`/`uranai`/`dice`")
+            embed.add_field(name="bump", value="bump通知の設定コマンド及び、Bump取得とメッセージ送信。\n`bump`")
+            embed.add_field(name="check", value="管理者チェックをするコマンド。\n`check`")
+            embed.add_field(name="debug", value="管理者用コマンド。\n`create`/`py_exec`/`read`/`restart`/`exit`/`py`/`sh`/`save`/`cog`")
+            embed.add_field(name="embed", value="Embed送信用コマンド。\n`embed`")
+            embed.add_field(name="get_reaction", value="リアクションを受け取った際のイベント。")
+            embed.add_field(name="info", value="にらBOTの情報系コマンド。\n`info`/`help`")
+            embed.add_field(name="music", value="音楽再生(VC)に関するコマンド。\n`join`/`play`/`pause`/`resume`/`stop`/`leave`")
+            embed.add_field(name="normal_reaction", value="送信されたメッセージに反応するイベント。")
+            embed.add_field(name="ping", value="pingコマンド。\n`ping`")
+            embed.add_field(name="reaction", value="反応系コマンド。\n`nr`/`er`/`ar`")
+            embed.add_field(name="siritori", value="しりとり系コマンド。\n`srtr`")
+            embed.add_field(name="user_join", value="ユーザーがguildに入った際のイベント。")
+            embed.add_field(name="user", value="ユーザー情報表示系コマンド。\n`d`/`ui`")
+            embed.add_field(name="Cog function", value="cog系のコマンドです。`[Cog name]`には「`cog.`」を抜いたCogの名前だけを入力してください。", inline=False)
+            embed.add_field(name="`/cog`/`n!cog`", value="cogの情報を表示します。")
+            embed.add_field(name="`/cog reload [Cog name]`/`n!cog reload [Cog name]`", value="指定したCogをリロードします。")
+            embed.add_field(name="`/cog load [Cog name]`/`n!cog load [Cog name]`", value="指定したCogをロードします。")
+            embed.add_field(name="`/cog unload [Cog name]`/`n!cog unload [Cog name]`", value="指定したCogをアンロードします。")
+            if type == 0:
+                await ctx.respond(embed=embed)
+            else:
+                await ctx.reply(embed=embed)
+            return
+        elif type == 0 and command == "reload" and name != None or ctx.message.content[:12] == "n!cog reload":
+            if type == 0:
+                try:
+                    bot.reload_extension(f"cogs.{name}")
+                    await ctx.respond(f"リロードしました。")
+                except BaseException as err:
+                    await ctx.respond(f"リロードできませんでした。\n```{err}```")
+            else:
+                try:
+                    bot.reload_extension(f"cogs.{ctx.message.content[13:]}")
+                    await ctx.reply(f"リロードしました。")
+                except BaseException as err:
+                    await ctx.reply(f"リロードできませんでした。\n```{err}```")
+        elif type == 0 and command == "load" and name != None or ctx.message.content[:10] == "n!cog load":
+            if type == 0:
+                try:
+                    bot.reload_extension(f"cogs.{name}")
+                    await ctx.respond(f"ロードしました。")
+                except BaseException as err:
+                    await ctx.respond(f"ロードできませんでした。\n```{err}```")
+            else:
+                try:
+                    bot.load_extension(f"cogs.{ctx.message.content[11:]}")
+                    await ctx.reply(f"ロードしました。")
+                except BaseException as err:
+                    await ctx.reply(f"ロードできませんでした。\n```{err}```")
+        elif type == 0 and command == "unload" and name != None or ctx.message.content[:12] == "n!cog unload":
+            if type == 0:
+                try:
+                    bot.unload_extension(f"cogs.{name}")
+                    await ctx.respond(f"アンロードしました。")
+                except BaseException as err:
+                    await ctx.respond(f"アンロードできませんでした。\n```{err}```")
+            else:
+                try:
+                    bot.unload_extension(f"cogs.{ctx.message.content[13:]}")
+                    await ctx.reply(f"アンロードしました。")
+                except BaseException as err:
+                    await ctx.reply(f"アンロードできませんでした。\n```{err}```")
+        elif type == 0 and command == None or type == 0 and name == None:
+            await ctx.respond("コマンドの引数が異常です。")
+    else:
+        if type == 0:
+            await ctx.respond("管理者権限が必要です。")
+        else:
+            await ctx.reply("管理者権限が必要です。")
+    return
+
 class debug(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         
-
     @commands.command()
     async def create(self, ctx: commands.Context):
         if ctx.message.author.id in n_fc.py_admin:
@@ -72,7 +154,7 @@ class debug(commands.Cog):
                     pickle.dump(n_fc.bump_list, f)
                 await restart_code.edit(content="RESTART:`nira.py`\n再起動します")
                 logging.info("-----[n!restart]コマンドが実行されたため、再起動します。-----")
-                os.execl(sys.executable, 'python3.7', "nira.py")
+                os.execl(sys.executable, 'python', "nira.py")
                 return
             except BaseException as err:
                 await ctx.message.reply(err)
@@ -105,7 +187,6 @@ class debug(commands.Cog):
                     pickle.dump(n_fc.bump_list, f)
                 await exit_code.edit(content="STOP:`nira.py`\n終了します")
                 logging.info("-----[n!exit]コマンドが実行されたため、終了します。-----")
-                await self.bot.logout()
                 exit()
                 return
             except BaseException as err:
@@ -228,52 +309,10 @@ class debug(commands.Cog):
 
     @commands.command()
     async def cog(self, ctx: commands.Context):
-        if ctx.message.author.id in n_fc.py_admin:
-            if ctx.message.content == "n!cog":
-                embed = discord.Embed(title="cogs", description="`extension`", color=0x00ff00)
-                embed.add_field(name="Cog Names", value="表示されている名前は、`cog.[Cog name]`のcog nameです。", inline=False)
-                embed.add_field(name="amuse", value="娯楽系のコマンド。\n`janken`/`uranai`/`dice`")
-                embed.add_field(name="bump", value="bump通知の設定コマンド及び、Bump取得とメッセージ送信。\n`bump`")
-                embed.add_field(name="check", value="管理者チェックをするコマンド。\n`check`")
-                embed.add_field(name="debug", value="管理者用コマンド。\n`create`/`py_exec`/`read`/`restart`/`exit`/`py`/`sh`/`save`/`cog`")
-                embed.add_field(name="embed", value="Embed送信用コマンド。\n`embed`")
-                embed.add_field(name="get_reaction", value="リアクションを受け取った際のイベント。")
-                embed.add_field(name="info", value="にらBOTの情報系コマンド。\n`info`/`help`")
-                embed.add_field(name="music", value="音楽再生(VC)に関するコマンド。\n`join`/`play`/`pause`/`resume`/`stop`/`leave`")
-                embed.add_field(name="normal_reaction", value="送信されたメッセージに反応するイベント。")
-                embed.add_field(name="ping", value="pingコマンド。\n`ping`")
-                embed.add_field(name="reaction", value="反応系コマンド。\n`nr`/`er`/`ar`")
-                embed.add_field(name="siritori", value="しりとり系コマンド。\n`srtr`")
-                embed.add_field(name="user_join", value="ユーザーがguildに入った際のイベント。")
-                embed.add_field(name="user", value="ユーザー情報表示系コマンド。\n`d`/`ui`")
-                embed.add_field(name="Cog function", value="cog系のコマンドです。`[Cog name]`には「`cog.`」を抜いたCogの名前だけを入力してください。", inline=False)
-                embed.add_field(name="`n!cog`", value="cogの情報を表示します。")
-                embed.add_field(name="`n!cog reload [Cog name]`", value="指定したCogをリロードします。")
-                embed.add_field(name="`n!cog load [Cog name]`", value="指定したCogをロードします。")
-                embed.add_field(name="`n!cog unload [Cog name]`", value="指定したCogをアンロードします。")
-                await ctx.message.reply(embed=embed)
-                return
-            elif ctx.message.content[:12] == "n!cog reload":
-                try:
-                    self.bot.reload_extension(f"cogs.{ctx.message.content[13:]}")
-                    await ctx.message.add_reaction("\U0001F197")
-                except BaseException as err:
-                    await ctx.reply(f"リロードできませんでした。\n```{err}```")
-                    await ctx.message.add_reaction("\U0000274C")
-            elif ctx.message.content[:10] == "n!cog load":
-                try:
-                    self.bot.load_extension(f"cogs.{ctx.message.content[11:]}")
-                    await ctx.message.add_reaction("\U0001F197")
-                except BaseException as err:
-                    await ctx.reply(f"ロードできませんでした。\n```{err}```")
-                    await ctx.message.add_reaction("\U0000274C")
-            elif ctx.message.content[:12] == "n!cog unload":
-                try:
-                    self.bot.unload_extension(f"cogs.{ctx.message.content[13:]}")
-                    await ctx.message.add_reaction("\U0001F197")
-                except BaseException as err:
-                    await ctx.reply(f"アンロードできませんでした。\n```{err}```")
-                    await ctx.message.add_reaction("\U0000274C")
+        command = None
+        name = None
+        await base_cog(self.bot, ctx, command, name)
+        return
 
 def setup(bot):
     bot.add_cog(debug(bot))

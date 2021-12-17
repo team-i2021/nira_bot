@@ -265,6 +265,7 @@ async def ss_base(self, ctx: commands.Context):
             server_check.server_check(embed, 0, ctx.message.guild.id, mes_te)
             await asyncio.sleep(1)
             await ctx.message.reply(embed=embed)
+            return
     elif mes_te == "all":
         if ctx.message.guild.id not in n_fc.steam_server_list:
             await ctx.message.reply("サーバーは登録されていません。")
@@ -275,6 +276,7 @@ async def ss_base(self, ctx: commands.Context):
                 await server_check.server_check_async(self.bot.loop, embed, 1, ctx.message.guild.id, i)
             await asyncio.sleep(1)
             await ctx.message.reply(embed=embed)
+            return
     return
 
 
