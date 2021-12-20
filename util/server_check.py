@@ -1,4 +1,5 @@
 # coding: utf-8
+from cogs.server_status import ss_pin
 from util import n_fc
 import asyncio
 import util.web_api as web_api
@@ -23,6 +24,10 @@ logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.
 
 # 主にサーバーステータスを取得するコード
 
+async def ss_pin_async(loop, embed, g_id, n):
+    return await loop.run_in_executor(
+        None, ss_pin_embed, embed, g_id, n
+    )
 
 async def server_check_loop(loop, g_id, n):
     return await loop.run_in_executor(
@@ -119,22 +124,19 @@ def ss_pin_embed(embed, g_id, n):
         embed.add_field(name=f"> {sv_dt.server_name} - {sv_dt.map_name}", value=":white_check_mark:オンライン", inline=False)
         user = ""
         sv_us = a2s.players(sv_ad)
-        if type == 0:
-            if sv_us != []:
-                for i in range(len(sv_us)):
-                    user_add = str(sv_us[i].name)
-                    user_time = int(sv_us[i].duration/60)
-                    if user_time >= 60:
-                        user_time = f"{int(user_time // 60)}時間{int(user_time % 60)}"
-                    if user_add != "":
-                        user = user + "\n" + f"```{user_add} | {user_time}分```"
-                if user == "":
-                    user = "（ユーザーデータが取得出来ませんでした。）"
-                embed.add_field(name="> Online User", value=f"プレーヤー数:{len(sv_us)}人{user}\n==========", inline=False)
-            else:
-                embed.add_field(name="> Online User", value=":information_source:オンラインユーザーはいません。\n==========", inline=False)
-        elif type == 1:
-            embed.add_field(name="> Online User", value=f"```{sv_us}```", inline=False)
+        if sv_us != []:
+            for i in range(len(sv_us)):
+                user_add = str(sv_us[i].name)
+                user_time = int(sv_us[i].duration/60)
+                if user_time >= 60:
+                    user_time = f"{int(user_time // 60)}時間{int(user_time % 60)}"
+                if user_add != "":
+                    user = user + "\n" + f"```{user_add} | {user_time}分```"
+            if user == "":
+                user = "（ユーザーデータが取得出来ませんでした。）"
+            embed.add_field(name="> Online User", value=f"プレーヤー数:{len(sv_us)}人{user}\n==========", inline=False)
+        else:
+            embed.add_field(name="> Online User", value=":information_source:オンラインユーザーはいません。\n==========", inline=False)
     except BaseException as err:
         if str(err) == "timed out":
             if type == 0:

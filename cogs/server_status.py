@@ -39,6 +39,14 @@ logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.
 
 ss_check_result = {}
 
+async def ss_force(self, message):
+    await message.edit(content="現在実行準備中です...")
+    while True:
+        embed = discord.Embed(title="ServerStatus Checker", description=f"LastCheck:{datetime.datetime.now()}", color=0x00ff00)
+        for i in range(int(n_fc.steam_server_list[message.guild.id]["value"])):
+            await server_check.ss_pin_async(self.bot.loop, embed, message.guild.id, i+1)
+        await message.edit("AutoSS実行中\n止めるには`n!ss auto off`", embed=embed)
+        await asyncio.sleep(60*30)
 
 async def ss_pin(self, ment_id, message):
     ss_check_result[message.guild.id] = {}
@@ -159,7 +167,7 @@ async def ss_base(self, ctx: commands.Context):
         elif ctx.message.content[10:12] == "on":
             try:
                 if ctx.message.guild.id not in n_fc.steam_server_list:
-                    await ctx.reply("サーバーが存在しません。")
+                    await ctx.reply("サーバーが登録されていません。")
                     return
                 if len(ctx.message.content) <= 13:
                     ment_id = ctx.message.author.id
@@ -180,8 +188,9 @@ async def ss_base(self, ctx: commands.Context):
         elif ctx.message.content[10:13] == "off":
             if ctx.message.guild.id not in n_fc.pid_ss:
                 await ctx.reply("既に無効になっているか、コマンドが実行されていません。")
+                return
             try:
-                if n_fc.pid_ss[ctx.message.guild.id].done() == False:
+                if n_fc.pid_ss[ctx.message.guild.id].done() == False or ctx.message.guild.id in n_fc.pid_ss:
                     n_fc.pid_ss[ctx.message.guild.id].cancel()
                     del n_fc.pid_ss[ctx.message.guild.id]
                     await ctx.reply("AutoSSを無効にしました。")
@@ -191,6 +200,19 @@ async def ss_base(self, ctx: commands.Context):
             except BaseException as err:
                 await ctx.reply(embed=eh.eh(err))
                 return
+        elif ctx.message.content[10:] == "force":
+            if ctx.message.guild.id in n_fc.pid_ss:
+                await ctx.reply(f"既に{ctx.message.guild.name}で他のAutoSSタスクが実行されています。")
+                return
+            if ctx.message.guild.id not in n_fc.steam_server_list:
+                await ctx.reply("サーバーが登録されていません。")
+                return
+            mes_ss = await ctx.message.channel.send(f"Starting process...")
+            if ctx.message.guild.id in n_fc.pid_ss:
+                await mes_ss.edit(content=f"既に{ctx.message.guild.name}でタスクが実行されています。")
+                return
+            n_fc.pid_ss[ctx.message.guild.id] = self.bot.loop.create_task(ss_force(self, mes_ss))
+            return
         else:
             if ctx.message.guild.id not in n_fc.pid_ss:
                 await ctx.reply("`n!ss auto [on/off]`\nAutoSSは無効になっています。")
