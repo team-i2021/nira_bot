@@ -18,7 +18,7 @@ from util import admin_check, n_fc, eh, server_check
 
 #loggingの設定
 import logging
-from nira import home_dir as dir
+dir = sys.path[0]
 class NoTokenLogFilter(logging.Filter):
     def filter(self, record):
         message = record.getMessage()
@@ -137,7 +137,7 @@ class music(commands.Cog):
                     await ctx.message.reply(embed=discord.Embed(title="エラー",description="ニコニコ動画かYouTubeのリンクを入れてね！",color=0xff0000))
                     return
                 logging.info(f"{url} {url_type[ctx.message.guild.id]} {music_list[ctx.message.guild.id]}")
-                ctx.message.guild.voice_client.play(discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(music_list[ctx.message.guild.id].url, **options), volume=0.45), after = lambda e: self.bot.loop.create_task(end_mes(ctx.message, url_type[ctx.message.guild.id], music_f[ctx.message.guild.id])))
+                ctx.message.guild.voice_client.play(discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(music_list[ctx.message.guild.id], **options), volume=0.45), after = lambda e: self.bot.loop.create_task(end_mes(ctx.message, url_type[ctx.message.guild.id], music_f[ctx.message.guild.id])))
                 await ctx.message.add_reaction("\U0001F197")
                 # discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(music_list[ctx.message.guild.id].url,**options), volume=0.5)
                 return

@@ -1,3 +1,4 @@
+from contextlib import redirect_stdout
 import discord
 from discord import message
 from discord.ext import commands
@@ -18,7 +19,7 @@ global task
 
 #loggingの設定
 import logging
-from nira import home_dir as dir
+dir = sys.path[0]
 class NoTokenLogFilter(logging.Filter):
     def filter(self, record):
         message = record.getMessage()
@@ -109,7 +110,12 @@ class test(commands.Cog):
             server_check(embed, 0, ctx.message.guild.id, 1)
             await ctx.reply("TEST Num6(ss)", embed=embed)
             return
-
+        elif ctx.message.content == "n!test 7":
+            cont = await ctx.reply("nastu")
+            await asyncio.sleep(3)
+            embed = discord.Embed(title="natsu", description="natsu", color=0x004400)
+            await cont.edit(embed=embed)
+            return
 
 
 def setup(bot):

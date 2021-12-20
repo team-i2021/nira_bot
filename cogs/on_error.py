@@ -6,7 +6,7 @@ import os
 
 #loggingの設定
 import logging
-from nira import home_dir as dir
+dir = sys.path[0]
 class NoTokenLogFilter(logging.Filter):
     def filter(self, record):
         message = record.getMessage()

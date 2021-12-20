@@ -1,32 +1,32 @@
-from re import I
-from discord.ext import commands
-import discord
-
-import pickle
-
 import datetime
+import pickle
+import sys
+from re import I
+
+import discord
+from discord.ext import commands
+
+from cogs.embed import embed
 
 #pingを送信するだけ
 
-import sys
-from cogs.embed import embed
 sys.path.append('../')
-from util import admin_check, n_fc, eh, server_check
-import util.srtr as srtr
-import re
-import datetime
 import asyncio
-import os
-from multiprocessing import Process
-
-import subprocess
-from subprocess import PIPE
+import datetime
 import importlib
-
-
 #loggingの設定
 import logging
-from nira import home_dir as dir
+import os
+import re
+import subprocess
+from multiprocessing import Array, Process
+from subprocess import PIPE
+
+import util.srtr as srtr
+dir = sys.path[0]
+from util import admin_check, eh, n_fc, server_check
+
+
 class NoTokenLogFilter(logging.Filter):
     def filter(self, record):
         message = record.getMessage()
@@ -37,8 +37,41 @@ logger.addFilter(NoTokenLogFilter())
 formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
 logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
 
+ss_check_result = {}
+
+
+async def ss_pin(self, ment_id, message):
+    ss_check_result[message.guild.id] = {}
+    await message.edit(content=f"チェックシステムを有効化しています...")
+    logging.info(f"{message.guild.name}にてAutoSSが有効になりました。")
+    while True:
+        await message.edit(content=f"現在チェックを行っています...\n最終チェック時刻：`{datetime.datetime.now()}`")
+        logging.info(f"{message.guild.name}でのAutoSSチェックを実行します。")
+        for i in map(str, range(1, int(n_fc.steam_server_list[message.guild.id]["value"])+1)):
+            if await server_check.server_check_loop(self.bot.loop, message.guild.id, i) == False:
+                # 鯖落ちしてかもるよ
+                await message.edit(content=f"チェック結果：失敗(1/3)\n最終チェック時刻：`{datetime.datetime.now()}`")
+                logging.error(f"{message.guild.name}でのAutoSSチェック結果：失敗（1/3回目）")
+                await asyncio.sleep(5)
+                if await server_check.server_check_loop(self.bot.loop, message.guild.id, i) == False:
+                    await message.edit(content=f"チェック結果：失敗(2/3)\n最終チェック時刻：`{datetime.datetime.now()}`")
+                    logging.error(f"{message.guild.name}でのAutoSSチェック結果：失敗（2/3回目）")
+                    await asyncio.sleep(5)
+                    if await server_check.server_check_loop(self.bot.loop, message.guild.id, i) == False:
+                        await message.edit(content=f"チェック結果：失敗(3/3)\n最終チェック時刻：`{datetime.datetime.now()}`")
+                        logging.error(f"{message.guild.name}でのAutoSSチェック結果：失敗（3/3回目）")
+                        await message.edit(content=f"チェック結果：失敗(メッセージを送信して終了します。)\n最終チェック時刻：`{datetime.datetime.now()}`")
+                        await message.channel.send(f"<@{ment_id}> - もしかして鯖落ちしてたりしません...？\n\nAutoSSが無効になりました。\n一応`n!ss`で確認してみましょう！")
+                        return False
+            # 正常だよ
+            logging.info(f"{message.guild.name}でのAutoSSチェック結果：成功")
+            await message.edit(content=f"最後のチェック結果：成功\n最終チェック時刻：`{datetime.datetime.now()}`")
+            await asyncio.sleep(5)
+        await asyncio.sleep(60*30) # 60秒*30＝30分
+
 
 async def ss_loop_goes(self, ment_id, message):
+    ss_check_result[message.guild.id] = {}
     await message.edit(content=f"実行されています。")
     logging.info(f"{message.guild.name}にてAutoSSが有効になりました。")
     while True:
@@ -57,13 +90,13 @@ async def ss_loop_goes(self, ment_id, message):
                     if await server_check.server_check_loop(self.bot.loop, message.guild.id, i) == False:
                         await message.edit(content=f"チェック結果：失敗(3/3)\n最終チェック時刻：`{datetime.datetime.now()}`")
                         logging.error(f"{message.guild.name}でのAutoSSチェック結果：失敗（3/3回目）")
-                        await asyncio.sleep(5)
                         await message.edit(content=f"チェック結果：失敗(メッセージを送信して終了します。)\n最終チェック時刻：`{datetime.datetime.now()}`")
-                        await message.channel.send(f"<@{ment_id}> - もしかして鯖落ちしてたりしません...？\n\nAutoSSが無効になりました。\n一応```n!ss```で確認してみましょう！")
+                        await message.channel.send(f"<@{ment_id}> - もしかして鯖落ちしてたりしません...？\n\nAutoSSが無効になりました。\n一応`n!ss`で確認してみましょう！")
                         return False
             # 正常だよ
             logging.info(f"{message.guild.name}でのAutoSSチェック結果：成功")
             await message.edit(content=f"最後のチェック結果：成功\n最終チェック時刻：`{datetime.datetime.now()}`")
+            await asyncio.sleep(5)
         await asyncio.sleep(60*30) # 60秒*30＝30分
 
 #コマンド内部
@@ -150,6 +183,7 @@ async def ss_base(self, ctx: commands.Context):
             try:
                 if n_fc.pid_ss[ctx.message.guild.id].done() == False:
                     n_fc.pid_ss[ctx.message.guild.id].cancel()
+                    del n_fc.pid_ss[ctx.message.guild.id]
                     await ctx.reply("AutoSSを無効にしました。")
                     return
                 else:

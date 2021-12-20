@@ -40,7 +40,7 @@ bot.remove_command("help")
 
 #設定読み込み
 setting = json.load(open(f'{sys.path[0]}/setting.json', 'r'))
-home_dir = setting["home_dir"]
+home_dir = sys.path[0]
 token = setting["tokens"]["nira_bot"]
 main_channel = setting["main_channel"]
 n_fc.py_admin.append(int(setting["py_admin"]))
@@ -89,6 +89,7 @@ print("cog loading")
 async def on_ready():
     bot.add_application_command(ping)
     bot.add_application_command(cog)
+    bot.add_application_command(func)
     await bot.change_presence(activity=discord.Game(name="起動中...", type=1), status=discord.Status.idle)
     func_error_count = 0
     nira_f_num = len(os.listdir(home_dir))
@@ -120,7 +121,7 @@ async def on_ready():
 
 print("func loaded")
 
-@bot.slash_command(description="get_responce")
+@bot.slash_command(description="サーバーとのレスポンスを表示します。")
 async def ping(ctx: commands.Context, address: str = None):
     await cogs_ping.base_ping(bot, ctx, address)
     return
@@ -130,6 +131,12 @@ async def cog(ctx: commands.Context, command: str = None, name: str = None):
     await cogs_debug.base_cog(bot, ctx, command, name)
     return
 
+@bot.slash_command()
+async def func(ctx: commands.Context, name: str = None):
+    if ctx.author.id not in n_fc.py_admin:
+        await ctx.respond("discordBotの管理者権限が必要です。")
+    elif ctx.author.id in n_fc.py_admin:
+        await ctx.respond(f"ファイル一覧\n```{os.listdir(home_dir)}```", ephemeral = True)
 
 # BOT起動
 print("run")

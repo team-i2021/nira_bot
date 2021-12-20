@@ -17,7 +17,7 @@ from util import admin_check, n_fc, eh
 
 #loggingの設定
 import logging
-from nira import home_dir as dir
+dir = sys.path[0]
 class NoTokenLogFilter(logging.Filter):
     def filter(self, record):
         message = record.getMessage()
@@ -116,6 +116,11 @@ class debug(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         
+    @commands.command()
+    async def func(self, ctx: commands.Context):
+        await ctx.reply("スラッシュコマンドを使用してください。")
+        return
+
     @commands.command()
     async def create(self, ctx: commands.Context):
         if ctx.message.author.id in n_fc.py_admin:

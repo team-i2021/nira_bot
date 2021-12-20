@@ -32,7 +32,7 @@ class normal_reaction(commands.Cog):
             await self.bot.http.delete_message(message.channel.id, message.id)
             await message.channel.send(embed=discord.Embed(title=f"{message.author.mention}",description="error: discord.c:0: parse(syntax) error before `send_message'", color=0xff0000))
             return
-        if message.content[:2] == "n!":
+        if message.content[:2] == "n!" or message.content[-1:] == ";":
             return
         # AllReactionSetting
         if message.guild.id in n_fc.all_reaction_list:
