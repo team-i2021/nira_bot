@@ -5,6 +5,8 @@ import pickle
 import re
 import random
 import asyncio
+import importlib
+
 
 import sys
 from cogs.embed import embed
@@ -12,7 +14,7 @@ sys.path.append('../')
 from util import admin_check, n_fc, eh
 import util.srtr as srtr
 
-image_root = "https://nattyan-tv.github.io/nira_bot/images"
+image_root = "https://team-i2021.github.io/nira_bot/images"
 
 #通常反応をまとめたもの。
 
@@ -28,11 +30,11 @@ class normal_reaction(commands.Cog):
         # 自分自身には反応しない
         if message.author.bot:
             return
+        if message.content[:2] == "n!" or message.content[-1:] == ".":
+            return
         if message.author.id in n_fc.py_admin and message.guild.id == 885410991234490408 and message.content[-1:] != ";" and message.content[:7] != "http://" and message.content[:8] != "https://":
             await self.bot.http.delete_message(message.channel.id, message.id)
-            await message.channel.send(embed=discord.Embed(title=f"{message.author.mention}",description="error: discord.c:0: parse(syntax) error before `send_message'", color=0xff0000))
-            return
-        if message.content[:2] == "n!" or message.content[-1:] == ";":
+            await message.channel.send(embed=discord.Embed(title=f"{message.author.name}",description=f"error: discord.c:0: parse(syntax) error before `send_message`\n{message.content}", color=0xff0000))
             return
         # AllReactionSetting
         if message.guild.id in n_fc.all_reaction_list:
@@ -252,3 +254,4 @@ class normal_reaction(commands.Cog):
 
 def setup(bot):
     bot.add_cog(normal_reaction(bot))
+    importlib.reload(srtr)

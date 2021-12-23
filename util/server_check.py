@@ -1,5 +1,5 @@
 # coding: utf-8
-from cogs.server_status import ss_pin
+#from cogs.server_status import ss_pin
 from util import n_fc
 import asyncio
 import util.web_api as web_api

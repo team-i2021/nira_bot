@@ -2,6 +2,7 @@ from discord.ext import commands
 import discord
 import pickle
 
+
 import sys
 sys.path.append('../')
 from util import admin_check, n_fc, eh
@@ -58,3 +59,4 @@ class siritori(commands.Cog):
 
 def setup(bot):
     bot.add_cog(siritori(bot))
+    

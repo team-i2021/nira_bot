@@ -3,6 +3,9 @@ import discord
 import re
 import sys
 import os
+import difflib
+import nira_commands
+import importlib
 
 #loggingの設定
 import logging
@@ -30,7 +33,14 @@ class error(commands.Cog):
                 await ctx.reply(embed=discord.Embed(title="エラー", description=f"そのコマンドは現在クールタイム中です。\n```残り：{rtime}```", color=0xff0000))
                 return
             if re.search('Command \".*\" is not found', str(event)) or (str(event)[:9] == "Command \"" and str(event)[-14:] == "\" is not found"):
-                await ctx.reply(embed=discord.Embed(title="エラー", description=f"`n!{str(event)[9:-14]}`というコマンドは存在しません。\n`n!help`でコマンドを確認してください。", color=0xff0000))
+                # 類似度を計算、0.0~1.0 で結果が返る
+                ruizi_max = 0.0
+                for i in range(len(nira_commands.commands_list)):
+                    ruizi = difflib.SequenceMatcher(None, str(event)[9:-14], nira_commands.commands_list[i]).ratio()
+                    if ruizi > ruizi_max:
+                        ruizi_cm = i
+                        ruizi_max = ruizi
+                await ctx.reply(embed=discord.Embed(title="エラー", description=f"`n!{str(event)[9:-14]}`というコマンドは存在しません。\n`n!help`でコマンドを確認してください。\n\nもしかして：`n!{nira_commands.commands_list[ruizi_cm]}`:`{nira_commands.commands_desc[ruizi_cm]}`", color=0xff0000))
             else:
                 await ctx.reply(embed=discord.Embed(title="エラー", description=f"エラーが発生しました。\n\n・エラー内容```py\n{str(event)}```\n```sh\n{sys.exc_info()}```\n[サポートサーバー](https://discord.gg/awfFpCYTcP)", color=0xff0000))
                 logging.error(f"エラーが発生しました。\non_error：{str(event)}")
@@ -42,3 +52,4 @@ class error(commands.Cog):
 
 def setup(bot):
     bot.add_cog(error(bot))
+    importlib.reload(nira_commands)
