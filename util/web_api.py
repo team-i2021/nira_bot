@@ -1,4 +1,5 @@
 import requests
+import sys
 
 tokens = {}
 
@@ -27,6 +28,8 @@ def server_status(ip, port):
         url = server_req_url + option
         req = requests.get(url)
         server_list = req.json()
+        if "servers" not in server_list["response"]:
+            return False
         if len(server_list["response"]["servers"]) >= 1:
             return True
         else:
