@@ -133,9 +133,9 @@ async def ss_base(self, ctx: commands.Context):
                 n_fc.steam_server_list[ctx.message.guild.id] = {"value": "0"}
             ad = ctx.message.content[9:].split(" ", 1)
             ad_name = str(ad[0])
-            ad = re.sub("[^0-9a-zA-Z._-]", "", ad[1].split(",", 1))
-            ad_port = int(ad[1])
-            ad_ip = str(ad[0])
+            ad = ad[1].split(",", 1)
+            ad_ip = str(re.sub("[^0-9a-zA-Z._-]", "", ad[0]))
+            ad_port = int(re.sub("[^0-9]", "", ad[1]))
             sset_point = int(n_fc.steam_server_list[ctx.message.guild.id]["value"])
             n_fc.steam_server_list[ctx.message.guild.id][f"{sset_point + 1}_ad"] = (ad_ip, ad_port)
             n_fc.steam_server_list[ctx.message.guild.id][f"{sset_point + 1}_nm"] = ad_name
