@@ -39,6 +39,8 @@ bot.load_extension("jishaku")
 bot.remove_command("help")
 
 #設定読み込み
+if os.path.isfile(f'{sys.path[0]}/setting.json') == False:
+    exit()
 setting = json.load(open(f'{sys.path[0]}/setting.json', 'r'))
 home_dir = sys.path[0]
 token = setting["tokens"]["nira_bot"]
