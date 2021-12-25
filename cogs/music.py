@@ -133,6 +133,7 @@ class music(commands.Cog):
                         music_list[ctx.message.guild.id] = await YTDLSource.from_url(url, stream=True)
                         url_type[ctx.message.guild.id] = "yt"
                         music_f[ctx.message.guild.id] = None
+                        music_list[ctx.message.guild.id] = music_list[ctx.message.guild.id].url
                 if music_list[ctx.message.guild.id] == "none":
                     await ctx.message.reply(embed=discord.Embed(title="エラー",description="ニコニコ動画かYouTubeのリンクを入れてね！",color=0xff0000))
                     return
@@ -142,7 +143,7 @@ class music(commands.Cog):
                 # discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(music_list[ctx.message.guild.id].url,**options), volume=0.5)
                 return
         except BaseException as err:
-            await ctx.message.reply(embed=discord.Embed(title="エラー",description=f"```{err}```\n```sh\n{sys.exc_info()}```",color=0xff0000))
+            await ctx.reply(embed=eh.eh(err))
             logging.error(f"[楽曲再生時or再生中のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
             return
     
