@@ -96,6 +96,7 @@ async def on_ready():
     bot.add_application_command(cog)
     bot.add_application_command(func)
     bot.add_application_command(line)
+    bot.add_application_command(line_del)
     await bot.change_presence(activity=discord.Game(name="起動中...", type=1), status=discord.Status.idle)
     func_error_count = 0
     nira_f_num = len(os.listdir(home_dir))
@@ -160,7 +161,19 @@ async def line(ctx: commands.Context, token: Option(str, "LINE Notifyのトー�
             await ctx.respond(f"そのトークンは無効なようです。\n```{token_result[1]}```", ephemeral = True)
             return
         n_fc.notify_token[ctx.guild.id] = token
+        with open('/home/nattyantv/nira_bot_rewrite/notify_token.nira', 'wb') as f:
+            pickle.dump(n_fc.notify_token, f)
         await ctx.respond(f"{ctx.guild.name}で`{token}`を保存します。\nトークンが他のユーザーに見られないようにしてください。", ephemeral = True)
+
+@bot.slash_command(name="line del")
+async def line_del(ctx: commands.Context):
+    if admin_check.admin_check(ctx.guild, ctx.author) == False:
+        await ctx.respond("あなたにはサーバーの管理権限がないため実行できません。", ephemeral = True)
+    else:
+        del n_fc.notify_token[ctx.guild.id]
+        with open('/home/nattyantv/nira_bot_rewrite/notify_token.nira', 'wb') as f:
+            pickle.dump(n_fc.notify_token, f)
+        await ctx.respond(f"{ctx.guild.name}でのLINEトークンを削除しました。", ephemeral = True)
 
 # BOT起動
 print("run")
