@@ -1,8 +1,10 @@
 # coding: utf-8
 
 #沢山のインポート
+from typing_extensions import Required
 import discord
 from discord import message
+from discord.commands.commands import Option
 from discord.ext import commands
 from discord.ext.commands.bot import Bot
 from discord.ext.commands.core import command
@@ -10,7 +12,8 @@ from discord.utils import get
 from os import getenv
 import sys
 
-from util import n_fc
+
+from util import n_fc, admin_check, web_api
 import json
 import os
 import requests
@@ -69,7 +72,7 @@ print("all setting loaded")
 #cogのロード
 try:
     cogs_dir = home_dir + "/cogs"
-    cogs_num = len([name for name in os.listdir(cogs_dir) if os.path.isfile(os.path.join(cogs_dir, name))])+1
+    cogs_num = len(os.listdir(cogs_dir))
     cogs_list = os.listdir(cogs_dir)
     for i in range(cogs_num):
         if cogs_list[i] == "__pycache__":
@@ -92,6 +95,7 @@ async def on_ready():
     bot.add_application_command(ping)
     bot.add_application_command(cog)
     bot.add_application_command(func)
+    bot.add_application_command(line)
     await bot.change_presence(activity=discord.Game(name="起動中...", type=1), status=discord.Status.idle)
     func_error_count = 0
     nira_f_num = len(os.listdir(home_dir))
@@ -107,7 +111,10 @@ async def on_ready():
             with open(f'{home_dir}/{system_list[i]}', 'rb') as f:
                 exec(f"n_fc.{cog_name} = pickle.load(f)")
             logging.info(f"変数[{system_list[i]}]のファイル読み込みに成功しました。")
-            exec(f"logging.info(n_fc.{cog_name})")
+            if system_list[i] == "notify_token.nira":
+                logging.info("LINE NotifyのTOKENのため、表示はされません。")
+            else:
+                exec(f"logging.info(n_fc.{cog_name})")
         except BaseException as err:
             logging.info(f"変数[{system_list[i]}]のファイル読み込みに失敗しました。\n{err}")
             func_error_count = 1
@@ -134,11 +141,26 @@ async def cog(ctx: commands.Context, command: str = None, name: str = None):
     return
 
 @bot.slash_command()
-async def func(ctx: commands.Context, name: str = None):
-    if ctx.author.id not in n_fc.py_admin:
-        await ctx.respond("discordBotの管理者権限が必要です。")
-    elif ctx.author.id in n_fc.py_admin:
-        await ctx.respond(f"ファイル一覧\n```{os.listdir(home_dir)}```", ephemeral = True)
+async def func(ctx: commands.Context, name: Option(str, "変数名", required=True)):
+    if ctx.author.id not in n_fc:
+        await ctx.respond("BOTの管理権限が必要です。", ephemeral = True)
+    else:
+        try:
+            eval(f"await ctx.respond(n_fc.{name}, ephemeral = True)")
+        except BaseException as err:
+            await ctx.respond(f"・変数表示時のエラー\n```{err}```", ephemeral = True)
+
+@bot.slash_command()
+async def line(ctx: commands.Context, token: Option(str, "LINE Notifyのトークン", required=True)):
+    if admin_check.admin_check(ctx.guild, ctx.author) == False:
+        await ctx.respond("あなたにはサーバーの管理権限がないため実行できません。", ephemeral = True)
+    else:
+        token_result = web_api.line_token_check(token)
+        if token_result[0] == False:
+            await ctx.respond(f"そのトークンは無効なようです。\n```{token_result[1]}```", ephemeral = True)
+            return
+        n_fc.notify_token[ctx.guild.id] = token
+        await ctx.respond(f"{ctx.guild.name}で`{token}`を保存します。\nトークンが他のユーザーに見られないようにしてください。", ephemeral = True)
 
 # BOT起動
 print("run")

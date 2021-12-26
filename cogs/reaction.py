@@ -1,3 +1,4 @@
+from discord import embeds
 from discord.ext import commands
 import discord
 import pickle
@@ -12,6 +13,13 @@ from util import admin_check, n_fc, eh
 class reaction(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+    
+    @commands.command()
+    async def line(self, ctx: commands.Context):
+        embed = discord.Embed(title="DiscordのメッセージをLINEに送信する機能", description="使い方", color=0x00ff00)
+        embed.add_field(name="**このコマンドはスラッシュコマンドです**", value="`/line [token]`というような形でコマンドを送ってください。\nその際、スラッシュコマンドであることを確認してください。\ntokenの流出はとんでもないことにつながります。", inline=False)
+        embed.add_field(name="**TOKENって何？**", value="TOKENとは簡単に言えばキーです。LINE Notifyのページから発行してきてください。\n[TOKENの発行方法](https://qiita.com/nattyan_tv/items/33ac7a7269fe12e49198)", inline=False)
+        await ctx.reply(embed=embed)
 
     @commands.command()
     async def er(self, ctx: commands.Context):

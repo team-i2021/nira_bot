@@ -11,7 +11,7 @@ import importlib
 import sys
 from cogs.embed import embed
 sys.path.append('../')
-from util import admin_check, n_fc, eh
+from util import admin_check, n_fc, eh, web_api
 import util.srtr as srtr
 
 image_root = "https://team-i2021.github.io/nira_bot/images"
@@ -25,9 +25,10 @@ class normal_reaction(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        # print(f"[{datetime.datetime.now()}][{message.guild.name}]/[{message.channel.name}]/[{message.author.name}]{message.content}")
         # LINEでのメッセージ送信
-        # 自分自身には反応しない
+        if message.guild.id in n_fc.notify_token:
+            web_api.notify_line(message, n_fc.notify_token[message.guild.id])
+        # 自分自身(BOT)には反応しない
         if message.author.bot:
             return
         if message.content[:2] == "n!" or message.content[-1:] == ".":

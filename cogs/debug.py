@@ -157,6 +157,8 @@ class debug(commands.Cog):
                     pickle.dump(n_fc.all_reaction_list, f)
                 with open('/home/nattyantv/nira_bot_rewrite/bump_list.nira', 'wb') as f:
                     pickle.dump(n_fc.bump_list, f)
+                with open('/home/nattyantv/nira_bot_rewrite/notify_token.nira', 'wb') as f:
+                    pickle.dump(n_fc.notify_token, f)
                 await restart_code.edit(content="RESTART:`nira.py`\n再起動します")
                 logging.info("-----[n!restart]コマンドが実行されたため、再起動します。-----")
                 os.execl(sys.executable, 'python', "nira.py")
@@ -190,6 +192,8 @@ class debug(commands.Cog):
                     pickle.dump(n_fc.all_reaction_list, f)
                 with open('/home/nattyantv/nira_bot_rewrite/bump_list.nira', 'wb') as f:
                     pickle.dump(n_fc.bump_list, f)
+                with open('/home/nattyantv/nira_bot_rewrite/notify_token.nira', 'wb') as f:
+                    pickle.dump(n_fc.notify_token, f)
                 await exit_code.edit(content="STOP:`nira.py`\n終了します")
                 logging.info("-----[n!exit]コマンドが実行されたため、終了します。-----")
                 exit()
@@ -302,6 +306,8 @@ class debug(commands.Cog):
                     pickle.dump(n_fc.all_reaction_list, f)
                 with open('/home/nattyantv/nira_bot_rewrite/bump_list.nira', 'wb') as f:
                     pickle.dump(n_fc.bump_list, f)
+                with open('/home/nattyantv/nira_bot_rewrite/notify_token.nira', 'wb') as f:
+                    pickle.dump(n_fc.notify_token, f)
                 await ctx.message.reply("Saved.")
                 logging.info("変数をセーブしました。")
             except BaseException as err:
