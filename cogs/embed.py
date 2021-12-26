@@ -20,14 +20,15 @@ class embed(commands.Cog):
             return
         try:
             mes_ch = ctx.message.content.splitlines()
-            emb_clr = int("".join(re.findall(r'[0-9]|[a-f]', str(mes_ch[0].split(" ", 2)[1]))), 16)
-            emb_title = str(mes_ch[0].split(" ", 2)[2])
+            print(str(mes_ch[0].split(" ", 2)[0]))
+            emb_clr = int("".join(re.findall(r'[0-9]|[a-f]', str(mes_ch[0].split(" ", 2)[0]))), 16)
+            emb_title = str(mes_ch[0].split(" ", 2)[1])
             emb_desc = "\n".join(mes_ch[1:])
             embed = discord.Embed(title=emb_title, description=emb_desc, color=emb_clr)
-            await ctx.message.channel.send(embed=embed)
+            await ctx.send(embed=embed)
             return
         except BaseException as err:
-            await ctx.message.reply(embed=eh(err))
+            await ctx.message.reply(embed=eh.eh(err))
             return
 
 
