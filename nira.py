@@ -165,7 +165,7 @@ async def line(ctx: commands.Context, token: Option(str, "LINE Notifyのトー�
             pickle.dump(n_fc.notify_token, f)
         await ctx.respond(f"{ctx.guild.name}で`{token}`を保存します。\nトークンが他のユーザーに見られないようにしてください。", ephemeral = True)
 
-@bot.slash_command(name="line del")
+@bot.slash_command()
 async def line_del(ctx: commands.Context):
     if admin_check.admin_check(ctx.guild, ctx.author) == False:
         await ctx.respond("あなたにはサーバーの管理権限がないため実行できません。", ephemeral = True)
