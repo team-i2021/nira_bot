@@ -46,7 +46,7 @@ async def ss_force(self, message):
             embed = discord.Embed(title="ServerStatus Checker", description=f"LastCheck:{datetime.datetime.now()}", color=0x00ff00)
             for i in range(int(n_fc.steam_server_list[message.guild.id]["value"])):
                 await server_check.ss_pin_async(self.bot.loop, embed, message.guild.id, i+1)
-            await message.edit("AutoSS実行中\n止めるには`n!ss auto off`", embed=embed)
+            await message.edit(f"AutoSS実行中\n止めるには`n!ss auto off`\n再試行するには`n!ss auto force {message.channel.id} {message.id}`", embed=embed)
             await asyncio.sleep(60*10)
         except BaseException as err:
             await message.edit(content=f"err:{err}")
