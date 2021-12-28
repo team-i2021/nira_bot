@@ -212,7 +212,7 @@ async def ss_base(self, ctx: commands.Context):
             if ctx.message.guild.id not in n_fc.steam_server_list:
                 await ctx.reply("サーバーが登録されていません。")
                 return
-            mes_ss = await ctx.message.channel.send(f"Check your setted message!")
+            mes_ss = await ctx.message.channel.send(f"Check your set message!")
             if ctx.message.guild.id in n_fc.pid_ss:
                 await mes_ss.edit(content=f"既に{ctx.message.guild.name}でタスクが実行されています。")
                 return
