@@ -160,20 +160,29 @@ async def line(ctx: commands.Context, token: Option(str, "LINE Notifyのトー�
         if token_result[0] == False:
             await ctx.respond(f"そのトークンは無効なようです。\n```{token_result[1]}```", ephemeral = True)
             return
-        n_fc.notify_token[ctx.guild.id] = token
+        if ctx.guild.id not in n_fc.notify_token:
+            n_fc.notify_token[ctx.guild.id] = {ctx.channel.id: token}
+        else:
+            n_fc.notify_token[ctx.guild.id][ctx.channel.id] = token
         with open('/home/nattyantv/nira_bot_rewrite/notify_token.nira', 'wb') as f:
             pickle.dump(n_fc.notify_token, f)
-        await ctx.respond(f"{ctx.guild.name}で`{token}`を保存します。\nトークンが他のユーザーに見られないようにしてください。", ephemeral = True)
+        await ctx.respond(f"{ctx.guild.name}/{ctx.channel.name}で`{token}`を保存します。\nトークンが他のユーザーに見られないようにしてください。", ephemeral = True)
 
 @bot.slash_command()
 async def line_del(ctx: commands.Context):
     if admin_check.admin_check(ctx.guild, ctx.author) == False:
         await ctx.respond("あなたにはサーバーの管理権限がないため実行できません。", ephemeral = True)
     else:
-        del n_fc.notify_token[ctx.guild.id]
+        if ctx.guild.id not in n_fc.notify_token:
+            await ctx.respond(f"{ctx.guild.name}では、LINEトークンが設定されていません。", ephemeral = True)
+            return
+        if ctx.channel.id not in n_fc.notify_token[ctx.guild.id]:
+            await ctx.respond(f"{ctx.channel.name}では、LINEトークンが設定されていません。", ephemeral = True)
+            return
+        del n_fc.notify_token[ctx.guild.id][ctx.channel.id]
         with open('/home/nattyantv/nira_bot_rewrite/notify_token.nira', 'wb') as f:
             pickle.dump(n_fc.notify_token, f)
-        await ctx.respond(f"{ctx.guild.name}でのLINEトークンを削除しました。", ephemeral = True)
+        await ctx.respond(f"{ctx.channel.name}でのLINEトークンを削除しました。", ephemeral = True)
 
 # BOT起動
 print("run")

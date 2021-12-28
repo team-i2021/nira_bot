@@ -40,7 +40,8 @@ class normal_reaction(commands.Cog):
     async def on_message(self, message: discord.Message):
         # LINEでのメッセージ送信
         if message.guild.id in n_fc.notify_token:
-            web_api.notify_line(message, n_fc.notify_token[message.guild.id])
+            if message.channel.id in n_fc.notify_token[message.guild.id]:
+                web_api.notify_line(message, n_fc.notify_token[message.guild.id][message.channel.id])
         # 自分自身(BOT)には反応しない
         if message.author.bot:
             return
@@ -54,7 +55,6 @@ class normal_reaction(commands.Cog):
         if message.guild.id in n_fc.all_reaction_list:
             if message.channel.id in n_fc.all_reaction_list[message.guild.id]:
                 if n_fc.all_reaction_list[message.guild.id][message.channel.id] != 1:
-                    print(n_fc.all_reaction_list[message.guild.id][message.channel.id])
                     return
         # しりとりブール
         if message.guild.id in n_fc.srtr_bool_list:
@@ -84,9 +84,7 @@ class normal_reaction(commands.Cog):
         # 「n!nr [on/off]」で変更できます
         #########################################
         if n_fc.reaction_bool_list[message.guild.id]["all"] != 1:
-            print(n_fc.reaction_bool_list[message.guild.id]["all"])
             return
-        print(n_fc.reaction_bool_list[message.guild.id][message.channel.id])
         if n_fc.reaction_bool_list[message.guild.id][message.channel.id] == 1:
             sended_mes = ""
             if re.search(r'(?:(。∀ ﾟ))', message.content):
