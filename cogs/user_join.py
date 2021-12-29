@@ -1,7 +1,9 @@
 from discord.ext import commands
 import discord
-
+import re
 import sys
+import json
+from cogs.debug import save
 from cogs.embed import embed
 sys.path.append('../')
 from util import admin_check, n_fc, eh
@@ -37,7 +39,26 @@ class user_join(commands.Cog):
             embed = discord.Embed(title="Welcome!", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
             embed.set_thumbnail(url=f"https://cdn.discordapp.com/avatars/{user.id}/{str(user.avatar)}")
             embed.add_field(name="アカウント製作日", value=f"```{user.created_at}```")
+            if member.guild.id not in n_fc.role_keeper:
+                n_fc.role_keeper[member.guild.id] = {"rk":0}
+                await channel.send(embed=embed)
+                save()
+                return
+            if member.id not in n_fc.role_keeper[member.guild.id]:
+                await channel.send(embed=embed)
+                return
+            role_list = n_fc.role_keeper[member.guild.id][member.id]
+            for i in range(len(role_list)):
+                role = member.guild.get_role(role_list[i])
+                await member.add_roles(role)
+            del n_fc.role_keeper[member.guild.id][member.id]
+            role_text = ""
+            for i in range(len(member.roles)):
+                if member.roles[i].name != "@everyone":
+                    role_text = role_text + f" <@&{member.roles[i].id}> "
+            embed.add_field(name="ロールキーパー", value=f"ロールを付与しました。\n{role_text}")
             await channel.send(embed=embed)
+            save()
             return
         except BaseException as err:
             logging.error(f"ユーザー加入時の情報表示システムのエラー\n{err}")
@@ -54,13 +75,21 @@ class user_join(commands.Cog):
             embed = discord.Embed(title="See ya...", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
             embed.set_thumbnail(url=f"https://cdn.discordapp.com/avatars/{user.id}/{str(user.avatar)}")
             role_text = ""
+            role_ids = []
             for i in range(len(member.roles)):
                 if member.roles[i].name == "@everyone":
                     role_text = role_text + f" {member.roles[i].name} "
                 else:
                     role_text = role_text + f" <@&{member.roles[i].id}> "
+                    role_ids.append(member.roles[i].id)
             embed.add_field(name="付与されていたロール", value=f"{role_text}")
             await channel.send(embed=embed)
+            if member.guild.id not in n_fc.role_keeper:
+                n_fc.role_keeper[member.guild.id] = {"rk":0}
+                return
+            if n_fc.role_keeper[member.guild.id]["rk"] == 1:
+                n_fc.role_keeper[member.guild.id][member.id] = role_ids
+            save()
             return
         except BaseException as err:
             logging.error(f"ユーザー離脱時の情報表示システムのエラー\n{err}")

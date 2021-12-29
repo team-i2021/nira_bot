@@ -69,6 +69,7 @@ bot.is_owner = is_owner
 
 print("all setting loaded")
 
+
 #cogのロード
 try:
     cogs_dir = home_dir + "/cogs"

@@ -1,4 +1,4 @@
-global steam_server_list, ex_reaction_list, reaction_bool_list, welcome_id_list, srtr_bool_list, all_reaction_list, bump_list, notify_token
+global steam_server_list, ex_reaction_list, reaction_bool_list, welcome_id_list, srtr_bool_list, all_reaction_list, bump_list, notify_token, role_keeper
 
 steam_server_list = {}
 ex_reaction_list = {}
@@ -8,6 +8,7 @@ srtr_bool_list = {}
 all_reaction_list = {}
 bump_list = {}
 notify_token = {}
+role_keeper = {}
 
 global pid_ss
 pid_ss={}
