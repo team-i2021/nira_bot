@@ -5,6 +5,7 @@ import sys
 import json
 from cogs.debug import save
 from cogs.embed import embed
+import asyncio
 sys.path.append('../')
 from util import admin_check, n_fc, eh
 
@@ -53,9 +54,12 @@ class user_join(commands.Cog):
                 await member.add_roles(role)
             del n_fc.role_keeper[member.guild.id][member.id]
             role_text = ""
+            await asyncio.sleep(2)
             for i in range(len(member.roles)):
                 if member.roles[i].name != "@everyone":
                     role_text = role_text + f" <@&{member.roles[i].id}> "
+                else:
+                    continue
             embed.add_field(name="ロールキーパー", value=f"ロールを付与しました。\n{role_text}")
             await channel.send(embed=embed)
             save()
