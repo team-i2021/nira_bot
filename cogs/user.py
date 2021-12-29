@@ -55,7 +55,7 @@ class user(commands.Cog):
                     return
             elif ctx.message.content == "n!ui del":
                 try:
-                    if ctx.message.guild.id not in n_fc.reaction_bool_list:
+                    if ctx.message.guild.id not in n_fc.welcome_id_list:
                         seted_id = n_fc.welcome_id_list[ctx.message.guild.id]
                         del n_fc.welcome_id_list[ctx.message.guild.id]
                         with open('/home/nattyantv/nira_bot_rewrite/welcome_id_list.nira', 'wb') as f:
@@ -70,7 +70,7 @@ class user(commands.Cog):
                     return
             elif ctx.message.content == "n!ui":
                 try:
-                    if ctx.message.guild.id in n_fc.reaction_bool_list:
+                    if ctx.message.guild.id in n_fc.welcome_id_list:
                         seted_id = int(n_fc.welcome_id_list[ctx.message.guild.id])
                         channel = self.bot.get_channel(int(n_fc.welcome_id_list[ctx.message.guild.id]))
                         await ctx.message.reply(f"チャンネル：{channel.name}")

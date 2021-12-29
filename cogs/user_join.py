@@ -34,13 +34,36 @@ class user_join(commands.Cog):
             if member.guild.id not in n_fc.welcome_id_list:
                 return
             channel = self.bot.get_channel(n_fc.welcome_id_list[member.guild.id])
-            embed = discord.Embed(title="User Info", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
+            embed = discord.Embed(title="Welcome!", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
             embed.set_thumbnail(url=f"https://cdn.discordapp.com/avatars/{user.id}/{str(user.avatar)}")
             embed.add_field(name="アカウント製作日", value=f"```{user.created_at}```")
             await channel.send(embed=embed)
             return
         except BaseException as err:
             logging.error(f"ユーザー加入時の情報表示システムのエラー\n{err}")
+            return
+    
+    @commands.Cog.listener()
+    async def on_member_remove(self, member):
+        user_id = member.id
+        try:
+            user = await self.bot.fetch_user(user_id)
+            if member.guild.id not in n_fc.welcome_id_list:
+                return
+            channel = self.bot.get_channel(n_fc.welcome_id_list[member.guild.id])
+            embed = discord.Embed(title="See ya...", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
+            embed.set_thumbnail(url=f"https://cdn.discordapp.com/avatars/{user.id}/{str(user.avatar)}")
+            role_text = ""
+            for i in range(len(member.roles)):
+                if member.roles[i].name == "@everyone":
+                    role_text = role_text + f" {member.roles[i].name} "
+                else:
+                    role_text = role_text + f" <@&{member.roles[i].id}> "
+            embed.add_field(name="付与されていたロール", value=f"{role_text}")
+            await channel.send(embed=embed)
+            return
+        except BaseException as err:
+            logging.error(f"ユーザー離脱時の情報表示システムのエラー\n{err}")
             return
 
 def setup(bot):
