@@ -61,6 +61,14 @@ class user_join(commands.Cog):
             save()
             return
         except BaseException as err:
+            if str(err) == "403 Forbidden (error code: 50001): Missing Access":
+                embed.add_field(name="ロールキーパー発動時のエラー", value=f"にらBOTにロールを管理する権限がありません！やり直してください！\n・付与予定のロールIDリスト```{role_list}```")
+                await channel.send(embed=embed)
+                return
+            elif str(err) == "403 Forbidden (error code: 50013): Missing Permissions":
+                embed.add_field(name="ロールキーパー発動時のエラー", value=f"ロール「にらBOT」より上にあるロールを付与しようとしました！ロール設定を確認してください！\n・付与予定のロールIDリスト```{role_list}```")
+                await channel.send(embed=embed)
+                return
             logging.error(f"ユーザー加入時の情報表示システムのエラー\n{err}")
             return
     

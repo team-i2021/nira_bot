@@ -1,3 +1,6 @@
+from os import name
+from discord import role
+from discord.components import C
 from discord.ext import commands
 import discord
 import re
@@ -6,6 +9,8 @@ import pickle
 import sys
 
 from discord.ext.commands.core import command
+from cogs.debug import save
+from cogs.embed import embed
 sys.path.append('../')
 from util import admin_check, n_fc, eh
 
@@ -36,6 +41,35 @@ class user(commands.Cog):
             except BaseException:
                 await ctx.message.reply(embed=discord.Embed(title="Error", description="ユーザーが存在しないか、データが取得できませんでした。", color=0xff0000))
                 return
+    
+    @commands.command()
+    async def rk(self, ctx: commands.Context):
+        if admin_check.admin_check(ctx.message.guild, ctx.message.author) or ctx.message.author.id in n_fc.py_admin:
+            if ctx.message.content == "n!rk":
+                embed = discord.Embed(title="ロールキーパー", description="`n!rk [on/off]`", color=0x00ff00)
+                if ctx.guild.id not in n_fc.role_keeper:
+                    n_fc.role_keeper[ctx.guild.id] = {"rk":0}
+                    save()
+                if n_fc.role_keeper[ctx.guild.id]["rk"] == 0:
+                    role_bool = "無効"
+                else:
+                    role_bool = "有効"
+                embed.add_field(name="ロールキーパーの状態", value=f"ロールキーパーは現在{role_bool}です")
+                await ctx.reply(embed=embed)
+                return
+            if ctx.message.content[5:] in n_fc.on_ali:
+                # ロールキーパーオンにしやがれ
+                n_fc.role_keeper[ctx.guild.id] = {"rk":1}
+            elif ctx.message.content[5:] in n_fc.off_ali:
+                # ロールキーパーオフにしやがれ
+                n_fc.role_keeper[ctx.guild.id] = {"rk":0}
+            else:
+                await ctx.reply("値が不正です。\n「on」とか「off」とか...")
+                return
+            await ctx.reply("ロールキーパーの設定を更新しました。")
+            return
+        else:
+            await ctx.reply("権限がありません。")
     
     @commands.command()
     async def ui(self, ctx: commands.Context):
