@@ -20,9 +20,8 @@ class embed(commands.Cog):
             return
         try:
             mes_ch = ctx.message.content.splitlines()
-            print(str(mes_ch[0].split(" ", 2)[0]))
-            emb_clr = int("".join(re.findall(r'[0-9]|[a-f]', str(mes_ch[0].split(" ", 2)[0]))), 16)
-            emb_title = str(mes_ch[0].split(" ", 2)[1])
+            emb_clr = int("".join(re.findall(r'[0-9]|[a-f]', str(mes_ch[0].split(" ", 3)[1]))), 16)
+            emb_title = str(mes_ch[0].split(" ", 3)[2])
             emb_desc = "\n".join(mes_ch[1:])
             embed = discord.Embed(title=emb_title, description=emb_desc, color=emb_clr)
             await ctx.send(embed=embed)

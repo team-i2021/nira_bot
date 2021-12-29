@@ -31,8 +31,8 @@ formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(me
 logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
 
 
+#残骸だよ
 
-# サーバーのステータスをチェックする
 def server_check(embed, type, g_id, n):
     sv_ad = ("0.0.0.0", 0)
     sv_nm = "ServerName(Virtual)"
