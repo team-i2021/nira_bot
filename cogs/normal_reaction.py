@@ -47,10 +47,10 @@ class normal_reaction(commands.Cog):
             return
         if message.content[:2] == "n!" or message.content[-1:] == ".":
             return
-        if message.author.id in n_fc.py_admin and message.guild.id == 885410991234490408 and message.content[-1:] != ";" and message.content[:7] != "http://" and message.content[:8] != "https://":
-            await self.bot.http.delete_message(message.channel.id, message.id)
-            await message.channel.send(embed=discord.Embed(title=f"{message.author.name}",description=f"error: discord.c:0: parse(syntax) error before `send_message`\n{message.content}", color=0xff0000))
-            return
+        # if message.author.id in n_fc.py_admin and message.guild.id == 885410991234490408 and message.content[-1:] != ";" and message.content[:7] != "http://" and message.content[:8] != "https://":
+        #     await self.bot.http.delete_message(message.channel.id, message.id)
+        #     await message.channel.send(embed=discord.Embed(title=f"{message.author.name}",description=f"error: discord.c:0: parse(syntax) error before `send_message`\n{message.content}", color=0xff0000))
+        #     return
         # AllReactionSetting
         if message.guild.id in n_fc.all_reaction_list:
             if message.channel.id in n_fc.all_reaction_list[message.guild.id]:
