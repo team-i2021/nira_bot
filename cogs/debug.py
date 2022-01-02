@@ -187,7 +187,7 @@ class debug(commands.Cog):
                 save()
                 await exit_code.edit(content="STOP:`nira.py`\n終了します")
                 logging.info("-----[n!exit]コマンドが実行されたため、終了します。-----")
-                exit()
+                await self.bot.close()
                 return
             except BaseException as err:
                 await ctx.message.reply(err)

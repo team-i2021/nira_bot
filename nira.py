@@ -69,35 +69,11 @@ bot.is_owner = is_owner
 
 print("all setting loaded")
 
-
-#cogのロード
-try:
-    cogs_dir = home_dir + "/cogs"
-    cogs_num = len(os.listdir(cogs_dir))
-    cogs_list = os.listdir(cogs_dir)
-    for i in range(cogs_num):
-        if cogs_list[i] == "__pycache__":
-            continue
-        bot.load_extension(f"cogs.{cogs_list[i][:-3]}")
-except BaseException as err:
-    print(err)
-    main_content = {
-        "username": "エラーが発生しました",
-        "content": f"BOTを起動時にエラーが発生しました。Cogの読み込みエラーです。\n```{err}```\nサービスは終了します。"
-    }
-    requests.post(main_channel, main_content)
-    exit()
-print("cog loading")
-
-
+bot.load_extension("cogs.not_ready")
+print("ready_cog loaded")
 
 @bot.event
 async def on_ready():
-    bot.add_application_command(ping)
-    bot.add_application_command(cog)
-    bot.add_application_command(func)
-    bot.add_application_command(line)
-    bot.add_application_command(line_del)
     await bot.change_presence(activity=discord.Game(name="起動中...", type=1), status=discord.Status.idle)
     func_error_count = 0
     nira_f_num = len(os.listdir(home_dir))
@@ -126,9 +102,31 @@ async def on_ready():
             "content": f"BOTを起動時にエラーが発生しました。変数の読み込みエラーです。\nlogを確認してください。"
         }
         requests.post(main_channel, main_content)
+    bot.add_application_command(ping)
+    bot.add_application_command(cog)
+    bot.add_application_command(func)
+    bot.add_application_command(line)
+    bot.add_application_command(line_del)
+    #cogのロード
+    try:
+        cogs_dir = home_dir + "/cogs"
+        cogs_num = len(os.listdir(cogs_dir))
+        cogs_list = os.listdir(cogs_dir)
+        for i in range(cogs_num):
+            if cogs_list[i] == "__pycache__":
+                continue
+            bot.load_extension(f"cogs.{cogs_list[i][:-3]}")
+    except BaseException as err:
+        print(err)
+        main_content = {
+            "username": "エラーが発生しました",
+            "content": f"BOTを起動時にエラーが発生しました。Cogの読み込みエラーです。\n```{err}```\nサービスは終了します。"
+        }
+        requests.post(main_channel, main_content)
+        await bot.close()
+    bot.unload_extension("cogs.not_ready")
+    print("cog loaded")
     await bot.change_presence(activity=discord.Game(name="n!help | にらゲー", type=1), status=discord.Status.online)
-    logging.info('初期セットアップ終了')
-    logging.info("Ready!")
 
 print("func loaded")
 

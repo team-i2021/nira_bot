@@ -41,14 +41,6 @@ logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.
 
 ss_check_result = {}
 
-class ss_reload(View):
-    @discord.ui.button(label="更新", style=discord.ButtonStyle.success)
-    async def ss_callback(self, button, interaction: discord.interactions.Interaction):
-        print(interaction.channel_id, interaction.message.id)
-        n_fc.pid_ss[interaction.guild_id].cancel()
-        n_fc.pid_ss[interaction.guild_id] = self.bot.loop.create_task(ss_force(self, interaction.message))
-        print("reload!")
-        return
 
 async def ss_force(self, message):
     await message.edit(content="現在実行準備中です...")
@@ -57,8 +49,7 @@ async def ss_force(self, message):
             embed = discord.Embed(title="ServerStatus Checker", description=f"LastCheck:{datetime.datetime.now()}", color=0x00ff00)
             for i in range(int(n_fc.steam_server_list[message.guild.id]["value"])):
                 await server_check.ss_pin_async(self.bot.loop, embed, message.guild.id, i+1)
-            view = ss_reload()
-            await message.edit(f"AutoSS実行中\n止めるには`n!ss auto off`\n再試行するには`n!ss auto force {message.channel.id} {message.id}`", embed=embed, view=view)
+            await message.edit(f"AutoSS実行中\n止めるには`n!ss auto off`\n再試行するには`n!ss auto force {message.channel.id} {message.id}`", embed=embed)
             await asyncio.sleep(60*10)
         except BaseException as err:
             await message.edit(content=f"err:{err}")
