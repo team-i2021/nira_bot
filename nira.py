@@ -19,7 +19,7 @@ import os
 import requests
 from cogs import ping as cogs_ping
 from cogs import debug as cogs_debug
-
+from cogs import server_status
 from discord.embeds import Embed
 sys.setrecursionlimit(10000)#エラー回避
 import pickle
@@ -105,6 +105,7 @@ async def on_ready():
     bot.add_application_command(ping)
     bot.add_application_command(cog)
     bot.add_application_command(func)
+    bot.add_application_command(reload)
     bot.add_application_command(line)
     bot.add_application_command(line_del)
     #cogのロード
@@ -113,7 +114,7 @@ async def on_ready():
         cogs_num = len(os.listdir(cogs_dir))
         cogs_list = os.listdir(cogs_dir)
         for i in range(cogs_num):
-            if cogs_list[i] == "__pycache__":
+            if cogs_list[i] == "__pycache__" or cogs_list[i] == "not_ready.py":
                 continue
             bot.load_extension(f"cogs.{cogs_list[i][:-3]}")
     except BaseException as err:
@@ -151,6 +152,19 @@ async def func(ctx: commands.Context, name: Option(str, "変数名", required=Tr
             await ctx.respond(f"・変数表示時のエラー\n```{err}```", ephemeral = True)
 
 @bot.slash_command()
+async def reload(ctx: commands.Context):
+    if ctx.guild.id not in n_fc.pid_ss or n_fc.pid_ss[ctx.guild.id][0].done() == True:
+        await ctx.respond(f"{ctx.guild.name}では、AutoSSは実行されていません。", ephemeral = True)
+        return
+    else:
+        status_message = n_fc.pid_ss[ctx.guild.id][1]
+        n_fc.restore_save["ss_force"][ctx.guild.id] = [ctx.channel.id,status_message]
+        n_fc.pid_ss[ctx.guild.id] = (bot.loop.create_task(server_status.ss_force(bot, status_message)),status_message)
+        await ctx.respond("リロードしました。", ephemeral = True)
+        return
+
+
+@bot.slash_command()
 async def line(ctx: commands.Context, token: Option(str, "LINE Notifyのトークン", required=True)):
     if admin_check.admin_check(ctx.guild, ctx.author) == False:
         await ctx.respond("あなたにはサーバーの管理権限がないため実行できません。", ephemeral = True)
@@ -182,6 +196,8 @@ async def line_del(ctx: commands.Context):
         with open('/home/nattyantv/nira_bot_rewrite/notify_token.nira', 'wb') as f:
             pickle.dump(n_fc.notify_token, f)
         await ctx.respond(f"{ctx.channel.name}でのLINEトークンを削除しました。", ephemeral = True)
+
+
 
 # BOT起動
 print("run")

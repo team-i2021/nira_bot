@@ -73,9 +73,10 @@ def server_check(embed, type, g_id, n):
                         user_time = f"{int(user_time // 60)}時間{int(user_time % 60)}"
                     if user_add != "":
                         user = user + "\n" + f"```{user_add} | {user_time}分```"
-                if user == "":
-                    user = "（ユーザーデータが取得出来ませんでした。）"
-                embed.add_field(name="> Online User", value=f"プレーヤー数:{len(sv_us)}人{user}\n==========", inline=False)
+                if user != "":
+                    embed.add_field(name="> Online User", value=f"プレーヤー数:{len(sv_us)}人{user}\n==========", inline=False)
+                else:
+                    embed.add_field(name="> Online User", value=":information_source:オンラインユーザーはいません。\n==========", inline=False)
             else:
                 embed.add_field(name="> Online User", value=":information_source:オンラインユーザーはいません。\n==========", inline=False)
         elif type == 1:
@@ -133,8 +134,9 @@ def ss_pin_embed(embed, g_id, n):
                 if user_add != "":
                     user = user + "\n" + f"```{user_add} | {user_time}分```"
             if user == "":
-                user = "（ユーザーデータが取得出来ませんでした。）"
-            embed.add_field(name="> Online User", value=f"プレーヤー数:{len(sv_us)}人{user}\n==========", inline=False)
+                embed.add_field(name="> Online User", value=":information_source:オンラインユーザーはいません。\n==========", inline=False)
+            else:
+                embed.add_field(name="> Online User", value=f"プレーヤー数:{len(sv_us)}人{user}\n==========", inline=False)
         else:
             embed.add_field(name="> Online User", value=":information_source:オンラインユーザーはいません。\n==========", inline=False)
     except BaseException as err:

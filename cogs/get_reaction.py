@@ -5,6 +5,7 @@ import requests
 
 import sys
 from cogs.embed import embed
+from cogs import server_status
 sys.path.append('../')
 from util import admin_check, n_fc, eh
 
@@ -85,6 +86,7 @@ class get_reaction(commands.Cog):
         if mem.id != 892759276152573953 and react.message.author.id == 892759276152573953 and str(react.emoji) == '<:trash:908565976407236608>':
             await self.bot.http.delete_message(react.message.channel.id, react.message.id)
             return
+
 
 def setup(bot):
     bot.add_cog(get_reaction(bot))

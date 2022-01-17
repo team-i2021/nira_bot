@@ -39,6 +39,8 @@ class normal_reaction(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         # LINEでのメッセージ送信
+        if message.guild == None:
+            return
         if message.guild.id in n_fc.notify_token:
             if message.channel.id in n_fc.notify_token[message.guild.id]:
                 web_api.notify_line(message, n_fc.notify_token[message.guild.id][message.channel.id])
@@ -255,6 +257,8 @@ class normal_reaction(commands.Cog):
             if re.search(r'(?:しおりん)', message.content):
                 if message.guild.id == 870642671415337001:
                     sended_mes = await message.reply("https://twitter.com/Aibell__game")
+            if re.search(r'(?:さばかん|鯖缶|サバカン)', message.content):
+                sended_mes = await message.reply(f"{image_root}/sabakan.png")
             if sended_mes != "":
                 await sended_mes.add_reaction("<:trash:908565976407236608>")
                 await asyncio.sleep(3)

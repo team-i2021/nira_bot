@@ -48,6 +48,8 @@ class bump(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
+        if message.guild == None:
+            return
         if message.guild.id not in n_fc.bump_list:
             return
         if message.author.id != 302050872383242240:

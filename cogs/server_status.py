@@ -42,18 +42,18 @@ logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.
 ss_check_result = {}
 
 
-async def ss_force(self, message):
-    await message.edit(content="現在実行準備中です...")
+async def ss_force(bot, message:discord.Message):
+    await message.edit(content="Loading status...",view=None)
     while True:
         try:
             embed = discord.Embed(title="ServerStatus Checker", description=f"LastCheck:{datetime.datetime.now()}", color=0x00ff00)
             for i in range(int(n_fc.steam_server_list[message.guild.id]["value"])):
-                await server_check.ss_pin_async(self.bot.loop, embed, message.guild.id, i+1)
+                await server_check.ss_pin_async(bot.loop, embed, message.guild.id, i+1)
             await message.edit(f"AutoSS実行中\n止めるには`n!ss auto off`\n再試行するには`n!ss auto force {message.channel.id} {message.id}`", embed=embed)
             await asyncio.sleep(60*10)
         except BaseException as err:
             await message.edit(content=f"err:{err}")
-            await ss_force(self, message)
+            await ss_force(bot, message)
 
 #async def ss_pin(self, ment_id, message):
 #    ss_check_result[message.guild.id] = {}
@@ -188,7 +188,7 @@ async def ss_base(self, ctx: commands.Context):
                 if ctx.message.guild.id in n_fc.pid_ss:
                     await mes_ss.edit(content=f"既に{ctx.message.guild.name}でタスクが実行されています。")
                     return
-                n_fc.pid_ss[ctx.message.guild.id] = self.bot.loop.create_task(ss_loop_goes(self, ment_id, mes_ss))
+                n_fc.pid_ss[ctx.message.guild.id] = (self.bot.loop.create_task(ss_loop_goes(self, ment_id, mes_ss)), mes_ss)
                 return
             except BaseException as err:
                 await ctx.reply(embed=eh.eh(err))
@@ -198,8 +198,8 @@ async def ss_base(self, ctx: commands.Context):
                 await ctx.reply("既に無効になっているか、コマンドが実行されていません。")
                 return
             try:
-                if n_fc.pid_ss[ctx.message.guild.id].done() == False or ctx.message.guild.id in n_fc.pid_ss:
-                    n_fc.pid_ss[ctx.message.guild.id].cancel()
+                if n_fc.pid_ss[ctx.message.guild.id][0].done() == False or ctx.message.guild.id in n_fc.pid_ss:
+                    n_fc.pid_ss[ctx.message.guild.id][0].cancel()
                     del n_fc.pid_ss[ctx.message.guild.id]
                     await ctx.reply("AutoSSを無効にしました。")
                     return
@@ -220,7 +220,8 @@ async def ss_base(self, ctx: commands.Context):
                 await mes_ss.edit(content=f"既に{ctx.message.guild.name}でタスクが実行されています。")
                 return
             if len(ctx.message.content) <= 16:
-                n_fc.pid_ss[ctx.message.guild.id] = self.bot.loop.create_task(ss_force(self, mes_ss))
+                n_fc.restore_save["ss_force"][ctx.guild.id] = [ctx.channel.id,mes_ss]
+                n_fc.pid_ss[ctx.message.guild.id] = (self.bot.loop.create_task(ss_force(self.bot, mes_ss)),mes_ss)
                 return
             else:
                 try:
@@ -233,14 +234,15 @@ async def ss_base(self, ctx: commands.Context):
                     await ctx.reply("メッセージが見つかりませんでした。")
                     return
                 await messs.edit(content="現在変更をしています...")
-                n_fc.pid_ss[ctx.message.guild.id] = self.bot.loop.create_task(ss_force(self, messs))
+                n_fc.restore_save["ss_force"][ctx.guild.id] = [ctx.channel.id,messs]
+                n_fc.pid_ss[ctx.message.guild.id] = (self.bot.loop.create_task(ss_force(self.bot, messs)),messs)
                 return
         else:
             if ctx.message.guild.id not in n_fc.pid_ss:
                 await ctx.reply("`n!ss auto [on/off]`\nAutoSSは無効になっています。")
                 return
             try:
-                if n_fc.pid_ss[ctx.message.guild.id].done() == True:
+                if n_fc.pid_ss[ctx.message.guild.id][0].done() == True:
                     await ctx.reply("`n!ss auto [on/off]`\nAutoSSは無効になっています。")
                 else:
                     await ctx.reply("`n!ss auto [on/off]`\nAutoSSは有効になっています。")
@@ -370,3 +372,8 @@ class server_status(commands.Cog):
 
 def setup(bot):
     bot.add_cog(server_status(bot))
+    # n_fc.restore_save["ss_force"][ctx.guild.id] = [ctx.channel.id,mes_ss]
+    for i in range(len(n_fc.restore_save["ss_force"])):
+        guild = list(n_fc.restore_save["ss_force"].keys())[i]
+        channel = bot.get_channel(n_fc.restore_save["ss_force"][guild][0])
+        n_fc.pid_ss[guild] = (bot.loop.create_task(ss_force(bot, n_fc.restore_save["ss_force"][guild][1])),n_fc.restore_save["ss_force"][guild][1])

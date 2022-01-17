@@ -31,25 +31,30 @@ logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.
 
 #管理者向けdebug
 
+save_dir = "/home/nattyantv/nira_bot_rewrite"
+
 def save():
-    with open('/home/nattyantv/nira_bot_rewrite/steam_server_list.nira', 'wb') as f:
+    with open(f'{save_dir}/steam_server_list.nira', 'wb') as f:
         pickle.dump(n_fc.steam_server_list, f)
-    with open('/home/nattyantv/nira_bot_rewrite/reaction_bool_list.nira', 'wb') as f:
+    with open(f'{save_dir}/reaction_bool_list.nira', 'wb') as f:
         pickle.dump(n_fc.reaction_bool_list, f)
-    with open('/home/nattyantv/nira_bot_rewrite/welcome_id_list.nira', 'wb') as f:
+    with open(f'{save_dir}/welcome_id_list.nira', 'wb') as f:
         pickle.dump(n_fc.welcome_id_list, f)
-    with open('/home/nattyantv/nira_bot_rewrite/ex_reaction_list.nira', 'wb') as f:
+    with open(f'{save_dir}/ex_reaction_list.nira', 'wb') as f:
         pickle.dump(n_fc.ex_reaction_list, f)
-    with open('/home/nattyantv/nira_bot_rewrite/srtr_bool_list.nira', 'wb') as f:
+    with open(f'{save_dir}/srtr_bool_list.nira', 'wb') as f:
         pickle.dump(n_fc.srtr_bool_list, f)
-    with open('/home/nattyantv/nira_bot_rewrite/all_reaction_list.nira', 'wb') as f:
+    with open(f'{save_dir}/all_reaction_list.nira', 'wb') as f:
         pickle.dump(n_fc.all_reaction_list, f)
-    with open('/home/nattyantv/nira_bot_rewrite/bump_list.nira', 'wb') as f:
+    with open(f'{save_dir}/bump_list.nira', 'wb') as f:
         pickle.dump(n_fc.bump_list, f)
-    with open('/home/nattyantv/nira_bot_rewrite/notify_token.nira', 'wb') as f:
+    with open(f'{save_dir}/notify_token.nira', 'wb') as f:
         pickle.dump(n_fc.notify_token, f)
-    with open('/home/nattyantv/nira_bot_rewrite/role_keeper.nira', 'wb') as f:
+    with open(f'{save_dir}/role_keeper.nira', 'wb') as f:
         pickle.dump(n_fc.role_keeper, f)
+    with open(f'{save_dir}/restore_save.nira', 'wb') as f:
+        pickle.dump(n_fc.restore_save, f)
+
     
 
 async def base_cog(bot, ctx, command, name):
