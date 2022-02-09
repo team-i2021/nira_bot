@@ -1,12 +1,9 @@
 import datetime
 import pickle
 import sys
-from re import I
 
 import discord
 from discord.ext import commands
-from discord.interactions import Interaction
-from discord.ui import Button, View, Select, view
 
 from cogs.embed import embed
 
@@ -41,14 +38,13 @@ logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.
 
 ss_check_result = {}
 
-
 async def ss_force(bot, message:discord.Message):
     await message.edit(content="Loading status...",view=None)
     while True:
         try:
             embed = discord.Embed(title="ServerStatus Checker", description=f"LastCheck:{datetime.datetime.now()}", color=0x00ff00)
             for i in range(int(n_fc.steam_server_list[message.guild.id]["value"])):
-                await server_check.ss_pin_async(bot.loop, embed, message.guild.id, i+1)
+                await server_check.ss_pin_async(bot.loop, embed, message.guild.id, i + 1)
             await message.edit(f"AutoSS実行中\n止めるには`n!ss auto off`\n再試行するには`n!ss auto force {message.channel.id} {message.id}`", embed=embed)
             await asyncio.sleep(60*10)
         except BaseException as err:
@@ -85,6 +81,15 @@ async def ss_force(bot, message:discord.Message):
 #            await asyncio.sleep(5)
 #        await asyncio.sleep(60*30) # 60秒*30＝30分
 
+async def get_mes(bot, channel_id, message_id):
+    ch_obj = await bot.fetch_channel(channel_id)
+    messs = await ch_obj.fetch_message(message_id)
+    return messs
+
+async def launch_ss(bot, channel_id, message_id):
+    ch_obj = await bot.fetch_channel(channel_id)
+    messs = await ch_obj.fetch_message(message_id)
+    await ss_force(bot, messs)
 
 async def ss_loop_goes(self, ment_id, message):
     ss_check_result[message.guild.id] = {}
@@ -117,15 +122,22 @@ async def ss_loop_goes(self, ment_id, message):
 
 #コマンド内部
 async def ss_base(self, ctx: commands.Context):
-    if ctx.message.content == "n!ss reload":
-        if ctx.message.author.id not in n_fc.py_admin:
+    if ctx.message.content[:10] == "n!ss debug":
+        if ctx.author.id not in n_fc.py_admin:
             return
-        try:
-            importlib.reload(server_check)
-            await ctx.reply("Reloaded.")
+        if ctx.message.content[11:] == "1":
+            try:
+                importlib.reload(server_check)
+                await ctx.reply("Reloaded.")
+                return
+            except BaseException as err:
+                await ctx.reply(err)
+                return
+        elif ctx.message.content[11:] == "2":
+            await ctx.reply(n_fc.force_ss_list)
             return
-        except BaseException as err:
-            await ctx.reply(err)
+        else:
+            await ctx.reply("```debug menu```\n1: `reload server_check system`\n2: `output force_ss_list`")
             return
     if ctx.message.content[:8] == "n!ss add":
         if ctx.message.content == "n!ss add":
@@ -149,6 +161,7 @@ async def ss_base(self, ctx: commands.Context):
             return
         except BaseException as err:
             await ctx.message.reply(embed=eh.eh(err))
+            return
     if ctx.message.content[:9] == "n!ss list":
         if ctx.message.guild.id not in n_fc.steam_server_list:
             await ctx.message.reply("サーバーは登録されていません。")
@@ -201,6 +214,7 @@ async def ss_base(self, ctx: commands.Context):
                 if n_fc.pid_ss[ctx.message.guild.id][0].done() == False or ctx.message.guild.id in n_fc.pid_ss:
                     n_fc.pid_ss[ctx.message.guild.id][0].cancel()
                     del n_fc.pid_ss[ctx.message.guild.id]
+                    del n_fc.force_ss_list[ctx.guild.id]
                     await ctx.reply("AutoSSを無効にしました。")
                     return
                 else:
@@ -220,21 +234,18 @@ async def ss_base(self, ctx: commands.Context):
                 await mes_ss.edit(content=f"既に{ctx.message.guild.name}でタスクが実行されています。")
                 return
             if len(ctx.message.content) <= 16:
-                n_fc.restore_save["ss_force"][ctx.guild.id] = [ctx.channel.id,mes_ss]
+                n_fc.force_ss_list[ctx.guild.id] = [ctx.channel.id, mes_ss.id]
                 n_fc.pid_ss[ctx.message.guild.id] = (self.bot.loop.create_task(ss_force(self.bot, mes_ss)),mes_ss)
                 return
             else:
                 try:
-                    ch = ctx.message.content[16:].split(" ",1)[0]
-                    mes = ctx.message.content[16:].split(" ", 1)[1]
-                    ch_obj = await self.bot.fetch_channel(ch)
-                    messs = await ch_obj.fetch_message(mes)
+                    messs = await get_mes(self.bot, ctx.message.content[16:].split(" ",1)[0], ctx.message.content[16:].split(" ", 1)[1])
                 except BaseException as err:
                     logging.error(err)
                     await ctx.reply("メッセージが見つかりませんでした。")
                     return
                 await messs.edit(content="現在変更をしています...")
-                n_fc.restore_save["ss_force"][ctx.guild.id] = [ctx.channel.id,messs]
+                n_fc.force_ss_list[ctx.guild.id] = [ctx.message.content[16:].split(" ",1)[0], ctx.message.content[16:].split(" ", 1)[1]]
                 n_fc.pid_ss[ctx.message.guild.id] = (self.bot.loop.create_task(ss_force(self.bot, messs)),messs)
                 return
         else:
@@ -372,8 +383,4 @@ class server_status(commands.Cog):
 
 def setup(bot):
     bot.add_cog(server_status(bot))
-    # n_fc.restore_save["ss_force"][ctx.guild.id] = [ctx.channel.id,mes_ss]
-    for i in range(len(n_fc.restore_save["ss_force"])):
-        guild = list(n_fc.restore_save["ss_force"].keys())[i]
-        channel = bot.get_channel(n_fc.restore_save["ss_force"][guild][0])
-        n_fc.pid_ss[guild] = (bot.loop.create_task(ss_force(bot, n_fc.restore_save["ss_force"][guild][1])),n_fc.restore_save["ss_force"][guild][1])
+

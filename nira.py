@@ -29,8 +29,9 @@ print("Imported")
 
 print("Logged")
 ##### BOTの設定 #####
-intents = discord.Intents.default()  # デフォルトのIntentsオブジェクトを生成
+intents = discord.Intents.all()  # デフォルトのIntentsオブジェクトを生成
 intents.typing = False # typingを受け取らないように
+intents.presences = True # Presence Intentだよ
 intents.members = True # メンバーに関する情報を受け取る
 bot = commands.Bot(command_prefix="n!", intents=intents, help_command=None)
 print("bot setted")
@@ -45,7 +46,7 @@ bot.remove_command("help")
 if os.path.isfile(f'{sys.path[0]}/setting.json') == False:
     exit()
 setting = json.load(open(f'{sys.path[0]}/setting.json', 'r'))
-home_dir = sys.path[0]
+home_dir = os.path.dirname(__file__)
 token = setting["tokens"]["nira_bot"]
 main_channel = setting["main_channel"]
 n_fc.py_admin.append(int(setting["py_admin"]))
@@ -114,7 +115,7 @@ async def on_ready():
         cogs_num = len(os.listdir(cogs_dir))
         cogs_list = os.listdir(cogs_dir)
         for i in range(cogs_num):
-            if cogs_list[i] == "__pycache__" or cogs_list[i] == "not_ready.py":
+            if cogs_list[i][-3:] != ".py" or cogs_list[i] == "__pycache__" or cogs_list[i] == "not_ready.py":
                 continue
             bot.load_extension(f"cogs.{cogs_list[i][:-3]}")
     except BaseException as err:
@@ -158,7 +159,6 @@ async def reload(ctx: commands.Context):
         return
     else:
         status_message = n_fc.pid_ss[ctx.guild.id][1]
-        n_fc.restore_save["ss_force"][ctx.guild.id] = [ctx.channel.id,status_message]
         n_fc.pid_ss[ctx.guild.id] = (bot.loop.create_task(server_status.ss_force(bot, status_message)),status_message)
         await ctx.respond("リロードしました。", ephemeral = True)
         return

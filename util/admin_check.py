@@ -9,6 +9,8 @@ def admin_check(guild: discord.Message.guild, memb: discord.Message.author) -> b
     role_list = []
     if memb.id in n_fc.py_admin:
         return True
+    if memb.id == guild.owner_id:
+        return True
     for role in memb.roles:
         role_list.append(role.id)
     for i in range(len(role_list)):

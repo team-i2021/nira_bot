@@ -1,3 +1,4 @@
+from lib2to3.pytree import Base
 from discord.ext import commands
 import discord
 import os
@@ -7,6 +8,8 @@ import subprocess
 from subprocess import PIPE
 import re
 import asyncio
+
+from cogs.normal_reaction import normal_reaction as nr
 
 import sys
 
@@ -34,28 +37,24 @@ logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.
 save_dir = "/home/nattyantv/nira_bot_rewrite"
 
 def save():
-    with open(f'{save_dir}/steam_server_list.nira', 'wb') as f:
-        pickle.dump(n_fc.steam_server_list, f)
-    with open(f'{save_dir}/reaction_bool_list.nira', 'wb') as f:
-        pickle.dump(n_fc.reaction_bool_list, f)
-    with open(f'{save_dir}/welcome_id_list.nira', 'wb') as f:
-        pickle.dump(n_fc.welcome_id_list, f)
-    with open(f'{save_dir}/ex_reaction_list.nira', 'wb') as f:
-        pickle.dump(n_fc.ex_reaction_list, f)
-    with open(f'{save_dir}/srtr_bool_list.nira', 'wb') as f:
-        pickle.dump(n_fc.srtr_bool_list, f)
-    with open(f'{save_dir}/all_reaction_list.nira', 'wb') as f:
-        pickle.dump(n_fc.all_reaction_list, f)
-    with open(f'{save_dir}/bump_list.nira', 'wb') as f:
-        pickle.dump(n_fc.bump_list, f)
-    with open(f'{save_dir}/notify_token.nira', 'wb') as f:
-        pickle.dump(n_fc.notify_token, f)
-    with open(f'{save_dir}/role_keeper.nira', 'wb') as f:
-        pickle.dump(n_fc.role_keeper, f)
-    with open(f'{save_dir}/restore_save.nira', 'wb') as f:
-        pickle.dump(n_fc.restore_save, f)
+    save_list = [
+        "steam_server_list",
+        "reaction_bool_list",
+        "welcome_id_list",
+        "ex_reaction_list",
+        "srtr_bool_list",
+        "all_reaction_list",
+        "bump_list",
+        "notify_token",
+        "role_keeper",
+        "force_ss_list",
+        "mod_list"
+        ]
+    for i in range(len(save_list)):
+        with open(f'{save_dir}/{save_list[i]}.nira', 'wb') as f:
+            exec(f"pickle.dump(n_fc.{save_list[i]}, f)")
 
-    
+
 
 async def base_cog(bot, ctx, command, name):
     if ctx.message == None:
@@ -292,7 +291,7 @@ class debug(commands.Cog):
                 await ctx.message.reply("Saved.")
                 logging.info("変数をセーブしました。")
             except BaseException as err:
-                await ctx.message.reply(f"Error happend.\n{err}")
+                await ctx.message.reply(f"Error happend.\n`{err}`")
             return
         else:
             embed = discord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000)
@@ -305,6 +304,22 @@ class debug(commands.Cog):
         name = None
         await base_cog(self.bot, ctx, command, name)
         return
+
+    @commands.command()
+    async def reaction(self, ctx: commands.Context):
+        if ctx.author.id not in n_fc.py_admin:
+            embed = discord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000)
+            await ctx.message.reply(embed=embed)
+            return
+        else:
+            if ctx.message.content == "n!reaction":
+                await ctx.reply("引数「ReplyID」が足りません。")
+                return
+            try:
+                await nr.n_reaction(ctx.message, ctx.message.content.split(" ",1)[1])
+            except BaseException as err:
+                await ctx.reply(f"```{err}```")
+
 
 def setup(bot):
     bot.add_cog(debug(bot))

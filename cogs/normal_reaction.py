@@ -7,6 +7,8 @@ import random
 import asyncio
 import importlib
 import sys
+import listre
+import os
 
 import logging
 dir = sys.path[0]
@@ -28,13 +30,212 @@ from util import admin_check, n_fc, eh, web_api
 import util.srtr as srtr
 
 image_root = "https://team-i2021.github.io/nira_bot/images"
+image_loc = "/home/nattyantv/nira_bot_rewrite/images"
 
 #通常反応をまとめたもの。
+
+nira_hantei = r'にら|ニラ|nira|garlic|韮|Chinese chives|Allium tuberosum|てりじの|テリジノ'
+
+reaction_list = [
+    r"(?:(。∀ ﾟ))",
+    r"(´・ω・｀)",
+    r'草',
+    r'https://www.nicovideo.jp',
+    r'https://www.youtube.com',
+    r'https://twitter.com',
+    r'煮裸族|にらぞく|ニラゾク',
+    r'コイキング|イトコイ|いとこい|こいきんぐ|itokoi',
+    r'栽培|さいばい|サイバイ',
+    r'伊藤|いとう|イトウ',
+    r'ごはん|飯|らいす|ライス|rice|Rice',
+    r'枯|かれ|カレ',
+    r'魚|さかな|fish|サカナ|ざかな|ザカナ',
+    r'独裁|どくさい|ドクサイ',
+    r'成長|せいちょう|セイチョウ',
+    r'なべ|鍋|ナベ',
+    r'かりばー|カリバー|剣',
+    r'あんど|and|アンド',
+    r'らんど|ランド|rand|land',
+    r'饅頭|まんじゅう|マンジュウ',
+    r'レバ|れば',
+    r'とり|トリ|bird|鳥',
+    r'twitter|Twitter|TWITTER|ついったー|ツイッター',
+    r'にら|ニラ|nira|garlic|韮|Chinese chives|Allium tuberosum|てりじの|テリジノ',
+    r'てぃらみす|ティラミス|tiramisu',
+    r'ぴの|ピノ|pino',
+    r'きつね|キツネ|狐',
+    r'ういろ',
+    r'いくもん|イクモン|ikumon|Ikumon',
+    r'りんご|リンゴ|apple|Apple|App1e|app1e|アップル|あっぷる|林檎|maçã',
+    r'しゃけ|シャケ|さけ|サケ|鮭|syake|salmon|さーもん|サーモン',
+    r'なつ|なっちゃん|Nattyan|nattyan',
+    r'12pp|12PP',
+    r'名前|なまえ|ナマエ|name',
+    r'みけ|ミケ|三毛',
+    r'あう|アウ',
+    r'せろり|セロリ',
+    r'ろり|ロリ',
+    r'tasuren|たすれん|タスレン',
+    r'ｸｧ|くあっ|クアッ|クァ|くぁ|くわぁ|クワァ',
+    r'ふぇにっくす|フェニックス|不死鳥|ふしちょう|phoenix|焼き鳥|やきとり',
+    r'かなしい|つらい|ぴえん|:pleading_face:|:cry:|:sob:|:weary:|:smiling_face_with_tear:|辛|悲しい|ピエン|泣く|泣きそう|いやだ|かわいそう|可哀そう',
+    r'あすか|アスカ|飛鳥',
+    r'しおりん',
+    r'さばかん|鯖缶|サバカン',
+    r'訴え|訴訟',
+    ]
+
+# 0:メッセージ反応,1:添付ファイル反応,2:特殊反応(にら画像),3:特殊反応(にらテキスト),4:特殊反応(Guild指定画像),5:特殊反応(Guild指定文字)
+# ファイル/反応数
+# 反応ファイルなど
+reaction_files = {
+    0:[0,1,"おっ、かわいいな"],
+    1:[0,1,"かわいいですね..."],
+    2:[0,1,"くそわろたｧ!!!"],
+    3:[0,1,"にーっこにこ動画？"],
+    4:[0,1,"ようつべぇ...？"],
+    5:[0,1,"ついったぁ！！！"],
+    6:[1,1,"nira_zoku"],
+    7:[1,2,"itokoi"],
+    8:[2,2,"nira_saibai"],
+    9:[2,1,"nira_itou"],
+    10:[2,1,"nira_rice"],
+    11:[2,1,"nira_kare"],
+    12:[2,1,"nira_fish"],
+    13:[2,1,"nira_dokusai"],
+    14:[2,1,"nira_grow"],
+    15:[3,1,"https://cookpad.com/search/%E3%83%8B%E3%83%A9%E9%8D%8B"],
+    16:[2,1,"nira_sword"],
+    17:[2,1,"nira_and"],
+    18:[3,1,"https://sites.google.com/view/nirand"],
+    19:[2,1,"nira_manju"],
+    20:[2,1,"rebanira"],
+    21:[2,2,"nira_tori"],
+    22:[3,1,"https://twitter.com/niranuranura"],
+    23:[1,3,"nira"],
+    24:[4,2,"tiramisu"],
+    25:[1,3,"pino"],
+    26:[4,2,"fox"],
+    27:[1,1,"uiro"],
+    28:[0,1,"https://www.youtube.com/IkumonTV"],
+    29:[4,1,"apple"],
+    30:[4,3,"sarmon"],
+    31:[0,1,"<:natsu:908565532268179477>"],
+    32:[4,1,"12pp"],
+    33:[5,2,"https://twitter.com/namae_1216",":heart: by apple"],
+    34:[1,1,"mike"],
+    35:[4,1,"au"],
+    36:[1,1,"serori"],
+    37:[4,2,"rori"],
+    38:[5,2,"全知全能なすごい人。\n多分お金と時間があれば何でもできる","毎晩10時は..."],
+    39:[0,1,"ﾜｰｽｹﾞｪｽｯｹﾞｸｧｯｸｧｯｸｧwwwww"],
+    40:[0,1,"https://www.google.com/search?q=%E3%81%93%E3%81%AE%E8%BF%91%E3%81%8F%E3%81%AE%E7%84%BC%E3%81%8D%E9%B3%A5%E5%B1%8B"],
+    41:[1,1,"kawaisou"],
+    42:[5,1,"https://twitter.com/ribpggxcrmz74t6"],
+    43:[5,1,"https://twitter.com/Aibell__game"],
+    44:[1,1,"sabakan"],
+    45:[4,1,"sosyou"]
+    }
+
+# すべてが許されるGuild
+allow_guild = [870642671415337001,906400213495865344]
+
+# 通常反応をプログラム化したもの
+def n_reaction(message: discord.Message, *custom: int):
+    if custom == ():
+        ans = listre.search(reaction_list, message.content)
+        nrs = re.search(nira_hantei, message.content)
+    else:
+        ans = (0, custom[0], None)
+        nrs = True
+
+    if ans != None:
+        # 通常テキスト
+        if reaction_files[ans[1]][0] == 0:
+            if reaction_files[ans[1]][1] == 1:
+                return message.reply(reaction_files[ans[1]][2])
+            else:
+                rnd = random.randint(1, reaction_files[ans[1]][1])
+                return message.reply(reaction_files[ans[1]][rnd+1])
+
+        # 通常画像
+        elif reaction_files[ans[1]][0] == 1:
+            if reaction_files[ans[1]][1] == 1:
+                if os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.png"):
+                    return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.png"))
+                elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"):
+                    return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"))
+                elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"):
+                    return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"))
+            else:
+                rnd = random.randint(1, reaction_files[ans[1]][1])
+                if os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"):
+                    return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"))
+                elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"):
+                    return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"))
+                elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"):
+                    return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"))
+
+        # ニラ画像
+        elif reaction_files[ans[1]][0] == 2:
+            if nrs:
+                if reaction_files[ans[1]][1] == 1:
+                    if os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.png"):
+                        return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.png"))
+                    elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"):
+                        return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"))
+                    elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"):
+                        return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"))
+                else:
+                    rnd = random.randint(1, reaction_files[ans[1]][1])
+                    if os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"):
+                        return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"))
+                    elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"):
+                        return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"))
+                    elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"):
+                        return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"))
+
+        # にらテキスト
+        elif reaction_files[ans[1]][0] == 3:
+            if nrs:
+                if reaction_files[ans[1]][1] == 1:
+                    return message.reply(reaction_files[ans[1]][2])
+                else:
+                    rnd = random.randint(1, reaction_files[ans[1]][1])
+                    return message.reply(reaction_files[ans[1]][rnd+1])
+
+        # Guild画像
+        elif reaction_files[ans[1]][0] == 4:
+            if message.guild.id in allow_guild:
+                if reaction_files[ans[1]][1] == 1:
+                    if os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.png"):
+                        return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.png"))
+                    elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"):
+                        return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"))
+                    elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"):
+                        return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"))
+                else:
+                    rnd = random.randint(1, reaction_files[ans[1]][1])
+                    if os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"):
+                        return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"))
+                    elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"):
+                        return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"))
+                    elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"):
+                        return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"))
+
+        # Guildテキスト
+        elif reaction_files[ans[1]][0] == 5:
+            if message.guild.id in allow_guild:
+                if reaction_files[ans[1]][1] == 1:
+                    return message.reply(reaction_files[ans[1]][2])
+                else:
+                    rnd = random.randint(1, reaction_files[ans[1]][1])
+                    return message.reply(reaction_files[ans[1]][rnd+1])
+
 
 class normal_reaction(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-    
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -89,176 +290,10 @@ class normal_reaction(commands.Cog):
             return
         if n_fc.reaction_bool_list[message.guild.id][message.channel.id] == 1:
             sended_mes = ""
-            if re.search(r'(?:(。∀ ﾟ))', message.content):
-                sended_mes = await message.reply("おっ、かわいいな")
-            if re.search(r'(?:（´・ω・｀）)', message.content):
-                sended_mes = await message.reply("かわいいですね...")
-            if re.search(r'(?:草)', message.content):
-                sended_mes = await message.reply("面白いなぁ（便乗）")
-            if re.search(r'(?:https://www.nicovideo.jp)', message.content):
-                sended_mes = await message.reply("にーっこにっこどうがっ？")
-            if re.search(r'(?:https://www.youtube.com)', message.content):
-                sended_mes = await message.reply("ようつべぇ？")
-            if re.search(r'(?:https://twitter.com)', message.content):
-                sended_mes = await message.reply("ついったあだあーわーい")
-            if re.search(r'(?:煮裸族|にらぞく|ニラゾク)', message.content):
-                if message.guild == 870642671415337001:
-                    sended_mes = await message.reply(f'{image_root}/nira_zoku.mp4')
-            if re.search(r'(?:コイキング|イトコイ|いとこい|コイキング|itokoi)', message.content):
-                sended_mes = await message.reply(f'{image_root}/koikingu.jpg')
-            if re.search(r'(?:にら|ニラ|nira|garlic|韮|Chinese chives|Allium tuberosum|てりじの|テリジノ)', message.content):
-                if re.search(r'(?:栽培|さいばい|サイバイ)', message.content):
-                    if re.search(r'(?:水|みず|ミズ)', message.content):
-                        sended_mes = await message.reply(f'{image_root}/nira_water.jpg')
-                    else:
-                        sended_mes = await message.reply(f'{image_root}/nira_sand.jpg')
-                elif re.search(r'(?:伊藤|いとう|イトウ)', message.content):
-                    sended_mes = await message.reply(f'{image_root}/nira_itou.jpg')
-                elif re.search(r'(?:ごはん|飯|らいす|ライス|rice|Rice)', message.content):
-                    sended_mes = await message.reply(f'{image_root}/nira_rice.jpg')
-                elif re.search(r'(?:枯|かれ|カレ)', message.content):
-                    sended_mes = await message.reply(f'{image_root}/nira_kare.jpg')
-                elif re.search(r'(?:魚|さかな|fish|サカナ|ざかな|ザカナ)', message.content):
-                    sended_mes = await message.reply(f'{image_root}/nira_fish.jpg')
-                elif re.search(r'(?:独裁|どくさい|ドクサイ)', message.content):
-                    sended_mes = await message.reply(f'{image_root}/nira_dokusai.jpg')
-                elif re.search(r'(?:成長|せいちょう|セイチョウ)', message.content):
-                    sended_mes = await message.reply(f'{image_root}/nira_seityou.jpg')
-                elif re.search(r'(?:なべ|鍋|ナベ)', message.content):
-                    sended_mes = await message.reply(f'{image_root}/nira_nabe.jpg')
-                    sended_mes = await message.reply('https://cookpad.com/search/%E3%83%8B%E3%83%A9%E9%8D%8B')
-                elif re.search(r'(?:かりばー|カリバー|剣)', message.content):
-                    sended_mes = await message.reply(f'{image_root}/nira_sword.jpg')
-                elif re.search(r'(?:あんど|and|アンド)', message.content):
-                    sended_mes = await message.reply(f'{image_root}/nira_and.jpg')
-                elif re.search(r'(?:にらんど|ニランド|nirand|niland)', message.content):
-                    sended_mes = await message.reply(f'{image_root}/nira_land.jpg')
-                    sended_mes = await sended_mes.reply('https://sites.google.com/view/nirand/%E3%83%9B%E3%83%BC%E3%83%A0')
-                elif re.search(r'(?:饅頭|まんじゅう|マンジュウ)', message.content):
-                    sended_mes = await message.reply(f'{image_root}/nira_manju.jpg')
-                elif re.search(r'(?:レバ|れば)', message.content):
-                    sended_mes = await message.reply(f'{image_root}/rebanira.jpg')
-                elif re.search(r'(?:とり|トリ|bird|鳥)', message.content):
-                    rnd = random.randint(1, 2)
-                    if rnd == 1:
-                        sended_mes = await message.reply(f'{image_root}/nirabird_a.jpg')
-                    elif rnd == 2:
-                        sended_mes = await message.reply(f'{image_root}/nirabird_b.jpg')
-                elif re.search(r'(?:twitter|Twitter|TWITTER|ついったー|ツイッター)', message.content):
-                    if message.guild.id == 870642671415337001:
-                        sended_mes = await message.reply('https://twitter.com/DR36Hl04ZUwnEnJ')
-                else:
-                    rnd = random.randint(1, 3)
-                    if rnd == 1:
-                        sended_mes = await message.reply(f'{image_root}/nira_a.jpg')
-                    elif rnd == 2:
-                        sended_mes = await message.reply(f'{image_root}/nira_b.jpg')
-                    elif rnd == 3:
-                        sended_mes = await message.reply(f'{image_root}/nira_c.png')
-            if re.search(r'(?:てぃらみす|ティラミス|tiramisu)', message.content):
-                if message.guild.id == 870642671415337001:
-                    rnd = random.randint(1, 2)
-                else:
-                    rnd = 1
-                if rnd == 1:
-                    sended_mes = await message.reply(f'{image_root}/tiramisu_a.jpg')
-                elif rnd == 2:
-                    sended_mes = await message.reply(f'{image_root}/tiramisu_b.jpg')
-            if re.search(r'(?:ぴの|ピノ|pino)', message.content):
-                rnd = random.randint(1, 3)
-                if rnd == 1:
-                    sended_mes = await message.reply(f'{image_root}/pino_nm.jpg')
-                elif rnd == 2:
-                    sended_mes = await message.reply(f'{image_root}/pino_st.jpg')
-                elif rnd == 3:
-                    sended_mes = await message.reply(f'{image_root}/pino_cool.jpg')
-            if re.search(r'(?:きつね|キツネ|狐)', message.content):
-                if message.guild.id == 870642671415337001:
-                    rnd = random.randint(1, 3)
-                else:
-                    rnd = 1
-                if rnd == 1:
-                    sended_mes = await message.reply(f'{image_root}/kitune_a.jpg')
-                elif rnd == 2:
-                    sended_mes = await message.reply(f'{image_root}/kitune_b.jpg')
-                elif rnd == 3:
-                    sended_mes = await message.reply('https://twitter.com/rougitune')
-            if re.search(r'(?:ういろ)', message.content):
-                sended_mes = await message.reply(f'{image_root}/uiro.jpg')
-            if re.search(r'(?:いくもん|イクモン|ikumon|Ikumon|村人)', message.content):
-                if message.guild.id == 870642671415337001:
-                    sended_mes = await message.reply('https://www.youtube.com/IkumonTV')
-            if re.search(r'(?:りんご|リンゴ|apple|Apple|App1e|app1e|アップル|あっぷる|林檎|maçã)', message.content):
-                if message.guild.id == 870642671415337001:
-                    rnd = random.randint(1, 2)
-                else:
-                    rnd = 1
-                if rnd == 1:
-                    sended_mes = await message.reply(f'{image_root}/apple.jpg')
-                elif rnd == 2:
-                    sended_mes = await message.reply('https://twitter.com/RINGODESU4321')
-            if re.search(r'(?:しゃけ|シャケ|さけ|サケ|鮭|syake|salmon|さーもん|サーモン)', message.content):
-                if re.search(r'(?:twitter|Twitter|TWITTER|ついったー|ツイッター)', message.content):
-                    sended_mes = await message.reply('https://twitter.com/Shake_Yuyu')
-                else:
-                    if message.guild.id == 870642671415337001:
-                        rnd = random.randint(1, 3)
-                    else:
-                        rnd = random.randint(1, 2)
-                    if rnd == 1:
-                        sended_mes = await message.reply(f'{image_root}/sarmon_a.jpg')
-                    elif rnd == 2:
-                        sended_mes = await message.reply(f'{image_root}/sarmon_b.jpg')
-                    elif rnd == 3:
-                        sended_mes = await message.reply(f'{image_root}/sarmon_c.jpg')
-            if re.search(r'(?:なつ|なっちゃん|Nattyan|nattyan)', message.content):
-                await message.add_reaction("<:natsu:908565532268179477>")
-            if re.search(r'(?:12pp|12PP)', message.content):
-                if message.guild.id == 870642671415337001:
-                    sended_mes = await message.reply(f'{image_root}/12pp.jpg')
-            if re.search(r'(?:名前|なまえ|ナマエ|name)', message.content):
-                if message.guild.id == 870642671415337001:
-                    rnd = random.randint(1, 2)
-                    if rnd == 1:
-                        sended_mes = await message.reply('https://twitter.com/namae_1216')
-                    elif rnd == 2:
-                        sended_mes = await message.reply(':heart: by apple')
-            if re.search(r'(?:みけ|ミケ|三毛)', message.content):
-                if message.guild.id == 870642671415337001:
-                    sended_mes = await message.reply(f'{image_root}/mike.mp4')
-            if re.search(r'(?:あう)', message.content):
-                if message.guild.id == 870642671415337001:
-                    sended_mes = await message.reply(f'{image_root}/au.jpg')
-            if re.search(r'(?:ろり|ロリ)', message.content):
-                if re.search(r'(?:せろり|セロリ)', message.content):
-                    sended_mes = await message.reply(f'{image_root}/serori.jpg')
-                else:
-                    if message.guild.id == 870642671415337001:
-                        sended_mes = await message.reply(f'{image_root}/ri_par.png')
-            if re.search(r'(?:tasuren|たすれん|タスレン)', message.content):
-                if message.guild.id == 870642671415337001:
-                    rnd = random.randint(1, 2)
-                else:
-                    rnd = 2
-                if rnd == 1:
-                    sended_mes = await message.reply('毎晩10時が全盛期')
-                elif rnd == 2:
-                    sended_mes = await message.reply('すごいひと')
-            if re.search(r'(?:ｸｧ|きよわらい|きよ笑い|くあっ|クアッ|クァ|くぁ|くわぁ|クワァ)', message.content):
-                sended_mes = await message.reply('ﾜｰｽｹﾞｪｽｯｹﾞｸｧｯｸｧｯｸｧwwwww')
-            if re.search(r'(?:ふぇにっくす|フェニックス|不死鳥|ふしちょう|phoenix|焼き鳥|やきとり)', message.content):
-                if message.guild.id == 870642671415337001:
-                    sended_mes = await message.reply("https://www.google.com/search?q=%E3%81%93%E3%81%AE%E8%BF%91%E3%81%8F%E3%81%AE%E7%84%BC%E3%81%8D%E9%B3%A5%E5%B1%8B&oq=%E3%81%93%E3%81%AE%E8%BF%91%E3%81%8F%E3%81%AE%E7%84%BC%E3%81%8D%E9%B3%A5%E5%B1%8B")
-            if re.search(r'(?:かなしい|つらい|ぴえん|:pleading_face:|:cry:|:sob:|:weary:|:smiling_face_with_tear:|辛|悲しい|ピエン|泣く|泣きそう|いやだ|かわいそうに|可哀そうに)', message.content):
-                sended_mes = await message.reply(f"{image_root}/kawaisou.png")
-            if re.search(r'(?:あすか|アスカ|飛鳥)', message.content):
-                if message.guild.id == 870642671415337001:
-                    sended_mes = await message.reply("https://twitter.com/ribpggxcrmz74t6")
-            if re.search(r'(?:しおりん)', message.content):
-                if message.guild.id == 870642671415337001:
-                    sended_mes = await message.reply("https://twitter.com/Aibell__game")
-            if re.search(r'(?:さばかん|鯖缶|サバカン)', message.content):
-                sended_mes = await message.reply(f"{image_root}/sabakan.png")
+            try:
+                await n_reaction(message)
+            except BaseException as err:
+                logging.error(err)
             if sended_mes != "":
                 await sended_mes.add_reaction("<:trash:908565976407236608>")
                 await asyncio.sleep(3)

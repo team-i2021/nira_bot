@@ -6,7 +6,7 @@ import util.web_api as web_api
 import a2s
 import datetime
 import sys
-import math
+import math, re
 
 
 #loggingの設定
@@ -23,6 +23,16 @@ formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(me
 logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
 
 # 主にサーバーステータスを取得するコード
+
+def ip_check(address: str) -> bool:
+    """指定したaddressがドメインか、IPアドレスかどうかを判定します。\n
+    （数字とピリオドだけであればTrue）
+    """
+    if re.search("[^0-9.]", address):
+        return False
+    else:
+        return True
+
 
 async def ss_pin_async(loop, embed, g_id, n):
     return await loop.run_in_executor(
@@ -51,12 +61,13 @@ def server_check(embed, type, g_id, n):
         return
     sv_dt = "None"
     try:
-        if web_api.server_status(sv_ad[0], sv_ad[1]) == False:
-            if type == 0:
-                embed.add_field(name=f"> {sv_nm}", value=":ng:オフライン\n==========", inline=False)
-            if type == 1:
-                embed.add_field(name=f"> {sv_nm}", value=f"```Steam WEB APIでサーバーが認識されていません。```", inline=False)
-            return True
+        if ip_check(sv_ad[0]):
+            if web_api.server_status(sv_ad[0], sv_ad[1]) == False:
+                if type == 0:
+                    embed.add_field(name=f"> {sv_nm}", value=":ng:オフライン\n==========", inline=False)
+                if type == 1:
+                    embed.add_field(name=f"> {sv_nm}", value=f"```Steam WEB APIでサーバーが認識されていません。```", inline=False)
+                return True
         sv_dt = a2s.info(sv_ad)
         if type == 0:
             embed.add_field(name=f"> {sv_dt.server_name} - {sv_dt.map_name}", value=":white_check_mark:オンライン", inline=False)
@@ -64,6 +75,7 @@ def server_check(embed, type, g_id, n):
             embed.add_field(name=f"> {sv_dt.server_name} - {sv_dt.map_name}", value=f"```{sv_dt}```", inline=False)
         user = ""
         sv_us = a2s.players(sv_ad)
+        us = 0
         if type == 0:
             if sv_us != []:
                 for i in range(len(sv_us)):
@@ -73,8 +85,10 @@ def server_check(embed, type, g_id, n):
                         user_time = f"{int(user_time // 60)}時間{int(user_time % 60)}"
                     if user_add != "":
                         user = user + "\n" + f"```{user_add} | {user_time}分```"
+                    else:
+                        us = us - 1
                 if user != "":
-                    embed.add_field(name="> Online User", value=f"プレーヤー数:{len(sv_us)}人{user}\n==========", inline=False)
+                    embed.add_field(name="> Online User", value=f"プレーヤー数:{len(sv_us)+us}人{user}\n==========", inline=False)
                 else:
                     embed.add_field(name="> Online User", value=":information_source:オンラインユーザーはいません。\n==========", inline=False)
             else:
@@ -100,8 +114,9 @@ def ss_bool(g_id, n):
     sv_ad = n_fc.steam_server_list[g_id][f"{n}_ad"]
     for _ in range(3):
         try:
-            if web_api.server_status(sv_ad[0], sv_ad[1]) == False:
-                continue
+            if ip_check(sv_ad[0]):
+                if web_api.server_status(sv_ad[0], sv_ad[1]) == False:
+                    continue
             a2s.info(sv_ad)
             a2s.players(sv_ad)
         except BaseException:
@@ -118,13 +133,15 @@ def ss_pin_embed(embed, g_id, n):
     sv_nm = n_fc.steam_server_list[g_id][f"{n}_nm"]
     sv_dt = "None"
     try:
-        if web_api.server_status(sv_ad[0], sv_ad[1]) == False:
-            embed.add_field(name=f"> {sv_nm}", value=":ng:オフライン\n==========", inline=False)
-            return
+        if ip_check(sv_ad[0]):
+            if web_api.server_status(sv_ad[0], sv_ad[1]) == False:
+                embed.add_field(name=f"> {sv_nm}", value=":ng:オフライン\n==========", inline=False)
+                return
         sv_dt = a2s.info(sv_ad)
         embed.add_field(name=f"> {sv_dt.server_name} - {sv_dt.map_name}", value=":white_check_mark:オンライン", inline=False)
         user = ""
         sv_us = a2s.players(sv_ad)
+        us = 0
         if sv_us != []:
             for i in range(len(sv_us)):
                 user_add = str(sv_us[i].name)
@@ -133,22 +150,18 @@ def ss_pin_embed(embed, g_id, n):
                     user_time = f"{int(user_time // 60)}時間{int(user_time % 60)}"
                 if user_add != "":
                     user = user + "\n" + f"```{user_add} | {user_time}分```"
+                else:
+                    us = us - 1
             if user == "":
                 embed.add_field(name="> Online User", value=":information_source:オンラインユーザーはいません。\n==========", inline=False)
             else:
-                embed.add_field(name="> Online User", value=f"プレーヤー数:{len(sv_us)}人{user}\n==========", inline=False)
+                embed.add_field(name="> Online User", value=f"プレーヤー数:{len(sv_us)+us}人{user}\n==========", inline=False)
         else:
             embed.add_field(name="> Online User", value=":information_source:オンラインユーザーはいません。\n==========", inline=False)
     except BaseException as err:
         if str(err) == "timed out":
-            if type == 0:
-                embed.add_field(name=f"> {sv_nm}", value=":ng:サーバーに接続できませんでした。(タイムアウト)\n==========", inline=False)
-            if type == 1:
-                embed.add_field(name=f"> {sv_nm}", value=f"```{err}```", inline=False)
+            embed.add_field(name=f"> {sv_nm}", value=":ng:サーバーに接続できませんでした。(タイムアウト)\nサーバーがオンラインの可能性はあります。\n==========", inline=False)
         else:
             logging.error(f"an error has occured during ServerStatus checking\n{err}")
-            if type == 0:
-                embed.add_field(name=f"> {sv_nm}", value=":x:不明なエラーが発生しました。\n==========", inline=False)
-            if type == 1:
-                embed.add_field(name=f"> {sv_nm}", value=f"```{err}```", inline=False)
+            embed.add_field(name=f"> {sv_nm}", value=":x:不明なエラーが発生しました。\n==========", inline=False)
     return True
