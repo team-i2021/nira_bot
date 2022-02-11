@@ -100,7 +100,7 @@ async def end_mes(message: discord.Message, close_obj: niconico_dl.NicoNicoVideo
             return await play_source(message, bot)
         del music_list[message.guild.id]
         del music_f[message.guild.id]
-        return await message.add_reaction("\U00002705")
+        return await message.channel.send("すべての曲の再生が終わりました！")
     except BaseException as err:
         logging.error(err)
 
