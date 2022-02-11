@@ -9,7 +9,7 @@ from subprocess import PIPE
 import re
 import asyncio
 
-from cogs.normal_reaction import normal_reaction as nr
+from cogs import normal_reaction as nr
 
 import sys
 
@@ -316,7 +316,7 @@ class debug(commands.Cog):
                 await ctx.reply("引数「ReplyID」が足りません。")
                 return
             try:
-                await nr.n_reaction(ctx.message, ctx.message.content.split(" ",1)[1])
+                await nr.n_reaction(ctx.message, int(ctx.message.content.split(" ",1)[1]))
             except BaseException as err:
                 await ctx.reply(f"```{err}```")
 

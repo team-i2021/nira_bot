@@ -291,9 +291,10 @@ class normal_reaction(commands.Cog):
         if n_fc.reaction_bool_list[message.guild.id][message.channel.id] == 1:
             sended_mes = ""
             try:
-                await n_reaction(message)
+                sended_mes = await n_reaction(message)
             except BaseException as err:
-                logging.error(err)
+                if re.search("ERROR:object NoneType can't be used in 'await' expression", str(err)) == None:
+                    logging.error(err)
             if sended_mes != "":
                 await sended_mes.add_reaction("<:trash:908565976407236608>")
                 await asyncio.sleep(3)
