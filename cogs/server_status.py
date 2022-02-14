@@ -2,8 +2,8 @@ import datetime
 import pickle
 import sys
 
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 
 from cogs.embed import embed
 
@@ -24,7 +24,7 @@ from subprocess import PIPE
 import util.srtr as srtr
 dir = sys.path[0]
 from util import admin_check, eh, n_fc, server_check
-
+import traceback
 
 class NoTokenLogFilter(logging.Filter):
     def filter(self, record):
@@ -38,16 +38,17 @@ logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.
 
 ss_check_result = {}
 
-async def ss_force(bot, message:discord.Message):
+async def ss_force(bot, message:nextcord.Message):
     await message.edit(content="Loading status...",view=None)
     while True:
         try:
-            embed = discord.Embed(title="ServerStatus Checker", description=f"LastCheck:{datetime.datetime.now()}", color=0x00ff00)
+            embed = nextcord.Embed(title="ServerStatus Checker", description=f"LastCheck:{datetime.datetime.now()}", color=0x00ff00)
             for i in range(int(n_fc.steam_server_list[message.guild.id]["value"])):
                 await server_check.ss_pin_async(bot.loop, embed, message.guild.id, i + 1)
             await message.edit(f"AutoSS実行中\n止めるには`n!ss auto off`\n再試行するには`n!ss auto force {message.channel.id} {message.id}`", embed=embed)
             await asyncio.sleep(60*10)
         except BaseException as err:
+            print(err,traceback.format_exc())
             await message.edit(content=f"err:{err}")
             await ss_force(bot, message)
 
@@ -169,21 +170,21 @@ async def ss_base(self, ctx: commands.Context):
         else:
             if admin_check.admin_check(ctx.message.guild, ctx.message.author) or ctx.message.author.id in n_fc.py_admin:
                 user = await self.bot.fetch_user(ctx.message.author.id)
-                embed = discord.Embed(title="Steam Server List", description=f"「{ctx.message.guild.name}」のサーバーリスト\n```保存数：{str(n_fc.steam_server_list[ctx.message.guild.id]['value'])}```", color=0x00ff00)
+                embed = nextcord.Embed(title="Steam Server List", description=f"「{ctx.message.guild.name}」のサーバーリスト\n```保存数：{str(n_fc.steam_server_list[ctx.message.guild.id]['value'])}```", color=0x00ff00)
                 for i in range(int(n_fc.steam_server_list[ctx.message.guild.id]['value'])):
                     embed.add_field(name=f"保存名：`{str(n_fc.steam_server_list[ctx.message.guild.id][f'{i+1}_nm'])}`", value=f"アドレス：`{str(n_fc.steam_server_list[ctx.message.guild.id][f'{i+1}_ad'])}`")
                 await user.send(embed=embed)
                 await ctx.message.add_reaction("\U00002705")
                 return
             else:
-                await ctx.message.reply(embed=discord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
+                await ctx.message.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
                 return
     if ctx.message.content[:9] == "n!ss auto":
         if admin_check.admin_check(ctx.message.guild, ctx.message.author) == False:
-            await ctx.message.reply(embed=discord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
+            await ctx.message.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
             return
         if ctx.message.content == "n!ss auto":
-            await ctx.reply(embed=discord.Embed(title="エラー", description="引数が足りません。\n`n!ss auto on/off`"))
+            await ctx.reply(embed=nextcord.Embed(title="エラー", description="引数が足りません。\n`n!ss auto on/off`"))
             return
         elif ctx.message.content[10:12] == "on":
             try:
@@ -300,10 +301,10 @@ async def ss_base(self, ctx: commands.Context):
                 return
             if admin_check.admin_check(ctx.message.guild, ctx.message.author):
                 if del_num > int(n_fc.steam_server_list[ctx.message.guild.id]["value"]):
-                    await ctx.message.reply(embed=discord.Embed(title="エラー", description="そのサーバーは登録されていません！\n`n!ss list`で確認してみてください！", color=0xff0000))
+                    await ctx.message.reply(embed=nextcord.Embed(title="エラー", description="そのサーバーは登録されていません！\n`n!ss list`で確認してみてください！", color=0xff0000))
                     return
                 if del_num <= 0:
-                    await ctx.message.reply(embed=discord.Embed(title="エラー", description="リストで0以下のナンバーは振り当てられていません。", color=0xff0000))
+                    await ctx.message.reply(embed=nextcord.Embed(title="エラー", description="リストで0以下のナンバーは振り当てられていません。", color=0xff0000))
                     return
                 try:
                     all_value = int(n_fc.steam_server_list[ctx.message.guild.id]["value"])
@@ -315,13 +316,13 @@ async def ss_base(self, ctx: commands.Context):
                     del n_fc.steam_server_list[ctx.message.guild.id][f"{all_value}_nm"]
                     del n_fc.steam_server_list[ctx.message.guild.id][f"{all_value}_ad"]
                     n_fc.steam_server_list[ctx.message.guild.id]["value"] = all_value - 1
-                    await ctx.message.reply(embed=discord.Embed(title="削除", description=f"ID:{del_num}のサーバーをリストから削除しました。", color=0xff0000))   
+                    await ctx.message.reply(embed=nextcord.Embed(title="削除", description=f"ID:{del_num}のサーバーをリストから削除しました。", color=0xff0000))   
                 except BaseException as err:
                     print(err)
                     await ctx.message.reply(embed=eh.eh(err))
                     return
             else:
-                await ctx.message.reply(embed=discord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
+                await ctx.message.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
                 return
         else:
             del_re = await ctx.reply("サーバーリストを削除しますか？リスト削除には管理者権限が必要です。\n\n:o:：削除\n:x:：キャンセル")
@@ -335,7 +336,7 @@ async def ss_base(self, ctx: commands.Context):
             await ctx.message.reply("サーバーは登録されていません。")
             return
         async with ctx.message.channel.typing():
-            embed = discord.Embed(title="Server Status Checker", description=f"{ctx.message.author.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
+            embed = nextcord.Embed(title="Server Status Checker", description=f"{ctx.message.author.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
             for i in map(str, range(1, int(n_fc.steam_server_list[ctx.message.guild.id]["value"])+1)):
                 await server_check.server_check_async(self.bot.loop, embed, 0, ctx.message.guild.id, i)
             await asyncio.sleep(1)
@@ -352,7 +353,7 @@ async def ss_base(self, ctx: commands.Context):
             await ctx.message.reply("サーバーは登録されていません。")
             return
         async with ctx.message.channel.typing():
-            embed = discord.Embed(title="Server Status Checker", description=f"{ctx.message.author.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
+            embed = nextcord.Embed(title="Server Status Checker", description=f"{ctx.message.author.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
             server_check.server_check(embed, 0, ctx.message.guild.id, mes_te)
             await asyncio.sleep(1)
             await ctx.message.reply(embed=embed)
@@ -362,7 +363,7 @@ async def ss_base(self, ctx: commands.Context):
             await ctx.message.reply("サーバーは登録されていません。")
             return
         async with ctx.message.channel.typing():
-            embed = discord.Embed(title="Server Status Checker", description=f"{ctx.message.author.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
+            embed = nextcord.Embed(title="Server Status Checker", description=f"{ctx.message.author.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
             for i in map(str, range(1, int(n_fc.steam_server_list[ctx.message.guild.id]["value"])+1)):
                 await server_check.server_check_async(self.bot.loop, embed, 1, ctx.message.guild.id, i)
             await asyncio.sleep(1)

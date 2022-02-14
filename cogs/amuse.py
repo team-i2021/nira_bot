@@ -1,9 +1,9 @@
-from discord.ext import commands
-import discord
+from nextcord.ext import commands
+import nextcord
 import random
 import re
 
-from discord.ext.commands.core import command
+from nextcord.ext.commands.core import command
 
 #娯楽系
 
@@ -14,31 +14,31 @@ class amuse(commands.Cog):
     @commands.command()
     async def dice(self, ctx: commands.context):
         if ctx.message.content == "n!dice":
-            await ctx.reply(embed=discord.Embed(title="エラー",description="サイコロだよ！\n`n!dice [max]`",color=0xff0000))
+            await ctx.reply(embed=nextcord.Embed(title="エラー",description="サイコロだよ！\n`n!dice [max]`",color=0xff0000))
             return
         max_count = int("".join(re.findall(r'[0-9]', ctx.message.content[7:])))
         rnd_ex = random.randint(0, max_count)
-        await ctx.reply(embed=discord.Embed(title="サイコロ", description=f"```{rnd_ex}```", color=0x00ff00))
+        await ctx.reply(embed=nextcord.Embed(title="サイコロ", description=f"```{rnd_ex}```", color=0x00ff00))
         return
 
     @commands.command()
     async def janken(self, ctx: commands.context):
         if ctx.message.content == "n!janken":
-            embed = discord.Embed(title="Error", description="じゃんけんっていのは、「グー」「チョキ」「パー」のどれかを出して遊ぶゲームだよ。\n[ルール解説](https://ja.wikipedia.org/wiki/%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93#:~:text=%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93%E3%81%AF2%E4%BA%BA%E4%BB%A5%E4%B8%8A,%E3%81%A8%E6%95%97%E8%80%85%E3%82%92%E6%B1%BA%E5%AE%9A%E3%81%99%E3%82%8B%E3%80%82)\n```n!janken [グー/チョキ/パー]```", color=0xff0000)
+            embed = nextcord.Embed(title="Error", description="じゃんけんっていのは、「グー」「チョキ」「パー」のどれかを出して遊ぶゲームだよ。\n[ルール解説](https://ja.wikipedia.org/wiki/%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93#:~:text=%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93%E3%81%AF2%E4%BA%BA%E4%BB%A5%E4%B8%8A,%E3%81%A8%E6%95%97%E8%80%85%E3%82%92%E6%B1%BA%E5%AE%9A%E3%81%99%E3%82%8B%E3%80%82)\n```n!janken [グー/チョキ/パー]```", color=0xff0000)
             await ctx.message.reply(embed=embed)
             return
         mes = ctx.message.content
         try:
             mes_te = mes.split(" ", 1)[1]
         except BaseException as err:
-            embed = discord.Embed(title="Error", description=f"な、なんかエラー出たけど！？\n```n!janken [グー/チョキ/パー]```\n{err}", color=0xff0000)
+            embed = nextcord.Embed(title="Error", description=f"な、なんかエラー出たけど！？\n```n!janken [グー/チョキ/パー]```\n{err}", color=0xff0000)
             await ctx.message.reply(embed=embed)
             return
         if mes_te != "グー" and mes_te != "ぐー" and mes_te != "チョキ" and mes_te != "ちょき" and mes_te != "パー" and mes_te != "ぱー":
-            embed = discord.Embed(title="Error", description="じゃんけんっていのは、「グー」「チョキ」「パー」のどれかを出して遊ぶゲームだよ。\n[ルール解説](https://ja.wikipedia.org/wiki/%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93#:~:text=%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93%E3%81%AF2%E4%BA%BA%E4%BB%A5%E4%B8%8A,%E3%81%A8%E6%95%97%E8%80%85%E3%82%92%E6%B1%BA%E5%AE%9A%E3%81%99%E3%82%8B%E3%80%82)\n```n!janken [グー/チョキ/パー]```", color=0xff0000)
+            embed = nextcord.Embed(title="Error", description="じゃんけんっていのは、「グー」「チョキ」「パー」のどれかを出して遊ぶゲームだよ。\n[ルール解説](https://ja.wikipedia.org/wiki/%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93#:~:text=%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93%E3%81%AF2%E4%BA%BA%E4%BB%A5%E4%B8%8A,%E3%81%A8%E6%95%97%E8%80%85%E3%82%92%E6%B1%BA%E5%AE%9A%E3%81%99%E3%82%8B%E3%80%82)\n```n!janken [グー/チョキ/パー]```", color=0xff0000)
             await ctx.message.reply(embed=embed)
             return
-        embed = discord.Embed(title="にらにらじゃんけん", description="```n!janken [グー/チョキ/パー]```", color=0x00ff00)
+        embed = nextcord.Embed(title="にらにらじゃんけん", description="```n!janken [グー/チョキ/パー]```", color=0x00ff00)
         if mes_te == "グー" or mes_te == "ぐー":
             mes_te = "```グー```"
             embed.add_field(name="あなた", value=mes_te, inline=False)
@@ -133,7 +133,7 @@ class amuse(commands.Cog):
             ur_w = 10
             stars = "**★★★★★★★★★★**"
             ur_m = "星10は神の領域(当社調べ)だよ！！！！！凄い！！！(`1%`)"
-        embed = discord.Embed(title="うらない", description=f"{stars}", color=0x00ff00)
+        embed = nextcord.Embed(title="うらない", description=f"{stars}", color=0x00ff00)
         embed.add_field(name=f"あなたの運勢は**星10個中の{ur_w}個**です！", value=f"> {ur_m}")
         await ctx.message.reply(embed=embed)
         return

@@ -1,5 +1,5 @@
-from discord.ext import commands
-import discord
+from nextcord.ext import commands
+import nextcord
 
 # 変数読み込むまで....
 
@@ -8,7 +8,7 @@ class not_ready(commands.Cog):
         self.bot = bot
     
     @commands.Cog.listener()
-    async def on_message(self, message:discord.Message):
+    async def on_message(self, message:nextcord.Message):
         if message.content[:2] == "n!":
             await message.reply("現在起動準備中です。")
 

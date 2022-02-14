@@ -1,5 +1,5 @@
-from discord.ext import commands
-import discord
+from nextcord.ext import commands
+import nextcord
 import re
 import sys
 import json
@@ -37,7 +37,7 @@ class user_join(commands.Cog):
             if member.guild.id not in n_fc.welcome_id_list:
                 return
             channel = self.bot.get_channel(n_fc.welcome_id_list[member.guild.id])
-            embed = discord.Embed(title="Welcome!", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
+            embed = nextcord.Embed(title="Welcome!", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
             embed.set_thumbnail(url=f"https://cdn.discordapp.com/avatars/{user.id}/{str(user.avatar)}")
             embed.add_field(name="アカウント製作日", value=f"```{user.created_at}```")
             if member.guild.id not in n_fc.role_keeper:
@@ -84,7 +84,7 @@ class user_join(commands.Cog):
             if member.guild.id not in n_fc.welcome_id_list:
                 return
             channel = self.bot.get_channel(n_fc.welcome_id_list[member.guild.id])
-            embed = discord.Embed(title="See ya...", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
+            embed = nextcord.Embed(title="See ya...", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
             embed.set_thumbnail(url=f"https://cdn.discordapp.com/avatars/{user.id}/{str(user.avatar)}")
             role_text = ""
             role_ids = []

@@ -1,11 +1,10 @@
-from discord.ext import commands
-import discord
+from nextcord.ext import commands
+import nextcord
 import re
 import pickle
 
 import sys
 
-from discord.ext.commands.core import command
 from cogs.debug import save
 from cogs.embed import embed
 sys.path.append('../')
@@ -21,7 +20,7 @@ class user(commands.Cog):
     async def d(self, ctx: commands.Context):
         if ctx.message.content == "n!d":
             user = await self.bot.fetch_user(ctx.message.author.id)
-            embed = discord.Embed(title="User Info", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
+            embed = nextcord.Embed(title="User Info", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
             embed.set_thumbnail(url=f"https://cdn.discordapp.com/avatars/{user.id}/{str(user.avatar)}")
             embed.add_field(name="アカウント製作日", value=f"```{user.created_at}```")
             await ctx.message.reply(embed=embed)
@@ -30,20 +29,20 @@ class user(commands.Cog):
             user_id = int("".join(re.findall(r'[0-9]', ctx.message.content[4:])))
             try:
                 user = await self.bot.fetch_user(user_id)
-                embed = discord.Embed(title="User Info", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
+                embed = nextcord.Embed(title="User Info", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
                 embed.set_thumbnail(url=f"https://cdn.discordapp.com/avatars/{user.id}/{str(user.avatar)}")
                 embed.add_field(name="アカウント製作日", value=f"```{user.created_at}```")
                 await ctx.message.reply(embed=embed)
                 return
             except BaseException:
-                await ctx.message.reply(embed=discord.Embed(title="Error", description="ユーザーが存在しないか、データが取得できませんでした。", color=0xff0000))
+                await ctx.message.reply(embed=nextcord.Embed(title="Error", description="ユーザーが存在しないか、データが取得できませんでした。", color=0xff0000))
                 return
     
     @commands.command()
     async def rk(self, ctx: commands.Context):
         if admin_check.admin_check(ctx.message.guild, ctx.message.author) or ctx.message.author.id in n_fc.py_admin:
             if ctx.message.content == "n!rk":
-                embed = discord.Embed(title="ロールキーパー", description="`n!rk [on/off]`", color=0x00ff00)
+                embed = nextcord.Embed(title="ロールキーパー", description="`n!rk [on/off]`", color=0x00ff00)
                 if ctx.guild.id not in n_fc.role_keeper:
                     n_fc.role_keeper[ctx.guild.id] = {"rk":0}
                     save()
@@ -113,7 +112,7 @@ class user(commands.Cog):
                     await ctx.message.reply(embed=eh.eh(err))
                     return
         else:
-            await ctx.message.reply(embed=discord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
+            await ctx.message.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
             return
 
 def setup(bot):

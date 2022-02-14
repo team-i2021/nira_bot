@@ -1,5 +1,5 @@
-from discord.ext import commands
-import discord
+from nextcord.ext import commands
+import nextcord
 import datetime
 import pickle
 import re
@@ -141,7 +141,7 @@ reaction_files = {
 allow_guild = [870642671415337001,906400213495865344]
 
 # 通常反応をプログラム化したもの
-def n_reaction(message: discord.Message, *custom: int):
+def n_reaction(message: nextcord.Message, *custom: int):
     if custom == ():
         ans = listre.search(reaction_list, message.content)
         nrs = re.search(nira_hantei, message.content)
@@ -162,38 +162,38 @@ def n_reaction(message: discord.Message, *custom: int):
         elif reaction_files[ans[1]][0] == 1:
             if reaction_files[ans[1]][1] == 1:
                 if os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.png"):
-                    return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.png"))
+                    return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.png"))
                 elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"):
-                    return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"))
+                    return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"))
                 elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"):
-                    return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"))
+                    return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"))
             else:
                 rnd = random.randint(1, reaction_files[ans[1]][1])
                 if os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"):
-                    return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"))
+                    return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"))
                 elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"):
-                    return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"))
+                    return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"))
                 elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"):
-                    return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"))
+                    return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"))
 
         # ニラ画像
         elif reaction_files[ans[1]][0] == 2:
             if nrs:
                 if reaction_files[ans[1]][1] == 1:
                     if os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.png"):
-                        return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.png"))
+                        return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.png"))
                     elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"):
-                        return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"))
+                        return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"))
                     elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"):
-                        return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"))
+                        return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"))
                 else:
                     rnd = random.randint(1, reaction_files[ans[1]][1])
                     if os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"):
-                        return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"))
+                        return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"))
                     elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"):
-                        return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"))
+                        return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"))
                     elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"):
-                        return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"))
+                        return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"))
 
         # にらテキスト
         elif reaction_files[ans[1]][0] == 3:
@@ -209,19 +209,19 @@ def n_reaction(message: discord.Message, *custom: int):
             if message.guild.id in allow_guild:
                 if reaction_files[ans[1]][1] == 1:
                     if os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.png"):
-                        return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.png"))
+                        return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.png"))
                     elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"):
-                        return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"))
+                        return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"))
                     elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"):
-                        return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"))
+                        return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"))
                 else:
                     rnd = random.randint(1, reaction_files[ans[1]][1])
                     if os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"):
-                        return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"))
+                        return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"))
                     elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"):
-                        return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"))
+                        return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"))
                     elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"):
-                        return message.reply(file=discord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"))
+                        return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"))
 
         # Guildテキスト
         elif reaction_files[ans[1]][0] == 5:
@@ -238,7 +238,7 @@ class normal_reaction(commands.Cog):
         self.bot = bot
 
     @commands.Cog.listener()
-    async def on_message(self, message: discord.Message):
+    async def on_message(self, message: nextcord.Message):
         # LINEでのメッセージ送信
         if message.guild == None:
             return
@@ -252,7 +252,7 @@ class normal_reaction(commands.Cog):
             return
         # if message.author.id in n_fc.py_admin and message.guild.id == 885410991234490408 and message.content[-1:] != ";" and message.content[:7] != "http://" and message.content[:8] != "https://":
         #     await self.bot.http.delete_message(message.channel.id, message.id)
-        #     await message.channel.send(embed=discord.Embed(title=f"{message.author.name}",description=f"error: discord.c:0: parse(syntax) error before `send_message`\n{message.content}", color=0xff0000))
+        #     await message.channel.send(embed=nextcord.Embed(title=f"{message.author.name}",description=f"error: nextcord.c:0: parse(syntax) error before `send_message`\n{message.content}", color=0xff0000))
         #     return
         # AllReactionSetting
         if message.guild.id in n_fc.all_reaction_list:

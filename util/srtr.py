@@ -1,5 +1,5 @@
 # coding: utf-8
-import discord
+import nextcord
 from os import getenv
 import re
 import random

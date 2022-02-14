@@ -1,6 +1,6 @@
-from discord import embeds
-from discord.ext import commands
-import discord
+from nextcord import embeds
+from nextcord.ext import commands
+import nextcord
 import pickle
 import math
 
@@ -16,7 +16,7 @@ class reaction(commands.Cog):
     
     @commands.command()
     async def line(self, ctx: commands.Context):
-        embed = discord.Embed(title="DiscordのメッセージをLINEに送信する機能", description="使い方", color=0x00ff00)
+        embed = nextcord.Embed(title="DiscordのメッセージをLINEに送信する機能", description="使い方", color=0x00ff00)
         embed.add_field(name="**このコマンドはスラッシュコマンドです**", value="`/line [token]`というような形でコマンドを送ってください。\nその際、スラッシュコマンドであることを確認してください。\ntokenの流出はとんでもないことにつながります。", inline=False)
         embed.add_field(name="**TOKENって何？**", value="TOKENとは簡単に言えばキーです。LINE Notifyのページから発行してきてください。\n[TOKENの発行方法](https://qiita.com/nattyan_tv/items/33ac7a7269fe12e49198)", inline=False)
         await ctx.reply(embed=embed)
@@ -48,7 +48,7 @@ class reaction(commands.Cog):
                 await ctx.message.reply("追加返答は設定されていません。")
                 return
             else:
-                embed = discord.Embed(title="追加返答リスト", description="- にらBOT", color=0x00ff00)
+                embed = nextcord.Embed(title="追加返答リスト", description="- にらBOT", color=0x00ff00)
                 for i in range(int(n_fc.ex_reaction_list[ctx.message.guild.id]["value"])):
                     embed.add_field(name=f"トリガー：{n_fc.ex_reaction_list[ctx.message.guild.id][f'{i+1}_tr']}", value=f"リターン：{n_fc.ex_reaction_list[ctx.message.guild.id][f'{i+1}_re']}", inline=False)
                 await ctx.message.reply(embed=embed)
@@ -119,30 +119,30 @@ class reaction(commands.Cog):
                     setting = "無効"
                 else:
                     setting = "読み込めませんでした。"
-                await ctx.message.reply(embed=discord.Embed(title="Normal Reaction Setting", description=f"通常反応の設定:{setting}\n\n`n!nr [on/off]`で変更できます。", color=0x00ff00))
+                await ctx.message.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description=f"通常反応の設定:{setting}\n\n`n!nr [on/off]`で変更できます。", color=0x00ff00))
                 return
             if admin_check.admin_check(ctx.message.guild, ctx.message.author) or ctx.message.author.id in n_fc.py_admin:
                 nr_setting = str((ctx.message.content).split(" ", 1)[1])
                 if nr_setting in n_fc.on_ali:
                     n_fc.reaction_bool_list[ctx.message.guild.id][ctx.message.channel.id] = 1
-                    await ctx.message.reply(embed=discord.Embed(title="Normal Reaction Setting", description="チャンネルでの通常反応を有効にしました。", color=0x00ff00))
+                    await ctx.message.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="チャンネルでの通常反応を有効にしました。", color=0x00ff00))
                 elif nr_setting in n_fc.off_ali:
                     n_fc.reaction_bool_list[ctx.message.guild.id][ctx.message.channel.id] = 0
-                    await ctx.message.reply(embed=discord.Embed(title="Normal Reaction Setting", description="チャンネルでの通常反応を無効にしました。", color=0x00ff00))
+                    await ctx.message.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="チャンネルでの通常反応を無効にしました。", color=0x00ff00))
                 elif nr_setting[:3] == "all":
                     if nr_setting in n_fc.on_ali:
                         n_fc.reaction_bool_list[ctx.message.guild.id]["all"] = 1
-                        await ctx.message.reply(embed=discord.Embed(title="Normal Reaction Setting", description="サーバーでの通常反応を有効にしました。", color=0x00ff00))
+                        await ctx.message.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="サーバーでの通常反応を有効にしました。", color=0x00ff00))
                     elif nr_setting in n_fc.off_ali:
                         n_fc.reaction_bool_list[ctx.message.guild.id]["all"] = 0
-                        await ctx.message.reply(embed=discord.Embed(title="Normal Reaction Setting", description="サーバーでの通常反応を無効にしました。", color=0x00ff00))
+                        await ctx.message.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="サーバーでの通常反応を無効にしました。", color=0x00ff00))
                     else:
-                        await ctx.message.reply(embed=discord.Embed(title="Normal Reaction Setting", description="コマンド使用方法:`n!nr [all] [on/off]`", color=0xff0000))
+                        await ctx.message.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="コマンド使用方法:`n!nr [all] [on/off]`", color=0xff0000))
                 else:
-                    await ctx.message.reply(embed=discord.Embed(title="Normal Reaction Setting", description="コマンド使用方法:`n!nr [all] [on/off]`", color=0xff0000))
+                    await ctx.message.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="コマンド使用方法:`n!nr [all] [on/off]`", color=0xff0000))
                 return
             else:
-                await ctx.message.reply(embed=discord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
+                await ctx.message.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
                 return
         except BaseException as err:
             await ctx.message.reply(embed=eh.eh(err))
@@ -167,21 +167,21 @@ class reaction(commands.Cog):
                     setting = "無効"
                 else:
                     setting = "読み込めませんでした。"
-                await ctx.message.reply(embed=discord.Embed(title="All Reaction Setting", description=f"「通常反応」及び「追加反応」（Bump通知および各種コマンドは除く）の設定:{setting}\n\n`n!ar [on/off]`で変更できます。", color=0x00ff00))
+                await ctx.message.reply(embed=nextcord.Embed(title="All Reaction Setting", description=f"「通常反応」及び「追加反応」（Bump通知および各種コマンドは除く）の設定:{setting}\n\n`n!ar [on/off]`で変更できます。", color=0x00ff00))
                 return
             if admin_check.admin_check(ctx.message.guild, ctx.message.author) or ctx.message.author.id in n_fc.py_admin:
                 ar_setting = str((ctx.message.content).split(" ", 1)[1])
                 if ar_setting in n_fc.on_ali:
                     n_fc.all_reaction_list[ctx.message.guild.id][ctx.message.channel.id] = 1
-                    await ctx.message.reply(embed=discord.Embed(title="All Reaction Setting", description="チャンネルでの全反応を有効にしました。", color=0x00ff00))
+                    await ctx.message.reply(embed=nextcord.Embed(title="All Reaction Setting", description="チャンネルでの全反応を有効にしました。", color=0x00ff00))
                 elif ar_setting in n_fc.off_ali:
                     n_fc.all_reaction_list[ctx.message.guild.id][ctx.message.channel.id] = 0
-                    await ctx.message.reply(embed=discord.Embed(title="All Reaction Setting", description="チャンネルでの全反応を無効にしました。", color=0x00ff00))
+                    await ctx.message.reply(embed=nextcord.Embed(title="All Reaction Setting", description="チャンネルでの全反応を無効にしました。", color=0x00ff00))
                 else:
-                    await ctx.message.reply(embed=discord.Embed(title="All Reaction Setting", description="コマンド使用方法:`n!ar [all] [on/off]`", color=0xff0000))
+                    await ctx.message.reply(embed=nextcord.Embed(title="All Reaction Setting", description="コマンド使用方法:`n!ar [all] [on/off]`", color=0xff0000))
                 return
             else:
-                await ctx.message.reply(embed=discord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
+                await ctx.message.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
                 return
         except BaseException as err:
             await ctx.message.reply(embed=eh.eh(err))

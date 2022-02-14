@@ -1,5 +1,5 @@
-from discord.ext import commands
-import discord, datetime
+from nextcord.ext import commands
+import nextcord, datetime
 
 import sys
 sys.path.append('../')
@@ -25,8 +25,8 @@ class mod(commands.Cog):
         self.bot = bot
 
     @commands.Cog.listener()
-    async def on_message(self, message: discord.Message):
-        if isinstance(message.channel, discord.DMChannel):
+    async def on_message(self, message: nextcord.Message):
+        if isinstance(message.channel, nextcord.DMChannel):
             return
         if message.author.bot:
             return
@@ -68,11 +68,11 @@ class mod(commands.Cog):
                     await ctx.reply("ロールが見つかりませんでした。")
                     return
             n_fc.mod_list[ctx.guild.id] = {"counter": int(arg[0]), "role": role_id}
-            await ctx.reply(f"設定完了",embed=discord.Embed(title="荒らし対策",description=f"メッセージカウンター:`{arg[0]}`\nミュート用ロール:<@&{role_id}>"))
+            await ctx.reply(f"設定完了",embed=nextcord.Embed(title="荒らし対策",description=f"メッセージカウンター:`{arg[0]}`\nミュート用ロール:<@&{role_id}>"))
             return
         elif ctx.message.content == "n!mod off":
             del n_fc.mod_list[ctx.guild.id]
-            await ctx.reply("設定完了",embed=discord.Embed(title="荒らし対策",description=f"設定を削除しました。"))
+            await ctx.reply("設定完了",embed=nextcord.Embed(title="荒らし対策",description=f"設定を削除しました。"))
             return
         elif ctx.message.content == "n!mod debug":
             await ctx.reply(f"messageCounter: `{counter.messageCounter}`\nmod_list: `{n_fc.mod_list}`\nmod_check: `{counter.messageCounter[ctx.author.id] >= n_fc.mod_list[ctx.guild.id]['counter']}`\nlast reset: `{reset_time}`")
@@ -81,6 +81,6 @@ class mod(commands.Cog):
             await ctx.reply("`n!mod on 既定のメッセージ数 付与するロール`\n`n!mod off`\n`n!mod debug`")
             return
 
-def setup(bot: discord.bot):
+def setup(bot):
     bot.loop.create_task(counterReset())
     bot.add_cog(mod(bot))

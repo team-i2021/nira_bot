@@ -1,5 +1,5 @@
-from discord.ext import commands
-import discord
+from nextcord.ext import commands
+import nextcord
 import re
 import sys
 import os
@@ -30,7 +30,7 @@ class error(commands.Cog):
         try:
             if isinstance(event, commands.CommandOnCooldown):
                 rtime = str(event).split(" ")[7]
-                await ctx.reply(embed=discord.Embed(title="エラー", description=f"そのコマンドは現在クールタイム中です。\n```残り：{rtime}```", color=0xff0000))
+                await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"そのコマンドは現在クールタイム中です。\n```残り：{rtime}```", color=0xff0000))
                 return
             if re.search('Command \".*\" is not found', str(event)) or (str(event)[:9] == "Command \"" and str(event)[-14:] == "\" is not found"):
                 # 類似度を計算、0.0~1.0 で結果が返る
@@ -40,9 +40,9 @@ class error(commands.Cog):
                     if ruizi > ruizi_max:
                         ruizi_cm = i
                         ruizi_max = ruizi
-                await ctx.reply(embed=discord.Embed(title="エラー", description=f"`n!{str(event)[9:-14]}`というコマンドは存在しません。\n`n!help`でコマンドを確認してください。\n\nもしかして：`n!{nira_commands.commands_list[ruizi_cm]}`:`{nira_commands.commands_desc[ruizi_cm]}`", color=0xff0000))
+                await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"`n!{str(event)[9:-14]}`というコマンドは存在しません。\n`n!help`でコマンドを確認してください。\n\nもしかして：`n!{nira_commands.commands_list[ruizi_cm]}`:`{nira_commands.commands_desc[ruizi_cm]}`", color=0xff0000))
             else:
-                await ctx.reply(embed=discord.Embed(title="エラー", description=f"エラーが発生しました。\n\n・エラー内容```py\n{str(event)}```\n```sh\n{sys.exc_info()}```\n[サポートサーバー](https://discord.gg/awfFpCYTcP)", color=0xff0000))
+                await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"エラーが発生しました。\n\n・エラー内容```py\n{str(event)}```\n```sh\n{sys.exc_info()}```\n[サポートサーバー](https://discord.gg/awfFpCYTcP)", color=0xff0000))
                 logging.error(f"エラーが発生しました。\non_error：{str(event)}")
             return
         except BaseException as err:

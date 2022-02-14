@@ -1,7 +1,7 @@
 from calendar import c
 from lib2to3.pytree import Base
-from discord.ext import commands
-import discord
+from nextcord.ext import commands
+import nextcord
 
 import asyncio
 import datetime
@@ -10,6 +10,8 @@ import sys
 import re
 import niconico_dl
 import youtube_dl
+import youtube_dlc
+import json
 import sys
 from cogs.embed import embed
 sys.path.append('../')
@@ -66,10 +68,19 @@ ffmpeg_options = {
     'options': '-vn'
 }
 
-
+flat_list = {
+    "extract_flat": True,
+}
 
 ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 
+def url_search(url):
+    if re.search("nicovideo.jp",url) or re.search("nico.ms",url):
+        return "nc"
+    elif re.search("youtube.com",url) or re.search("youtu.be",url):
+        return "yt"
+    else:
+        return None
 
 #def get_redirect(src_url):
 #    with urllib.request.urlopen(src_url) as res:
@@ -84,10 +95,21 @@ ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 #    track_url = urllib.parse.unquote(get_redirect(f"https://w.soundcloud.com/player/?url={url}")[37:])
 #    track_id = track_url[]
 
+def flat_playlist(url):
+    if url_search(url) == "yt":
+        with youtube_dlc.YoutubeDL(flat_list) as ydl:
+            try:
+                info_dict = ydl.extract_info(url, download=False)
+            except BaseException as err:
+                return (err)
+            o = json.loads(json.dumps(info_dict, ensure_ascii=False))
+        urllist = []
+        for items in o["entries"]:
+            urllist.append("https://www.youtube.com/watch?v=" + items["id"])
+        return urllist
 
 
-
-async def end_mes(message: discord.Message, close_obj: niconico_dl.NicoNicoVideo or None, bot: discord.Bot):
+async def end_mes(message: nextcord.Message, close_obj: niconico_dl.NicoNicoVideo or None, bot: nextcord.ext.commands.bot):
     try:
         if re.search("nicovideo.jp",music_list[message.guild.id][0]) or re.search("nico.ms",music_list[message.guild.id][0]):
             close_obj.close()
@@ -104,7 +126,7 @@ async def end_mes(message: discord.Message, close_obj: niconico_dl.NicoNicoVideo
     except BaseException as err:
         logging.error(err)
 
-async def play_source(message: discord.Message, bot: discord.Bot):
+async def play_source(message: nextcord.Message, bot: nextcord.ext.commands.bot):
     try:
         await message.add_reaction("\U00002705")
         if re.search("nicovideo.jp",music_list[message.guild.id][0]) or re.search("nico.ms",music_list[message.guild.id][0]):
@@ -112,13 +134,13 @@ async def play_source(message: discord.Message, bot: discord.Bot):
             music_list[message.guild.id][0] = music_f[message.guild.id].get_download_link()
         await message.add_reaction("\U0001F3B5")
         logging.info(f"Play source:{len(music_list[message.guild.id])} {music_f[message.guild.id][0]} {music_list[message.guild.id][0]}")
-        message.guild.voice_client.play(discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(music_list[message.guild.id][0], **options), volume=0.45), after = lambda e: bot.loop.create_task(end_mes(message, music_f[message.guild.id][0], bot)))
+        message.guild.voice_client.play(nextcord.PCMVolumeTransformer(nextcord.FFmpegPCMAudio(music_list[message.guild.id][0], **options), volume=0.45), after = lambda e: bot.loop.create_task(end_mes(message, music_f[message.guild.id][0], bot)))
         await message.add_reaction("\U0001F197")
     except BaseException as err:
         logging.error(err)
 
 
-class YTDLSource(discord.PCMVolumeTransformer):
+class YTDLSource(nextcord.PCMVolumeTransformer):
     def __init__(self, source, *, data, volume=0.5):
         super().__init__(source, volume)
         self.data = data
@@ -135,7 +157,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
             data = data['entries'][0]
 
         filename = data['url'] if stream else ytdl.prepare_filename(data)
-        return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
+        return cls(nextcord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
 class music(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -167,15 +189,15 @@ class music(commands.Cog):
     async def join(self, ctx: commands.Context):
         try:
             if ctx.message.author.voice is None:
-                await ctx.message.reply(embed=discord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
+                await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
                 return
             else:
                 await ctx.message.author.voice.channel.connect()
-                await ctx.message.reply(embed=discord.Embed(title="にら",description="今はまだ、テスト中なので動作が不安定です！\n`n!play [URL]`/`n!pause`/`n!resume`/`n!stop`/`n!leave`",color=0x00ff00))
+                await ctx.message.reply(embed=nextcord.Embed(title="にら",description="今はまだ、テスト中なので動作が不安定です！\n`n!play [URL]`/`n!pause`/`n!resume`/`n!stop`/`n!leave`",color=0x00ff00))
                 print(f"{datetime.datetime.now()} - {ctx.message.guild.name}でVCに接続")
                 return
         except BaseException as err:
-            await ctx.message.reply(embed=discord.Embed(title="エラー",description=f"```{err}```\n```sh\n{sys.exc_info()}```",color=0xff0000))
+            await ctx.message.reply(embed=nextcord.Embed(title="エラー",description=f"```{err}```\n```sh\n{sys.exc_info()}```",color=0xff0000))
             print(f"[VC接続時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
             return
     
@@ -183,48 +205,80 @@ class music(commands.Cog):
     async def play(self, ctx: commands.Context):
         try:
             if ctx.message.author.voice is None:
-                await ctx.message.reply(embed=discord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
+                await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
                 return
             elif ctx.message.guild.voice_client is None:
-                await ctx.message.reply(embed=discord.Embed(title="エラー",description="先に`n!join`でボイスチャンネルに入れてください！",color=0xff0000))
+                await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="先に`n!join`でボイスチャンネルに入れてください！",color=0xff0000))
                 return
             else:
                 if len(ctx.message.content) <= 7:
-                    await ctx.message.reply(embed=discord.Embed(title="エラー",description="`n!play [URL]`という形で送信してください。",color=0xff0000))
+                    await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="`n!play [URL]`という形で送信してください。",color=0xff0000))
                     return
                 else:
                     url = ctx.message.content[7:]
                     if ctx.guild.id not in music_list or len(music_list[ctx.guild.id]) == 0:
                         music_list[ctx.guild.id] = []
                         music_f[ctx.guild.id] = []
-                        if re.search("nicovideo.jp",url) or re.search("nico.ms",url):
-                            music_f[ctx.guild.id].append(niconico_dl.NicoNicoVideo(url))
-                            music_f[ctx.guild.id][0].connect()
-                            music_list[ctx.guild.id].append(music_f[ctx.guild.id].get_download_link())
-                        elif re.search("youtube.com", url) or re.search("youtu.be", url):
-                            music_f[ctx.guild.id].append(await YTDLSource.from_url(url, stream=True))
-                            music_list[ctx.guild.id].append(music_f[ctx.guild.id][0].url)
+                        if re.search("playlist", url) or re.search("mylist", url):
+                            if re.search("nicovideo.jp",url) or re.search("nico.ms",url):
+                                await ctx.reply("ニコニコのプレイリストはそのうち対応させます...")
+                                return
+                            elif re.search("youtube.com", url) or re.search("youtu.be", url):
+                                pl = flat_playlist(url)
+                                if type(pl) == tuple:
+                                    await ctx.reply(f"エラーが発生しました。\n`{err}`")
+                                    return
+                                else:
+                                    music_list[ctx.guild.id].extend(pl)
+                                    for _ in range(len(pl)):
+                                        music_f[ctx.guild.id].append(None)
+                                    await ctx.reply(f"曲を追加しました。プレイリストには全部で{len(music_list[ctx.guild.id])}曲あります。")
                         else:
-                            await ctx.message.reply(embed=discord.Embed(title="エラー",description="ニコニコ動画かYouTubeのリンクを入れてね！",color=0xff0000))
-                            return
+                            if re.search("nicovideo.jp",url) or re.search("nico.ms",url):
+                                music_f[ctx.guild.id].append(niconico_dl.NicoNicoVideo(url))
+                                music_f[ctx.guild.id][0].connect()
+                                music_list[ctx.guild.id].append(music_f[ctx.guild.id].get_download_link())
+                            elif re.search("youtube.com", url) or re.search("youtu.be", url):
+                                music_f[ctx.guild.id].append(await YTDLSource.from_url(url, stream=True))
+                                music_list[ctx.guild.id].append(music_f[ctx.guild.id][0].url)
+                            else:
+                                await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="ニコニコ動画かYouTubeのリンクを入れてね！",color=0xff0000))
+                                return
                         logging.info(f"{url} {music_f[ctx.guild.id][0]} {music_list[ctx.guild.id][0]}")
                         await ctx.message.add_reaction("\U0001F3B5")
-                        ctx.message.guild.voice_client.play(discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(music_list[ctx.guild.id][0], **options), volume=0.45), after = lambda e: self.bot.loop.create_task(end_mes(ctx.message, music_f[ctx.guild.id][0], self.bot)))
+                        ctx.message.guild.voice_client.play(nextcord.PCMVolumeTransformer(nextcord.FFmpegPCMAudio(music_list[ctx.guild.id][0], **options), volume=0.45), after = lambda e: self.bot.loop.create_task(end_mes(ctx.message, music_f[ctx.guild.id][0], self.bot)))
                         await ctx.message.add_reaction("\U0001F197")
-                        # discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(music_list[ctx.guild.id].url,**options), volume=0.5)
+                        # nextcord.PCMVolumeTransformer(nextcord.FFmpegPCMAudio(music_list[ctx.guild.id].url,**options), volume=0.5)
                         return
                     else:
-                        if re.search("nicovideo.jp",url) or re.search("nico.ms",url):
-                            music_f[ctx.guild.id].append(niconico_dl.NicoNicoVideo(url))
-                            music_list[ctx.guild.id].append(None)
-                        elif re.search("youtube.com", url) or re.search("youtu.be", url):
-                            music_f[ctx.guild.id].append(await YTDLSource.from_url(url, stream=True))
-                            music_list[ctx.guild.id].append(music_f[ctx.guild.id][-1].url)
+                        if re.search("playlist", url) or re.search("mylist", url):
+                            if re.search("nicovideo.jp",url) or re.search("nico.ms",url):
+                                await ctx.reply("ニコニコのプレイリストはそのうち対応させます...")
+                                return
+                            elif re.search("youtube.com", url) or re.search("youtu.be", url):
+                                pl = flat_playlist(url)
+                                if type(pl) == tuple:
+                                    await ctx.reply(f"エラーが発生しました。\n`{err}`")
+                                    return
+                                else:
+                                    music_list[ctx.guild.id].extend(pl)
+                                    for _ in range(len(pl)):
+                                        music_f[ctx.guild.id].append(None)
+                                    await ctx.reply(f"曲を追加しました。プレイリストには全部で`{len(music_list[ctx.guild.id])}`曲あります。\n(`{len(pl)}`曲追加)")
+                                    return
                         else:
-                            await ctx.message.reply(embed=discord.Embed(title="エラー",description="ニコニコ動画かYouTubeのリンクを入れてね！",color=0xff0000))
+                            if re.search("nicovideo.jp",url) or re.search("nico.ms",url):
+                                music_f[ctx.guild.id].append(niconico_dl.NicoNicoVideo(url))
+                                music_f[ctx.guild.id][0].connect()
+                                music_list[ctx.guild.id].append(music_f[ctx.guild.id].get_download_link())
+                            elif re.search("youtube.com", url) or re.search("youtu.be", url):
+                                music_f[ctx.guild.id].append(await YTDLSource.from_url(url, stream=True))
+                                music_list[ctx.guild.id].append(music_f[ctx.guild.id][0].url)
+                            else:
+                                await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="ニコニコ動画かYouTubeのリンクを入れてね！",color=0xff0000))
+                                return
+                            await ctx.reply(f"追加したよ！\nあなたの曲は`{len(music_list[ctx.guild.id])}`番目！")
                             return
-                        await ctx.reply(f"追加したよ！\nあなたの曲は{len(music_list[ctx.guild.id])}番目！")
-                        return
         except BaseException as err:
             await ctx.reply(embed=eh.eh(err))
             logging.error(f"[楽曲再生時or再生中のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
@@ -233,10 +287,10 @@ class music(commands.Cog):
     @commands.command()
     async def pause(self, ctx: commands.Context):
         if ctx.message.author.voice is None:
-            await ctx.message.reply(embed=discord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
+            await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
             return
         elif ctx.message.guild.voice_client is None:
-            await ctx.message.reply(embed=discord.Embed(title="エラー",description="先に`n!join`でボイスチャンネルに入れてください！",color=0xff0000))
+            await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="先に`n!join`でボイスチャンネルに入れてください！",color=0xff0000))
             return
         else:
             try:
@@ -244,17 +298,17 @@ class music(commands.Cog):
                 await ctx.message.reply("paused")
                 return
             except BaseException as err:
-                await ctx.message.reply(embed=discord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
+                await ctx.message.reply(embed=nextcord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
                 print(f"[楽曲中断時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
                 return
     
     @commands.command()
     async def resume(self, ctx: commands.Context):
         if ctx.message.author.voice is None:
-            await ctx.message.reply(embed=discord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
+            await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
             return
         elif ctx.message.guild.voice_client is None:
-            await ctx.message.reply(embed=discord.Embed(title="エラー",description="先に`n!join`でボイスチャンネルに入れてください！",color=0xff0000))
+            await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="先に`n!join`でボイスチャンネルに入れてください！",color=0xff0000))
             return
         else:
             try:
@@ -262,17 +316,17 @@ class music(commands.Cog):
                 await ctx.message.reply("resume!")
                 return
             except BaseException as err:
-                await ctx.message.reply(embed=discord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
+                await ctx.message.reply(embed=nextcord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
                 print(f"[楽曲中断時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
                 return
     
     @commands.command()
     async def stop(self, ctx: commands.Context):
         if ctx.message.author.voice is None:
-            await ctx.message.reply(embed=discord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
+            await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
             return
         elif ctx.message.guild.voice_client is None:
-            await ctx.message.reply(embed=discord.Embed(title="エラー",description="先に`n!join`でボイスチャンネルに入れてください！",color=0xff0000))
+            await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="先に`n!join`でボイスチャンネルに入れてください！",color=0xff0000))
             return
         else:
             try:
@@ -282,7 +336,7 @@ class music(commands.Cog):
                 await ctx.reply("曲をすべて止めました！ :eject:")
                 return
             except BaseException as err:
-                await ctx.reply(embed=discord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
+                await ctx.reply(embed=nextcord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
                 print(f"[楽曲停止時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
                 return
     
@@ -290,28 +344,28 @@ class music(commands.Cog):
     async def leave(self, ctx: commands.Context):
         try:
             if ctx.message.author.voice is None:
-                await ctx.message.reply(embed=discord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
+                await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
                 return
             elif ctx.message.guild.voice_client is None:
-                await ctx.message.reply(embed=discord.Embed(title="エラー",description="先に`n!join`でボイスチャンネルに入れてください！",color=0xff0000))
+                await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="先に`n!join`でボイスチャンネルに入れてください！",color=0xff0000))
                 return
             else:
                 await ctx.message.guild.voice_client.disconnect()
-                await ctx.message.reply(embed=discord.Embed(title="にら",description="Disconnected",color=0x00ff00))
+                await ctx.message.reply(embed=nextcord.Embed(title="にら",description="Disconnected",color=0x00ff00))
                 print(f"{datetime.datetime.now()} - {ctx.message.guild.name}のVCから切断")
                 return
         except BaseException as err:
-            await ctx.message.reply(embed=discord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
+            await ctx.message.reply(embed=nextcord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
             print(f"[VC切断時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
             return
     
     @commands.command()
     async def skip(self, ctx: commands.Context):
         if ctx.message.author.voice is None:
-            await ctx.message.reply(embed=discord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
+            await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
             return
         elif ctx.message.guild.voice_client is None:
-            await ctx.message.reply(embed=discord.Embed(title="エラー",description="先に`n!join`でボイスチャンネルに入れてください！",color=0xff0000))
+            await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="先に`n!join`でボイスチャンネルに入れてください！",color=0xff0000))
             return
         else:
             try:
@@ -323,17 +377,17 @@ class music(commands.Cog):
                     await ctx.message.reply("今のが最後の曲でした！ :stop_button:")
                 return
             except BaseException as err:
-                await ctx.message.reply(embed=discord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
+                await ctx.message.reply(embed=nextcord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
                 print(f"[楽曲停止時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
                 return
     
     @commands.command()
     async def pop(self, ctx: commands.Context):
         if ctx.message.author.voice is None:
-            await ctx.message.reply(embed=discord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
+            await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
             return
         elif ctx.message.guild.voice_client is None:
-            await ctx.message.reply(embed=discord.Embed(title="エラー",description="先に`n!join`でボイスチャンネルに入れてください！",color=0xff0000))
+            await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="先に`n!join`でボイスチャンネルに入れてください！",color=0xff0000))
             return
         else:
             try:
@@ -345,7 +399,7 @@ class music(commands.Cog):
                     await ctx.reply("プレイリストの最後の曲を削除しました！ :information_source:")
                 return
             except BaseException as err:
-                await ctx.message.reply(embed=discord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
+                await ctx.message.reply(embed=nextcord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
                 print(f"[楽曲停止時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
                 return
 

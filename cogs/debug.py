@@ -1,6 +1,6 @@
 from lib2to3.pytree import Base
-from discord.ext import commands
-import discord
+from nextcord.ext import commands
+import nextcord
 import os
 import pickle
 import shutil
@@ -13,7 +13,7 @@ from cogs import normal_reaction as nr
 
 import sys
 
-from discord.ext.commands.core import command
+from nextcord.ext.commands.core import command
 from cogs.embed import embed
 sys.path.append('../')
 from util import admin_check, n_fc, eh
@@ -63,7 +63,7 @@ async def base_cog(bot, ctx, command, name):
         type = 1
     if ctx.author.id in n_fc.py_admin:
         if type == 0 and command == None and name == None or type == 1 and ctx.message.content == "n!cog":
-            embed = discord.Embed(title="cogs", description="`extension`", color=0x00ff00)
+            embed = nextcord.Embed(title="cogs", description="`extension`", color=0x00ff00)
             embed.add_field(name="Cog Names", value="表示されている名前は、`cog.[Cog name]`のcog nameです。", inline=False)
             embed.add_field(name="amuse", value="娯楽系のコマンド。\n`janken`/`uranai`/`dice`")
             embed.add_field(name="bump", value="bump通知の設定コマンド及び、Bump取得とメッセージ送信。\n`bump`")
@@ -150,42 +150,42 @@ class debug(commands.Cog):
     async def create(self, ctx: commands.Context):
         if ctx.message.author.id in n_fc.py_admin:
             if ctx.message.content == "n!create":
-                await ctx.message.reply(embed=discord.Embed(title="Error", description="The command has no enough arguments!", color=0xff0000))
+                await ctx.message.reply(embed=nextcord.Embed(title="Error", description="The command has no enough arguments!", color=0xff0000))
                 return
             c_file_d = str((ctx.message.content).split(" ", 1)[1])
             try:
                 with open(c_file_d, 'w'):
                     pass
             except BaseException as err:
-                await ctx.message.reply(embed=discord.Embed(title="Error", description=f"Python error has occurred!\n```{err}```", color=0xff0000))
+                await ctx.message.reply(embed=nextcord.Embed(title="Error", description=f"Python error has occurred!\n```{err}```", color=0xff0000))
                 return
         else:
-            await ctx.message.reply(embed=discord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000))
+            await ctx.message.reply(embed=nextcord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000))
 
     @commands.command()
     async def restart(self, ctx: commands.Context):
         if ctx.message.author.id in n_fc.py_admin:
-            await self.bot.change_presence(activity=discord.Game(name="再起動中...", type=1), status=discord.Status.dnd)
+            await self.bot.change_presence(activity=nextcord.Game(name="再起動中...", type=1), status=nextcord.Status.dnd)
             restart_code = await ctx.message.reply("再起動準備中...")
             try:
                 save()
                 await restart_code.edit(content="RESTART:`nira.py`\n再起動します")
                 logging.info("-----[n!restart]コマンドが実行されたため、再起動します。-----")
-                os.execl(sys.executable, 'python', "nira.py")
+                subprocess.run(f'sudo systemctl restart nira', stdout=PIPE, stderr=PIPE, shell=True, text=True)
                 return
             except BaseException as err:
                 await ctx.message.reply(err)
-                await self.bot.change_presence(activity=discord.Game(name="n!help", type=1), status=discord.Status.idle)
+                await self.bot.change_presence(activity=nextcord.Game(name="n!help", type=1), status=nextcord.Status.idle)
                 return
         else:
-            embed = discord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000)
+            embed = nextcord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000)
             await ctx.message.reply(embed=embed)
             return
 
     @commands.command()
     async def exit(self, ctx: commands.Context):
         if ctx.message.author.id in n_fc.py_admin:
-            await self.bot.change_presence(activity=discord.Game(name="終了中...", type=1), status=discord.Status.dnd)
+            await self.bot.change_presence(activity=nextcord.Game(name="終了中...", type=1), status=nextcord.Status.dnd)
             exit_code = await ctx.message.reply("終了準備中...")
             try:
                 save()
@@ -195,33 +195,33 @@ class debug(commands.Cog):
                 return
             except BaseException as err:
                 await ctx.message.reply(err)
-                await self.bot.change_presence(activity=discord.Game(name="n!help", type=1), status=discord.Status.idle)
+                await self.bot.change_presence(activity=nextcord.Game(name="n!help", type=1), status=nextcord.Status.idle)
                 return
         else:
-            embed = discord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000)
+            embed = nextcord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000)
             await ctx.message.reply(embed=embed)
             return
 
     @commands.command()
     async def py(self, ctx: commands.Context):
         if ctx.message.author.id not in n_fc.py_admin:
-            embed = discord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000)
+            embed = nextcord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000)
             await ctx.message.reply(embed=embed)
             await ctx.message.add_reaction("\U0000274C")
             return
         if ctx.message.content == "n!py":
-            embed = discord.Embed(title="Error", description="The command has no enough arguments!", color=0xff0000)
+            embed = nextcord.Embed(title="Error", description="The command has no enough arguments!", color=0xff0000)
             await ctx.message.reply(embed=embed)
             await ctx.message.add_reaction("\U0000274C")
             return
         if ctx.message.content[:10] == "n!py await":
             if ctx.message.author.id not in n_fc.py_admin:
-                embed = discord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000)
+                embed = nextcord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000)
                 await ctx.message.repcly(embed=embed)
                 await ctx.message.add_reaction("\U0000274C")
                 return
             if ctx.message.content == "n!py await":
-                embed = discord.Embed(title="Error", description="The command has no enough arguments!", color=0xff0000)
+                embed = nextcord.Embed(title="Error", description="The command has no enough arguments!", color=0xff0000)
                 await ctx.message.reply(embed=embed)
                 await ctx.message.add_reaction("\U0000274C")
                 return
@@ -236,7 +236,7 @@ class debug(commands.Cog):
                     cmd_rt.append(await eval(mes_py))
                 except BaseException as err:
                     await ctx.message.add_reaction("\U0000274C")
-                    embed = discord.Embed(title="Error", description=f"Python error has occurred!\n```{err}```\n```sh\n{sys.exc_info()}```", color=0xff0000)
+                    embed = nextcord.Embed(title="Error", description=f"Python error has occurred!\n```{err}```\n```sh\n{sys.exc_info()}```", color=0xff0000)
                     await ctx.message.reply(embed=embed)
                     return
             else:
@@ -245,7 +245,7 @@ class debug(commands.Cog):
                     cmd_rt.append("")
                 except BaseException as err:
                     await ctx.message.add_reaction("\U0000274C")
-                    embed = discord.Embed(title="Error", description=f"Python error has occurred!\n```{err}```\n```sh\n{sys.exc_info()}```", color=0xff0000)
+                    embed = nextcord.Embed(title="Error", description=f"Python error has occurred!\n```{err}```\n```sh\n{sys.exc_info()}```", color=0xff0000)
                     await ctx.message.reply(embed=embed)
                     return
         await ctx.message.add_reaction("\U0001F197")
@@ -254,13 +254,13 @@ class debug(commands.Cog):
     @commands.command()
     async def sh(self, ctx: commands.Context):
         if ctx.message.author.id not in n_fc.py_admin:
-            embed = discord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000)
+            embed = nextcord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000)
             await ctx.message.reply(embed=embed)
             await ctx.message.add_reaction("\U0000274C")
             return
         else:
             if ctx.message.content == "n!sh":
-                embed = discord.Embed(title="Error", description="The command has no enough arguments!", color=0xff0000)
+                embed = nextcord.Embed(title="Error", description="The command has no enough arguments!", color=0xff0000)
                 await ctx.message.reply(embed=embed)
                 await ctx.message.add_reaction("\U0000274C")
                 return
@@ -274,7 +274,7 @@ class debug(commands.Cog):
                     sh_rt.append(export.stdout)
                 except BaseException as err:
                     await ctx.message.add_reaction("\U0000274C")
-                    embed = discord.Embed(title="Error", description=f"Shell error has occurred!\n・Pythonエラー```{err}```\n・スクリプトエラー```{export.stdout}```", color=0xff0000)
+                    embed = nextcord.Embed(title="Error", description=f"Shell error has occurred!\n・Pythonエラー```{err}```\n・スクリプトエラー```{export.stdout}```", color=0xff0000)
                     await ctx.message.reply(embed=embed)
                     return
             await ctx.message.add_reaction("\U0001F197")
@@ -294,7 +294,7 @@ class debug(commands.Cog):
                 await ctx.message.reply(f"Error happend.\n`{err}`")
             return
         else:
-            embed = discord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000)
+            embed = nextcord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000)
             await ctx.message.reply(embed=embed)
             return
 
@@ -308,7 +308,7 @@ class debug(commands.Cog):
     @commands.command()
     async def reaction(self, ctx: commands.Context):
         if ctx.author.id not in n_fc.py_admin:
-            embed = discord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000)
+            embed = nextcord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000)
             await ctx.message.reply(embed=embed)
             return
         else:

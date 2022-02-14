@@ -1,7 +1,7 @@
 # coding: utf-8
 from math import e
 from re import M
-import discord
+import nextcord
 import asyncio
 from util import n_fc
 
@@ -10,7 +10,7 @@ async def n_help(message, client):
         cn = "help"
     else:
         cn = message.content[7:]
-    embed = discord.Embed(title="にらBOT HELP", description=f"```n!{cn}```", color=0x00ff00)
+    embed = nextcord.Embed(title="にらBOT HELP", description=f"```n!{cn}```", color=0x00ff00)
     embed.set_author(name="製作者：なつ", url="https://twitter.com/nattyan_tv", icon_url="https://pbs.twimg.com/profile_images/1388437778292113411/pBiEOtHL_400x400.jpg")
     if cn == "ss":
         embed.add_field(name="```ss```", value="Steam個人サーバーの状況をチェックします。\n`n!ss`以外は管理者権限が必要です。", inline=False)
@@ -97,7 +97,7 @@ async def n_help(message, client):
         embed.add_field(name="```n!d```", value="自分自身の情報を表示します。", inline=False)
         embed.add_field(name="例", value="```n!d```", inline=False)
     else:
-        embed = discord.Embed(title="にらBOT HELP（にらちゃんの使い方）", description="気になるコマンドがあったら`n!help [command]`で調べてみよう！", color=0x00ff00)
+        embed = nextcord.Embed(title="にらBOT HELP（にらちゃんの使い方）", description="気になるコマンドがあったら`n!help [command]`で調べてみよう！", color=0x00ff00)
         embed.set_author(name="製作者：なつ", url="https://twitter.com/nattyan_tv", icon_url="https://pbs.twimg.com/profile_images/1388437778292113411/pBiEOtHL_400x400.jpg")
         embed.add_field(name="```help```", value="このヘルプを表示します。", inline=False)
         embed.add_field(name="```ss```", value="Steam個人サーバーの状況をチェックします。", inline=False)
