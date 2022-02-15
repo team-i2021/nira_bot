@@ -69,6 +69,8 @@ logger.addFilter(NoTokenLogFilter())
 formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
 logging.basicConfig(format=formatter, filename=f'{home_dir}/nira.log', level=logging.INFO)
 
+bot.load_extension("jishaku")
+
 print("Loggingの設定完了")
 #オーナー設定
 async def is_owner(author):
