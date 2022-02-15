@@ -120,22 +120,6 @@ async def on_ready():
     bot.add_application_command(line)
     bot.add_application_command(line_del)
     #cogのロード
-    try:
-        cogs_dir = home_dir + "/cogs"
-        cogs_num = len(os.listdir(cogs_dir))
-        cogs_list = os.listdir(cogs_dir)
-        for i in range(cogs_num):
-            if cogs_list[i][-3:] != ".py" or cogs_list[i] == "__pycache__" or cogs_list[i] == "not_ready.py":
-                continue
-            bot.load_extension(f"cogs.{cogs_list[i][:-3]}")
-    except BaseException as err:
-        print(err)
-        main_content = {
-            "username": "エラーが発生しました",
-            "content": f"BOTを起動時にエラーが発生しました。Cogの読み込みエラーです。\n```{err}```\nサービスは終了します。"
-        }
-        requests.post(main_channel, main_content)
-        await bot.close()
     bot.unload_extension("cogs.not_ready")
     print("Cogの読み込み完了")
     await bot.change_presence(activity=nextcord.Game(name="起動中... 3/3", type=1), status=nextcord.Status.idle)
@@ -219,7 +203,29 @@ async def line_del(interaction: Interaction):
             pickle.dump(n_fc.notify_token, f)
         await interaction.response.send_message(f"{interaction.channel.name}でのLINEトークンを削除しました。", ephemeral = True)
 
-# BOT起動
-print("BOT起動開始...")
-bot.run(token)
-print("BOT終了")
+
+def main():
+    try:
+        cogs_dir = home_dir + "/cogs"
+        cogs_num = len(os.listdir(cogs_dir))
+        cogs_list = os.listdir(cogs_dir)
+        for i in range(cogs_num):
+            if cogs_list[i][-3:] != ".py" or cogs_list[i] == "__pycache__" or cogs_list[i] == "not_ready.py":
+                continue
+            bot.load_extension(f"cogs.{cogs_list[i][:-3]}")
+    except BaseException as err:
+        print(err)
+        main_content = {
+            "username": "エラーが発生しました",
+            "content": f"BOTを起動時にエラーが発生しました。Cogの読み込みエラーです。\n```{err}```\nサービスは終了します。"
+        }
+        requests.post(main_channel, main_content)
+        sys.exit(1)
+    
+    # BOT起動
+    print("BOT起動開始...")
+    bot.run(token)
+    print("BOT終了")
+
+if __name__ == "__main__":
+    main()
