@@ -33,7 +33,7 @@ class info(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @nextcord.slash_command()
+    @nextcord.slash_command(description="テストです。")
     async def test_slash(self, interaction: Interaction):
         await interaction.response.send_message("test")
 
