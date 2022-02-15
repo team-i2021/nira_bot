@@ -293,7 +293,7 @@ class normal_reaction(commands.Cog):
             try:
                 sended_mes = await n_reaction(message)
             except BaseException as err:
-                if re.search("ERROR:object NoneType can't be used in 'await' expression", str(err)) == None:
+                if re.search("object NoneType can't be used in 'await' expression", str(err)) == None:
                     logging.error(err)
             if sended_mes != "":
                 await sended_mes.add_reaction("<:trash:908565976407236608>")
