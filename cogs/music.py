@@ -220,19 +220,23 @@ class music(commands.Cog):
                         music_list[ctx.guild.id] = []
                         music_f[ctx.guild.id] = []
                         if re.search("playlist", url) or re.search("mylist", url):
-                            if re.search("nicovideo.jp",url) or re.search("nico.ms",url):
-                                await ctx.reply("ニコニコのプレイリストはそのうち対応させます...")
+                            await ctx.reply("曲を追加しています。しばらくお待ちください。\n（プレイリストの曲が多い場合は時間がかかることがあります。エラーの場合はエラーが表示されるのでしばらくお待ちください。）")
+                            if url_search(url) == "yt":
+                                with youtube_dlc.YoutubeDL(flat_list) as ydl:
+                                    try:
+                                        info_dict = ydl.extract_info(url, download=False)
+                                    except BaseException as err:
+                                        await ctx.reply(f"エラーが発生しました。\n`{err}`")
+                                    o = json.loads(json.dumps(info_dict, ensure_ascii=False))
+                                i = 0
+                                for items in o["entries"]:
+                                    music_f[ctx.guild.id].append(await YTDLSource.from_url("https://www.youtube.com/watch?v=" + items["id"], stream=True))
+                                    music_list[ctx.guild.id].append(music_f[ctx.guild.id][i].url)
+                                    i = i + 1
+                                await ctx.reply(f"曲を追加しました。プレイリストには全部で`{len(music_list[ctx.guild.id])}`曲あります。)")
+                            else:
+                                await ctx.reply("YouTube以外のプレイリストはまだ対応してないんだよ...")
                                 return
-                            elif re.search("youtube.com", url) or re.search("youtu.be", url):
-                                pl = flat_playlist(url)
-                                if type(pl) == tuple:
-                                    await ctx.reply(f"エラーが発生しました。\n`{err}`")
-                                    return
-                                else:
-                                    music_list[ctx.guild.id].extend(pl)
-                                    for _ in range(len(pl)):
-                                        music_f[ctx.guild.id].append(None)
-                                    await ctx.reply(f"曲を追加しました。プレイリストには全部で{len(music_list[ctx.guild.id])}曲あります。")
                         else:
                             if re.search("nicovideo.jp",url) or re.search("nico.ms",url):
                                 music_f[ctx.guild.id].append(niconico_dl.NicoNicoVideo(url))
@@ -252,20 +256,24 @@ class music(commands.Cog):
                         return
                     else:
                         if re.search("playlist", url) or re.search("mylist", url):
-                            if re.search("nicovideo.jp",url) or re.search("nico.ms",url):
-                                await ctx.reply("ニコニコのプレイリストはそのうち対応させます...")
+                            await ctx.reply("曲を追加しています。しばらくお待ちください。\n（プレイリストの曲が多い場合は時間がかかることがあります。エラーの場合はエラーが表示されるのでしばらくお待ちください。）")
+                            if url_search(url) == "yt":
+                                with youtube_dlc.YoutubeDL(flat_list) as ydl:
+                                    try:
+                                        info_dict = ydl.extract_info(url, download=False)
+                                    except BaseException as err:
+                                        await ctx.reply(f"エラーが発生しました。\n`{err}`")
+                                    o = json.loads(json.dumps(info_dict, ensure_ascii=False))
+                                i = len(music_list[ctx.guild.id])+1
+                                for items in o["entries"]:
+                                    music_f[ctx.guild.id].append(await YTDLSource.from_url("https://www.youtube.com/watch?v=" + items["id"], stream=True))
+                                    music_list[ctx.guild.id].append(music_f[ctx.guild.id][i].url)
+                                    i = i + 1
+                                await ctx.reply(f"曲を追加しました。プレイリストには全部で`{len(music_list[ctx.guild.id])}`曲あります。")
                                 return
-                            elif re.search("youtube.com", url) or re.search("youtu.be", url):
-                                pl = flat_playlist(url)
-                                if type(pl) == tuple:
-                                    await ctx.reply(f"エラーが発生しました。\n`{err}`")
-                                    return
-                                else:
-                                    music_list[ctx.guild.id].extend(pl)
-                                    for _ in range(len(pl)):
-                                        music_f[ctx.guild.id].append(None)
-                                    await ctx.reply(f"曲を追加しました。プレイリストには全部で`{len(music_list[ctx.guild.id])}`曲あります。\n(`{len(pl)}`曲追加)")
-                                    return
+                            else:
+                                await ctx.reply("YouTube以外のプレイリストはまだ対応してないんだよ...")
+                                return
                         else:
                             if re.search("nicovideo.jp",url) or re.search("nico.ms",url):
                                 music_f[ctx.guild.id].append(niconico_dl.NicoNicoVideo(url))
