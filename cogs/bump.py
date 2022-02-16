@@ -56,9 +56,9 @@ class bump(commands.Cog):
             return
         if message.embeds == []:
             return
-        if message.embeds[0].title != "DISBOARD: The Public Server List":
+        if message.embeds[0].title != "DISBOARD: The Public Server List" and message.embeds[0].title != "DISBOARD: Discordサーバー掲示板":
             return
-        if re.search("Bump done!", message.embeds[0].description):
+        if re.search("Bump done!", message.embeds[0].description) or re.search("表示順をアップしたよ", message.embeds[0].description):
             print("bump set.")
             await message.channel.send(embed=nextcord.Embed(title="Bump通知設定", description=f"<t:{math.floor(time.time())+7200}:f>、<t:{math.floor(time.time())+7200}:R>に通知します。", color=0x00ff00))
             await asyncio.sleep(7200)
