@@ -59,7 +59,7 @@ class info(commands.Cog):
     
     @commands.command()
     async def help(self, ctx: commands.Context):
-        await info_base.help(self, ctx)
+        await info_base.help(self, ctx, CTX)
 
 def setup(bot):
     bot.add_cog(info(bot))

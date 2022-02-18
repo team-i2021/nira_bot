@@ -10,6 +10,7 @@ import re
 import asyncio
 
 from cogs import normal_reaction as nr
+import importlib
 
 import sys
 
@@ -18,6 +19,9 @@ from cogs.embed import embed
 from cogs import test
 sys.path.append('../')
 from util import admin_check, n_fc, eh
+
+from nira import home_dir, main_channel
+import requests
 
 #loggingの設定
 import logging
@@ -54,6 +58,35 @@ def save():
     for i in range(len(save_list)):
         with open(f'{save_dir}/{save_list[i]}.nira', 'wb') as f:
             exec(f"pickle.dump(n_fc.{save_list[i]}, f)")
+
+def load():
+    func_error_count = 0
+    nira_f_num = len(os.listdir(home_dir))
+    system_list = os.listdir(home_dir)
+    logging.info((nira_f_num,system_list))
+    for i in range(nira_f_num):
+        logging.info(f"StartProcess:{system_list[i]}")
+        if system_list[i][-5:] != ".nira":
+            logging.info(f"Skip:{system_list[i]}")
+            continue
+        try:
+            cog_name = system_list[i][:-5]
+            with open(f'{home_dir}/{system_list[i]}', 'rb') as f:
+                exec(f"n_fc.{cog_name} = pickle.load(f)")
+            logging.info(f"変数[{system_list[i]}]のファイル読み込みに成功しました。")
+            if system_list[i] == "notify_token.nira":
+                logging.info("LINE NotifyのTOKENのため、表示はされません。")
+            else:
+                exec(f"logging.info(n_fc.{cog_name})")
+        except BaseException as err:
+            logging.info(f"変数[{system_list[i]}]のファイル読み込みに失敗しました。\n{err}")
+            func_error_count = 1
+    if func_error_count > 0:
+        main_content = {
+            "username": "エラーが発生しました",
+            "content": f"変数再読み込み時にエラーが発生しました。\n{err}"
+        }
+        requests.post(main_channel, main_content)
 
 
 
@@ -129,6 +162,8 @@ async def base_cog(bot, ctx, command, name):
                     await ctx.reply(f"アンロードしました。")
                 except BaseException as err:
                     await ctx.reply(f"アンロードできませんでした。\n```{err}```")
+        elif type == 0 and command == "list" or ctx.message.content == "n!cog list":
+            await ctx.reply(list(dict(bot.cogs).keys()))
         elif type == 0 and command == None or type == 0 and name == None:
             await ctx.respond("コマンドの引数が異常です。")
     else:
@@ -320,6 +355,20 @@ class debug(commands.Cog):
                 await nr.n_reaction(ctx.message, int(ctx.message.content.split(" ",1)[1]))
             except BaseException as err:
                 await ctx.reply(f"```{err}```")
+
+    @commands.command()
+    async def debug(self, ctx: commands.Context):
+        if ctx.author.id not in n_fc.py_admin:
+            if ctx.message.content == "n!debug reload":
+                message = await ctx.reply("変数の再ロードをしています...")
+                try:
+                    save()
+                    importlib.reload(n_fc)
+                    load()
+                except BaseException as err:
+                    await message.edit(content=f"エラーが発生しました。{err}")
+                    return
+                await message.edit(content="変数の読み込みが完了しました。")
 
 
 def setup(bot):

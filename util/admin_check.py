@@ -5,7 +5,7 @@ from util import n_fc
 
 #ユーザーがそのサーバーで管理者権限を持っているか確認する。
 
-def admin_check(guild: nextcord.Message.guild, memb: nextcord.Message.author) -> bool:
+def admin_check(guild: nextcord.Message.guild, memb: nextcord.Member) -> bool:
     role_list = []
     if memb.id in n_fc.py_admin:
         return True

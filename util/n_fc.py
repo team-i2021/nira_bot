@@ -13,6 +13,7 @@ force_ss_list = {}
 # {guild_id:[channel_id, message_id]}
 mod_list = {}
 # {guild_id:{"counter":100, "role":568902157372910}}
+mc_server_list = {}
 
 global pid_ss
 pid_ss={}

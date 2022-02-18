@@ -17,7 +17,7 @@ words = {
         "アウトサイド", "アウトソーシング", "アウトドア", "アウトドアスポーツ", "アウトドアライフ", "アウトプット", "アウトレット", "アウトロー", "アカシア", "アカデミズム", "アカデミック", "アカデミー", "アカペラ", "アクアラング", "アクサングラーブ",
         "アクサンテギュ", "アクシデント", "アクション映画", "アクセサリー", "アクセル", "アクセント", "アクセント記号", "アクチノイド", "アクリル", "アクロバット", "アグレッシブ", "アコースティック", "アシスタント", "アシスタントパーサー", "アジア象",
         "アジテーター", "アスタリスク", "アスター", "アストリンゼント", "アスパラガス", "アスパルテーム", "アスピーテ", "アスファルト", "アスファルトジャングル", "アスベスト", "アスペクト", "アスリート", "アスレチッククラブ", "アセテート", "アタッカー", "アタック",
-        "アタッシュケース", "アダプター", "アダム‐スミス", "アダムサイト", "アダージョ", "アチャラ漬け", "アチーブメント", "アットホーム", "アットマーク", "アッパーカット", "アップグレード", "アップツーデート", "アップテンポ", "アップライト", "アップリケ",
+        "アタッシュケース", "アダプター", "アダム-スミス", "アダムサイト", "アダージョ", "アチャラ漬け", "アチーブメント", "アットホーム", "アットマーク", "アッパーカット", "アップグレード", "アップツーデート", "アップテンポ", "アップライト", "アップリケ",
         "アップル", "アップルパイ", "アップロード", "アテンダント", "アテンポ", "アデノイド", "アトランダム", "アトランティス", "アトリエ", "アドバイス", "アドリブ", "アドレス", "アドレス帳", "アナウンサー", "アナウンス", "アナクロニズム", "アナリスト", "アナログ",
         "アナログレコード", "アナロジー", "アナーキスト", "アナーキズム", "アナーキー", "アニマル", "アニミズム", "アネモネ", "アノラック", "アバンギャルド", "アバンゲール", "アバンチュール", "アパルトヘイト", "アパート", "アピール", "アフター", "アフターケア",
         "アフターサービス", "アフターファイブ", "アフリカ", "アフリカ象", "アフレコ", "アブストラクト", "アブノーマル", "アプレゲール", "アプローチ", "アベニュー", "アベマリア", "アベレージ", "アペリティフ", "アボカド", "アボリジニー", "アポイント",
@@ -582,7 +582,8 @@ words = {
         "骨髄", "高分子化合物", "高分子化学", "高利貸し", "高卒", "高収入", "高句麗", "高名嘖嘖", "高周波", "高圧", "高圧的", "高姿勢", "高学歴", "高射砲", "高層建築", "高山植物", "高山病", "高年齢", "高度差", "高度計", "高性能", "高慢ちき", "高所得", "高架橋",
         "高校生", "高校野球", "高機能", "高気圧", "高祖母", "高祖父", "高禄", "高等動物", "高等女学校", "高等学校", "高等専門学校", "高等小学校", "高等師範学校", "高等教育", "高等裁判所", "高級官僚", "高級紙", "高級車", "高脂血症", "高著", "高血圧", "高血圧症",
         "高踏的", "高速道路", "高邁", "高配当", "高野豆腐", "高閣につかねる", "高齢化社会", "魂魄", "鯉こく", "黄河文明", "黄濁", "黄熱病", "黄葉", "黄道", "黄道十二宮", "黄金色", "黒人霊歌", "黒内障", "黒曜石", "黒白", "黒白を争う", "黒白を付ける", "黒白を弁ぜず",
-        "黒糖", "黒色", "黒色人種", "黒色火薬", "鼓笛隊"],
+        "黒糖", "黒色", "黒色人種", "黒色火薬", "鼓笛隊"
+        ],
     "さ_wd":[
         "サイ", "財布", "魚", "サクランボ", "酒", "サッカー", "砂糖", "サル", "酸素", "サンマ"
         ],
@@ -766,30 +767,82 @@ words = {
     "ぽ_wd":[
         "ポータルサイト", "ぽい", "ぽか", "ポイント", "ポエム", "ポークチョップ", "ポイズン", "ポップ"
         ],
-    "a_wd":["apple", "and", "are", "ai", "ark", "apex", "attack", "attach", "an"],
-    "b_wd":["back", "bool", "boomerang", "battle", "but", "by", "beyond"],
-    "c_wd":["car", "card", "cart", "cut", "cat", "cup", "cap", "cake"],
-    "d_wd":["dew", "duo", "dry", "drug", "dream", "drift", "draft", "destiny"],
-    "e_wd":["engine", "emergency", "end", "ending", "encode", "enough"],
-    "f_wd":["fall", "fail", "fork", "fight", "fright", "few", "fov", "fun", "fan"],
-    "g_wd":["great", "god", "good", "genesiss", "gender", "get", "guard"],
-    "h_wd":["heart", "hit", "hot", "heat", "heater", "home", "house", "hart"],
-    "i_wd":["in", "internet", "inside", "image", "interesting", "interested"],
-    "j_wd":["jail", "joke", "job", "jean", "jelaousy", "jellyfish", "jam"],
-    "k_wd":["kick", "keep", "know", "knew", "known", "kid", "kind", "korea"],
-    "l_wd":["like", "light", "low", "lie", "lier", "license", "lock", "local", "let"],
-    "m_wd":["meow", "match", "message", "my", "mine", "me", "mock", "more", "mocha"],
-    "n_wd":["not", "national", "need", "new", "now", "nice", "number", "next"],
-    "o_wd":["open", "on", "over", "oops", "or", "one", "once", "our", "out"],
-    "p_wd":["power", "pot", "pod", "pad", "park", "pork", "peint", "pain"],
-    "q_wd":["quake", "qucik", "quiz", "question", "quit", "quite", "quote"],
-    "r_wd":["rank", "road", "random", "randomly", "ranch", "rather", "ranking"],
-    "s_wd":["sword", "so", "send", "sand", "saw", "sweet", "see", "sorry"],
-    "t_wd":["the", "this", "that", "those", "these", "take", "talk", "tank"],
-    "u_wd":["use", "user", "update", "under", "unless", "unfortunately", "until"],
-    "v_wd":["very", "virus", "vaccine", "vacation", "vacuum", "value", "visit"],
-    "w_wd":["word", "work", "walk", "want", "warm", "worm", "warning", "would"],
-    "x_wd":["xmas", "xanadu", "xanthous", "xenon", "xylophone", "xenophobia"],
-    "y_wd":["yard", "yacht", "yarn", "yawn", "yeah", "year", "yell", "yellow"],
-    "z_wd":["zeal", "zealot", "zealous", "zebra", "zero", "zest", "zip"]
+    "a_wd":[
+        "apple", "and", "are", "ai", "ark", "apex", "attack", "attach", "an"
+        ],
+    "b_wd":[
+        "back", "bool", "boomerang", "battle", "but", "by", "beyond"
+        ],
+    "c_wd":[
+        "car", "card", "cart", "cut", "cat", "cup", "cap", "cake"
+        ],
+    "d_wd":[
+        "dew", "duo", "dry", "drug", "dream", "drift", "draft", "destiny"
+        ],
+    "e_wd":[
+        "engine", "emergency", "end", "ending", "encode", "enough"
+        ],
+    "f_wd":[
+        "fall", "fail", "fork", "fight", "fright", "few", "fov", "fun", "fan"
+        ],
+    "g_wd":[
+        "great", "god", "good", "genesiss", "gender", "get", "guard"
+        ],
+    "h_wd":[
+        "heart", "hit", "hot", "heat", "heater", "home", "house", "hart"
+        ],
+    "i_wd":[
+        "in", "internet", "inside", "image", "interesting", "interested"
+        ],
+    "j_wd":[
+        "jail", "joke", "job", "jean", "jelaousy", "jellyfish", "jam"
+        ],
+    "k_wd":[
+        "kick", "keep", "know", "knew", "known", "kid", "kind", "korea"
+        ],
+    "l_wd":[
+        "like", "light", "low", "lie", "lier", "license", "lock", "local", "let"
+        ],
+    "m_wd":[
+        "meow", "match", "message", "my", "mine", "me", "mock", "more", "mocha"
+        ],
+    "n_wd":[
+        "not", "national", "need", "new", "now", "nice", "number", "next"
+        ],
+    "o_wd":[
+        "open", "on", "over", "oops", "or", "one", "once", "our", "out"
+        ],
+    "p_wd":[
+        "power", "pot", "pod", "pad", "park", "pork", "peint", "pain"
+        ],
+    "q_wd":[
+        "quake", "qucik", "quiz", "question", "quit", "quite", "quote"
+        ],
+    "r_wd":[
+        "rank", "road", "random", "randomly", "ranch", "rather", "ranking"
+        ],
+    "s_wd":[
+        "sword", "so", "send", "sand", "saw", "sweet", "see", "sorry"
+        ],
+    "t_wd":[
+        "the", "this", "that", "those", "these", "take", "talk", "tank"
+        ],
+    "u_wd":[
+        "use", "user", "update", "under", "unless", "unfortunately", "until"
+        ],
+    "v_wd":[
+        "very", "virus", "vaccine", "vacation", "vacuum", "value", "visit"
+        ],
+    "w_wd":[
+        "word", "work", "walk", "want", "warm", "worm", "warning", "would"
+        ],
+    "x_wd":[
+        "xmas", "xanadu", "xanthous", "xenon", "xylophone", "xenophobia"
+        ],
+    "y_wd":[
+        "yard", "yacht", "yarn", "yawn", "yeah", "year", "yell", "yellow"
+        ],
+    "z_wd":[
+        "zeal", "zealot", "zealous", "zebra", "zero", "zest", "zip"
+        ]
 }

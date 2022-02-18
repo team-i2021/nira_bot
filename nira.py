@@ -77,9 +77,7 @@ print("外部設定完了")
 
 @bot.event
 async def on_ready():
-    await bot.change_presence(activity=nextcord.Game(name="起動中... 1/3", type=1), status=nextcord.Status.idle)
-    await bot.change_presence(activity=nextcord.Game(name="起動中... 2/3", type=1), status=nextcord.Status.idle)
-    await bot.change_presence(activity=nextcord.Game(name="起動中... 3/3", type=1), status=nextcord.Status.idle)
+    await bot.change_presence(activity=nextcord.Game(name="起動中...", type=1), status=nextcord.Status.idle)
     for i in range(len(list(n_fc.force_ss_list.keys()))):
         print(list(n_fc.force_ss_list.keys())[i])
         try:
