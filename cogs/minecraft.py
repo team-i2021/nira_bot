@@ -1,35 +1,18 @@
 from util.mc_status import minecraft as mc_status
 from util import n_fc
+from util.slash_tool import messages
 import nextcord
 from nextcord.ext import commands
 from nextcord import Interaction, SlashOption, ChannelType
 import asyncio
+import sys,os
+import traceback
 
-class messages:
-    def reply(message, reply_message, **slash_args):
-        if type(message) == nextcord.Message:
-            return message.reply(reply_message)
-        elif type(message) == nextcord.Interaction:
-            return message.respond.response.send_message(reply_message, slash_args)
-        elif type(message) == nextcord.ext.commands.Context:
-            return message.reply(reply_message)
-        else:
-            raise TypeError
-            return
-    
-    def content(message):
-        if type(message) == nextcord.Message:
-            return message.content
-        elif type(message) == nextcord.Interaction:
-            return message.message.content
-        else:
-            raise TypeError
-            return
 
 
 class minecraft_base:
     async def server_add(bot, ctx, name, host, port):
-        await messages.reply(ctx, f"MCサーバーを追加するコマンドテスト。\nServer name:{name}\nServer host:{host}\nServer port:{port}")
+        await messages.mreply(ctx, f"MCサーバーを追加するコマンドテスト", embed=nextcord.Embed(title="Args", description=f"Server name:{name}\nServer host:{host}\nServer port:{port}", color=0x00ff00))
     
     async def server_delete(bot, ctx):
         await ctx.reply(f"削除コマンド\n{ctx.message.content}")
@@ -54,7 +37,12 @@ class minecraft(commands.Cog):
             if len(args) != 3:
                 await ctx.reply("引数の数が**少ない**又は**多い**です。\n`n!mc add [名前] [アドレス] [ポート番号]`")
                 return
-            await minecraft_base.server_add(self.bot, ctx, args[0], args[1], args[2])
+            try:
+                await minecraft_base.server_add(self.bot, ctx, args[0], args[1], args[2])
+            except BaseException as err:
+                exc_type, exc_obj, exc_tb = sys.exc_info() 
+                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                await ctx.reply(f"err:{err}\nfile:{fname}\nline:{exc_tb.tb_lineno}\ntraceback:```sh\n{traceback.format_exc()}```")
             return
         elif ctx.message.content[:8] == "n!mc del":
             await minecraft_base.server_delete(self.bot, ctx, 1)

@@ -83,6 +83,7 @@ reaction_list = [
     r'しおりん',
     r'さばかん|鯖缶|サバカン',
     r'訴え|訴訟',
+    r'しゅうじん|囚人|シュウジン|罪人'
     ]
 
 # 0:メッセージ反応,1:添付ファイル反応,2:特殊反応(にら画像),3:特殊反応(にらテキスト),4:特殊反応(Guild指定画像),5:特殊反応(Guild指定文字)
@@ -134,7 +135,8 @@ reaction_files = {
     42:[5,1,"https://twitter.com/ribpggxcrmz74t6"],
     43:[5,1,"https://twitter.com/Aibell__game"],
     44:[1,1,"sabakan"],
-    45:[4,1,"sosyou"]
+    45:[4,1,"sosyou"],
+    46:[1,1,"syuuzin"]
     }
 
 # すべてが許されるGuild

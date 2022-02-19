@@ -1,7 +1,7 @@
 {
     "tokens":{
-        "nira_bot":BOTのTOKEN
+        "nira_bot":"BOTのTOKEN"
     },
-    "main_channel":デバッグログを送信するチャンネルのWebhookURl,
+    "main_channel":"デバッグログを送信するチャンネルのWebhookURL",
     "py_admin":管理者用コマンドを実行できるユーザーのID
 }

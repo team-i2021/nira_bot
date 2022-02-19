@@ -1,3 +1,5 @@
+from nextcord import Interaction, SlashOption, ChannelType
+from util.slash_tool import messages
 from nextcord.ext import commands
 import nextcord
 import random
@@ -20,6 +22,20 @@ class amuse(commands.Cog):
         rnd_ex = random.randint(0, max_count)
         await ctx.reply(embed=nextcord.Embed(title="サイコロ", description=f"```{rnd_ex}```", color=0x00ff00))
         return
+    
+    @nextcord.slash_command(name="dice", description="サイコロを振ります")
+    async def slash_dice(
+        self,
+        interaction = Interaction,
+        count: int = SlashOption(
+            name = "dice count",
+            description = "ダイスの最大目の数です",
+            required=True
+        )):
+        rnd_ex = random.randint(0, count)
+        await messages.reply(interaction, "dice", embed=nextcord.Embed(title="サイコロ", description=f"```{rnd_ex}```", color=0x00ff00))
+        return
+
 
     @commands.command()
     async def janken(self, ctx: commands.context):

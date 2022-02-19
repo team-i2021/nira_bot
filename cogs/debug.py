@@ -9,6 +9,8 @@ from subprocess import PIPE
 import re
 import asyncio
 
+from util import slash_tool
+
 from cogs import normal_reaction as nr
 import importlib
 
@@ -16,7 +18,6 @@ import sys
 
 from nextcord.ext.commands.core import command
 from cogs.embed import embed
-from cogs import test
 sys.path.append('../')
 from util import admin_check, n_fc, eh
 
@@ -351,6 +352,9 @@ class debug(commands.Cog):
             if ctx.message.content == "n!reaction":
                 await ctx.reply("引数「ReplyID」が足りません。")
                 return
+            if ctx.message.content == "n!reaction reload":
+                importlib.reload(nr)
+                await ctx.reply("End")
             try:
                 await nr.n_reaction(ctx.message, int(ctx.message.content.split(" ",1)[1]))
             except BaseException as err:
@@ -373,3 +377,4 @@ class debug(commands.Cog):
 
 def setup(bot):
     bot.add_cog(debug(bot))
+    importlib.reload(slash_tool)
