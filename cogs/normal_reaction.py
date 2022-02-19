@@ -23,6 +23,7 @@ formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(me
 logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
 
 
+from nira import home_dir, main_channel
 
 from cogs.embed import embed
 sys.path.append('../')
@@ -278,11 +279,11 @@ class normal_reaction(commands.Cog):
         ###############################
         if message.guild.id not in n_fc.reaction_bool_list:
             n_fc.reaction_bool_list[message.guild.id] = {"all": 1, message.channel.id: 1}
-            with open('/home/nattyantv/nira_bot_rewrite/reaction_bool_list.nira', 'wb') as f:
+            with open(f'{home_dir}/reaction_bool_list.nira', 'wb') as f:
                 pickle.dump(n_fc.reaction_bool_list, f)
         if message.channel.id not in n_fc.reaction_bool_list[message.guild.id]:
             n_fc.reaction_bool_list[message.guild.id][message.channel.id] = 1
-            with open('/home/nattyantv/nira_bot_rewrite/reaction_bool_list.nira', 'wb') as f:
+            with open(f'{home_dir}/reaction_bool_list.nira', 'wb') as f:
                 pickle.dump(n_fc.reaction_bool_list, f)
         #########################################
         # 通常反応

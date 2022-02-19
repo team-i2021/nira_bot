@@ -46,6 +46,21 @@ bot.is_owner = is_owner
 print("BOTの設定完了")
 
 
+# 変数とかのリスト
+save_list = [
+        "steam_server_list",
+        "reaction_bool_list",
+        "welcome_id_list",
+        "ex_reaction_list",
+        "srtr_bool_list",
+        "all_reaction_list",
+        "bump_list",
+        "notify_token",
+        "role_keeper",
+        "force_ss_list",
+        "mod_list"
+        ]
+
 
 
 
@@ -138,7 +153,7 @@ async def line(interaction: Interaction, token: str):
             n_fc.notify_token[interaction.guild.id] = {interaction.channel.id: token}
         else:
             n_fc.notify_token[interaction.guild.id][interaction.channel.id] = token
-        with open('/home/nattyantv/nira_bot_rewrite/notify_token.nira', 'wb') as f:
+        with open(f'{home_dir}/notify_token.nira', 'wb') as f:
             pickle.dump(n_fc.notify_token, f)
         await interaction.response.send_message(f"{interaction.guild.name}/{interaction.channel.name}で`{token}`を保存します。\nトークンが他のユーザーに見られないようにしてください。", ephemeral = True)
 
@@ -154,30 +169,29 @@ async def line_del(interaction: Interaction):
             await interaction.response.send_message(f"{interaction.channel.name}では、LINEトークンが設定されていません。", ephemeral = True)
             return
         del n_fc.notify_token[interaction.guild.id][interaction.channel.id]
-        with open('/home/nattyantv/nira_bot_rewrite/notify_token.nira', 'wb') as f:
+        with open(f'{home_dir}/notify_token.nira', 'wb') as f:
             pickle.dump(n_fc.notify_token, f)
         await interaction.response.send_message(f"{interaction.channel.name}でのLINEトークンを削除しました。", ephemeral = True)
 
+
 func_error_count = 0
-nira_f_num = len(os.listdir(home_dir))
-system_list = os.listdir(home_dir)
-logging.info((nira_f_num,system_list))
-for i in range(nira_f_num):
-    logging.info(f"StartProcess:{system_list[i]}")
-    if system_list[i][-5:] != ".nira":
-        logging.info(f"Skip:{system_list[i]}")
-        continue
+for i in range(len(save_list)):
+    logging.info(f"Start:{save_list[i]}")
     try:
-        cog_name = system_list[i][:-5]
-        with open(f'{home_dir}/{system_list[i]}', 'rb') as f:
-            exec(f"n_fc.{cog_name} = pickle.load(f)")
-        logging.info(f"変数[{system_list[i]}]のファイル読み込みに成功しました。")
-        if system_list[i] == "notify_token.nira":
-            logging.info("LINE NotifyのTOKENのため、表示はされません。")
+        if os.path.isfile(f"{home_dir}/{save_list[i]}.nira"):
+            with open(f'{home_dir}/{save_list[i]}.nira', 'rb') as f:
+                exec(f"n_fc.{save_list[i]} = pickle.load(f)")
+            logging.info(f"変数[{save_list[i]}]のファイル読み込みに成功しました。")
+            if save_list[i] == "notify_token.nira":
+                logging.info("LINE NotifyのTOKENのため、表示はされません。")
+            else:
+                exec(f"logging.info(n_fc.{save_list[i]})")
         else:
-            exec(f"logging.info(n_fc.{cog_name})")
+            logging.info("ファイルが存在しません。")
+            with open(f"{home_dir}/{save_list[i]}.nira", "wb") as f:
+                pickle.dump({},f)
     except BaseException as err:
-        logging.info(f"変数[{system_list[i]}]のファイル読み込みに失敗しました。\n{err}")
+        logging.info(f"変数[{save_list[i]}]のファイル読み込みに失敗しました。\n{err}")
         func_error_count = 1
 if func_error_count > 0:
     main_content = {

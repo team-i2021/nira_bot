@@ -8,6 +8,8 @@ import sys
 sys.path.append('../')
 from util import admin_check, n_fc, eh
 
+from nira import home_dir, main_channel
+
 #通常反応や追加反応の反応系
 
 class reaction(commands.Cog):
@@ -38,7 +40,7 @@ class reaction(commands.Cog):
                 n_fc.ex_reaction_list[ctx.message.guild.id][f'{value+1}_tr'] = str(react_triger)
                 n_fc.ex_reaction_list[ctx.message.guild.id][f'{value+1}_re'] = str(react_return)
                 await ctx.message.reply(f"トリガー：{ra[0]}\nリターン：{ra[1]}")
-                with open('/home/nattyantv/nira_bot_rewrite/ex_reaction_list.nira', 'wb') as f:
+                with open(f'{home_dir}/ex_reaction_list.nira', 'wb') as f:
                     pickle.dump(n_fc.ex_reaction_list, f)
                 return
             except BaseException as err:
@@ -77,7 +79,7 @@ class reaction(commands.Cog):
                         break
                 if rt_e == 1:
                     await ctx.message.reply(f"トリガー：{b_tr}\nリターン：{b_re}")
-                    with open('/home/nattyantv/nira_bot_rewrite/ex_reaction_list.nira', 'wb') as f:
+                    with open(f'{home_dir}/ex_reaction_list.nira', 'wb') as f:
                         pickle.dump(n_fc.ex_reaction_list, f)
                     return
                 elif rt_e == 0:
@@ -104,11 +106,11 @@ class reaction(commands.Cog):
                 n_fc.reaction_bool_list[ctx.message.guild.id] = {}
                 n_fc.reaction_bool_list[ctx.message.guild.id][ctx.message.channel.id] = 1
                 n_fc.reaction_bool_list[ctx.message.guild.id]["all"] = 1
-                with open('/home/nattyantv/nira_bot_rewrite/reaction_bool_list.nira', 'wb') as f:
+                with open(f'{home_dir}/reaction_bool_list.nira', 'wb') as f:
                     pickle.dump(n_fc.reaction_bool_list, f)
             if ctx.message.channel.id not in n_fc.reaction_bool_list[ctx.message.guild.id]:
                 n_fc.reaction_bool_list[ctx.message.guild.id][ctx.message.channel.id] = 1
-                with open('/home/nattyantv/nira_bot_rewrite/reaction_bool_list.nira', 'wb') as f:
+                with open(f'{home_dir}/reaction_bool_list.nira', 'wb') as f:
                     pickle.dump(n_fc.reaction_bool_list, f)
             if ctx.message.content == "n!nr":
                 if n_fc.reaction_bool_list[ctx.message.guild.id]["all"] == 0:
@@ -154,11 +156,11 @@ class reaction(commands.Cog):
             if ctx.message.guild.id not in n_fc.all_reaction_list:
                 print(n_fc.all_reaction_list)
                 n_fc.all_reaction_list[ctx.message.guild.id] = {}
-                with open('/home/nattyantv/nira_bot_rewrite/all_reaction_list.nira', 'wb') as f:
+                with open(f'{home_dir}/all_reaction_list.nira', 'wb') as f:
                     pickle.dump(n_fc.all_reaction_list, f)
             if ctx.message.channel.id not in n_fc.all_reaction_list[ctx.message.guild.id]:
                 n_fc.all_reaction_list[ctx.message.guild.id][ctx.message.channel.id] = 1
-                with open('/home/nattyantv/nira_bot_rewrite/all_reaction_list.nira', 'wb') as f:
+                with open(f'{home_dir}/all_reaction_list.nira', 'wb') as f:
                     pickle.dump(n_fc.all_reaction_list, f)
             if ctx.message.content == "n!ar":
                 if n_fc.all_reaction_list[ctx.message.guild.id][ctx.message.channel.id] == 1:

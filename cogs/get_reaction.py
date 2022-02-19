@@ -22,6 +22,9 @@ logger.addFilter(NoTokenLogFilter())
 formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
 logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
 
+
+from nira import home_dir, main_channel
+
 class get_reaction(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -34,7 +37,7 @@ class get_reaction(commands.Cog):
                 if admin_check.admin_check(react.message.guild, mem) or react.message.author.id in n_fc.py_admin:
                     if str(react.emoji) == "\U00002B55":
                         del n_fc.steam_server_list[react.message.guild.id]
-                        with open('/home/nattyantv/nira_bot_rewrite/steam_server_list.nira', 'wb') as f:
+                        with open(f'{home_dir}/steam_server_list.nira', 'wb') as f:
                             pickle.dump(n_fc.steam_server_list, f)
                         embed = nextcord.Embed(title="リスト削除", description=f"{mem.mention}\nリストは正常に削除されました。", color=0xffffff)
                         if mem.id == 669178357371371522:
@@ -61,7 +64,7 @@ class get_reaction(commands.Cog):
                 if admin_check.admin_check(react.message.guild, mem) or react.message.author.id in n_fc.py_admin:
                     if str(react.emoji) == "\U00002B55":
                         del n_fc.ex_reaction_list[react.message.guild.id]
-                        with open('/home/nattyantv/nira_bot_rewrite/ex_reaction_list.nira', 'wb') as f:
+                        with open(f'{home_dir}/ex_reaction_list.nira', 'wb') as f:
                             pickle.dump(n_fc.ex_reaction_list, f)
                         embed = nextcord.Embed(title="リスト削除", description=f"{mem.mention}\nリストは正常に削除されました。", color=0xffffff)
                         if mem.id == 669178357371371522:

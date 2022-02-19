@@ -21,6 +21,8 @@ import subprocess
 from multiprocessing import Array, Process
 from subprocess import PIPE
 
+from nira import home_dir, main_channel
+
 import util.srtr as srtr
 dir = sys.path[0]
 from util import admin_check, eh, n_fc, server_check
@@ -157,7 +159,7 @@ async def ss_base(self, ctx: commands.Context):
             n_fc.steam_server_list[ctx.message.guild.id][f"{sset_point + 1}_nm"] = ad_name
             n_fc.steam_server_list[ctx.message.guild.id]["value"] = str(sset_point + 1)
             await ctx.message.reply(f"サーバー名：{ad_name}\nサーバーアドレス：({ad_ip},{ad_port})")
-            with open('/home/nattyantv/nira_bot_rewrite/steam_server_list.nira', 'wb') as f:
+            with open(f'{home_dir}/steam_server_list.nira', 'wb') as f:
                 pickle.dump(n_fc.steam_server_list, f)
             return
         except BaseException as err:
@@ -283,7 +285,7 @@ async def ss_base(self, ctx: commands.Context):
             n_fc.steam_server_list[ctx.message.guild.id][f"{s_id}_ad"] = (s_ip, s_port)
             n_fc.steam_server_list[ctx.message.guild.id][f"{s_id}_nm"] = s_nm
             await ctx.message.reply(f"サーバーナンバー：{s_id}\nサーバー名：{s_nm}\nサーバーアドレス：{s_ip},{s_port}")
-            with open('/home/nattyantv/nira_bot_rewrite/steam_server_list.nira', 'wb') as f:
+            with open(f'{home_dir}/steam_server_list.nira', 'wb') as f:
                 pickle.dump(n_fc.steam_server_list, f)
             return
         except BaseException as err:

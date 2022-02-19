@@ -7,6 +7,8 @@ import sys
 sys.path.append('../')
 from util import admin_check, n_fc, eh, srtr, word_data
 
+from nira import home_dir
+
 #しりとり管理系
 
 class siritori(commands.Cog):
@@ -26,7 +28,7 @@ class siritori(commands.Cog):
                         n_fc.srtr_bool_list[ctx.message.guild.id] = {ctx.message.channel.id:1}
                 if ctx.message.guild.id not in n_fc.srtr_bool_list:
                     n_fc.srtr_bool_list[ctx.message.guild.id] = {ctx.message.channel.id:1}
-                    with open('/home/nattyantv/nira_bot_rewrite/srtr_bool_list.nira', 'wb') as f:
+                    with open(f'{home_dir}/srtr_bool_list.nira', 'wb') as f:
                         pickle.dump(n_fc.srtr_bool_list, f)
             except BaseException as err:
                     await ctx.message.reply(embed=eh(err))
@@ -45,7 +47,7 @@ class siritori(commands.Cog):
                     await ctx.message.reply(embed=embed)
                     return
                 del n_fc.srtr_bool_list[ctx.message.guild.id][ctx.message.channel.id]
-                with open('/home/nattyantv/nira_bot_rewrite/srtr_bool_list.nira', 'wb') as f:
+                with open(f'{home_dir}/srtr_bool_list.nira', 'wb') as f:
                         pickle.dump(n_fc.srtr_bool_list, f)
             except BaseException as err:
                 await ctx.message.reply(embed=eh(err))

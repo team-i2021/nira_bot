@@ -1,4 +1,3 @@
-from lib2to3.pytree import Base
 from nextcord.ext import commands
 import nextcord
 import os
@@ -21,7 +20,7 @@ from cogs.embed import embed
 sys.path.append('../')
 from util import admin_check, n_fc, eh
 
-from nira import home_dir, main_channel
+from nira import home_dir, main_channel, save_list
 import requests
 
 #loggingの設定
@@ -40,24 +39,10 @@ logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.
 
 #管理者向けdebug
 
-save_dir = "/home/nattyantv/nira_bot_rewrite"
 
 def save():
-    save_list = [
-        "steam_server_list",
-        "reaction_bool_list",
-        "welcome_id_list",
-        "ex_reaction_list",
-        "srtr_bool_list",
-        "all_reaction_list",
-        "bump_list",
-        "notify_token",
-        "role_keeper",
-        "force_ss_list",
-        "mod_list"
-        ]
     for i in range(len(save_list)):
-        with open(f'{save_dir}/{save_list[i]}.nira', 'wb') as f:
+        with open(f'{home_dir}/{save_list[i]}.nira', 'wb') as f:
             exec(f"pickle.dump(n_fc.{save_list[i]}, f)")
 
 def load():
