@@ -21,7 +21,7 @@ import subprocess
 from multiprocessing import Array, Process
 from subprocess import PIPE
 
-from nira import home_dir, main_channel
+home_dir = os.path.dirname(__file__)
 
 import util.srtr as srtr
 dir = sys.path[0]

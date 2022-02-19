@@ -3,7 +3,7 @@ import nextcord
 import re
 import pickle
 
-import sys
+import sys,os
 
 from cogs.debug import save
 from cogs.embed import embed
@@ -12,7 +12,7 @@ from util import admin_check, n_fc, eh
 
 #ユーザー情報表示系
 
-from nira import home_dir
+home_dir = os.path.dirname(__file__)
 
 class user(commands.Cog):
     def __init__(self, bot: commands.Bot):

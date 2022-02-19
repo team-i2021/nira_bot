@@ -20,7 +20,9 @@ from cogs.embed import embed
 sys.path.append('../')
 from util import admin_check, n_fc, eh
 
-from nira import home_dir, main_channel, save_list
+
+
+from nira import save_list, main_channel
 import requests
 
 #loggingの設定
@@ -36,6 +38,8 @@ logger.addFilter(NoTokenLogFilter())
 formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
 logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
 
+
+home_dir = os.path.dirname(__file__)
 
 #管理者向けdebug
 

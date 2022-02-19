@@ -4,11 +4,11 @@ import nextcord
 import pickle
 import math
 
-import sys
+import sys,os
 sys.path.append('../')
 from util import admin_check, n_fc, eh
 
-from nira import home_dir, main_channel
+home_dir = os.path.dirname(__file__)
 
 #通常反応や追加反応の反応系
 

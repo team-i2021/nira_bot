@@ -8,6 +8,7 @@ from cogs.embed import embed
 from cogs import server_status
 sys.path.append('../')
 from util import admin_check, n_fc, eh
+import os
 
 #loggingの設定
 import logging
@@ -22,8 +23,8 @@ logger.addFilter(NoTokenLogFilter())
 formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
 logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
 
+home_dir = os.path.dirname(__file__)
 
-from nira import home_dir, main_channel
 
 class get_reaction(commands.Cog):
     def __init__(self, bot: commands.Bot):

@@ -3,12 +3,11 @@ import nextcord
 import pickle
 import importlib
 
-import sys
+import sys, os
 sys.path.append('../')
 from util import admin_check, n_fc, eh, srtr, word_data
 
-from nira import home_dir
-
+home_dir = os.path.dirname(__file__)
 #しりとり管理系
 
 class siritori(commands.Cog):
