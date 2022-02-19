@@ -66,13 +66,17 @@ save_list = [
 
 #設定読み込み
 if os.path.isfile(f'{sys.path[0]}/setting.json') == False:
+    print("""[事前停止]\n
+    BOTの設定ファイルが見つかりませんでした。\n
+    「nira.py」があるフォルダに「setting.json」をおいてください。\n
+    「setting_temp.json」というテンプレートがありますのでそちらを参考にしてください。
+    """)
     exit()
 setting = json.load(open(f'{sys.path[0]}/setting.json', 'r'))
 home_dir = os.path.dirname(__file__)
 token = setting["tokens"]["nira_bot"]
 main_channel = setting["main_channel"]
 n_fc.py_admin.append(int(setting["py_admin"]))
-
 #loggingの設定
 import logging
 class NoTokenLogFilter(logging.Filter):
