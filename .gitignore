@@ -1,0 +1,11 @@
+__pycache__/
+.venv/
+*.nira
+nira.log
+nira_dev.py
+setting.json
+js_test/
+cogs/test.py
+.vscode/
+nira_dev*
+cogs/test.py
