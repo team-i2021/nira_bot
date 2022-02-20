@@ -1,32 +1,37 @@
 # coding: utf-8
 
 #沢山のインポート
-
-import nextcord
-from nextcord import message
-from nextcord.ext import commands
-from nextcord.ext.commands.bot import Bot
-from nextcord.ext.commands.core import command
-from nextcord.utils import get
-from os import getenv
-import sys
-from nextcord import Interaction, SlashOption, ChannelType
-from cogs.not_ready import not_ready
-from concurrent.futures import ThreadPoolExecutor
-from util import n_fc, admin_check, web_api, server_check
-import json
-import os
-import requests
-from cogs import ping as cogs_ping
-from cogs import debug as cogs_debug
-from cogs import server_status
-from nextcord.embeds import Embed
-sys.setrecursionlimit(10000)#エラー回避
-import pickle
-import traceback
-import datetime
-import asyncio
-print("モジュールインポート完了")
+try:
+    import nextcord
+    from nextcord import message
+    from nextcord.ext import commands
+    from nextcord.ext.commands.bot import Bot
+    from nextcord.ext.commands.core import command
+    from nextcord.utils import get
+    from os import getenv
+    import sys
+    from nextcord import Interaction, SlashOption, ChannelType
+    from cogs.not_ready import not_ready
+    from concurrent.futures import ThreadPoolExecutor
+    from util import n_fc, admin_check, web_api, server_check
+    import json
+    import os
+    import requests
+    from cogs import ping as cogs_ping
+    from cogs import debug as cogs_debug
+    from cogs import server_status
+    from nextcord.embeds import Embed
+    sys.setrecursionlimit(10000)#エラー回避
+    import pickle
+    import traceback
+    import datetime
+    import asyncio
+    print("モジュールインポート完了")
+except BaseException as err:
+    print(f"""モジュールインポート時のエラー:{err}\n
+    「pip install -r requirements.txt」でモジュールをインストールするか、「setup.py」を実行してモジュールをインストールしてください。
+    """)
+    exit()
 
 
 
@@ -69,7 +74,8 @@ if os.path.isfile(f'{sys.path[0]}/setting.json') == False:
     print("""[事前停止]\n
     BOTの設定ファイルが見つかりませんでした。\n
     「nira.py」があるフォルダに「setting.json」をおいてください。\n
-    「setting_temp.json」というテンプレートがありますのでそちらを参考にしてください。
+    「setting_temp.json」というテンプレートがありますのでそちらを参考にしてください。\n\n
+    または、「setup.py」を実行して、画面の指示通りにしてください。
     """)
     exit()
 setting = json.load(open(f'{sys.path[0]}/setting.json', 'r'))
