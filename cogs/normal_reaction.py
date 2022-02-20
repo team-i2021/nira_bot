@@ -98,7 +98,7 @@ reaction_files = {
     4:[0,1,"ようつべぇ...？"],
     5:[0,1,"ついったぁ！！！"],
     6:[1,1,"nira_zoku"],
-    7:[1,2,"itokoi"],
+    7:[1,6,"itokoi"],
     8:[2,2,"nira_saibai"],
     9:[2,1,"nira_itou"],
     10:[2,1,"nira_rice"],

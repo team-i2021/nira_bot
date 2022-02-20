@@ -47,7 +47,7 @@ async def ss_force(bot, message:nextcord.Message):
             embed = nextcord.Embed(title="ServerStatus Checker", description=f"LastCheck:{datetime.datetime.now()}", color=0x00ff00)
             for i in range(int(n_fc.steam_server_list[message.guild.id]["value"])):
                 await server_check.ss_pin_async(bot.loop, embed, message.guild.id, i + 1)
-            await message.edit(f"AutoSS実行中\n止めるには`n!ss auto off`\n再試行するには`n!ss auto force {message.channel.id} {message.id}`", embed=embed)
+            await message.edit(f"AutoSS実行中\n止めるには`n!ss auto off`\n再試行するには`n!ss auto force {message.channel.id} {message.id}`又は`/reload`", embed=embed)
             await asyncio.sleep(60*10)
         except BaseException as err:
             print(err,traceback.format_exc())
