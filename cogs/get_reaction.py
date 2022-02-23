@@ -23,7 +23,7 @@ logger.addFilter(NoTokenLogFilter())
 formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
 logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
 
-home_dir = os.path.dirname(__file__)
+home_dir = os.path.dirname(__file__)[:-4]
 
 
 class get_reaction(commands.Cog):

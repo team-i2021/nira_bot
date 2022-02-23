@@ -8,7 +8,7 @@ import sys,os
 sys.path.append('../')
 from util import admin_check, n_fc, eh
 
-home_dir = os.path.dirname(__file__)
+home_dir = os.path.dirname(__file__)[:-4]
 
 #通常反応や追加反応の反応系
 

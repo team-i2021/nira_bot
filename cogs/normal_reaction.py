@@ -23,7 +23,7 @@ formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(me
 logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
 
 
-home_dir = os.path.dirname(__file__)
+home_dir = os.path.dirname(__file__)[:-4]
 
 from cogs.embed import embed
 sys.path.append('../')

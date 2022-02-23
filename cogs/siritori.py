@@ -7,7 +7,7 @@ import sys, os
 sys.path.append('../')
 from util import admin_check, n_fc, eh, srtr, word_data
 
-home_dir = os.path.dirname(__file__)
+home_dir = os.path.dirname(__file__)[:-4]
 #しりとり管理系
 
 class siritori(commands.Cog):

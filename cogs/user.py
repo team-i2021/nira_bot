@@ -12,7 +12,7 @@ from util import admin_check, n_fc, eh
 
 #ユーザー情報表示系
 
-home_dir = os.path.dirname(__file__)
+home_dir = os.path.dirname(__file__)[:-4]
 
 class user(commands.Cog):
     def __init__(self, bot: commands.Bot):

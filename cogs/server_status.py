@@ -21,7 +21,7 @@ import subprocess
 from multiprocessing import Array, Process
 from subprocess import PIPE
 
-home_dir = os.path.dirname(__file__)
+home_dir = os.path.dirname(__file__)[:-4]
 
 import util.srtr as srtr
 dir = sys.path[0]
