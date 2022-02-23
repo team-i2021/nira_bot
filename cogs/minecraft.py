@@ -1,5 +1,3 @@
-from email.mime import base
-from sqlalchemy import desc
 from util.mc_status import minecraft as mc_status
 from util import n_fc
 from util.slash_tool import messages
@@ -13,8 +11,8 @@ import traceback
 
 
 class minecraft_base:
-    async def server_add(bot, ctx, name, host, port: int):
-        addition_data = [name, f"{host}:{port}"]
+    async def server_add(bot, ctx, name, host, port: int, server_type):
+        addition_data = [name, f"{host}:{port}", server_type]
         try:
             if ctx.guild.id not in n_fc.mc_server_list:
                 n_fc.mc_server_list[ctx.guild.id] = {"value": 1, 1: addition_data}
@@ -80,10 +78,10 @@ class minecraft_base:
 
         try:
             value = n_fc.mc_server_list[ctx.guild.id]["value"]
-            user = bot.fetch_user(ctx.author.id)
+            user = await bot.fetch_user(ctx.author.id)
             embed = nextcord.Embed(title="Minecraft サーバーリスト", description=f"{ctx.guild.name}のリスト", color=0x00ff00)
-            for i in range(value-1):
-                embed.add_field(name=f"ID:`{i+1}`", value=f"名前:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`\nアドレス:`{n_fc.mc_server_list[ctx.guild.id][i+1][1]}`")
+            for i in range(value):
+                embed.add_field(name=f"ID:`{i+1}`", value=f"名前:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`\n{n_fc.mc_server_list[ctx.guild.id][i+1][2]}Edition サーバー\nアドレス:`{n_fc.mc_server_list[ctx.guild.id][i+1][1]}`")
             await user.send(embed=embed)
             return
         except BaseException:
@@ -102,15 +100,21 @@ class minecraft(commands.Cog):
         base_arg = ctx.message.content.split(" ",1)
         if base_arg[1][:3] == "add":
             args = base_arg[1][4:].split(" ")
-            if len(args) != 3:
-                await ctx.reply("引数の数が**少ない**又は**多い**です。\n`n!mc add [名前] [アドレス] [ポート番号]`")
+            if len(args) != 4:
+                await ctx.reply("引数の数が**少ない**又は**多い**です。\n`n!mc add [名前] [アドレス] [ポート番号] [java/be]`")
                 return
             try:
                 args[2] = int(args[2])
             except ValueError as err:
                 await ctx.reply(f"ポートは数値でなければなりません。\n```sh\n{err}```")
                 return
-            await minecraft_base.server_add(self.bot, ctx, args[0], args[1], args[2])
+            if args[3] != "java" and args[3] != "be" and args[3] != "j" and args[3] != "b":
+                await messages.mreply(ctx, "サーバータイプは「java」または「be」と入力してください。\n`n!mc add [名前] [アドレス] [ポート番号] [java/be]")
+            if args[3] == "j":
+                args[3] = "java"
+            elif args[3] == "b":
+                args[3] = "be"
+            await minecraft_base.server_add(self.bot, ctx, args[0], args[1], args[2], args[3])
             return
         elif base_arg[1][:3] == "del":
             if base_arg[1] == "del":
@@ -125,7 +129,7 @@ class minecraft(commands.Cog):
                     return
             await minecraft_base.server_delete(self.bot, ctx, arg)
             return
-        elif base_arg[1][:4] == "n!mc list":
+        elif base_arg[1][:4] == "list":
             await minecraft_base.server_list(self.bot, ctx)
             return
         else:
@@ -160,8 +164,20 @@ class minecraft(commands.Cog):
             name="Server Port",
             description="サーバーのポートです。\nJava版 デフォルトポート:25565\nBE版 デフォルトポート:19132",
             required=True,
-        ),):
-        await minecraft_base.server_add(self.bot, interaction, name, host, port)
+        ),
+        server_type: str = SlashOption(
+            name = "Server Type",
+            description = "サーバーのタイプです。\n「java」または「be」と入力してください。",
+            required=True,
+        ),
+        ):
+        if server_type != "java" and server_type != "be" and server_type != "j" and server_type != "b":
+            await messages.mreply(Interactioin, "サーバータイプは「java」または「be」と入力してください", ephemeral = True)
+        if server_type == "j":
+            server_type = "java"
+        elif server_type == "b":
+            server_type = "be"
+        await minecraft_base.server_add(self.bot, Interaction, name, host, port)
         return
 
 

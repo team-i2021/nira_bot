@@ -12,43 +12,32 @@ BE = 2
 
 
 
-class minecraft:
+class minecraft_status:
     """Minecraft server status"""
 
-    def error_handle(arg):
+    def error_check(arg):
+        """エラーの種類がネットワーク系のエラーかどうかを調べます。"""
         return type(arg) == TimeoutError or type(arg) == ConnectionRefusedError or type(arg) == OSError
 
-    async def identify(host, port):
-        java_check = threading.Thread(target=minecraft.java, args=(host, port))
-        be_check = threading.Thread(target=minecraft.bedrock, args=(host, port))
-        java_response = java_check.start()
-        be_response = be_check.start()
-        await asyncio.sleep(4)
-        j, b = (True, True)
-        if minecraft.error_handle(java_response):
-            j = False
-        if minecraft.error_handle(be_response):
-            b = False
-
-
-    @timeout(3)
-    def java(host, port):
+    @timeout(3, use_signals=False)
+    async def java(host, port):
         """Minecraft:Java Edition"""
         try:
+            loop = asyncio.get_event_loop()
             address = f"{host}:{port}"
-            server = mc.lookup(address)
+            server = await loop.run_in_executor(None, mc.lookup, address)
             status = server.status()
             return status
         except BaseException as err:
             return err
 
-
-    @timeout(3)
+    @timeout(3, use_signals=False)
     async def bedrock(host, port):
-        """Minecraft:Bedrock Edition(統合版)"""
+        """Minecraft:Bedrock Edition"""
         try:
+            loop = asyncio.get_event_loop()
             address = f"{host}:{port}"
-            server = mcb.lookup(address)
+            server = await loop.run_in_executor(None, mcb.lookup, address)
             status = server.status()
             return status
         except BaseException as err:
