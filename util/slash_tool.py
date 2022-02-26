@@ -17,6 +17,10 @@ logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.
 
 class messages:
     def mreply(message, reply_message, **kwargs):
+        if "embed" not in kwargs:
+            kwargs["embed"] = None
+        if "ephemeral" not in kwargs:
+            kwargs["ephemeral"] = None
         logging.info(kwargs)
         if type(message) == nextcord.Message:
             return message.reply(reply_message, embed=kwargs["embed"])

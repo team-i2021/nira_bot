@@ -63,7 +63,8 @@ save_list = [
         "notify_token",
         "role_keeper",
         "force_ss_list",
-        "mod_list"
+        "mod_list",
+        "mc_server_list"
         ]
 
 

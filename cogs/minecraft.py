@@ -1,4 +1,4 @@
-from util.mc_status import minecraft as mc_status
+import util.mc_status as mc_status
 from util import n_fc
 from util.slash_tool import messages
 import nextcord
@@ -6,7 +6,9 @@ from nextcord.ext import commands
 from nextcord import Interaction, SlashOption, ChannelType
 import asyncio
 import sys,os
+import importlib
 import traceback
+from timeout_decorator import timeout, TimeoutError
 
 
 
@@ -68,7 +70,37 @@ class minecraft_base:
 
     async def server_check(bot, ctx, id):
         # ID: None or String("all") or Int
-        await ctx.reply(f"チェックコマンド（コマンド指定なし）\n{ctx.message.content}")
+        if ctx.guild.id not in n_fc.mc_server_list:
+            await messages.mreply(ctx, f"{ctx.guild.name}にはMinecraftのサーバーは追加されていません。")
+            return
+        embed = nextcord.Embed(title="Minecraftサーバーチェッカー", description=f"`{ctx.guild.name}`のサーバーリスト", color=0x00ff00)
+        for i in range(n_fc.mc_server_list[ctx.guild.id]["value"]):
+            try:
+                if n_fc.mc_server_list[ctx.guild.id][i+1][2] == "java":
+                    server_status = mc_status.minecraft_status.java(n_fc.mc_server_list[ctx.guild.id][i+1][1])
+                    if mc_status.minecraft_status.error_check(server_status):
+                        embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`",value=f":ng: Javaサーバーに接続できませんでした。",inline=False)
+                    else:
+                        ping = int(server_status.latency)
+                        players = server_status.players.online
+                        embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`",value=f":white_check_mark: Bedrock:Online\n{server_status.motd}\nPing:{ping}ms\nPlayers:{players}人\nGameMode:{server_status.gamemode}",inline=False)
+                elif n_fc.mc_server_list[ctx.guild.id][i+1][2] == "be":
+                    server_status = mc_status.minecraft_status.bedrock(n_fc.mc_server_list[ctx.guild.id][i+1][1])
+                    if mc_status.minecraft_status.error_check(server_status):
+                        embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`",value=f":ng: 統合版サーバーに接続できませんでした。",inline=False)
+                    else:
+                        ping = int(server_status.latency)
+                        players = server_status.players_online
+                        if ping == 0:
+                            embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`",value=f":white_check_mark: Bedrock:Online\n{server_status.motd}\nPlayers:{players}人\nGameMode:{server_status.gamemode}",inline=False)
+                        else:
+                            embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`",value=f":white_check_mark: Bedrock:Online\n{server_status.motd}\nPing:{ping}ms\nPlayers:{players}人\nGameMode:{server_status.gamemode}",inline=False)
+            except TimeoutError:
+                embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`",value=f":ng: サーバーに接続できませんでした。(Timed out)",inline=False)
+            embed.add_field(name="サーバー情報について", value=f"Pingは参考値にしてください。\n統合版サーバーでPingが表示されない場合はサーバーでPingが無効になっています。", inline=False)
+        await messages.mreply(ctx, "Minecraft Server Status", embed=embed)
+        return
+
 
 
     async def server_list(bot, ctx):
@@ -97,7 +129,10 @@ class minecraft(commands.Cog):
     async def mc(self, ctx: commands.Context):
         if ctx.author.id not in n_fc.py_admin:
             return
-        base_arg = ctx.message.content.split(" ",1)
+        if ctx.message.content != "n!mc":
+            base_arg = ctx.message.content.split(" ",1)
+        else:
+            base_arg = ["n!mc","status"]
         if base_arg[1][:3] == "add":
             args = base_arg[1][4:].split(" ")
             if len(args) != 4:
@@ -133,7 +168,7 @@ class minecraft(commands.Cog):
             await minecraft_base.server_list(self.bot, ctx)
             return
         else:
-            if len(base_arg) == 1:
+            if base_arg[1] == "status":
                 arg = None
             elif base_arg[1] == "all":
                 arg = "all"
@@ -172,7 +207,7 @@ class minecraft(commands.Cog):
         ),
         ):
         if server_type != "java" and server_type != "be" and server_type != "j" and server_type != "b":
-            await messages.mreply(Interactioin, "サーバータイプは「java」または「be」と入力してください", ephemeral = True)
+            await messages.mreply(interaction, "サーバータイプは「java」または「be」と入力してください", ephemeral = True)
         if server_type == "j":
             server_type = "java"
         elif server_type == "b":
@@ -183,3 +218,4 @@ class minecraft(commands.Cog):
 
 def setup(bot):
     bot.add_cog(minecraft(bot))
+    importlib.reload(mc_status)
