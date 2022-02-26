@@ -19,17 +19,29 @@ class minecraft_status:
         """エラーの種類がネットワーク系のエラーかどうかを調べます。"""
         return type(arg) == TimeoutError or type(arg) == ConnectionRefusedError or type(arg) == OSError
 
-    @timeout(10, use_signals=False)
+    async def java_unsync(loop, address):
+        return await loop.run_in_executor(
+            None, minecraft_status.java, address
+        )
+    
+    async def bedrock_unsync(loop, address):
+        return await loop.run_in_executor(
+            None, minecraft_status.bedrock, address
+        )
+    
+    
+    @timeout(5, use_signals=False)
     def java(address):
         """Minecraft:Java Edition"""
         try:
             server = mc.lookup(address)
             status = server.status()
-            return status
+            query = server.query()
+            return (status, query)
         except BaseException as err:
-            return err
+            return (err, None)
 
-    @timeout(10, use_signals=False)
+    @timeout(5, use_signals=False)
     def bedrock(address):
         """Minecraft:Bedrock Edition"""
         try:

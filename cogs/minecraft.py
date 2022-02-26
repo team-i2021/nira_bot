@@ -11,6 +11,19 @@ import traceback
 from timeout_decorator import timeout, TimeoutError
 
 
+import logging
+dir = sys.path[0]
+class NoTokenLogFilter(logging.Filter):
+    def filter(self, record):
+        message = record.getMessage()
+        return 'token' not in message
+
+logger = logging.getLogger(__name__)
+logger.addFilter(NoTokenLogFilter())
+formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
+logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
+
+
 
 class minecraft_base:
     async def server_add(bot, ctx, name, host, port: int, server_type):
@@ -77,27 +90,28 @@ class minecraft_base:
         for i in range(n_fc.mc_server_list[ctx.guild.id]["value"]):
             try:
                 if n_fc.mc_server_list[ctx.guild.id][i+1][2] == "java":
-                    server_status = mc_status.minecraft_status.java(n_fc.mc_server_list[ctx.guild.id][i+1][1])
-                    if mc_status.minecraft_status.error_check(server_status):
-                        embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`",value=f":ng: Javaサーバーに接続できませんでした。",inline=False)
+                    server = await mc_status.minecraft_status.java_unsync(bot.loop, n_fc.mc_server_list[ctx.guild.id][i+1][1])
+                    if server[1] == None:
+                        embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`",value=f":ng: Javaサーバーに接続できませんでした。\n\n\n",inline=False)
                     else:
+                        server_status, server_query = server
                         ping = int(server_status.latency)
                         players = server_status.players.online
-                        embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`",value=f":white_check_mark: Bedrock:Online\n{server_status.motd}\nPing:{ping}ms\nPlayers:{players}人\nGameMode:{server_status.gamemode}",inline=False)
+                        embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`",value=f":white_check_mark: Bedrock:Online\n{server_query.motd}\nPing:{ping}ms\nPlayers:{players}人\nGameMode:{server_query.gamemode}\n\n\n",inline=False)
                 elif n_fc.mc_server_list[ctx.guild.id][i+1][2] == "be":
                     server_status = mc_status.minecraft_status.bedrock(n_fc.mc_server_list[ctx.guild.id][i+1][1])
                     if mc_status.minecraft_status.error_check(server_status):
-                        embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`",value=f":ng: 統合版サーバーに接続できませんでした。",inline=False)
+                        embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`",value=f":ng: 統合版サーバーに接続できませんでした。\n\n\n",inline=False)
                     else:
                         ping = int(server_status.latency)
                         players = server_status.players_online
                         if ping == 0:
-                            embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`",value=f":white_check_mark: Bedrock:Online\n{server_status.motd}\nPlayers:{players}人\nGameMode:{server_status.gamemode}",inline=False)
+                            embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`",value=f":white_check_mark: Bedrock:Online\n{server_status.motd}\nPlayers:{players}人\nGameMode:{server_status.gamemode}\n\n\n",inline=False)
                         else:
-                            embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`",value=f":white_check_mark: Bedrock:Online\n{server_status.motd}\nPing:{ping}ms\nPlayers:{players}人\nGameMode:{server_status.gamemode}",inline=False)
-            except TimeoutError:
-                embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`",value=f":ng: サーバーに接続できませんでした。(Timed out)",inline=False)
-            embed.add_field(name="サーバー情報について", value=f"Pingは参考値にしてください。\n統合版サーバーでPingが表示されない場合はサーバーでPingが無効になっています。", inline=False)
+                            embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`",value=f":white_check_mark: Bedrock:Online\n{server_status.motd}\nPing:{ping}ms\nPlayers:{players}人\nGameMode:{server_status.gamemode}\n\n\n",inline=False)
+            except BaseException as err:
+                embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`",value=f":ng: サーバーに接続できませんでした。({err})\n\n\n",inline=False)
+            embed.set_footer(text=f"Pingは参考値にしてください。\n統合版サーバーでPingが表示されない場合はサーバーでPingが無効になっています。")
         await messages.mreply(ctx, "Minecraft Server Status", embed=embed)
         return
 
