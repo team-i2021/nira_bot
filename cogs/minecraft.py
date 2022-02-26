@@ -90,7 +90,7 @@ class minecraft_base:
         for i in range(n_fc.mc_server_list[ctx.guild.id]["value"]):
             try:
                 if n_fc.mc_server_list[ctx.guild.id][i+1][2] == "java":
-                    server = await mc_status.minecraft_status.java_unsync(bot.loop, n_fc.mc_server_list[ctx.guild.id][i+1][1])
+                    server = await asyncio.wait_for(mc_status.minecraft_status.java_unsync(bot.loop, n_fc.mc_server_list[ctx.guild.id][i+1][1]), timeout=3)
                     if server[1] == None:
                         embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`",value=f":ng: Javaサーバーに接続できませんでした。\n\n\n",inline=False)
                     else:

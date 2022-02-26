@@ -30,7 +30,7 @@ class minecraft_status:
         )
     
     
-    @timeout(5, use_signals=False)
+
     def java(address):
         """Minecraft:Java Edition"""
         try:
@@ -41,7 +41,7 @@ class minecraft_status:
         except BaseException as err:
             return (err, None)
 
-    @timeout(5, use_signals=False)
+    @timeout(5)
     def bedrock(address):
         """Minecraft:Bedrock Edition"""
         try:
