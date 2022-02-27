@@ -185,7 +185,7 @@ class amuse(commands.Cog):
         embed = nextcord.Embed(title="Wordle", description="6回以内に5文字の単語を当てろ！", color=0x00ff00)
         embed.add_field(name="・遊び方", value="5文字の英単語を送信していってください。\n詳しい遊び方は[こちら](https://snsdays.com/game-app/wodle-play-strategy/)から\n<:nira:915588411715358742>のリアクションがつかない場合はルールを間違えているのでやり直してください。")
         message = await ctx.send(embed=embed)
-        logging.info(answer)
+        logging.info((answer_list,answer))
         for i in range(6):
             def check(m):
                 return m.author == ctx.author and m.channel == ctx.channel and len(m.content) == 5 and re.search("[a-z]", m.content)
@@ -206,12 +206,21 @@ class amuse(commands.Cog):
                     share_block.extend("🟨")
                     answer_copy[text[j]] = 0
                 elif listre.search(answer_list, text[j]):
-                    if answer_copy[text[j]] != 0 and listre.search(answer_list[j+1:], text[j]) == None:
+                    #listre.search(answer_list[j+1:], text[j]) != None
+                    if answer_copy[text[j]] == 0:
+                        share_block.extend("⬛")
+                    elif answer_copy[text[j]] == 1:
                         check_list[j] = ":green_square:"
                         share_block.extend("🟩")
                         answer_copy[text[j]] = answer_copy[text[j]] - 1
                     else:
-                        share_block.extend("⬛")
+                        for k in range(j+1, 5):
+                            if answer_list[k] == text[k]:
+                                continue
+                            else:
+                                check_list[j] = ":green_square:"
+                                share_block.extend("🟩")
+                                answer_copy[text[j]] = answer_copy[text[j]] - 1
                 else:
                     share_block.extend("⬛")
             embed.add_field(name=f"`Turn:{i+1}`", value=f"`{' '.join(list(msg.content.translate(str.maketrans({chr(0x0021 + i): chr(0xFF01 + i) for i in range(94)}))))}`\n{''.join(check_list)}\n\n\n", inline=False)
@@ -223,11 +232,11 @@ class amuse(commands.Cog):
         share_text = ""
         if check_out != 0:
             embed.add_field(name="Great wordler!", value=f"流石です！あなたは`Turn{check_out+1}`でクリアしました！", inline=False)
-            share_text = f"#にらBOT%20#Wordleを{check_out+1}Turnでクリアしました！%0D%0A%0D%0A{''.join(share_block)}%0D%0AにらBOTと遊ぶ？%0D%0Ahttps://discord.gg/awfFpCYTcP"
+            share_text = f"%20#にらBOT%20#Wordleを{check_out+1}Turnでクリアしました！%0D%0A%0D%0A{''.join(share_block)}%0D%0AにらBOTと遊ぶ？%0D%0Ahttps://discord.gg/awfFpCYTcP"
         else:
             embed.add_field(name="Study more!", value=f"あなたの再度の挑戦をお待ちしています！", inline=False)
-            share_text = f"#にらBOT%20#Wordleで敗北しました！%0D%0A%0D%0A{''.join(share_block)}%0D%0AにらBOTと遊ぶ？%0D%0Ahttps://discord.gg/awfFpCYTcP"
-        embed.add_field(name="Twitterで共有する？", value=f"Twitterであなたの雄姿を共有しましょう！\n[Twitterで共有](https://twitter.com/share?text={share_text})")
+            share_text = f"%20#にらBOT%20#Wordleで敗北しました！%0D%0A%0D%0A{''.join(share_block)}%0D%0AにらBOTと遊ぶ？%0D%0Ahttps://discord.gg/awfFpCYTcP"
+        embed.add_field(name="Twitterで共有する？", value=f"Twitterであなたの雄姿を共有しましょう！\n[Twitterで共有](https://twitter.com/share?text={share_text}&url=)")
         await message.delete()
         await msg.channel.send(content=None, embed=embed)
         return

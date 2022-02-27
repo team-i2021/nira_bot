@@ -5,6 +5,7 @@ import pickle
 import math
 
 import sys,os
+
 sys.path.append('../')
 from util import admin_check, n_fc, eh
 
@@ -55,8 +56,8 @@ class reaction(commands.Cog):
                     embed.add_field(name=f"トリガー：{n_fc.ex_reaction_list[ctx.message.guild.id][f'{i+1}_tr']}", value=f"リターン：{n_fc.ex_reaction_list[ctx.message.guild.id][f'{i+1}_re']}", inline=False)
                 await ctx.message.reply(embed=embed)
                 return
-        if ctx.message.content[:9] == "n!er edit":
-            if ctx.message.content == "n!er edit":
+        if ctx.message.content.split(" ",1)[1][:4] == "edit":
+            if ctx.message.content.split(" ",1)[1] == "edit":
                 await ctx.message.reply("構文が異なります。\n```n!er edit [トリガー] [返信文]```")
                 return
             if ctx.message.guild.id not in n_fc.ex_reaction_list:
@@ -65,16 +66,14 @@ class reaction(commands.Cog):
             if n_fc.ex_reaction_list[ctx.message.guild.id]["value"] == 0:
                 await ctx.message.reply("追加反応は登録されていません。")
                 return
-            ssrt = ctx.message.content[10:].split(" ", 2)
-            b_tr = ssrt[0]
-            b_re = ssrt[1]
+            ssrt = ctx.message.content.split(" ", 3) # n!er,edit,triger,reply
+            b_tr = ssrt[2]
+            b_re = ssrt[3]
             try:
                 rt_e = 0
                 for i in range(math.floor((len(n_fc.ex_reaction_list[ctx.message.guild.id])-1)/2)):
                     if n_fc.ex_reaction_list[ctx.message.guild.id][f"{i+1}_tr"] == b_tr:
-                        await ctx.message.reply((n_fc.ex_reaction_list[ctx.message.guild.id][f"{i+1}_tr"], n_fc.ex_reaction_list[ctx.message.guild.id][f"{i+1}_re"]))
                         n_fc.ex_reaction_list[ctx.message.guild.id][f"{i+1}_re"] = b_re
-                        await ctx.message.reply((n_fc.ex_reaction_list[ctx.message.guild.id][f"{i+1}_tr"], n_fc.ex_reaction_list[ctx.message.guild.id][f"{i+1}_re"]))
                         rt_e = 1
                         break
                 if rt_e == 1:
@@ -88,15 +87,35 @@ class reaction(commands.Cog):
             except BaseException as err:
                 await ctx.message.reply(embed=eh.eh(err))
                 return
-        if ctx.message.content == "n!er del":
+        if ctx.message.content.split(" ",1)[1][:3] == "del":
             if ctx.message.guild.id not in n_fc.ex_reaction_list:
                 await ctx.message.reply("追加返答は設定されていません。")
                 return
             else:
-                del_re = await ctx.message.reply("追加返答のリストを削除してもよろしいですか？リスト削除には管理者権限が必要です。\n\n:o:：削除\n:x:：キャンセル")
-                await del_re.add_reaction("\U00002B55")
-                await del_re.add_reaction("\U0000274C")
-                return
+                if ctx.message.content.split(" ",1) == "del all":
+                    del_re = await ctx.message.reply("追加返答のリストを削除してもよろしいですか？リスト削除には管理者権限が必要です。\n\n:o:：削除\n:x:：キャンセル")
+                    await del_re.add_reaction("\U00002B55")
+                    await del_re.add_reaction("\U0000274C")
+                    return
+                elif ctx.message.content.split(" ",1) == "del":
+                    await ctx.reply("コマンドの引数が足りません。\n全削除:`n!er del all`\n特定の返答を削除:`n!er del [トリガー]`")
+                    return
+                else:
+                    result = None
+                    triger = ctx.message.content.split(" ",2)[2]
+                    for i in range(math.floor((len(n_fc.ex_reaction_list[ctx.message.guild.id])-1)/2)):
+                        if n_fc.ex_reaction_list[ctx.message.guild.id][f"{i+1}_tr"] == triger:
+                            result = i
+                            break
+                        continue
+                    if result == None:
+                        await ctx.reply(f"`{triger}`というトリガーが見つかりませんでした。\n不具合がある場合は全消しするか、サポートサーバーへご連絡ください。")
+                        return
+                    for i in range(math.floor((len(n_fc.ex_reaction_list[ctx.message.guild.id])-1)/2)-(result+1)):
+                        n_fc.ex_reaction_list[ctx.message.guild.id][f"{result+i+1}_tr"] = n_fc.ex_reaction_list[ctx.message.guild.id][f"{result+i+2}_tr"]
+                        n_fc.ex_reaction_list[ctx.message.guild.id][f"{result+i+1}_re"] = n_fc.ex_reaction_list[ctx.message.guild.id][f"{result+i+2}_re"]
+                    await ctx.reply("Ok")
+                    return
         return
     
     @commands.command()
