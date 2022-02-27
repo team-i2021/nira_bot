@@ -185,7 +185,6 @@ class amuse(commands.Cog):
         embed = nextcord.Embed(title="Wordle", description="6回以内に5文字の単語を当てろ！", color=0x00ff00)
         embed.add_field(name="・遊び方", value="5文字の英単語を送信していってください。\n詳しい遊び方は[こちら](https://snsdays.com/game-app/wodle-play-strategy/)から\n<:nira:915588411715358742>のリアクションがつかない場合はルールを間違えているのでやり直してください。")
         message = await ctx.send(embed=embed)
-        logging.info((answer_list,answer))
         for i in range(6):
             def check(m):
                 return m.author == ctx.author and m.channel == ctx.channel and len(m.content) == 5 and re.search("[a-z]", m.content)
@@ -197,7 +196,6 @@ class amuse(commands.Cog):
                 embed.add_field(name=f"`Turn:{i+1}`", value=f"`{' '.join(list(msg.content.translate(str.maketrans({chr(0x0021 + i): chr(0xFF01 + i) for i in range(94)}))))}`\n:yellow_square::yellow_square::yellow_square::yellow_square::yellow_square:\n\n\n", inline=False)
                 break
             text = list(msg.content.lower())
-            logging.info((text,msg.content))
             check_list = [":black_large_square:",":black_large_square:",":black_large_square:",":black_large_square:",":black_large_square:"]
             answer_copy = answer_dic.copy()
             for j in range(5):
