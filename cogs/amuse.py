@@ -6,7 +6,7 @@ import random
 import re
 import listre
 import sys
-
+import urllib.parse
 from nextcord.ext.commands.core import command
 
 from util.wordle_data import words
@@ -210,21 +210,38 @@ class amuse(commands.Cog):
                     if answer_copy[text[j]] == 0:
                         share_block.extend("⬛")
                     elif answer_copy[text[j]] == 1:
-                        check_list[j] = ":green_square:"
-                        share_block.extend("🟩")
-                        answer_copy[text[j]] = answer_copy[text[j]] - 1
-                    else:
+                        check_result = None
                         for k in range(j+1, 5):
                             if answer_list[k] == text[k]:
-                                continue
-                            else:
-                                check_list[j] = ":green_square:"
-                                share_block.extend("🟩")
-                                answer_copy[text[j]] = answer_copy[text[j]] - 1
+                                if text[k] == text[j]:
+                                    share_block.extend("⬛")
+                                    check_result = None
+                                    break
+                            check_result = k
+                        if check_result != None:
+                            check_list[j] = ":green_square:"
+                            share_block.extend("🟩")
+                            answer_copy[text[j]] = answer_copy[text[j]] - 1
+                    else:
+                        check_result = (None,answer_copy[text[j]].copy())
+                        for k in range(j+1, 5):
+                            if answer_list[k] == text[k]:
+                                if text[k] == text[j]:
+                                    check_result[1] = check_result[1] - 1
+                            if check_result[1] == 0:
+                                check_result[0] = None
+                                break
+                            check_result[0] = k
+                        if check_result[0] != None:
+                            check_list[j] = ":green_square:"
+                            share_block.extend("🟩")
+                            answer_copy[text[j]] = answer_copy[text[j]] - 1
+                        else:
+                            share_block.extend("⬛")
                 else:
                     share_block.extend("⬛")
             embed.add_field(name=f"`Turn:{i+1}`", value=f"`{' '.join(list(msg.content.translate(str.maketrans({chr(0x0021 + i): chr(0xFF01 + i) for i in range(94)}))))}`\n{''.join(check_list)}\n\n\n", inline=False)
-            share_block.extend("%0D%0A")
+            share_block.extend("\n")
             if i != 5:
                 await message.delete()
                 message = await msg.channel.send(content=None, embed=embed)
@@ -232,11 +249,17 @@ class amuse(commands.Cog):
         share_text = ""
         if check_out != 0:
             embed.add_field(name="Great wordler!", value=f"流石です！あなたは`Turn{check_out+1}`でクリアしました！", inline=False)
-            share_text = f"%20#にらBOT%20#Wordleを{check_out+1}Turnでクリアしました！%0D%0A%0D%0A{''.join(share_block)}%0D%0AにらBOTと遊ぶ？%0D%0Ahttps://discord.gg/awfFpCYTcP"
+            share_text = f""" #にらBOT #Wordle を{check_out+1}Turnでクリアしました！\n
+{''.join(share_block)}\n
+↓にらBOTと遊ぶ？
+https://discord.gg/awfFpCYTcP"""
         else:
             embed.add_field(name="Study more!", value=f"あなたの再度の挑戦をお待ちしています！", inline=False)
-            share_text = f"%20#にらBOT%20#Wordleで敗北しました！%0D%0A%0D%0A{''.join(share_block)}%0D%0AにらBOTと遊ぶ？%0D%0Ahttps://discord.gg/awfFpCYTcP"
-        embed.add_field(name="Twitterで共有する？", value=f"Twitterであなたの雄姿を共有しましょう！\n[Twitterで共有](https://twitter.com/share?text={share_text}&url=)")
+            share_text = f""" #にらBOT #Wordle で敗北しました！\n
+{''.join(share_block)}\n
+↓にらBOTと遊ぶ？
+https://discord.gg/awfFpCYTcP"""
+        embed.add_field(name="Twitterで共有する？", value=f"Twitterであなたの雄姿を共有しましょう！\n[Twitterで共有](https://twitter.com/intent/tweet?text={urllib.parse.quote(f'{share_text}')}&url=)")
         await message.delete()
         await msg.channel.send(content=None, embed=embed)
         return
