@@ -4,10 +4,26 @@ from nextcord.ext import commands
 import nextcord
 import random
 import re
+import listre
+import sys
 
 from nextcord.ext.commands.core import command
 
+from util.wordle_data import words
 #娯楽系
+
+import logging
+dir = sys.path[0]
+class NoTokenLogFilter(logging.Filter):
+    def filter(self, record):
+        message = record.getMessage()
+        return 'token' not in message
+
+logger = logging.getLogger(__name__)
+logger.addFilter(NoTokenLogFilter())
+formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
+logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
+
 
 class amuse(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -153,6 +169,73 @@ class amuse(commands.Cog):
         embed.add_field(name=f"あなたの運勢は**星10個中の{ur_w}個**です！", value=f"> {ur_m}")
         await ctx.message.reply(embed=embed)
         return
+    
+    @commands.command()
+    async def wordle(self, ctx: commands.Context):
+        answer = words.splitlines()[random.randint(0, len(words.splitlines())-1)]
+        check_out = 0
+        answer_list = list(answer)
+        answer_dic = {}
+        share_block = []
+        for i in range(5):
+            if answer_list[i] not in answer_dic:
+                answer_dic[answer_list[i]] = 1
+            else:
+                answer_dic[answer_list[i]] = answer_dic[answer_list[i]] + 1
+        embed = nextcord.Embed(title="Wordle", description="6回以内に5文字の単語を当てろ！", color=0x00ff00)
+        embed.add_field(name="・遊び方", value="5文字の英単語を送信していってください。\n詳しい遊び方は[こちら](https://snsdays.com/game-app/wodle-play-strategy/)から\n<:nira:915588411715358742>のリアクションがつかない場合はルールを間違えているのでやり直してください。")
+        message = await ctx.send(embed=embed)
+        logging.info(answer)
+        for i in range(6):
+            def check(m):
+                return m.author == ctx.author and m.channel == ctx.channel and len(m.content) == 5 and re.search("[a-z]", m.content)
+            msg = await self.bot.wait_for('message', check=check)
+            await msg.add_reaction("<:nira:915588411715358742>")
+            if msg.content == answer:
+                check_out = i
+                share_block.extend(["🟨","🟨","🟨","🟨","🟨"])
+                embed.add_field(name=f"`Turn:{i+1}`", value=f"`{' '.join(list(msg.content.translate(str.maketrans({chr(0x0021 + i): chr(0xFF01 + i) for i in range(94)}))))}`\n:yellow_square::yellow_square::yellow_square::yellow_square::yellow_square:\n\n\n", inline=False)
+                break
+            text = list(msg.content.lower())
+            logging.info((text,msg.content))
+            check_list = [":black_large_square:",":black_large_square:",":black_large_square:",":black_large_square:",":black_large_square:"]
+            answer_copy = answer_dic.copy()
+            for j in range(5):
+                if text[j] == answer_list[j]:
+                    check_list[j] = ":yellow_square:"
+                    share_block.extend("🟨")
+                    answer_copy[text[j]] = 0
+                elif listre.search(answer_list, text[j]):
+                    if answer_copy[text[j]] != 0 and listre.search(answer_list[j+1:], text[j]) == None:
+                        check_list[j] = ":green_square:"
+                        share_block.extend("🟩")
+                        answer_copy[text[j]] = answer_copy[text[j]] - 1
+                    else:
+                        share_block.extend("⬛")
+                else:
+                    share_block.extend("⬛")
+            embed.add_field(name=f"`Turn:{i+1}`", value=f"`{' '.join(list(msg.content.translate(str.maketrans({chr(0x0021 + i): chr(0xFF01 + i) for i in range(94)}))))}`\n{''.join(check_list)}\n\n\n", inline=False)
+            share_block.extend("%0D%0A")
+            if i != 5:
+                await message.delete()
+                message = await msg.channel.send(content=None, embed=embed)
+        embed.add_field(name="GameOver", value=f"答えは`{answer}`でした！", inline=False)
+        share_text = ""
+        if check_out != 0:
+            embed.add_field(name="Great wordler!", value=f"流石です！あなたは`Turn{check_out+1}`でクリアしました！", inline=False)
+            share_text = f"#にらBOT%20#Wordleを{check_out+1}Turnでクリアしました！%0D%0A%0D%0A{''.join(share_block)}%0D%0AにらBOTと遊ぶ？%0D%0Ahttps://discord.gg/awfFpCYTcP"
+        else:
+            embed.add_field(name="Study more!", value=f"あなたの再度の挑戦をお待ちしています！", inline=False)
+            share_text = f"#にらBOT%20#Wordleで敗北しました！%0D%0A%0D%0A{''.join(share_block)}%0D%0AにらBOTと遊ぶ？%0D%0Ahttps://discord.gg/awfFpCYTcP"
+        embed.add_field(name="Twitterで共有する？", value=f"Twitterであなたの雄姿を共有しましょう！\n[Twitterで共有](https://twitter.com/share?text={share_text})")
+        await message.delete()
+        await msg.channel.send(content=None, embed=embed)
+        return
+
+
+
+
+
 
 def setup(bot):
     bot.add_cog(amuse(bot))
