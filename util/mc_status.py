@@ -29,17 +29,14 @@ class minecraft_status:
             None, minecraft_status.bedrock, address
         )
     
-    
-
     def java(address):
         """Minecraft:Java Edition"""
         try:
             server = mc.lookup(address)
             status = server.status()
-            query = server.query()
-            return (status, query)
+            return status
         except BaseException as err:
-            return (err, None)
+            return err
 
     @timeout(5)
     def bedrock(address):
