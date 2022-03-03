@@ -14,10 +14,12 @@ SLASH = 1
 
 class info_base():
     def info(self, ctx, type):
-        embed = nextcord.Embed(title="にらBOTについて", description="にらBOTは、かの有名なARK廃人の「にら」を元ネタとする、多機能DiscordBOTです！", color=0x00ff00)
-        embed.add_field(name="ニラは繊細！", value="にらBOT(ってかにら君)は、とっても繊細です！\nコマンドなどを沢山送ったりすると、落ちちゃうかもしれません！\n丁寧に扱ってください！", inline=False)
-        embed.add_field(name="音声再生について", value="`n!join`及び`n!play [URL]`コマンドを使用した音楽再生は、大体サーバーのスペックの問題で全然再生出来ません。まぁ気にしないでね！", inline=False)
-        embed.add_field(name="詳しくは...", value="[こちら](https://nattyan-tv.github.io/nira_web/index.html)からにらBOTの詳細をご確認いただけます！どうぞご覧ください！", inline=False)
+        embed = nextcord.Embed(title="にらBOTについて", description="**地味に**有能なDiscordBOT。\n主に5種類の機能があります。", color=0x00ff00)
+        embed.add_field(name="・娯楽系", value="じゃんけん、しりとりで遊べたり、サイコロを振ることが出来たり、占いをすることが出来ます。", inline=False)
+        embed.add_field(name="・音楽系", value="VCでYouTubeやniconicoの音楽を流すことが出来ます。", inline=False)
+        embed.add_field(name="・反応系", value="「にら」に反応します。あとは、指定したトリガーが送信されたときに指定したメッセージを送信することが出来ます。あとは、Discordで送信されたメッセージをLINEに送信することが出来ます（多分）。", inline=False)
+        embed.add_field(name="・ユーザー情報系", value="Discordサーバーに誰かが入った際に、そのユーザーの名前やアイコン、アカウントの作成日を指定したチャンネルに送信することが出来ます（荒らし対策）。また、ロールキーパー（一度抜けてから再度入った際に以前のロールを再付与する機能）もあります。", inline=False)
+        embed.add_field(name="・サーバーステータス系", value="SteamDedicatedサーバーゲームのステータスを表示することが出来ます。\nサーバーステータスとは、「今サーバーがオンラインか」「今何人いるか」「今誰が、どれだけの時間いるか」というような情報です。\n例えば、ARKとか7DaysToDieとかなんか色々...[対応ゲーム一覧](https://developer.valvesoftware.com/wiki/Dedicated_Servers_List)\nまた、Minecraftのサーバーステータス表示にもそのうち対応させる予定です。（1000年以内に）", inline=False)
         embed.add_field(name="困ったり暇だったら...", value="[ここ](https://discord.gg/awfFpCYTcP)から謎な雑談鯖に入れるよ！", inline=False)
         if ctx.author.id in n_fc.py_admin:
             embed.add_field(name="ってかお前って...", value="開発者だよなお前...\n\n[メインレポジトリ](https://github.com/nattyan-tv/nira_bot) / [ウェブページレポジトリ](https://github.com/nattyan-tv/)")

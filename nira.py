@@ -126,7 +126,7 @@ async def on_ready():
             requests.post(main_channel, main_content)
             continue
     print("AutoSSのタスク復元完了")
-    await bot.change_presence(activity=nextcord.Game(name="n!help | にらゲー", type=1), status=nextcord.Status.online)
+    await bot.change_presence(activity=nextcord.Game(name="n!info | にらゲー", type=1), status=nextcord.Status.online)
     print("Welcome to nira-bot")
 
 #機能しなかったときの保険↓
