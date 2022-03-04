@@ -38,7 +38,6 @@ class minecraft_status:
         except BaseException as err:
             return err
 
-    @timeout(5)
     def bedrock(address):
         """Minecraft:Bedrock Edition"""
         try:

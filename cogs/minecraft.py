@@ -94,20 +94,20 @@ class minecraft_base:
                     ping = int(status.latency)
                     players = status.players.online
                     if players != 0:
-                        embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",value=f":white_check_mark: Online\n{status.description}\nPing:`{ping}ms`\nPlayers:`{players}人`\n```{[i['name'] for i in status.raw['players']['sample']]}```\n\n\n",inline=False)
+                        embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",value=f":white_check_mark: Online\n`{status.description}`\nPing:`{ping}ms`\nPlayers:`{players}人`\n```{[i['name'] for i in status.raw['players']['sample']]}```\n\n\n",inline=False)
                     else:
-                        embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",value=f":white_check_mark: Online\n{status.description}\nPing:`{ping}ms`\nPlayers:`{players}人````\n\n\n",inline=False)
+                        embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",value=f":white_check_mark: Online\n`{status.description}`\nPing:`{ping}ms`\nPlayers:`{players}人`\n\n\n",inline=False)
                 elif n_fc.mc_server_list[ctx.guild.id][i+1][2] == "be":
-                    server_status = mc_status.minecraft_status.bedrock(n_fc.mc_server_list[ctx.guild.id][i+1][1])
-                    if mc_status.minecraft_status.error_check(server_status):
+                    status = await asyncio.wait_for(mc_status.minecraft_status.bedrock_unsync(bot.loop, n_fc.mc_server_list[ctx.guild.id][i+1][1]), timeout=3)
+                    if mc_status.minecraft_status.error_check(status):
                         embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",value=f":ng: Offline\n\n\n",inline=False)
                     else:
-                        ping = int(server_status.latency)
-                        players = server_status.players_online
+                        ping = int(status.latency)
+                        players = status.players_online
                         if ping == 0:
-                            embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",value=f":white_check_mark: Online\n{server_status.motd}\nPlayers:{players}人\nGameMode:{server_status.gamemode}\n\n\n",inline=False)
+                            embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",value=f":white_check_mark: Online\n`{status.motd}`\nPlayers:`{players}人`\nGameMode:`{status.gamemode}`\n\n\n",inline=False)
                         else:
-                            embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",value=f":white_check_mark: Online\n{server_status.motd}\nPing:{ping}ms\nPlayers:{players}人\nGameMode:{server_status.gamemode}\n\n\n",inline=False)
+                            embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",value=f":white_check_mark: Online\n`{status.motd}`\nPing:`{ping}ms`\nPlayers:`{players}人`\nGameMode:`{status.gamemode}`\n\n\n",inline=False)
             except BaseException:
                 embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",value=f":ng: Offline\n\n\n",inline=False)
             embed.set_footer(text=f"Pingは参考値にしてください。")

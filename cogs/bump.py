@@ -64,11 +64,11 @@ class bump(commands.Cog):
             await asyncio.sleep(7200)
             bump_rnd = random.randint(1,3)
             if bump_rnd == 1:
-                await message.channel.send(embed=nextcord.Embed(title="Bumpの時間よ！", description=f"Bumpしたければすればいいんじゃないの...？(ツンデレ)\n```!d bump```", color=0x00ff00))
+                await message.channel.send(embed=nextcord.Embed(title="Bumpの時間よ！", description=f"Bumpしたければすればいいんじゃないの...？(ツンデレ)\n```/bump```", color=0x00ff00))
             elif bump_rnd == 2:
-                await message.channel.send(embed=nextcord.Embed(title="Bumpしやがれください！", description=f"お前がBumpするんだよ、あくしろよ！\n```!d bump```", color=0x00ff00))
+                await message.channel.send(embed=nextcord.Embed(title="Bumpしやがれください！", description=f"お前がBumpするんだよ、あくしろよ！\n```/bump```", color=0x00ff00))
             elif bump_rnd == 3:
-                await message.channel.send(embed=nextcord.Embed(title="Bumpしましょう！", description=f"Bumpの時間ですよ！\n```!d bump```", color=0x00ff00))
+                await message.channel.send(embed=nextcord.Embed(title="Bumpしましょう！", description=f"Bumpの時間ですよ！\n```/bump```", color=0x00ff00))
             return
 
 def setup(bot):
