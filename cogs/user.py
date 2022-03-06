@@ -18,7 +18,12 @@ class user(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
     
-    @commands.command()
+    @commands.command(name="d", help="""\
+    ユーザーの情報を表示します。
+    引数を指定せずに`n!d`とだけ指定するとあなた自身の情報を表示します。
+    `n!d [ユーザーID]`という風に指定すると、そのユーザーの情報を表示することが出来ます。
+    ユーザーIDの指定方法は...多分調べれば出てきます。
+    **メンションでも指定できますが、いざこざとかにつながるかもしれないのでしないほうが得策です。**""")
     async def d(self, ctx: commands.Context):
         if ctx.message.content == "n!d":
             user = await self.bot.fetch_user(ctx.message.author.id)
@@ -40,7 +45,11 @@ class user(commands.Cog):
                 await ctx.message.reply(embed=nextcord.Embed(title="Error", description="ユーザーが存在しないか、データが取得できませんでした。", color=0xff0000))
                 return
     
-    @commands.command()
+    @commands.command(name="rk", help="""\
+    ロールキーパー機能です。
+    大前提、**ちゃんと機能するとは思わないでください。**
+    `n!rk [on/off]`でロールキーパー機能の設定が可能です。ただ、ロールキーパー機能を有効にするには`n!ui`の、ユーザー情報表示を有効にしないと有効になりません。
+    """)
     async def rk(self, ctx: commands.Context):
         if admin_check.admin_check(ctx.message.guild, ctx.message.author) or ctx.message.author.id in n_fc.py_admin:
             if ctx.message.content == "n!rk":
@@ -64,12 +73,14 @@ class user(commands.Cog):
             else:
                 await ctx.reply("値が不正です。\n「on」とか「off」とか...")
                 return
+            save()
             await ctx.reply("ロールキーパーの設定を更新しました。")
             return
         else:
             await ctx.reply("権限がありません。")
     
-    @commands.command()
+    @commands.command(name="ui", help="""\
+    誰かがDiscordサーバーに加入/離脱した際に、指定したチャンネルにそのユーザーの情報を表示します。""")
     async def ui(self, ctx: commands.Context):
         if admin_check.admin_check(ctx.message.guild, ctx.message.author) or ctx.message.author.id in n_fc.py_admin:
             if ctx.message.content[:8] == "n!ui set":

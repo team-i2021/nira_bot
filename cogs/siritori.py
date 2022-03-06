@@ -14,7 +14,12 @@ class siritori(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.command()
+    @commands.command(name="srtr",help="""\
+    しりとり風のゲームで遊ぶことが出来ます。
+    漢字には弱いです。
+    
+    `n!srtr start`でそのチャンネルでしりとりゲームを始めます。
+    `n!srtr stop`で、しりとりゲームを終了します。""")
     async def srtr(self, ctx: commands.Context):
         if ctx.message.content == "n!srtr start":
             try:

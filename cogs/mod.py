@@ -48,7 +48,9 @@ class mod(commands.Cog):
                 await message.channel.send(f"{message.author.name}をミュートしようとしましたがエラーが発生しました。\n{err}")
                 return
 
-    @commands.command()
+    @commands.command(name="mod", help="""\
+    いつか搭載予定の荒らし対策機能。
+    めんどくさくて全然作ってません。一応、特定数異常のメッセージを一分以内に送信した人がミューとされていくっていうような感じです。""")
     async def mod(self, ctx: commands.Context):
         if ctx.author.id not in n_fc.py_admin:
             await ctx.reply("荒らし対策機能\nいつか搭載予定")

@@ -87,9 +87,17 @@ class ping(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
     
-    @commands.command()
+    @commands.command(name="ping", help="""\
+    レイテンシを表示します。
+    `n!ping`で、DiscordサーバーとBOTサーバーとのレイテンシを表示します。
+    `n!ping [address]`という風に、アドレスを指定すると、そのアドレスとのpingを測定します。
+    ローカルIP及びlocalhostにはping出来ません。多分....。
+    また、pingは実測値ですが、当然参考値にしてください。
+    
+    引数1:address(str)
+    IPアドレスまたはドメインの形で指定してください。""")
     async def ping(self, ctx: commands.Context):
-        address = ctx.message.content[7:]
+        address = ctx.message.content.split(" ",1)[1]
         await base_ping(self.bot, ctx, address)
 
 def setup(bot):

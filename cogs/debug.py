@@ -168,11 +168,6 @@ class debug(commands.Cog):
         self.bot = bot
         
     @commands.command()
-    async def func(self, ctx: commands.Context):
-        await ctx.reply("スラッシュコマンドを使用してください。")
-        return
-
-    @commands.command()
     async def create(self, ctx: commands.Context):
         if ctx.message.author.id in n_fc.py_admin:
             if ctx.message.content == "n!create":

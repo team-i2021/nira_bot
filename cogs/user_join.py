@@ -28,6 +28,11 @@ logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.
 class user_join(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+    
+    @commands.Cog.listener()
+    async def on_member_join(self, member):
+        
+        return
 
     @commands.Cog.listener()
     async def on_member_join(self, member):

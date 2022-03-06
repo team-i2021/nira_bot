@@ -11,7 +11,7 @@ class check(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.command()
+    @commands.command(name="admin", help="あなたが管理者権限があるかどうかを確認するだけです。")
     async def admin(self, ctx: commands.Context):
         if admin_check.admin_check(ctx.message.guild, ctx.message.author):
             await ctx.message.reply(embed=nextcord.Embed(title="ADMIN", description=f"権限があるようです。", color=0x00ff00))

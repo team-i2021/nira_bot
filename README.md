@@ -25,7 +25,7 @@ issueやPRを立てる場合は、初心者プログラマー(私)にやさし�
 特にテンプレとかは書かないですし、**大半の人がみて分かりやすいような書き方**であれば何でもいいです。
 
 # 機能
-[こちら](https://nattyan-tv.github.io/nira_web/index.html)をご確認ください。
+[こちら](https://nira.f5.si/help.html)をご確認ください。
 
 # Extra Licenses
 - Words list for Wordle  

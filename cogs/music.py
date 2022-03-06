@@ -163,7 +163,9 @@ class music(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
     
-    @commands.command(name="list")
+    @commands.command(name="list", help="""\
+    音楽のプレイリスをと表示します。
+    音楽系のコマンドの詳細は[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)からご確認ください。""")
     async def show_list(self, ctx: commands.Context):
         if ctx.guild.id not in music_list or len(music_list[ctx.guild.id]) == 0:
             await ctx.reply("音楽はないです！\n`n!play [URL]`で曲をじゃんじゃん再生しましょう！\n（本音：サーバー負荷やばいからな...うぅ...）")
@@ -172,7 +174,9 @@ class music(commands.Cog):
             await ctx.reply(f"プレイリストの曲数:`{len(music_list[ctx.guild.id])}`曲\n\n(あとはここに曲の題名とかを...ふっふっふっ...(未完成))")
             return
     
-    @commands.command()
+    @commands.command(name="music_debug", help="""\
+    Show song list
+    音楽系のコマンドの詳細は[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)からご確認ください。""")
     async def music_debug(self, ctx: commands.Context):
         if ctx.author.id in n_fc.py_admin:
             try:
@@ -185,7 +189,9 @@ class music(commands.Cog):
             except KeyError:
                 await ctx.reply("KeyError.\n曲データは存在しません。")
     
-    @commands.command()
+    @commands.command(name="join",help="""\
+    あなたの入ってるVCににらBOTが乱入します！
+    音楽系のコマンドの詳細は[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)からご確認ください。""")
     async def join(self, ctx: commands.Context):
         try:
             if ctx.message.author.voice is None:
@@ -201,7 +207,10 @@ class music(commands.Cog):
             print(f"[VC接続時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
             return
     
-    @commands.command()
+    @commands.command(name="play", help="""\
+    VCににらBOTが入っている場合は音楽を再生することが出来ます。
+    再生できるのは「YouTubeの動画またはプレイリスト」「ニコニコ動画の動画」のみです。
+    音楽系のコマンドの詳細は[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)からご確認ください。""")
     async def play(self, ctx: commands.Context):
         try:
             if ctx.message.author.voice is None:
@@ -292,7 +301,9 @@ class music(commands.Cog):
             logging.error(f"[楽曲再生時or再生中のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
             return
     
-    @commands.command()
+    @commands.command(name="pause", help="""\
+    現在再生中の音楽を一時停止します。
+    音楽系のコマンドの詳細は[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)からご確認ください。""")
     async def pause(self, ctx: commands.Context):
         if ctx.message.author.voice is None:
             await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
@@ -310,7 +321,10 @@ class music(commands.Cog):
                 print(f"[楽曲中断時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
                 return
     
-    @commands.command()
+    @commands.command(name="resume",help="""\
+    一時停止している音楽を再開します。
+    レジュメじゃないですレジュームです。
+    音楽系のコマンドの詳細は[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)からご確認ください。""")
     async def resume(self, ctx: commands.Context):
         if ctx.message.author.voice is None:
             await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
@@ -328,7 +342,9 @@ class music(commands.Cog):
                 print(f"[楽曲中断時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
                 return
     
-    @commands.command()
+    @commands.command(name="stop", help="""\
+    音楽再生を全て止めます。
+    音楽系のコマンドの詳細は[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)からご確認ください。""")
     async def stop(self, ctx: commands.Context):
         if ctx.message.author.voice is None:
             await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
@@ -348,7 +364,9 @@ class music(commands.Cog):
                 print(f"[楽曲停止時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
                 return
     
-    @commands.command()
+    @commands.command(name="leave",help="""\
+    音楽を再生してようがしてまいが、にらBOTをVCから蹴とばします。
+    音楽系のコマンドの詳細は[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)からご確認ください。""")
     async def leave(self, ctx: commands.Context):
         try:
             if ctx.message.author.voice is None:
@@ -367,7 +385,9 @@ class music(commands.Cog):
             print(f"[VC切断時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
             return
     
-    @commands.command()
+    @commands.command(name="skip", help="""\
+    現在の曲をスキップします。
+    音楽系のコマンドの詳細は[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)からご確認ください。""")
     async def skip(self, ctx: commands.Context):
         if ctx.message.author.voice is None:
             await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
@@ -389,7 +409,9 @@ class music(commands.Cog):
                 print(f"[楽曲停止時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
                 return
     
-    @commands.command()
+    @commands.command(name="pop", help="""\
+    プレイリストの最後の曲を削除します。
+    音楽系のコマンドの詳細は[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)からご確認ください。""")
     async def pop(self, ctx: commands.Context):
         if ctx.message.author.voice is None:
             await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))

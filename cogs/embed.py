@@ -12,7 +12,24 @@ class embed(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
     
-    @commands.command()
+    @commands.command(name="embed", help="""\
+    あなたの代わりに**にらBOT**がEmbedを送信します。
+    ```n!embed [color] [title]
+    [本文]```
+    というような構成で送ってください。
+    colorは16進数のRGBカラーコード([#]は不要)です。
+    カラーコードについては[こちら](https://bratcreator.work/color-code/)を参考にしてください。
+    カラーコードが送信されないとわけわからん色になる場合があります。
+
+    引数1:color(int...?)
+    RGBのカラーコード。Embedの色になります。
+
+    引数2:title(str)
+    Embedのタイトルになるところです。
+
+    引数3:本文(str)
+    Embedの本文です。
+    """)
     async def embed(self, ctx: commands.Context):
         if ctx.message.content == "n!embed":
             embed = nextcord.Embed(title="Error", description="構文が間違っています。\n```n!embed [color(000000～ffffff)] [title]\n[description]```", color=0xff0000)

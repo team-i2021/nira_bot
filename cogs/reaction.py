@@ -17,14 +17,18 @@ class reaction(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
     
-    @commands.command()
+    @commands.command(name="line", help="DiscordのメッセージをLINEに送信します。")
     async def line(self, ctx: commands.Context):
         embed = nextcord.Embed(title="DiscordのメッセージをLINEに送信する機能", description="使い方", color=0x00ff00)
         embed.add_field(name="**このコマンドはスラッシュコマンドです**", value="`/line [token]`というような形でコマンドを送ってください。\nその際、スラッシュコマンドであることを確認してください。\ntokenの流出はとんでもないことにつながります。", inline=False)
         embed.add_field(name="**TOKENって何？**", value="TOKENとは簡単に言えばキーです。LINE Notifyのページから発行してきてください。\n[TOKENの発行方法](https://qiita.com/nattyan_tv/items/33ac7a7269fe12e49198)", inline=False)
         await ctx.reply(embed=embed)
 
-    @commands.command()
+    @commands.command(name="er", help="""\
+    追加で新しいにらの反応を作り出すことが出来ます。
+    オートリプライとかって呼ばれるんですかね？まぁ、トリガーとリターンを指定することで、トリガーが送信された際に指定したリターンを送信することが出来ます。
+    トリガーには正規表現を使うことが出来ます。が、スペースを含むことはできませんのでご了承ください。
+    """)
     async def er(self, ctx: commands.Context):
         if ctx.message.content[:8] == "n!er add":
             if ctx.message.content == "n!er add":
@@ -118,7 +122,13 @@ class reaction(commands.Cog):
                     return
         return
     
-    @commands.command()
+    @commands.command(name="nr", help="""\
+    にらBOTの通常反応（にらとか）を無効にしたりすることが出来ます。
+    `n!nr`:今の状態を表示
+    `n!nr off`:通常反応を無効化
+    `n!nr on`:通常反応を有効化
+    `n!nr all off`:通常反応を**サーバーで**無効化
+    `n!nr all on`:通常反応を**サーバーで**有効化""")
     async def nr(self, ctx: commands.Context):
         try:
             if ctx.message.guild.id not in n_fc.reaction_bool_list: # 通常反応のブール値存在チェック
@@ -169,7 +179,11 @@ class reaction(commands.Cog):
             await ctx.message.reply(embed=eh.eh(err))
             return
     
-    @commands.command()
+    @commands.command(name="ar",help="""\
+    にらBOTの通常反応及び追加反応(Bump通知および`n!`コマンド以外のすべて)を無効にしたりすることが出来ます。
+    `n!ar`:今の状態を表示
+    `n!ar off`:全反応を無効化
+    `n!ar on`:全反応を有効化""")
     async def ar(self, ctx: commands.Context):
         try:
             if ctx.message.guild.id not in n_fc.all_reaction_list:

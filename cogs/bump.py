@@ -20,7 +20,13 @@ class bump(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
     
-    @commands.command()
+    @commands.command(name="bump", help="""\
+    DisboardのBumpの通知設定を行います。
+    とっても簡単です。`!d bump`をしてから、2時間がたったら通知されるだけです。
+    使用方法は`n!bump on`とするだけです。（管理者権限必要）
+    
+    引数1:str
+    on/offで切り替えられます。""")
     async def bump(self, ctx: commands.Context):
         if ctx.message.content == "n!bump":
             if ctx.message.guild.id not in n_fc.bump_list:

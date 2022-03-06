@@ -378,8 +378,12 @@ class server_status(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.command()
-    @commands.cooldown(1, 10, type=commands.BucketType.guild)
+    @commands.command(name="ss",help="""\
+        Steam非公式サーバーのステータスを表示します
+        このコマンドは、**user毎**で**10秒**のクールダウンがあります。
+        このコマンドのヘルプは別ページにあります。
+        [ヘルプはこちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/ss)""")
+    @commands.cooldown(1, 10, type=commands.BucketType.user)
     async def ss(self, ctx: commands.Context):
         await ss_base(self, ctx)
 

@@ -137,8 +137,13 @@ class minecraft_base:
 class minecraft(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-    
-    @commands.command()
+
+    @commands.command(name="mc",help="""\
+    MinecraftのJava/BEサーバーのステータスを表示します
+    このコマンドは、**user毎**で**10秒**のクールダウンがあります。
+    このコマンドのヘルプは別ページにあります。
+    [ヘルプはこちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/minecraft)""")
+    @commands.cooldown(1, 10, type=commands.BucketType.user)
     async def mc(self, ctx: commands.Context):
         if ctx.author.id not in n_fc.py_admin:
             return

@@ -29,7 +29,15 @@ class amuse(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.command()
+    @commands.command(name="dice", help="""\
+    指定した最大目のダイスを振ります。
+    数値以外は無視されます。
+    例:`n!dice 10`(0-10のダイス)
+    例:`n!dice a12`(0-12のダイス)
+    例:`n!dice -290`(0-290のダイス)    
+
+    引数1:int
+    ダイスの最大値。""")
     async def dice(self, ctx: commands.context):
         if ctx.message.content == "n!dice":
             await ctx.reply(embed=nextcord.Embed(title="エラー",description="サイコロだよ！\n`n!dice [max]`",color=0xff0000))
@@ -53,7 +61,14 @@ class amuse(commands.Cog):
         return
 
 
-    @commands.command()
+    @commands.command(name="janken", help="""\
+    じゃんけんで遊びます。
+    `n!janekn [グー/チョキ/パー]`
+    グーかチョキかパー以外を出したりすると少し煽られます。
+    [ルール解説](https://ja.wikipedia.org/wiki/%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93#:~:text=%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93%E3%81%AF2%E4%BA%BA%E4%BB%A5%E4%B8%8A,%E3%81%A8%E6%95%97%E8%80%85%E3%82%92%E6%B1%BA%E5%AE%9A%E3%81%99%E3%82%8B%E3%80%82)
+    
+    引数1:str
+    「グー」または「チョキ」または「パー」の手。""")
     async def janken(self, ctx: commands.context):
         if ctx.message.content == "n!janken":
             embed = nextcord.Embed(title="Error", description="じゃんけんっていのは、「グー」「チョキ」「パー」のどれかを出して遊ぶゲームだよ。\n[ルール解説](https://ja.wikipedia.org/wiki/%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93#:~:text=%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93%E3%81%AF2%E4%BA%BA%E4%BB%A5%E4%B8%8A,%E3%81%A8%E6%95%97%E8%80%85%E3%82%92%E6%B1%BA%E5%AE%9A%E3%81%99%E3%82%8B%E3%80%82)\n```n!janken [グー/チョキ/パー]```", color=0xff0000)
@@ -118,7 +133,10 @@ class amuse(commands.Cog):
         await ctx.message.reply(embed=embed)
         return
 
-    @commands.command()
+    @commands.command(name="uranai", help="""\
+    占いで遊びます。いや、ちゃんと占います。
+    ただ、これであなたの運勢が決まるわけではありません。
+    あなたの行いが良くなれば、自然と運勢も上がっていきますし、行いが悪くなれば、自然と運勢が下がっていきます。""")
     async def uranai(self, ctx: commands.context):
         rnd_uranai = random.randint(1, 100)
         if rnd_uranai >= 1 and rnd_uranai <= 5:
@@ -170,7 +188,11 @@ class amuse(commands.Cog):
         await ctx.message.reply(embed=embed)
         return
     
-    @commands.command()
+    @commands.command(name="wordle", help="""\
+    Wordleという、単語あてゲームです。
+    簡単なルールは[こちら](https://snsdays.com/game-app/wodle-play-strategy/)から。
+    本家と違うところは「1日何回でもプレイ可能」「辞書にない単語でも送れる」「バグが多い...」です。
+    とりあえずやってみてください。""")
     async def wordle(self, ctx: commands.Context):
         answer = words.splitlines()[random.randint(0, len(words.splitlines())-1)]
         check_out = 0

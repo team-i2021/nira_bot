@@ -37,8 +37,8 @@ class error(commands.Cog):
             if re.search('Command \".*\" is not found', str(event)) or (str(event)[:9] == "Command \"" and str(event)[-14:] == "\" is not found"):
                 # 類似度を計算、0.0~1.0 で結果が返る
                 ruizi_max = 0.0
-                for i in range(len(nira_commands.commands_list)):
-                    ruizi = difflib.SequenceMatcher(None, str(event)[9:-14], nira_commands.commands_list[i]).ratio()
+                for i in range(len([i.name for i in list(self.bot.commands)])):
+                    ruizi = difflib.SequenceMatcher(None, str(event)[9:-14], [j.name for j in list(self.bot.commands)][i]).ratio()
                     if ruizi > ruizi_max:
                         ruizi_cm = i
                         ruizi_max = ruizi
