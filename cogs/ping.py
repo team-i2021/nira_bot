@@ -97,8 +97,11 @@ class ping(commands.Cog):
     引数1:address(str)
     IPアドレスまたはドメインの形で指定してください。""")
     async def ping(self, ctx: commands.Context):
-        address = ctx.message.content.split(" ",1)[1]
-        await base_ping(self.bot, ctx, address)
+        texts = ctx.message.content.split(" ",1)
+        if len(texts) == 1:
+            await base_ping(self.bot, ctx, None)
+        else:
+            await base_ping(self.bot, ctx, texts[1])
 
 def setup(bot):
     bot.add_cog(ping(bot))
