@@ -45,6 +45,7 @@ class user_join(commands.Cog):
             embed = nextcord.Embed(title="Welcome!", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
             embed.set_thumbnail(url=f"https://cdn.discordapp.com/avatars/{user.id}/{str(user.avatar)}")
             embed.add_field(name="アカウント製作日", value=f"```{user.created_at}```")
+            embed.add_field(name="現在のユーザー数", value=f"`{len(member.guild.members)}`人")
             if member.guild.id not in n_fc.role_keeper:
                 n_fc.role_keeper[member.guild.id] = {"rk":0}
                 await channel.send(embed=embed)
@@ -91,6 +92,7 @@ class user_join(commands.Cog):
             channel = self.bot.get_channel(n_fc.welcome_id_list[member.guild.id])
             embed = nextcord.Embed(title="See ya...", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
             embed.set_thumbnail(url=f"https://cdn.discordapp.com/avatars/{user.id}/{str(user.avatar)}")
+            embed.add_field(name="現在のユーザー数", value=f"`{len(member.guild.members)}`人")
             role_text = ""
             role_ids = []
             for i in range(len(member.roles)):

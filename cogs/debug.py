@@ -170,7 +170,6 @@ class debug(commands.Cog):
     
     async def ws(self, websocket, path):
         async for message in websocket:
-            logging.info(message)
             if message == "exit":
                 logging.info("Exit websocket...")
                 await websocket.close()

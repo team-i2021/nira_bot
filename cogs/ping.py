@@ -63,7 +63,7 @@ async def base_ping(bot, ctx: commands.Context, adr):
             # await ctx.respond(f"{adr}に時間内に接続できませんでした。")
         return
     if ctx.message != None:
-        if ctx.message.content == "n!ping":
+        if adr == None:
             embed = nextcord.Embed(title="Ping", description=f"現在のPing値は`{round(bot.latency * 1000)}`msです。", color=0x00ff00)
             logger.info(f"DiscordサーバーとのPing値：{round(bot.latency * 1000)}ms")
             await ctx.reply(embed=embed)
