@@ -46,6 +46,18 @@ class minecraft_base:
         if ctx.guild.id not in n_fc.mc_server_list:
             await messages.mreply(ctx, f"{ctx.guild.name}にはMinecraftのサーバーは追加されていません。")
             return
+        def check(m):
+            return (m.content == 'y' or m.content == 'n') and m.author == ctx.author and m.channel == ctx.channel
+        if type(ctx) == commands.Context:
+            try:
+                await ctx.reply("サーバー削除を実行してもよろしいですか？\n10秒以内にメッセージを送信してください。\n`[y/n]`")
+                msg = await bot.wait_for('message', check=check, timeout=10)
+            except asyncio.TimeoutError:
+                await ctx.reply("`時間切れ。`\nもう一度やり直してください。")
+                return
+            if msg.content == "n":
+                await msg.reply("用があったらまた呼んでね...")
+                return
         if select_id == "all":
             try:
                 del n_fc.mc_server_list[ctx.guild.id]
