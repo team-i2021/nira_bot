@@ -20,10 +20,11 @@ from cogs.embed import embed
 sys.path.append('../')
 from util import admin_check, n_fc, eh
 
-
+import websockets
 
 from nira import save_list, main_channel
 import requests
+import traceback
 
 #loggingの設定
 import logging
@@ -166,7 +167,44 @@ async def base_cog(bot, ctx, command, name):
 class debug(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        
+    
+    async def ws(self, websocket, path):
+        async for message in websocket:
+            logging.info(message)
+            if message == "exit":
+                logging.info("Exit websocket...")
+                await websocket.close()
+                self.websocket_coro.cancel()
+                break
+                return
+            elif message == "guilds":
+                await websocket.send(str(len(self.bot.guilds)))
+            elif message == "users":
+                await websocket.send(str(len(self.bot.users)))
+            elif message == "voice_clients":
+                await websocket.send(str(len(self.bot.voice_clients)))
+            else:
+                await websocket.send(f"Unknown command: {message}")
+
+    async def ws_main(self, port):
+        logging.info("Websocket....")
+        async with websockets.serve(self.ws, "localhost", int(port)):
+            await asyncio.Future()
+    
+    @commands.command()
+    async def websocket(self, ctx: commands.Context):
+        if ctx.message.author.id in n_fc.py_admin:
+            port = ctx.message.content.split(" ",1)[1]
+            try:
+                await ctx.message.add_reaction("\U0001F310")
+                self.websocket_coro = asyncio.create_task(self.ws_main(port))
+                await self.websocket_coro
+            except BaseException as err:
+                logging.info(traceback.format_exc())
+            await ctx.message.add_reaction("\U00002705")
+        else:
+            await ctx.message.reply(embed=nextcord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000))
+
     @commands.command()
     async def create(self, ctx: commands.Context):
         if ctx.message.author.id in n_fc.py_admin:
