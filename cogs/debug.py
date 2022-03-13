@@ -205,34 +205,29 @@ class debug(commands.Cog):
             await ctx.message.reply(embed=nextcord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000))
 
     @commands.command()
-    async def create(self, ctx: commands.Context):
-        if ctx.message.author.id in n_fc.py_admin:
-            if ctx.message.content == "n!create":
-                await ctx.message.reply(embed=nextcord.Embed(title="Error", description="The command has no enough arguments!", color=0xff0000))
-                return
-            c_file_d = str((ctx.message.content).split(" ", 1)[1])
-            try:
-                with open(c_file_d, 'w'):
-                    pass
-            except BaseException as err:
-                await ctx.message.reply(embed=nextcord.Embed(title="Error", description=f"Python error has occurred!\n```{err}```", color=0xff0000))
-                return
-        else:
-            await ctx.message.reply(embed=nextcord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000))
-
-    @commands.command()
     async def restart(self, ctx: commands.Context):
         if ctx.message.author.id in n_fc.py_admin:
+            def check(m):
+                return (m.content == 'y' or m.content == 'n') and m.author == ctx.author and m.channel == ctx.channel
+            restart_code = await ctx.reply("```\nnira@nira-bot $ sudo restart nira-bot\nAre you sure want to restart nira-bot?[y/n]```")
+            try:
+                msg = await self.bot.wait_for('message', check=check, timeout=10)
+            except asyncio.TimeoutError:
+                await restart_code.edit(content="```\nnira@nira-bot $ sudo restart nira-bot\nAre you sure want to restart nira-bot?[y/n]\nTimed out.\nThe restart operation has been canceled.(timed out)```")
+                return
+            if msg.content == "n":
+                await restart_code.edit(content="```\nnira@nira-bot $ sudo restart nira-bot\nAre you sure want to restart nira-bot?[y/n]\nn\nThe restart operation has been canceled.(user operation)```")
+                return
             await self.bot.change_presence(activity=nextcord.Game(name="再起動中...", type=1), status=nextcord.Status.dnd)
-            restart_code = await ctx.message.reply("再起動準備中...")
+            await restart_code.edit(content="再起動準備中...")
             try:
                 save()
-                await restart_code.edit(content="RESTART:`nira.py`\n再起動します")
+                await restart_code.edit(content="```\nnira@nira-bot $ sudo restart nira-bot\nAre you sure want to restart nira-bot?[y/n]\ny\nRestarting nira-bot now...```")
                 logging.info("-----[n!restart]コマンドが実行されたため、再起動します。-----")
                 subprocess.run(f'sudo systemctl restart nira', stdout=PIPE, stderr=PIPE, shell=True, text=True)
                 return
             except BaseException as err:
-                await ctx.message.reply(err)
+                await ctx.message.reply(f"An error has occurred during restart operation.\n```\n{err}```")
                 await self.bot.change_presence(activity=nextcord.Game(name="n!help", type=1), status=nextcord.Status.idle)
                 return
         else:
@@ -243,16 +238,28 @@ class debug(commands.Cog):
     @commands.command()
     async def exit(self, ctx: commands.Context):
         if ctx.message.author.id in n_fc.py_admin:
+            def check(m):
+                return (m.content == 'y' or m.content == 'n') and m.author == ctx.author and m.channel == ctx.channel
+            exit_code = await ctx.reply("```\nnira@nira-bot $ sudo shutdown nira-bot\nAre you sure want to shutdown nira-bot?[y/n]```")
+            try:
+                msg = await self.bot.wait_for('message', check=check, timeout=10)
+            except asyncio.TimeoutError:
+                await exit_code.edit(content="```\nnira@nira-bot $ sudo shutdown nira-bot\nAre you sure want to shutdown nira-bot?[y/n]\nTimed out.\nThe shutdown operation has been canceled.(timed out)```")
+                return
+            if msg.content == "n":
+                await exit_code.edit(content="```\nnira@nira-bot $ sudo shutdown nira-bot\nAre you sure want to shutdown nira-bot?[y/n]\nn\nThe shutdown operation has been canceled.(user operation)```")
+                return
             await self.bot.change_presence(activity=nextcord.Game(name="終了中...", type=1), status=nextcord.Status.dnd)
-            exit_code = await ctx.message.reply("終了準備中...")
+            await exit_code.edit(content="終了準備中...")
             try:
                 save()
-                await exit_code.edit(content="STOP:`nira.py`\n終了します")
+                await exit_code.edit(content="```\nnira@nira-bot $ sudo shutdown nira-bot\nAre you sure want to shutdown nira-bot?[y/n]\ny\nShutdowning nira-bot now...```")
                 logging.info("-----[n!exit]コマンドが実行されたため、終了します。-----")
                 await self.bot.close()
+                subprocess.run(f'sudo systemctl stop nira', stdout=PIPE, stderr=PIPE, shell=True, text=True)
                 return
             except BaseException as err:
-                await ctx.message.reply(err)
+                await ctx.message.reply(f"An error has occurred during shutdown operation.\n```\n{err}```")
                 await self.bot.change_presence(activity=nextcord.Game(name="n!help", type=1), status=nextcord.Status.idle)
                 return
         else:
