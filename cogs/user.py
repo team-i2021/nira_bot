@@ -83,9 +83,23 @@ class user(commands.Cog):
     誰かがDiscordサーバーに加入/離脱した際に、指定したチャンネルにそのユーザーの情報を表示します。""")
     async def ui(self, ctx: commands.Context):
         if admin_check.admin_check(ctx.message.guild, ctx.message.author) or ctx.message.author.id in n_fc.py_admin:
-            if ctx.message.content[:8] == "n!ui set":
+            mes_arg = ctx.message.content.split(" ")
+            if len(mes_arg) == 1:
                 try:
-                    set_id = int("".join(re.findall(r'[0-9]', ctx.message.content[9:])))
+                    if ctx.message.guild.id in n_fc.welcome_id_list:
+                        seted_id = int(n_fc.welcome_id_list[ctx.message.guild.id])
+                        channel = self.bot.get_channel(int(n_fc.welcome_id_list[ctx.message.guild.id]))
+                        await ctx.message.reply(f"チャンネル：{channel.name}")
+                        return
+                    else:
+                        await ctx.message.reply("設定されていません。\n\n・追加```n!ui set [チャンネルID]```・削除```n!ui del```")
+                        return
+                except BaseException as err:
+                    await ctx.message.reply(embed=eh.eh(err))
+                    return
+            elif mes_arg[1] == "set":
+                try:
+                    set_id = int("".join(re.findall(r'[0-9]', mes_arg[2])))
                     n_fc.welcome_id_list[ctx.message.guild.id] = set_id
                     with open(f'{home_dir}/welcome_id_list.nira', 'wb') as f:
                         pickle.dump(n_fc.welcome_id_list, f)
@@ -96,7 +110,7 @@ class user(commands.Cog):
                 except BaseException as err:
                     await ctx.message.reply(embed=eh.eh(err))
                     return
-            elif ctx.message.content == "n!ui del":
+            elif  mes_arg[1] == "del":
                 try:
                     if ctx.message.guild.id not in n_fc.welcome_id_list:
                         seted_id = n_fc.welcome_id_list[ctx.message.guild.id]
@@ -111,7 +125,7 @@ class user(commands.Cog):
                 except BaseException as err:
                     await ctx.message.reply(embed=eh.eh(err))
                     return
-            elif ctx.message.content == "n!ui":
+            else:
                 try:
                     if ctx.message.guild.id in n_fc.welcome_id_list:
                         seted_id = int(n_fc.welcome_id_list[ctx.message.guild.id])
@@ -124,6 +138,7 @@ class user(commands.Cog):
                 except BaseException as err:
                     await ctx.message.reply(embed=eh.eh(err))
                     return
+
         else:
             await ctx.message.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
             return

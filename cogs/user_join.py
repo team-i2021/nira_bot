@@ -31,57 +31,57 @@ class user_join(commands.Cog):
     
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        logging.info("テストロギング...")
-        return
 
-    @commands.Cog.listener()
-    async def on_member_join(self, member):
-        user_id = member.id
         try:
-            user = await self.bot.fetch_user(user_id)
-            if member.guild.id not in n_fc.welcome_id_list:
-                return
             channel = self.bot.get_channel(n_fc.welcome_id_list[member.guild.id])
-            embed = nextcord.Embed(title="Welcome!", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
-            embed.set_thumbnail(url=f"https://cdn.discordapp.com/avatars/{user.id}/{str(user.avatar)}")
-            embed.add_field(name="アカウント製作日", value=f"```{user.created_at}```")
-            embed.add_field(name="現在のユーザー数", value=f"`{len(member.guild.members)}`人")
             if member.guild.id not in n_fc.role_keeper:
-                n_fc.role_keeper[member.guild.id] = {"rk":0}
-                await channel.send(embed=embed)
-                save()
-                return
+                n_fc.role_keeper[member.guild.id] = {"rk": 0}
+                for i in range(len(member.guild.members)):
+                    if member.guild.members[i].id != member.id:
+                        n_fc.role_keeper[member.guild.id][member.guild.members[i].id] = [j.id for j in member.guild.members[i].roles if j.name != "@everyone"]
+
             if member.id not in n_fc.role_keeper[member.guild.id]:
-                await channel.send(embed=embed)
-                return
-            role_list = n_fc.role_keeper[member.guild.id][member.id]
-            for i in range(len(role_list)):
-                role = member.guild.get_role(role_list[i])
-                await member.add_roles(role)
-            del n_fc.role_keeper[member.guild.id][member.id]
-            role_text = ""
-            await asyncio.sleep(2)
-            for i in range(len(member.roles)):
-                if member.roles[i].name != "@everyone":
-                    role_text = role_text + f" <@&{member.roles[i].id}> "
-                else:
-                    continue
-            embed.add_field(name="ロールキーパー", value=f"ロールを付与しました。\n{role_text}")
-            await channel.send(embed=embed)
-            save()
-            return
+                embed = nextcord.Embed(title="こんにちは！", description=f"名前： `{member.name}`\nID: `{member.id}`", color=0x00ff00)
+            else:
+                embed = nextcord.Embed(title="あれ、また会った？", description=f"名前： `{member.name}`\nID: `{member.id}`", color=0x00ff00)
+
+            embed.set_thumbnail(url=f"https://cdn.discordapp.com/avatars/{member.id}/{str(member.avatar)}")
+            embed.add_field(name="アカウント製作日", value=f"```{member.created_at}```")
+            embed.add_field(name="現在のユーザー数", value=f"`{len(member.guild.members)}`人")
+            if member.guild.id in n_fc.welcome_id_list:
+                members_message = await channel.send(embed=embed)
+            else:
+                members_message = None
+
         except BaseException as err:
-            if str(err) == "403 Forbidden (error code: 50001): Missing Access":
-                embed.add_field(name="ロールキーパー発動時のエラー", value=f"にらBOTにロールを管理する権限がありません！やり直してください！\n・付与予定のロールIDリスト```{role_list}```")
-                await channel.send(embed=embed)
-                return
-            elif str(err) == "403 Forbidden (error code: 50013): Missing Permissions":
-                embed.add_field(name="ロールキーパー発動時のエラー", value=f"ロール「にらBOT」より上にあるロールを付与しようとしました！ロール設定を確認してください！\n・付与予定のロールIDリスト```{role_list}```")
-                await channel.send(embed=embed)
-                return
-            logging.error(f"ユーザー加入時の情報表示システムのエラー\n{err}")
+            logging.error(err)
+        
+        await asyncio.sleep(2)
+
+        if n_fc.role_keeper[member.guild.id]["rk"] == 1:
+
+            try:
+                
+                if member.id not in n_fc.role_keeper[member.guild.id]:
+                    n_fc.role_keeper[member.guild.id][member.id] = [i.id for i in member.roles if i.name != "@everyone"]
+                
+                else:
+                    role_text = ""
+                    for i in range(len(n_fc.role_keeper[member.guild.id][member.id])):
+                        role = member.guild.get_role(n_fc.role_keeper[member.guild.id][member.id][i])
+                        await member.add_roles(role)
+                
+                    embed.add_field(name="付与済みロール", value=f"{' '.join([f'<@&{i}>' for i in n_fc.role_keeper[member.guild.id][member.id]])}")
+                    await members_message.edit(embed=embed)
+
+            except BaseException as err:
+                await members_message.edit(f"ロール付与時に何かしらのエラーが発生しました。\n何度も発生する場合はお問い合わせください。\n`{err}`", embed=embed)
+                logging.error(err)
+
             return
-    
+
+
+
     @commands.Cog.listener()
     async def on_member_remove(self, member):
         user_id = member.id
@@ -90,7 +90,7 @@ class user_join(commands.Cog):
             if member.guild.id not in n_fc.welcome_id_list:
                 return
             channel = self.bot.get_channel(n_fc.welcome_id_list[member.guild.id])
-            embed = nextcord.Embed(title="See ya...", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
+            embed = nextcord.Embed(title="また来てねー！", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
             embed.set_thumbnail(url=f"https://cdn.discordapp.com/avatars/{user.id}/{str(user.avatar)}")
             embed.add_field(name="現在のユーザー数", value=f"`{len(member.guild.members)}`人")
             role_text = ""
@@ -102,7 +102,7 @@ class user_join(commands.Cog):
                     role_text = role_text + f" <@&{member.roles[i].id}> "
                     role_ids.append(member.roles[i].id)
             embed.add_field(name="付与されていたロール", value=f"{role_text}")
-            await channel.send(embed=embed)
+            removed_message = await channel.send(embed=embed)
             if member.guild.id not in n_fc.role_keeper:
                 n_fc.role_keeper[member.guild.id] = {"rk":0}
                 return
@@ -111,6 +111,7 @@ class user_join(commands.Cog):
             save()
             return
         except BaseException as err:
+            await removed_message.edit(f"おっと...これは大変ですね...\nユーザー離脱時の処理時にエラーが発生しました。\n`{err}`", embed=embed)
             logging.error(f"ユーザー離脱時の情報表示システムのエラー\n{err}")
             return
 
