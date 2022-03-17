@@ -31,7 +31,7 @@ except BaseException as err:
     print(f"""モジュールインポート時のエラー:{err}\n
     「pip install -r requirements.txt」でモジュールをインストールするか、「setup.py」を実行してモジュールをインストールしてください。
     """)
-    exit()
+    os._exit(1)
 
 
 
@@ -78,7 +78,7 @@ if os.path.isfile(f'{sys.path[0]}/setting.json') == False:
     「setting_temp.json」というテンプレートがありますのでそちらを参考にしてください。\n\n
     または、「setup.py」を実行して、画面の指示通りにしてください。
     """)
-    exit()
+    os._exit(2)
 setting = json.load(open(f'{sys.path[0]}/setting.json', 'r'))
 home_dir = os.path.dirname(__file__)
 token = setting["tokens"]["nira_bot"]
@@ -103,7 +103,20 @@ print("外部設定完了")
 
 @bot.event
 async def on_ready():
-    await bot.change_presence(activity=nextcord.Game(name="起動中...", type=1), status=nextcord.Status.idle)
+    print("起動後処理を開始...")
+    await bot.change_presence(activity=nextcord.Game(name="起動中...(1/2)", type=1), status=nextcord.Status.idle)
+    print("ユーザー情報読み込み中")
+    for i in bot.guilds:
+        if i.id not in n_fc.role_keeper:
+            n_fc.role_keeper[i.id] = {"rk": 0}
+        for j in i.members:
+            n_fc.role_keeper[i.id][j.id] = [k.id for k in j.roles if k.name != "@everyone"]
+    print(n_fc.role_keeper)
+    cogs_debug.save()
+    
+    print("ユーザー情報読み込み完了")
+    await bot.change_presence(activity=nextcord.Game(name="起動中...(2/2)", type=1), status=nextcord.Status.idle)
+
     print(list(n_fc.force_ss_list.keys()))
     for i in range(len(list(n_fc.force_ss_list.keys()))):
         print(list(n_fc.force_ss_list.keys())[i])
@@ -127,7 +140,7 @@ async def on_ready():
             continue
     print("AutoSSのタスク復元完了")
     await bot.change_presence(activity=nextcord.Game(name="n!info | にらゲー", type=1), status=nextcord.Status.online)
-    print("Welcome to nira-bot")
+    print("Welcome to nira-bot!")
 
 #機能しなかったときの保険↓
 #loop = asyncio.get_event_loop()
@@ -211,6 +224,7 @@ if func_error_count > 0:
         "content": f"BOTを起動時にエラーが発生しました。変数の読み込みエラーです。\nエラーコード:`{func_error_count}`\nlogを確認してください。"
     }
     requests.post(main_channel, main_content)
+    os._exit(4)
 print("変数の読み込み完了")
 
 
@@ -229,7 +243,7 @@ except BaseException as err:
         "content": f"BOTを起動時にエラーが発生しました。Cogの読み込みエラーです。\n```{err}```\nサービスは終了します。"
     }
     requests.post(main_channel, main_content)
-    sys.exit(1)
+    os._exit(8)
 print("Cogの読み込み完了")
 
 

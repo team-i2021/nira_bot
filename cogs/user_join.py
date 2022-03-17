@@ -55,7 +55,6 @@ class user_join(commands.Cog):
 
         except BaseException as err:
             logging.error(err)
-        
         await asyncio.sleep(2)
 
         if n_fc.role_keeper[member.guild.id]["rk"] == 1:
@@ -78,7 +77,8 @@ class user_join(commands.Cog):
                 await members_message.edit(f"ロール付与時に何かしらのエラーが発生しました。\n何度も発生する場合はお問い合わせください。\n`{err}`", embed=embed)
                 logging.error(err)
 
-            return
+        save()
+        return
 
 
 
