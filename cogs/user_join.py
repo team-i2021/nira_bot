@@ -31,7 +31,7 @@ class user_join(commands.Cog):
     
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        
+        logging.info("テストロギング...")
         return
 
     @commands.Cog.listener()

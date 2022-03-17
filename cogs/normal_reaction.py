@@ -84,7 +84,8 @@ reaction_list = [
     r'しおりん',
     r'さばかん|鯖缶|サバカン',
     r'訴え|訴訟',
-    r'しゅうじん|囚人|シュウジン|罪人'
+    r'しゅうじん|囚人|シュウジン|罪人',
+    r'bsod|BSOD|ブルスク|ブルースクリーン|ブラックスクリーン'
     ]
 
 # 0:メッセージ反応,1:添付ファイル反応,2:特殊反応(にら画像),3:特殊反応(にらテキスト),4:特殊反応(Guild指定画像),5:特殊反応(Guild指定文字)
@@ -114,7 +115,7 @@ reaction_files = {
     20:[2,1,"rebanira"],
     21:[2,2,"nira_tori"],
     22:[3,1,"https://twitter.com/niranuranura"],
-    23:[1,3,"nira"],
+    23:[1,4,"nira"],
     24:[4,2,"tiramisu"],
     25:[1,3,"pino"],
     26:[4,2,"fox"],
@@ -137,7 +138,8 @@ reaction_files = {
     43:[5,1,"https://twitter.com/Aibell__game"],
     44:[1,1,"sabakan"],
     45:[4,1,"sosyou"],
-    46:[1,1,"syuuzin"]
+    46:[1,1,"syuuzin"],
+    47:[1,2,"bsod"]
     }
 
 # すべてが許されるGuild
