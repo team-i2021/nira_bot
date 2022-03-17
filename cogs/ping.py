@@ -5,6 +5,7 @@ import subprocess
 from subprocess import PIPE
 import os
 import sys
+from nextcord import Interaction, SlashOption, ChannelType
 
 sys.path.append('../')
 from util import admin_check, n_fc, eh
@@ -86,7 +87,19 @@ async def base_ping(bot, ctx: commands.Context, adr):
 class ping(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-    
+
+    @nextcord.slash_command(name="ping", description="Discordサーバー又は、指定サーバーとのレイテンシを計測します。")
+    async def test_slash(
+        self,
+        interaction = Interaction,
+        address: str = SlashOption(
+            name="Server address",
+            description="サーバーのアドレスです。\n指定しないとDiscordサーバーとのレイテンシを表示します。",
+            required=False,
+        )
+        ):
+        await base_ping(self.bot, interaction, address)
+
     @commands.command(name="ping", help="""\
     レイテンシを表示します。
     `n!ping`で、DiscordサーバーとBOTサーバーとのレイテンシを表示します。

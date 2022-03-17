@@ -40,6 +40,8 @@ logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.
 
 ss_check_result = {}
 
+
+
 async def ss_force(bot, message:nextcord.Message):
     await message.edit(content="Loading status...",view=None)
     while True:
@@ -47,10 +49,11 @@ async def ss_force(bot, message:nextcord.Message):
             embed = nextcord.Embed(title="ServerStatus Checker", description=f"LastCheck:{datetime.datetime.now()}", color=0x00ff00)
             for i in range(int(n_fc.steam_server_list[message.guild.id]["value"])):
                 await server_check.ss_pin_async(bot.loop, embed, message.guild.id, i + 1)
-            await message.edit(f"AutoSS実行中\n止めるには`n!ss auto off`\n再試行するには`n!ss auto force {message.channel.id} {message.id}`又は`/reload`", embed=embed)
+            await message.edit(f"AutoSS実行中\n止めるには`n!ss auto off`\n再試行するには`n!ss auto force {message.channel.id} {message.id}`又は`/reload`", embed=embed, view=server_status.Reload_SS_Auto())
+            logging.info("Status loaded.")
             await asyncio.sleep(60*10)
         except BaseException as err:
-            print(err,traceback.format_exc())
+            logging.info(err,traceback.format_exc())
             await message.edit(content=f"err:{err}")
             await ss_force(bot, message)
 
@@ -342,7 +345,7 @@ async def ss_base(self, ctx: commands.Context):
             for i in map(str, range(1, int(n_fc.steam_server_list[ctx.message.guild.id]["value"])+1)):
                 await server_check.server_check_async(self.bot.loop, embed, 0, ctx.message.guild.id, i)
             await asyncio.sleep(1)
-            await ctx.message.reply(embed=embed)
+            await ctx.message.reply(embed=embed, view=server_status.Recheck_SS_Embed())
         return
     mes = ctx.message.content
     try:
@@ -377,6 +380,39 @@ async def ss_base(self, ctx: commands.Context):
 class server_status(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+    
+    # AutoSS Force用のView
+    class Reload_SS_Auto(nextcord.ui.View):
+        def __init__(self):
+            super().__init__(timeout=None)
+
+        @nextcord.ui.button(label='リロード', style=nextcord.ButtonStyle.green)
+        async def reload(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+            try:
+                status_message = n_fc.pid_ss[interaction.guild.id][1]
+                n_fc.pid_ss[interaction.guild.id] = (asyncio.ensure_future(ss_force(bot, status_message)), status_message)
+                await interaction.response.send_message('Reloaded!', ephemeral=True)
+                logging.info("reloaded")
+            except BaseException as err:
+                await interaction.response.send_message(f'エラーが発生しました。\n{err}', ephemeral=True)
+                logging.error(err)
+
+    # SS再チェック用のView
+    class Recheck_SS_Embed(nextcord.ui.View):
+        def __init__(self):
+            super().__init__(timeout=None)
+
+        @nextcord.ui.button(label='もう一度チェックする', style=nextcord.ButtonStyle.green)
+        async def recheck(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+            try:
+                embed = nextcord.Embed(title="Server Status Checker", description=f":globe_with_meridians:Status\n==========", color=0x00ff00)
+                for i in map(str, range(1, int(n_fc.steam_server_list[interaction.guild.id]["value"])+1)):
+                    await server_check.server_check_async(self.bot.loop, embed, 0, interaction.guild.id, i)
+                await interaction.response.send_message('ServerCheck', embed=embed, view=server_status.Recheck_SS_Embed())
+                logging.info("rechecked")
+            except BaseException as err:
+                await interaction.response.send_message(f"エラーが発生しました。\n{err}", ephemeral=True)
+                logging.err(err)
 
     @commands.command(name="ss",help="""\
         Steam非公式サーバーのステータスを表示します

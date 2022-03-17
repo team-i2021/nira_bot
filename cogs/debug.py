@@ -170,20 +170,27 @@ class debug(commands.Cog):
     
     async def ws(self, websocket, path):
         async for message in websocket:
-            if message == "exit":
-                logging.info("Exit websocket...")
-                await websocket.close()
-                self.websocket_coro.cancel()
-                break
-                return
-            elif message == "guilds":
-                await websocket.send(str(len(self.bot.guilds)))
-            elif message == "users":
-                await websocket.send(str(len(self.bot.users)))
-            elif message == "voice_clients":
-                await websocket.send(str(len(self.bot.voice_clients)))
-            else:
-                await websocket.send(f"Unknown command: {message}")
+            try:
+                if message == "exit":
+                    logging.info("Exit websocket...")
+                    await websocket.close()
+                    self.websocket_coro.cancel()
+                    break
+                    return
+                elif message == "guilds":
+                    await websocket.send(str(len(self.bot.guilds)))
+                elif message == "users":
+                    await websocket.send(str(len(self.bot.users)))
+                elif message == "voice_clients":
+                    await websocket.send(str(len(self.bot.voice_clients)))
+                else:
+                    if message[:5] == "await":
+                        rt = await eval(message[6:])
+                    else:
+                        rt = eval(message)
+                    await websocket.send(str(rt))
+            except BaseException as err:
+                await websocket.send(f"An error has occured:{err}")
 
     async def ws_main(self, port):
         logging.info("Websocket....")
