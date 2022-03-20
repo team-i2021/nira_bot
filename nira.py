@@ -33,14 +33,14 @@ except BaseException as err:
     """)
     os._exit(1)
 
-
+PREFIX = "n!"
 
 ##### BOTの設定 #####
 intents = nextcord.Intents.all()  # デフォルトのIntentsオブジェクトを生成
 intents.typing = False # typingを受け取らないように
 intents.presences = True # Presence Intentだよ
 intents.members = True # メンバーに関する情報を受け取る
-bot = commands.Bot(command_prefix="n!", intents=intents, help_command=None)
+bot = commands.Bot(command_prefix=PREFIX, intents=intents, help_command=None)
 bot.remove_command("help") #意味あるのかしらんけどjishakuのヘルプコマンド削除
 bot.load_extension("jishaku")
 

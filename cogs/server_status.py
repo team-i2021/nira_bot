@@ -14,6 +14,8 @@ import logging
 import os
 import re
 
+from nira import PREFIX
+
 home_dir = os.path.dirname(__file__)[:-4]
 
 dir = sys.path[0]
@@ -33,6 +35,20 @@ logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.
 ss_check_result = {}
 
 
+ss_commands = f"""・SS系コマンド一覧
+`{PREFIX}ss`: 登録されているサーバーのステータスを表示します。
+`{PREFIX}ss add [表示名] [アドレス],[ポート]`: サーバーを追加します。
+`{PREFIX}ss list`: 登録されているサーバーの一覧を表示します。
+`{PREFIX}ss auto on [*ユーザーID]`: SSAutoで、鯖落ちが起きたら通知します。ユーザーIDを指定すると、指定されたIDにメンションします。指定されなかった場合は、メッセージを送ったユーザーをメンションします。
+`{PREFIX}ss auto force [*チャンネルID] [*メッセージID]`: 10分毎にステータスを更新するAutoSSのメッセージを送信します。「このBOTが送信したメッセージ」のチャンネルID及びメッセージIDを指定すると、そのメッセージをAutoSSのメッセージに変更します。
+`{PREFIX}ss auto off`: AutoSSを停止します。
+`{PREFIX}ss edit [サーバーID] [表示名] [アドレス],[ポート]`: 指定したサーバーIDの表示名やアドレスなどを修正します。事前に`{PREFIX}ss list`などで確認しておくことを推奨します。
+`{PREFIX}ss sort [サーバーID1] [サーバーID2]`: サーバーID1とサーバID2の場所を入れ替えます。
+`{PREFIX}ss del [サーバーID]`: 指定したサーバーIDの情報を削除します。
+`{PREFIX}ss del all`: 登録されているサーバーをすべて削除します。
+`{PREFIX}ss all`: 登録されているサーバーのステータスをより詳細に表示します。あまりにサーバー数があると、メッセージ数規定に引っかかって送れない場合があります。
+`{PREFIX}ss [サーバーID]`: 指定したサーバーIDのステータスのみを表示します。
+"""
 
 async def ss_force(loop, message:nextcord.Message):
     await message.edit(content="Loading status...",view=None)
@@ -118,66 +134,57 @@ async def ss_loop_goes(self, ment_id, message):
             await asyncio.sleep(5)
         await asyncio.sleep(60*30) # 60秒*30＝30分
 
+
 #コマンド内部
 async def ss_base(self, ctx: commands.Context):
-    if ctx.message.content[:10] == "n!ss debug":
-        if ctx.author.id not in n_fc.py_admin:
-            return
-        if ctx.message.content[11:] == "1":
-            try:
-                importlib.reload(server_check)
-                await ctx.reply("Reloaded.")
-                return
-            except BaseException as err:
-                await ctx.reply(err)
-                return
-        elif ctx.message.content[11:] == "2":
-            await ctx.reply(n_fc.force_ss_list)
-            return
-        else:
-            await ctx.reply("```debug menu```\n1: `reload server_check system`\n2: `output force_ss_list`")
-            return
-    if ctx.message.content[:8] == "n!ss add":
-        if ctx.message.content == "n!ss add":
+    if ctx.message.content == f"{PREFIX}ss":
+        # 普通にチェックする
+        return
+    args = ctx.message.content.split(" ")
+
+    if args[1] == "add":
+        if len(args) == 1:
             await ctx.message.reply("構文が異なります。\n```n!ss add [表示名] [IPアドレス],[ポート番号]```")
             return
-        try:
-            if ctx.message.guild.id not in n_fc.steam_server_list:
-                n_fc.steam_server_list[ctx.message.guild.id] = {"value": "0"}
-            ad = ctx.message.content[9:].split(" ", 1)
-            ad_name = str(ad[0])
-            ad = ad[1].split(",", 1)
-            ad_ip = str(re.sub("[^0-9a-zA-Z._-]", "", ad[0]))
-            ad_port = int(re.sub("[^0-9]", "", ad[1]))
-            sset_point = int(n_fc.steam_server_list[ctx.message.guild.id]["value"])
-            n_fc.steam_server_list[ctx.message.guild.id][f"{sset_point + 1}_ad"] = (ad_ip, ad_port)
-            n_fc.steam_server_list[ctx.message.guild.id][f"{sset_point + 1}_nm"] = ad_name
-            n_fc.steam_server_list[ctx.message.guild.id]["value"] = str(sset_point + 1)
-            await ctx.message.reply(f"サーバー名：{ad_name}\nサーバーアドレス：({ad_ip},{ad_port})")
-            with open(f'{home_dir}/steam_server_list.nira', 'wb') as f:
-                pickle.dump(n_fc.steam_server_list, f)
-            return
-        except BaseException as err:
-            await ctx.message.reply(embed=eh.eh(err))
-            return
-    if ctx.message.content[:9] == "n!ss list":
-        if ctx.message.guild.id not in n_fc.steam_server_list:
+        else:
+            try:
+                if ctx.guild.id not in n_fc.steam_server_list:
+                    n_fc.steam_server_list[ctx.guild.id] = {"value": "0"}
+                ad_name = str(args[2])
+                address = " ".join(args[3:])
+                ad_ip = str(re.sub("[^0-9a-zA-Z._-]", "", address.split(",")[0]))
+                ad_port = int(re.sub("[^0-9]", "", address.split(",")[1]))
+                sset_point = int(n_fc.steam_server_list[ctx.guild.id]["value"])
+                n_fc.steam_server_list[ctx.guild.id][f"{sset_point + 1}_ad"] = (ad_ip, ad_port)
+                n_fc.steam_server_list[ctx.guild.id][f"{sset_point + 1}_nm"] = ad_name
+                n_fc.steam_server_list[ctx.guild.id]["value"] = str(sset_point + 1)
+                await ctx.reply(f"サーバー名：{ad_name}\nサーバーアドレス: ({ad_ip},{ad_port})")
+                with open(f'{home_dir}/steam_server_list.nira', 'wb') as f:
+                    pickle.dump(n_fc.steam_server_list, f)
+                return
+            except BaseException as err:
+                await ctx.reply(f"サーバー追加時にエラーが発生しました。\n```sh\n{err}```")
+                return
+
+    elif args[1] == "list":
+        if ctx.guild.id not in n_fc.steam_server_list:
             await ctx.message.reply("サーバーは登録されていません。")
             return
         else:
-            if admin_check.admin_check(ctx.message.guild, ctx.message.author) or ctx.message.author.id in n_fc.py_admin:
+            if admin_check.admin_check(ctx.guild, ctx.message.author) or ctx.message.author.id in n_fc.py_admin:
                 user = await self.bot.fetch_user(ctx.message.author.id)
-                embed = nextcord.Embed(title="Steam Server List", description=f"「{ctx.message.guild.name}」のサーバーリスト\n```保存数：{str(n_fc.steam_server_list[ctx.message.guild.id]['value'])}```", color=0x00ff00)
-                for i in range(int(n_fc.steam_server_list[ctx.message.guild.id]['value'])):
-                    embed.add_field(name=f"保存名：`{str(n_fc.steam_server_list[ctx.message.guild.id][f'{i+1}_nm'])}`", value=f"アドレス：`{str(n_fc.steam_server_list[ctx.message.guild.id][f'{i+1}_ad'])}`")
+                embed = nextcord.Embed(title="Steam Server List", description=f"「{ctx.guild.name}」のサーバーリスト\n```保存数：{str(n_fc.steam_server_list[ctx.guild.id]['value'])}```", color=0x00ff00)
+                for i in range(int(n_fc.steam_server_list[ctx.guild.id]['value'])):
+                    embed.add_field(name=f"ID: `{i+1}`\n保存名: `{str(n_fc.steam_server_list[ctx.guild.id][f'{i+1}_nm'])}`", value=f"アドレス：`{str(n_fc.steam_server_list[ctx.guild.id][f'{i+1}_ad'])}`")
                 await user.send(embed=embed)
                 await ctx.message.add_reaction("\U00002705")
                 return
             else:
                 await ctx.message.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
                 return
-    if ctx.message.content[:9] == "n!ss auto":
-        if admin_check.admin_check(ctx.message.guild, ctx.message.author) == False:
+
+    elif args[1] == "auto":
+        if admin_check.admin_check(ctx.guild, ctx.message.author) == False:
             await ctx.message.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
             return
         if ctx.message.content == "n!ss auto":
@@ -185,7 +192,7 @@ async def ss_base(self, ctx: commands.Context):
             return
         elif ctx.message.content[10:12] == "on":
             try:
-                if ctx.message.guild.id not in n_fc.steam_server_list:
+                if ctx.guild.id not in n_fc.steam_server_list:
                     await ctx.reply("サーバーが登録されていません。")
                     return
                 if len(ctx.message.content) <= 13:
@@ -195,23 +202,23 @@ async def ss_base(self, ctx: commands.Context):
                     if ment_id == "":
                         await ctx.reply("ユーザーIDが不正です。\n`n!ss auto on [UserID]`")
                         return
-                mes_ss = await ctx.message.channel.send(f"Starting process...")
-                if ctx.message.guild.id in n_fc.pid_ss:
-                    await mes_ss.edit(content=f"既に{ctx.message.guild.name}でタスクが実行されています。")
+                mes_ss = await ctx.channel.send(f"Starting process...")
+                if ctx.guild.id in n_fc.pid_ss:
+                    await mes_ss.edit(content=f"既に{ctx.guild.name}でタスクが実行されています。")
                     return
-                n_fc.pid_ss[ctx.message.guild.id] = (self.bot.loop.create_task(ss_loop_goes(self, ment_id, mes_ss)), mes_ss)
+                n_fc.pid_ss[ctx.guild.id] = (self.bot.loop.create_task(ss_loop_goes(self, ment_id, mes_ss)), mes_ss)
                 return
             except BaseException as err:
                 await ctx.reply(embed=eh.eh(err))
                 return
         elif ctx.message.content[10:13] == "off":
-            if ctx.message.guild.id not in n_fc.pid_ss:
+            if ctx.guild.id not in n_fc.pid_ss:
                 await ctx.reply("既に無効になっているか、コマンドが実行されていません。")
                 return
             try:
-                if n_fc.pid_ss[ctx.message.guild.id][0].done() == False or ctx.message.guild.id in n_fc.pid_ss:
-                    n_fc.pid_ss[ctx.message.guild.id][0].cancel()
-                    del n_fc.pid_ss[ctx.message.guild.id]
+                if n_fc.pid_ss[ctx.guild.id][0].done() == False or ctx.guild.id in n_fc.pid_ss:
+                    n_fc.pid_ss[ctx.guild.id][0].cancel()
+                    del n_fc.pid_ss[ctx.guild.id]
                     del n_fc.force_ss_list[ctx.guild.id]
                     await ctx.reply("AutoSSを無効にしました。")
                     return
@@ -221,19 +228,19 @@ async def ss_base(self, ctx: commands.Context):
                 await ctx.reply(embed=eh.eh(err))
                 return
         elif ctx.message.content[10:15] == "force":
-            if ctx.message.guild.id in n_fc.pid_ss:
-                await ctx.reply(f"既に{ctx.message.guild.name}で他のAutoSSタスクが実行されています。")
+            if ctx.guild.id in n_fc.pid_ss:
+                await ctx.reply(f"既に{ctx.guild.name}で他のAutoSSタスクが実行されています。")
                 return
-            if ctx.message.guild.id not in n_fc.steam_server_list:
+            if ctx.guild.id not in n_fc.steam_server_list:
                 await ctx.reply("サーバーが登録されていません。")
                 return
-            mes_ss = await ctx.message.channel.send(f"Check your set message!")
-            if ctx.message.guild.id in n_fc.pid_ss:
-                await mes_ss.edit(content=f"既に{ctx.message.guild.name}でタスクが実行されています。")
+            mes_ss = await ctx.channel.send(f"Check your set message!")
+            if ctx.guild.id in n_fc.pid_ss:
+                await mes_ss.edit(content=f"既に{ctx.guild.name}でタスクが実行されています。")
                 return
             if len(ctx.message.content) <= 16:
                 n_fc.force_ss_list[ctx.guild.id] = [ctx.channel.id, mes_ss.id]
-                n_fc.pid_ss[ctx.message.guild.id] = (self.bot.loop.create_task(ss_force(asyncio.get_event_loop(), mes_ss)),mes_ss)
+                n_fc.pid_ss[ctx.guild.id] = (self.bot.loop.create_task(ss_force(asyncio.get_event_loop(), mes_ss)),mes_ss)
                 return
             else:
                 try:
@@ -244,14 +251,14 @@ async def ss_base(self, ctx: commands.Context):
                     return
                 await messs.edit(content="現在変更をしています...")
                 n_fc.force_ss_list[ctx.guild.id] = [ctx.message.content[16:].split(" ",1)[0], ctx.message.content[16:].split(" ", 1)[1]]
-                n_fc.pid_ss[ctx.message.guild.id] = (self.bot.loop.create_task(ss_force(asyncio.get_event_loop(), messs)),messs)
+                n_fc.pid_ss[ctx.guild.id] = (self.bot.loop.create_task(ss_force(asyncio.get_event_loop(), messs)),messs)
                 return
         else:
-            if ctx.message.guild.id not in n_fc.pid_ss:
+            if ctx.guild.id not in n_fc.pid_ss:
                 await ctx.reply("`n!ss auto [on/off]`\nAutoSSは無効になっています。")
                 return
             try:
-                if n_fc.pid_ss[ctx.message.guild.id][0].done() == True:
+                if n_fc.pid_ss[ctx.guild.id][0].done() == True:
                     await ctx.reply("`n!ss auto [on/off]`\nAutoSSは無効になっています。")
                 else:
                     await ctx.reply("`n!ss auto [on/off]`\nAutoSSは有効になっています。")
@@ -259,11 +266,12 @@ async def ss_base(self, ctx: commands.Context):
                 await ctx.reply(embed=eh.eh(err))
                 return
         return
-    if ctx.message.content[:9] == "n!ss edit":
+
+    elif args[1] == "edit":
         if ctx.message.content == "n!ss edit":
             await ctx.message.reply("構文が異なります。\n```n!ss edit [サーバーナンバー] [名前] [IPアドレス],[ポート番号]```")
             return
-        if ctx.message.guild.id not in n_fc.steam_server_list:
+        if ctx.guild.id not in n_fc.steam_server_list:
             await ctx.message.reply("サーバーは登録されていません。")
             return
         adre = ctx.message.content[10:].split(" ", 3)
@@ -272,22 +280,48 @@ async def ss_base(self, ctx: commands.Context):
         s_adre = str(adre[2]).split(",", 2)
         s_port = int(s_adre[1])
         s_ip = str("".join(re.findall(r'[0-9]|\.', s_adre[0])))
-        b_value = int(n_fc.steam_server_list[ctx.message.guild.id]["value"])
+        b_value = int(n_fc.steam_server_list[ctx.guild.id]["value"])
         if b_value < s_id:
             await ctx.message.reply("そのサーバーナンバーのサーバーは登録されていません！\n`n!ss list`で確認してみてください。")
             return
         try:
-            n_fc.steam_server_list[ctx.message.guild.id][f"{s_id}_ad"] = (s_ip, s_port)
-            n_fc.steam_server_list[ctx.message.guild.id][f"{s_id}_nm"] = s_nm
-            await ctx.message.reply(f"サーバーナンバー：{s_id}\nサーバー名：{s_nm}\nサーバーアドレス：{s_ip},{s_port}")
+            n_fc.steam_server_list[ctx.guild.id][f"{s_id}_ad"] = (s_ip, s_port)
+            n_fc.steam_server_list[ctx.guild.id][f"{s_id}_nm"] = s_nm
+            await ctx.message.reply(f"サーバーナンバー：{s_id}\nサーバー名: {s_nm}\nサーバーアドレス: ({s_ip},{s_port})")
             with open(f'{home_dir}/steam_server_list.nira', 'wb') as f:
                 pickle.dump(n_fc.steam_server_list, f)
             return
         except BaseException as err:
             await ctx.message.reply(embed=eh.eh(err))
             return
-    if ctx.message.content[:8] == "n!ss del":
-        if ctx.message.guild.id not in n_fc.steam_server_list:
+    
+    elif args[1] == "sort":
+        if len(args) != 4:
+            await ctx.reply(f"引数が足りないか多いです。\n`{PREFIX}ss sort [サーバーID1] [サーバーID2]`")
+            return
+        try:
+            args[2] = int(args[2])
+            args[3] = int(args[3])
+        except ValueError:
+            await ctx.reply("サーバーIDの欄には数値が入ります。")
+            return
+        if args[2] > int(n_fc.steam_server_list[ctx.guild.id]["value"]) or args[3] > int(n_fc.steam_server_list[ctx.guild.id]["value"]):
+            await ctx.reply(f"{ctx.guild.name}に登録されているサーバーの数は{n_fc.steam_server_list[ctx.guild.id]['value']}個です。\n無効なサーバーIDを指定しないでください。")
+            return
+        if args[2] <= 0 or args[3] <= 0:
+            await ctx.reply(f"サーバーIDは1から順につけられます。\n無効なサーバーIDを指定しないでください。")
+            return
+        try:
+            n_fc.steam_server_list[ctx.guild.id][f"{args[2]}_nm"], n_fc.steam_server_list[ctx.guild.id][f"{args[2]}_ad"], n_fc.steam_server_list[ctx.guild.id][f"{args[3]}_nm"], n_fc.steam_server_list[ctx.guild.id][f"{args[3]}_ad"] = n_fc.steam_server_list[ctx.guild.id][f"{args[3]}_nm"], n_fc.steam_server_list[ctx.guild.id][f"{args[3]}_ad"], n_fc.steam_server_list[ctx.guild.id][f"{args[2]}_nm"], n_fc.steam_server_list[ctx.guild.id][f"{args[2]}_ad"]
+            await ctx.reply("入れ替えが完了しました。")
+            return
+        except BaseException as err:
+            await ctx.reply(f"入れ替え中にエラーが発生しました。\n{err}")
+            return
+
+
+    elif args[1] == "del":
+        if ctx.guild.id not in n_fc.steam_server_list:
             await ctx.message.reply("サーバーは登録されていません。")
             return
         if ctx.message.content != "n!ss del all":
@@ -296,23 +330,23 @@ async def ss_base(self, ctx: commands.Context):
             except BaseException as err:
                 await ctx.message.reply(embed=eh.eh(err))
                 return
-            if admin_check.admin_check(ctx.message.guild, ctx.message.author):
-                if del_num > int(n_fc.steam_server_list[ctx.message.guild.id]["value"]):
+            if admin_check.admin_check(ctx.guild, ctx.message.author):
+                if del_num > int(n_fc.steam_server_list[ctx.guild.id]["value"]):
                     await ctx.message.reply(embed=nextcord.Embed(title="エラー", description="そのサーバーは登録されていません！\n`n!ss list`で確認してみてください！", color=0xff0000))
                     return
                 if del_num <= 0:
                     await ctx.message.reply(embed=nextcord.Embed(title="エラー", description="リストで0以下のナンバーは振り当てられていません。", color=0xff0000))
                     return
                 try:
-                    all_value = int(n_fc.steam_server_list[ctx.message.guild.id]["value"])
+                    all_value = int(n_fc.steam_server_list[ctx.guild.id]["value"])
                     print(all_value)
                     for i in range(all_value - del_num):
                         print(i)
-                        n_fc.steam_server_list[ctx.message.guild.id][f"{del_num + i - 1}_nm"] = n_fc.steam_server_list[ctx.message.guild.id][f"{del_num + i}_nm"]
-                        n_fc.steam_server_list[ctx.message.guild.id][f"{del_num + i - 1}_ad"] = n_fc.steam_server_list[ctx.message.guild.id][f"{del_num + i}_ad"]
-                    del n_fc.steam_server_list[ctx.message.guild.id][f"{all_value}_nm"]
-                    del n_fc.steam_server_list[ctx.message.guild.id][f"{all_value}_ad"]
-                    n_fc.steam_server_list[ctx.message.guild.id]["value"] = all_value - 1
+                        n_fc.steam_server_list[ctx.guild.id][f"{del_num + i - 1}_nm"] = n_fc.steam_server_list[ctx.guild.id][f"{del_num + i}_nm"]
+                        n_fc.steam_server_list[ctx.guild.id][f"{del_num + i - 1}_ad"] = n_fc.steam_server_list[ctx.guild.id][f"{del_num + i}_ad"]
+                    del n_fc.steam_server_list[ctx.guild.id][f"{all_value}_nm"]
+                    del n_fc.steam_server_list[ctx.guild.id][f"{all_value}_ad"]
+                    n_fc.steam_server_list[ctx.guild.id]["value"] = all_value - 1
                     await ctx.message.reply(embed=nextcord.Embed(title="削除", description=f"ID:{del_num}のサーバーをリストから削除しました。", color=0xff0000))   
                 except BaseException as err:
                     print(err)
@@ -327,46 +361,33 @@ async def ss_base(self, ctx: commands.Context):
             await del_re.add_reaction("\U0000274C")
             return
         return
-    print(datetime.datetime.now())
-    if ctx.message.content == "n!ss":
-        if ctx.message.guild.id not in n_fc.steam_server_list:
+    
+    elif args[1] == "all":
+        if ctx.guild.id not in n_fc.steam_server_list:
             await ctx.message.reply("サーバーは登録されていません。")
             return
-        async with ctx.message.channel.typing():
+        async with ctx.channel.typing():
             embed = nextcord.Embed(title="Server Status Checker", description=f"{ctx.message.author.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
-            for i in map(str, range(1, int(n_fc.steam_server_list[ctx.message.guild.id]["value"])+1)):
-                await server_check.server_check_async(self.bot.loop, embed, 0, ctx.message.guild.id, i)
-            await asyncio.sleep(1)
-            await ctx.message.reply(embed=embed, view=server_status.Recheck_SS_Embed())
-        return
-    mes = ctx.message.content
-    try:
-        mes_te = mes.split(" ", 1)[1]
-    except BaseException as err:
-        await ctx.message.reply(embed=eh.eh(err))
-        return
-    if mes_te != "all":
-        if ctx.message.guild.id not in n_fc.steam_server_list:
-            await ctx.message.reply("サーバーは登録されていません。")
-            return
-        async with ctx.message.channel.typing():
-            embed = nextcord.Embed(title="Server Status Checker", description=f"{ctx.message.author.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
-            server_check.server_check(embed, 0, ctx.message.guild.id, mes_te)
+            for i in map(str, range(1, int(n_fc.steam_server_list[ctx.guild.id]["value"])+1)):
+                await server_check.server_check_async(self.bot.loop, embed, 1, ctx.guild.id, i)
             await asyncio.sleep(1)
             await ctx.message.reply(embed=embed)
             return
-    elif mes_te == "all":
-        if ctx.message.guild.id not in n_fc.steam_server_list:
+    
+    elif len(args) > 2:
+        await ctx.reply(f"引数とか何かがおかしいです。\n{ss_commands}")
+        return
+    
+    else:
+        if ctx.guild.id not in n_fc.steam_server_list:
             await ctx.message.reply("サーバーは登録されていません。")
             return
-        async with ctx.message.channel.typing():
+        async with ctx.channel.typing():
             embed = nextcord.Embed(title="Server Status Checker", description=f"{ctx.message.author.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
-            for i in map(str, range(1, int(n_fc.steam_server_list[ctx.message.guild.id]["value"])+1)):
-                await server_check.server_check_async(self.bot.loop, embed, 1, ctx.message.guild.id, i)
+            server_check.server_check(embed, 0, ctx.guild.id, args[1])
             await asyncio.sleep(1)
             await ctx.message.reply(embed=embed)
             return
-    return
 
 
 class server_status(commands.Cog):
