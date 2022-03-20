@@ -14,7 +14,7 @@ import logging
 import os
 import re
 
-from nira import PREFIX
+PREFIX = "n!"
 
 home_dir = os.path.dirname(__file__)[:-4]
 
@@ -138,7 +138,15 @@ async def ss_loop_goes(self, ment_id, message):
 #コマンド内部
 async def ss_base(self, ctx: commands.Context):
     if ctx.message.content == f"{PREFIX}ss":
-        # 普通にチェックする
+        if ctx.message.guild.id not in n_fc.steam_server_list:
+            await ctx.message.reply("サーバーは登録されていません。")
+            return
+        async with ctx.message.channel.typing():
+            embed = nextcord.Embed(title="Server Status Checker", description=f"{ctx.message.author.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
+            for i in map(str, range(1, int(n_fc.steam_server_list[ctx.message.guild.id]["value"])+1)):
+                await server_check.server_check_async(self.bot.loop, embed, 0, ctx.message.guild.id, i)
+            await asyncio.sleep(1)
+            await ctx.message.reply(embed=embed, view=server_status.Recheck_SS_Embed())
         return
     args = ctx.message.content.split(" ")
 
