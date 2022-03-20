@@ -14,8 +14,6 @@ commands_description = {
     "にらBOTの通常及び追加反応(全反応)設定",
     "save":
     "変数をセーブする(for Debug)",
-    "mc":
-    "Minecraftのサーバーのステータスをチェックする",
     "admin":
     "サーバーで管理権限を持っているかチェックする",
     "restart":
@@ -89,5 +87,7 @@ commands_description = {
     "er":
     "追加反応の設定",
     "wordle":
-    "wordleで遊びます"
+    "wordleで遊びます",
+    "mc":
+    "Minecraftのサーバーステータスをチェックする"
 }
