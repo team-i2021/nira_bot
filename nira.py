@@ -158,7 +158,7 @@ async def reload(interaction: Interaction):
         return
     else:
         status_message = n_fc.pid_ss[interaction.guild.id][1]
-        n_fc.pid_ss[interaction.guild.id] = (asyncio.ensure_future(server_status.ss_force(bot, status_message)),status_message)
+        n_fc.pid_ss[interaction.guild.id] = (asyncio.ensure_future(server_status.ss_force(bot.loop, status_message)),status_message)
         await interaction.response.send_message("リロードしました。", ephemeral = True)
         return
 

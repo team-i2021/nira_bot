@@ -67,9 +67,6 @@ class info(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @nextcord.slash_command(name="slashtest",description="テストです。")
-    async def test_slash(self, interaction: Interaction):
-        await interaction.response.send_message("test")
 
     @nextcord.slash_command(name="info", description="にらBOTの情報を表示します。")
     async def slashcommand_info(self, interaction: Interaction):
@@ -87,7 +84,7 @@ class info(commands.Cog):
     async def slashcommand_help(self, Interaction: Interaction, command: str):
         if command == "":
             command = None
-        await info_base.help(self, Interaction, SLASH)
+        await info_base.help(self, Interaction, command, SLASH)
     
     @commands.command(name="help", help="""\
 にらBOT又はコマンドのヘルプを表示します。

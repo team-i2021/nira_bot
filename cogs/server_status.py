@@ -1,14 +1,9 @@
 import datetime
 import pickle
 import sys
-from aiomysql import InternalError
 
 import nextcord
 from nextcord.ext import commands
-
-from cogs.embed import embed
-
-#pingを送信するだけ
 
 sys.path.append('../')
 import asyncio
@@ -18,13 +13,9 @@ import importlib
 import logging
 import os
 import re
-import subprocess
-from multiprocessing import Array, Process
-from subprocess import PIPE
 
 home_dir = os.path.dirname(__file__)[:-4]
 
-import util.srtr as srtr
 dir = sys.path[0]
 from util import admin_check, eh, n_fc, server_check
 import traceback
@@ -388,7 +379,7 @@ class server_status(commands.Cog):
         def __init__(self):
             super().__init__(timeout=None)
 
-        @nextcord.ui.button(label='リロード', style=nextcord.ButtonStyle.green)
+        @nextcord.ui.button(label='再読み込み', style=nextcord.ButtonStyle.green)
         async def reload(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
             try:
                 status_message = n_fc.pid_ss[interaction.guild.id][1]
