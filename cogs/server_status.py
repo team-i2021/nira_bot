@@ -287,7 +287,7 @@ async def ss_base(self, ctx: commands.Context):
         s_nm = str(adre[1])
         s_adre = str(adre[2]).split(",", 2)
         s_port = int(s_adre[1])
-        s_ip = str("".join(re.findall(r'[0-9]|\.', s_adre[0])))
+        s_ip = str(re.sub("[^0-9a-zA-Z._-]", "", s_adre[0]))
         b_value = int(n_fc.steam_server_list[ctx.guild.id]["value"])
         if b_value < s_id:
             await ctx.message.reply("そのサーバーナンバーのサーバーは登録されていません！\n`n!ss list`で確認してみてください。")
@@ -364,9 +364,23 @@ async def ss_base(self, ctx: commands.Context):
                 await ctx.message.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
                 return
         else:
-            del_re = await ctx.reply("サーバーリストを削除しますか？リスト削除には管理者権限が必要です。\n\n:o:：削除\n:x:：キャンセル")
-            await del_re.add_reaction("\U00002B55")
-            await del_re.add_reaction("\U0000274C")
+            def check(m):
+                return (m.content == 'y' or m.content == 'n') and m.author == ctx.author and m.channel == ctx.channel
+            del_re = await ctx.reply("サーバーリストを削除してもよろしいですか？\n削除するには`y`、キャンセルするには`n`と送信してください。\n(10秒以内)")
+            try:
+                msg = await self.bot.wait_for('message', check=check, timeout=10)
+            except asyncio.TimeoutError:
+                await del_re.edit(content="時間切れです...")
+                return
+            if msg.content == "n":
+                await del_re.edit(content="分かりました。\nまた呼んでね...")
+                return
+            else:
+                del n_fc.steam_server_list[ctx.guild.id]
+                with open(f'{home_dir}/steam_server_list.nira', 'wb') as f:
+                    pickle.dump(n_fc.steam_server_list, f)
+                await del_re.edit(content=None,embed=nextcord.Embed(title="リスト削除", description=f"{ctx.author.mention}\nリストは正常に削除されました。", color=0xffffff))
+                return
             return
         return
     
@@ -383,7 +397,7 @@ async def ss_base(self, ctx: commands.Context):
             return
     
     elif len(args) > 2:
-        await ctx.reply(f"引数とか何かがおかしいです。\n{ss_commands}")
+        await ctx.reply(f"引数とか何かがおかしいです。\n\n{ss_commands}")
         return
     
     else:
