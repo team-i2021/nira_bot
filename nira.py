@@ -128,7 +128,7 @@ async def on_ready():
             print(messs.author.id)
             await messs.edit(content=f"reloading now...\nPlease wait...\n```{datetime.datetime.now()}```", embed=None)
             print(f"復元対象メッセージコンテンツ:```{messs.content}```")
-            n_fc.pid_ss[list(n_fc.force_ss_list.keys())[i]] = (asyncio.ensure_future(server_status.ss_force(bot, messs)),messs)
+            n_fc.pid_ss[list(n_fc.force_ss_list.keys())[i]] = (asyncio.ensure_future(server_status.ss_force(bot.loop, messs)),messs)
             print(f"復元完了")
         except BaseException as err:
             print(err, traceback.format_exc())
