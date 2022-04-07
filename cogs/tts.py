@@ -72,7 +72,12 @@ API制限などが来た場合はご了承ください。許せ。""")
                         return
                     await ctx.author.voice.channel.connect()
                     tts_channel[ctx.guild.id] = ctx.channel.id
-                    await ctx.reply(embed=nextcord.Embed(title="TTS",description="TTS機能を有効化しました。",color=0x00ff00))
+                    await ctx.reply(embed=nextcord.Embed(title="TTS",description="""\
+TTSの読み上げ音声には、VOICEVOXの四国めたんが使われています。  
+[利用規約](https://zunko.jp/con_ongen_kiyaku.html)  
+ボイス:「VOICEVOX: 四国めたん」
+
+また、音声生成には[WEB版VOICEVOX](https://voicevox.su-shiki.com/)のAPIを使用させていただいております。""",color=0x00ff00))
                     print(f"{datetime.datetime.now()} - {ctx.guild.name}でTTSに接続")
                     return
             except BaseException as err:
@@ -90,7 +95,7 @@ API制限などが来た場合はご了承ください。許せ。""")
                         return
                     await ctx.message.guild.voice_client.disconnect()
                     del tts_channel[ctx.guild.id]
-                    await ctx.reply(embed=nextcord.Embed(title="TTS",description="TTS機能を無効化しました。",color=0x00ff00))
+                    await ctx.reply(embed=nextcord.Embed(title="TTS",description="あっ...ばいばーい...",color=0x00ff00))
                     print(f"{datetime.datetime.now()} - {ctx.guild.name}でTTSから切断")
                     return
             except BaseException as err:
