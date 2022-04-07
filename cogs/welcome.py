@@ -49,6 +49,9 @@ class welcome(commands.Cog):
 
     """)
     async def welcome(self, ctx: commands.Context):
+        if not admin_check.admin_check(ctx.guild, ctx.author):
+            await ctx.reply("・Welcomeメッセージコマンド\nエラー：権限がありません。")
+            return  
         args = ctx.message.content.split(" ", 3)
         if len(args) != 3:
             await ctx.reply(f"・Welcomeメッセージコマンド\nエラー：書き方が間違っています。")
