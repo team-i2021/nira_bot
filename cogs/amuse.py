@@ -214,16 +214,16 @@ class amuse(commands.Cog):
             await msg.add_reaction("<:nira:915588411715358742>")
             if msg.content == answer:
                 check_out = i
-                share_block.extend(["🟨","🟨","🟨","🟨","🟨"])
-                embed.add_field(name=f"`Turn:{i+1}`", value=f"`{' '.join(list(msg.content.translate(str.maketrans({chr(0x0021 + i): chr(0xFF01 + i) for i in range(94)}))))}`\n:yellow_square::yellow_square::yellow_square::yellow_square::yellow_square:\n\n\n", inline=False)
+                share_block.extend(["🟩","🟩","🟩","🟩","🟩"])
+                embed.add_field(name=f"`Turn:{i+1}`", value=f"`{' '.join(list(msg.content.translate(str.maketrans({chr(0x0021 + i): chr(0xFF01 + i) for i in range(94)}))))}`\n:green_square::green_square::green_square::green_square::green_square:\n\n\n", inline=False)
                 break
             text = list(msg.content.lower())
             check_list = [":black_large_square:",":black_large_square:",":black_large_square:",":black_large_square:",":black_large_square:"]
             answer_copy = answer_dic.copy()
             for j in range(5):
                 if text[j] == answer_list[j]:
-                    check_list[j] = ":yellow_square:"
-                    share_block.extend("🟨")
+                    check_list[j] = ":green_square:"
+                    share_block.extend("🟩")
                     answer_copy[text[j]] = 0
                 elif listre.search(answer_list, text[j]):
                     #listre.search(answer_list[j+1:], text[j]) != None
@@ -239,11 +239,11 @@ class amuse(commands.Cog):
                                     break
                             check_result = k
                         if check_result != None:
-                            check_list[j] = ":green_square:"
-                            share_block.extend("🟩")
+                            check_list[j] = ":yellow_square:"
+                            share_block.extend("🟨")
                             answer_copy[text[j]] = answer_copy[text[j]] - 1
                     else:
-                        check_result = (None,answer_copy[text[j]].copy())
+                        check_result = (None,answer_copy[text[j]])
                         for k in range(j+1, 5):
                             if answer_list[k] == text[k]:
                                 if text[k] == text[j]:
@@ -253,8 +253,8 @@ class amuse(commands.Cog):
                                 break
                             check_result[0] = k
                         if check_result[0] != None:
-                            check_list[j] = ":green_square:"
-                            share_block.extend("🟩")
+                            check_list[j] = ":yellow_square:"
+                            share_block.extend("🟨")
                             answer_copy[text[j]] = answer_copy[text[j]] - 1
                         else:
                             share_block.extend("⬛")
@@ -283,10 +283,6 @@ https://discord.gg/awfFpCYTcP"""
         await message.delete()
         await msg.channel.send(content=None, embed=embed)
         return
-
-
-
-
 
 
 def setup(bot):

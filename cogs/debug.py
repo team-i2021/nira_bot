@@ -184,10 +184,11 @@ class debug(commands.Cog):
                 elif message == "voice_clients":
                     await websocket.send(str(len(self.bot.voice_clients)))
                 else:
-                    if message[:5] == "await":
-                        rt = await eval(message[6:])
+                    rt = None
+                    if re.search("await", message):
+                        await exec(f"""{message}""")
                     else:
-                        rt = eval(message)
+                        exec(f"""{message}""")
                     await websocket.send(str(rt))
             except BaseException as err:
                 await websocket.send(f"An error has occured:{err}")

@@ -87,9 +87,10 @@ class user_join(commands.Cog):
         user_id = member.id
         try:
             user = await self.bot.fetch_user(user_id)
-            if member.guild.id not in n_fc.welcome_id_list:
-                return
-            channel = self.bot.get_channel(n_fc.welcome_id_list[member.guild.id])
+            if member.guild.id in n_fc.welcome_id_list:
+                channel = self.bot.get_channel(n_fc.welcome_id_list[member.guild.id])
+            else:
+                channel = None
             embed = nextcord.Embed(title="また来てねー！", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
             embed.set_thumbnail(url=f"https://cdn.discordapp.com/avatars/{user.id}/{str(user.avatar)}")
             embed.add_field(name="現在のユーザー数", value=f"`{len(member.guild.members)}`人")
@@ -102,16 +103,21 @@ class user_join(commands.Cog):
                     role_text = role_text + f" <@&{member.roles[i].id}> "
                     role_ids.append(member.roles[i].id)
             embed.add_field(name="付与されていたロール", value=f"{role_text}")
-            removed_message = await channel.send(embed=embed)
+            if channel == None:
+                pass
+            else:
+                removed_message = await channel.send(embed=embed)
             if member.guild.id not in n_fc.role_keeper:
                 n_fc.role_keeper[member.guild.id] = {"rk":0}
                 return
-            if n_fc.role_keeper[member.guild.id]["rk"] == 1:
-                n_fc.role_keeper[member.guild.id][member.id] = role_ids
+            n_fc.role_keeper[member.guild.id][member.id] = role_ids
             save()
             return
         except BaseException as err:
-            await removed_message.edit(f"おっと...これは大変ですね...\nユーザー離脱時の処理時にエラーが発生しました。\n`{err}`", embed=embed)
+            if channel == None:
+                pass
+            else:
+                await removed_message.edit(f"おっと...これは大変ですね...\nユーザー離脱時の処理時にエラーが発生しました。\n`{err}`", embed=embed)
             logging.error(f"ユーザー離脱時の情報表示システムのエラー\n{err}")
             return
 

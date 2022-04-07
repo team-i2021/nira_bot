@@ -66,10 +66,16 @@ class user(commands.Cog):
                 return
             if ctx.message.content[5:] in n_fc.on_ali:
                 # ロールキーパーオンにしやがれ
-                n_fc.role_keeper[ctx.guild.id] = {"rk":1}
+                if ctx.guild.id not in n_fc.role_keeper:
+                    n_fc.role_keeper[ctx.guild.id] = {"rk":1}
+                else:
+                    n_fc.role_keeper[ctx.guild.id]["rk"] = 1
             elif ctx.message.content[5:] in n_fc.off_ali:
                 # ロールキーパーオフにしやがれ
-                n_fc.role_keeper[ctx.guild.id] = {"rk":0}
+                if ctx.guild.id not in n_fc.role_keeper:
+                    n_fc.role_keeper[ctx.guild.id] = {"rk":0}
+                else:
+                    n_fc.role_keeper[ctx.guild.id]["rk"] = 0
             else:
                 await ctx.reply("値が不正です。\n「on」とか「off」とか...")
                 return

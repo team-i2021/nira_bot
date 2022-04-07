@@ -88,7 +88,7 @@ class ping(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @nextcord.slash_command(name="ping", description="Discordサーバー又は、指定サーバーとのレイテンシを計測します。")
+    @nextcord.slash_command(name="nira ping", description="Discordサーバー又は、指定サーバーとのレイテンシを計測します。")
     async def test_slash(
         self,
         interaction = Interaction,
