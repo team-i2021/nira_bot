@@ -22,7 +22,6 @@ from util import admin_check, n_fc, eh
 
 import websockets
 
-from nira import save_list, main_channel
 import requests
 import traceback
 
@@ -46,9 +45,9 @@ home_dir = os.path.dirname(__file__)[:-4]
 
 
 def save():
-    for i in range(len(save_list)):
-        with open(f'{home_dir}/{save_list[i]}.nira', 'wb') as f:
-            exec(f"pickle.dump(n_fc.{save_list[i]}, f)")
+    for i in range(len(n_fc.save_list)):
+        with open(f'{home_dir}/{n_fc.save_list[i]}.nira', 'wb') as f:
+            exec(f"pickle.dump(n_fc.{n_fc.save_list[i]}, f)")
 
 def load():
     func_error_count = 0
@@ -73,11 +72,7 @@ def load():
             logging.info(f"変数[{system_list[i]}]のファイル読み込みに失敗しました。\n{err}")
             func_error_count = 1
     if func_error_count > 0:
-        main_content = {
-            "username": "エラーが発生しました",
-            "content": f"変数再読み込み時にエラーが発生しました。\n{err}"
-        }
-        requests.post(main_channel, main_content)
+        logging.info("変数の読み込みに失敗しました。")
 
 
 
@@ -398,11 +393,10 @@ class debug(commands.Cog):
 
     @commands.command()
     async def debug(self, ctx: commands.Context):
-        if ctx.author.id not in n_fc.py_admin:
+        if ctx.author.id in n_fc.py_admin:
             if ctx.message.content == "n!debug reload":
                 message = await ctx.reply("変数の再ロードをしています...")
                 try:
-                    save()
                     importlib.reload(n_fc)
                     load()
                 except BaseException as err:

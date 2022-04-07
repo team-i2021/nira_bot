@@ -51,21 +51,7 @@ bot.is_owner = is_owner
 print("BOTの設定完了")
 
 
-# 変数とかのリスト
-save_list = [
-        "steam_server_list",
-        "reaction_bool_list",
-        "welcome_id_list",
-        "ex_reaction_list",
-        "srtr_bool_list",
-        "all_reaction_list",
-        "bump_list",
-        "notify_token",
-        "role_keeper",
-        "force_ss_list",
-        "mod_list",
-        "mc_server_list"
-        ]
+
 
 
 
@@ -79,11 +65,14 @@ if os.path.isfile(f'{sys.path[0]}/setting.json') == False:
     または、「setup.py」を実行して、画面の指示通りにしてください。
     """)
     os._exit(2)
-setting = json.load(open(f'{sys.path[0]}/setting.json', 'r'))
-home_dir = os.path.dirname(__file__)
-token = setting["tokens"]["nira_bot"]
-main_channel = setting["main_channel"]
-n_fc.py_admin.append(int(setting["py_admin"]))
+
+
+HOME = os.path.dirname(__file__)
+SETTING = json.load(open(f'{sys.path[0]}/setting.json', 'r'))
+TOKEN = SETTING["tokens"]["nira_bot"]
+n_fc.py_admin = SETTING["py_admin"]
+
+
 #loggingの設定
 import logging
 class NoTokenLogFilter(logging.Filter):
@@ -96,7 +85,7 @@ class NoTokenLogFilter(logging.Filter):
 logger = logging.getLogger(__name__)
 logger.addFilter(NoTokenLogFilter())
 formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
-logging.basicConfig(format=formatter, filename=f'{home_dir}/nira.log', level=logging.INFO)
+logging.basicConfig(format=formatter, filename=f'{HOME}/nira.log', level=logging.INFO)
 print("外部設定完了")
 
 
@@ -132,12 +121,6 @@ async def on_ready():
             print(f"復元完了")
         except BaseException as err:
             print(err, traceback.format_exc())
-            main_content = {
-                "username": "エラーが発生しました",
-                "content": f"BOTを起動時にエラーが発生しました。タスクの復元中のエラーです。\n```{traceback.format_exc()}```\n無視して続行します。"
-            }
-            requests.post(main_channel, main_content)
-            continue
     print("AutoSSのタスク復元完了")
     await bot.change_presence(activity=nextcord.Game(name="n!info | にらゲー", type=1), status=nextcord.Status.online)
     print("Welcome to nira-bot!")
@@ -178,7 +161,7 @@ async def line(interaction: Interaction, token: str):
             n_fc.notify_token[interaction.guild.id] = {interaction.channel.id: token}
         else:
             n_fc.notify_token[interaction.guild.id][interaction.channel.id] = token
-        with open(f'{home_dir}/notify_token.nira', 'wb') as f:
+        with open(f'{HOME}/notify_token.nira', 'wb') as f:
             pickle.dump(n_fc.notify_token, f)
         await interaction.response.send_message(f"{interaction.guild.name}/{interaction.channel.name}で`{token}`を保存します。\nトークンが他のユーザーに見られないようにしてください。", ephemeral = True)
 
@@ -194,42 +177,38 @@ async def line_del(interaction: Interaction):
             await interaction.response.send_message(f"{interaction.channel.name}では、LINEトークンが設定されていません。", ephemeral = True)
             return
         del n_fc.notify_token[interaction.guild.id][interaction.channel.id]
-        with open(f'{home_dir}/notify_token.nira', 'wb') as f:
+        with open(f'{HOME}/notify_token.nira', 'wb') as f:
             pickle.dump(n_fc.notify_token, f)
         await interaction.response.send_message(f"{interaction.channel.name}でのLINEトークンを削除しました。", ephemeral = True)
 
 
 func_error_count = 0
-for i in range(len(save_list)):
-    logging.info(f"Start:{save_list[i]}")
+for i in range(len(n_fc.save_list)):
+    logging.info(f"Start:{n_fc.save_list[i]}")
     try:
-        if os.path.isfile(f"{home_dir}/{save_list[i]}.nira"):
-            with open(f'{home_dir}/{save_list[i]}.nira', 'rb') as f:
-                exec(f"n_fc.{save_list[i]} = pickle.load(f)")
-            logging.info(f"変数[{save_list[i]}]のファイル読み込みに成功しました。")
-            if save_list[i] == "notify_token.nira":
+        if os.path.isfile(f"{HOME}/{n_fc.save_list[i]}.nira"):
+            with open(f'{HOME}/{n_fc.save_list[i]}.nira', 'rb') as f:
+                exec(f"n_fc.{n_fc.save_list[i]} = pickle.load(f)")
+            logging.info(f"変数[{n_fc.save_list[i]}]のファイル読み込みに成功しました。")
+            if n_fc.save_list[i] == "notify_token.nira":
                 logging.info("LINE NotifyのTOKENのため、表示はされません。")
             else:
-                exec(f"logging.info(n_fc.{save_list[i]})")
+                exec(f"logging.info(n_fc.{n_fc.save_list[i]})")
         else:
             logging.info("ファイルが存在しません。")
-            with open(f"{home_dir}/{save_list[i]}.nira", "wb") as f:
+            with open(f"{HOME}/{n_fc.save_list[i]}.nira", "wb") as f:
                 pickle.dump({},f)
     except BaseException as err:
-        logging.info(f"変数[{save_list[i]}]のファイル読み込みに失敗しました。\n{err}")
+        logging.info(f"変数[{n_fc.save_list[i]}]のファイル読み込みに失敗しました。\n{err}")
         func_error_count = 1
 if func_error_count > 0:
-    main_content = {
-        "username": "エラーが発生しました",
-        "content": f"BOTを起動時にエラーが発生しました。変数の読み込みエラーです。\nエラーコード:`{func_error_count}`\nlogを確認してください。"
-    }
-    requests.post(main_channel, main_content)
+    print(err, traceback.format_exc())
     os._exit(4)
 print("変数の読み込み完了")
 
 
 try:
-    cogs_dir = home_dir + "/cogs"
+    cogs_dir = HOME + "/cogs"
     cogs_num = len(os.listdir(cogs_dir))
     cogs_list = os.listdir(cogs_dir)
     for i in range(cogs_num):
@@ -237,12 +216,7 @@ try:
             continue
         bot.load_extension(f"cogs.{cogs_list[i][:-3]}")
 except BaseException as err:
-    print(err)
-    main_content = {
-        "username": "エラーが発生しました",
-        "content": f"BOTを起動時にエラーが発生しました。Cogの読み込みエラーです。\n```{err}```\nサービスは終了します。"
-    }
-    requests.post(main_channel, main_content)
+    print(err, traceback.format_exc())
     os._exit(8)
 print("Cogの読み込み完了")
 
@@ -250,7 +224,7 @@ print("Cogの読み込み完了")
 def main():
     # BOT起動
     print("BOT起動開始...")
-    bot.run(token)
+    bot.run(TOKEN)
     print("BOT終了")
 
 if __name__ == "__main__":

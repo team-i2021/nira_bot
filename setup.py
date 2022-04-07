@@ -18,10 +18,8 @@ def main():
         "py_admin":int
     }
     setting["tokens"]["nira_bot"] = input("TOKEN>")
-    print("エラー発生時にメッセージを送信するDiscordチャンネルのWebhookURLを入力してください。")
-    setting["main_channel"] = input("URL>")
     print("管理者用コマンドを使用することが出来るユーザーのIDを入力してください。\nユーザーIDの取得方法は[https://support.discord.com/hc/ja/articles/206346498-%E3%83%A6%E3%83%BC%E3%82%B6%E3%83%BC-%E3%82%B5%E3%83%BC%E3%83%90%E3%83%BC-%E3%83%A1%E3%83%83%E3%82%BB%E3%83%BC%E3%82%B8ID%E3%81%AF%E3%81%A9%E3%81%93%E3%81%A7%E8%A6%8B%E3%81%A4%E3%81%91%E3%82%89%E3%82%8C%E3%82%8B-]からご確認ください。")
-    setting["py_admin"] = int(input("ID>"))
+    setting["py_admin"] = [int(input("ID>"))]
     print("ファイル生成中...")
     try:
         with open(f'{os.path.dirname(__file__)}/setting.json', 'w') as f:
