@@ -269,6 +269,8 @@ class normal_reaction(commands.Cog):
             if message.channel.id in n_fc.srtr_bool_list[message.guild.id]:
                 await srtr.on_srtr(message)
                 return
+        if message.channel.topic != None and re.search("nira-off", message.channel.topic):
+            return
         # 追加反応
         if message.guild.id in n_fc.ex_reaction_list:
             if n_fc.ex_reaction_list[message.guild.id]["value"] != 0:
