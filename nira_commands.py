@@ -89,5 +89,9 @@ commands_description = {
     "wordle":
     "wordleで遊びます",
     "mc":
-    "Minecraftのサーバーステータスをチェックする"
+    "Minecraftのサーバーステータスをチェックする",
+    "autorole":
+    "サーバーに入った人にロールを自動付与する",
+    "welcome":
+    "サーバーに入った時に送信するメッセージを設定する"
 }
