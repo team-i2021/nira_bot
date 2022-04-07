@@ -7,7 +7,7 @@ import subprocess
 from subprocess import PIPE
 import re
 import asyncio
-
+import json
 from util import slash_tool
 
 from cogs import normal_reaction as nr
@@ -397,8 +397,11 @@ class debug(commands.Cog):
             if ctx.message.content == "n!debug reload":
                 message = await ctx.reply("変数の再ロードをしています...")
                 try:
+                    save()
                     importlib.reload(n_fc)
                     load()
+                    SETTING = json.load(open(f'{sys.path[0]}/setting.json', 'r'))
+                    n_fc.py_admin = SETTING["py_admin"]
                 except BaseException as err:
                     await message.edit(content=f"エラーが発生しました。{err}")
                     return
