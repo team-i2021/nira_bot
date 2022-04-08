@@ -31,5 +31,10 @@ issueやPRを立てる場合は、初心者プログラマー(私)にやさし�
 - Words list for Wordle  
 『CEFR-J Wordlist Version 1.6』 東京外国語大学投野由紀夫研究室. （URL: http://www.cefr-j.org/download.html より2022年02月ダウンロード）
 
+- TTS Character Voice
+TTSの読み上げ音声には、VOICEVOXの四国めたんちゃんが使われています。  
+[利用規約](https://zunko.jp/con_ongen_kiyaku.html)  
+`VOICEVOX: 四国めたん`
+
 # 最後に
 優しく見守ってくださいませ
