@@ -32,9 +32,10 @@ issueやPRを立てる場合は、初心者プログラマー(私)にやさし�
 『CEFR-J Wordlist Version 1.6』 東京外国語大学投野由紀夫研究室. （URL: http://www.cefr-j.org/download.html より2022年02月ダウンロード）
 
 - TTS Character Voice
-TTSの読み上げ音声には、VOICEVOXの四国めたんちゃんが使われています。  
-[利用規約](https://zunko.jp/con_ongen_kiyaku.html)  
-`VOICEVOX: 四国めたん`
+TTSの読み上げ音声には、VOICEVOXが使われています。  
+[各キャラクターについて](https://voicevox.hiroshiba.jp/)  
+キャラクターボイス: `VOICEVOX: 四国めたん`/`VOICEVOX: ずんだもん`/`VOICEVOX: 春日部つむぎ`/`雨晴はう`/`VOICEVOX: 波音リツ`/`VOICEVOX: 玄野武宏`/`VOICEVOX: 白上虎太郎`/`VOICEVOX: 青山龍星`/`VOICEVOX: 冥鳴ひまり`/`VOICEVOX: 九州そら`
+
 
 # 最後に
 優しく見守ってくださいませ
