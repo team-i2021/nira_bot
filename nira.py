@@ -58,12 +58,12 @@ print("BOTの設定完了")
 
 #設定読み込み
 if os.path.isfile(f'{sys.path[0]}/setting.json') == False:
-    print("""[事前停止]\n
-    BOTの設定ファイルが見つかりませんでした。\n
-    「nira.py」があるフォルダに「setting.json」をおいてください。\n
-    「setting_temp.json」というテンプレートがありますのでそちらを参考にしてください。\n\n
-    または、「setup.py」を実行して、画面の指示通りにしてください。
-    """)
+    print("""[事前停止]
+BOTの設定ファイルが見つかりませんでした。
+「nira.py」があるフォルダに「setting.json」をおいてください。
+「setting_temp.json」というテンプレートがありますのでそちらを参考にしてください。
+
+または、「setup.py」を実行して、画面の指示通りにしてください。""")
     os._exit(2)
 
 
