@@ -259,7 +259,20 @@ class music(commands.Cog):
                                 return
                         logging.info(f"{url} {music_f[ctx.guild.id][0]} {music_list[ctx.guild.id][0]}")
                         await ctx.message.add_reaction("\U0001F3B5")
-                        ctx.message.guild.voice_client.play(nextcord.PCMVolumeTransformer(nextcord.FFmpegPCMAudio(music_list[ctx.guild.id][0], **options), volume=0.45), after = lambda e: self.bot.loop.create_task(end_mes(ctx.message, music_f[ctx.guild.id][0], self.bot)))
+                        ctx.message.guild.voice_client.play(
+                            nextcord.PCMVolumeTransformer(
+                                nextcord.FFmpegPCMAudio(
+                                        music_list[ctx.guild.id][0],
+                                        **options
+                                    ),
+                                    volume=0.45
+                                ),
+                            after = lambda e: self.bot.loop.create_task(
+                                end_mes(
+                                    ctx.message, music_f[ctx.guild.id][0], self.bot
+                                )
+                            )
+                        )
                         await ctx.message.add_reaction("\U0001F197")
                         # nextcord.PCMVolumeTransformer(nextcord.FFmpegPCMAudio(music_list[ctx.guild.id].url,**options), volume=0.5)
                         return

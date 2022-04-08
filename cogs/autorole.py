@@ -65,7 +65,7 @@ class autorole(commands.Cog):
             await ctx.reply("・Autoroleコマンド\nエラー：指定したロールが存在しません。")
             return
         n_fc.autorole[ctx.guild.id] = role_id
-        await ctx.reply(f"・Autoroleコマンド\n設定完了：{ctx.guild.get_role(role_id).mention}を自動的に付与します。")
+        await ctx.reply(embed=nextcord.Embed(title="・Autoroleコマンド", description=f"設定完了：{ctx.guild.get_role(role_id).mention}を自動的に付与します。"))
         save()
         return
     
