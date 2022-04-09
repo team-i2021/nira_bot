@@ -73,7 +73,7 @@ class autorole(commands.Cog):
     async def on_member_join(self, member: nextcord.Member):
         if member.guild.id in n_fc.autorole:
             role = member.guild.get_role(n_fc.autorole[member.guild.id])
-            await member.add_role(role)
+            await member.add_roles(role)
             return
         return
 
