@@ -4,13 +4,6 @@ from nextcord.ext import commands
 from nextcord.utils import get
 from os import getenv
 import sys
-import asyncio
-import subprocess
-import websockets
-import traceback
-import importlib
-import json
-
 from util.admin_check import admin_check
 global task
 import re
@@ -131,9 +124,4 @@ n!rolepanel [メッセージ内容]
 
 
 def setup(bot):
-    if os.path.exists(f'{sys.path[0]}/PersistentViews.nira'):
-        with open(f'{sys.path[0]}/PersistentViews.nira', 'rb') as f:
-            PersistentViews = pickle.load(f)
-        for i in PersistentViews:
-            bot.add_view(RolePanelView(i))
     bot.add_cog(rolepanel(bot))

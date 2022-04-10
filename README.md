@@ -34,7 +34,8 @@ issueやPRを立てる場合は、初心者プログラマー(私)にやさし�
 - TTS Character Voice
 TTSの読み上げ音声には、VOICEVOXが使われています。  
 [各キャラクターについて](https://voicevox.hiroshiba.jp/)  
-キャラクターボイス: `VOICEVOX: 四国めたん`/`VOICEVOX: ずんだもん`/`VOICEVOX: 春日部つむぎ`/`雨晴はう`/`VOICEVOX: 波音リツ`/`VOICEVOX: 玄野武宏`/`VOICEVOX: 白上虎太郎`/`VOICEVOX: 青山龍星`/`VOICEVOX: 冥鳴ひまり`/`VOICEVOX: 九州そら`
+キャラクターボイス: `VOICEVOX: 四国めたん`/`VOICEVOX: ずんだもん`/`VOICEVOX: 春日部つむぎ`/`雨晴はう`/`VOICEVOX: 波音リツ`/`VOICEVOX: 玄野武宏`/`VOICEVOX: 白上虎太郎`/`VOICEVOX: 青山龍星`/`VOICEVOX: 冥鳴ひまり`/`VOICEVOX: 九州そら`  
+**公序良俗に反する読み上げは一部のキャラクターでは、利用規約違反となります。**
 
 
 # 最後に

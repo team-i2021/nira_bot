@@ -26,6 +26,8 @@ try:
     import traceback
     import datetime
     import asyncio
+    from cogs import rolepanel
+    from cogs import bottomup
     print("モジュールインポート完了")
 except BaseException as err:
     print(f"""モジュールインポート時のエラー:{err}\n
@@ -93,6 +95,15 @@ print("外部設定完了")
 @bot.event
 async def on_ready():
     print("起動後処理を開始...")
+    if os.path.exists(f'{sys.path[0]}/PersistentViews.nira'):
+        with open(f'{sys.path[0]}/PersistentViews.nira', 'rb') as f:
+            rolepanel.PersistentViews = pickle.load(f)
+        for i in rolepanel.PersistentViews:
+            bot.add_view(rolepanel.RolePanelView(i))
+    
+    # asyncio.new_event_loop().run_in_executor(None, bottomup.MessagePin, bot)
+    # asyncio.ensure_future(bottomup.MessagePin(bot))
+
     await bot.change_presence(activity=nextcord.Game(name="起動中...(1/2)", type=1), status=nextcord.Status.idle)
     print("ユーザー情報読み込み中")
     for i in bot.guilds:

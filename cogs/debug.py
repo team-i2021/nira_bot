@@ -405,7 +405,7 @@ class debug(commands.Cog):
                 except BaseException as err:
                     await message.edit(content=f"エラーが発生しました。{err}")
                     return
-                await message.edit(content="変数の読み込みが完了しました。")
+                await message.edit(content=f"変数の読み込みが完了しました。\nAdmin:{n_fc.py_admin}")
 
 
 def setup(bot):

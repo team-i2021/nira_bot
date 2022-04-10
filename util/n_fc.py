@@ -1,4 +1,4 @@
-global steam_server_list, ex_reaction_list, reaction_bool_list, welcome_id_list, srtr_bool_list, all_reaction_list, bump_list, notify_token, role_keeper, restore_save, force_ss_list, mod_list, mc_server_list, welcome_message_list, autorole
+global steam_server_list, ex_reaction_list, reaction_bool_list, welcome_id_list, srtr_bool_list, all_reaction_list, bump_list, notify_token, role_keeper, restore_save, force_ss_list, mod_list, mc_server_list, welcome_message_list, autorole, pinMessage
 
 steam_server_list = {}
 ex_reaction_list = {}
@@ -18,6 +18,8 @@ mc_server_list = {}
 welcome_message_list = {}
 
 autorole = {}
+
+pinMessage = {}
 
 global pid_ss
 pid_ss={}
@@ -42,5 +44,6 @@ save_list = [
         "mod_list",
         "mc_server_list",
         "welcome_message_list",
-        "autorole"
+        "autorole",
+        "pinMessage"
         ]
