@@ -27,7 +27,7 @@ try:
     import datetime
     import asyncio
     from cogs import rolepanel
-    from cogs import bottomup
+    from cogs import pin
     print("モジュールインポート完了")
 except BaseException as err:
     print(f"""モジュールインポート時のエラー:{err}\n

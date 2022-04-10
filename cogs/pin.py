@@ -61,6 +61,8 @@ offにするには、`n!pin off`と送信してください。
 前に送ったピンメッセージが削除されずに送信されて、残っている場合は、にらBOTに適切な権限が与えられているか確認してください。
 """)
     async def pin(self, ctx: commands.Context):
+        if ctx.author.id != n_fc.owner_id:
+            return
         args = ctx.message.content.split(" ", 2)
         if args[1] == "on":
             if len(args) != 3:
