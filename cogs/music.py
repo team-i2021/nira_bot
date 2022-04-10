@@ -20,6 +20,7 @@ from util import admin_check, n_fc, eh, server_check
 import urllib.request
 import urllib.parse
 
+from cogs import tts
 
 # 音楽再生
 
@@ -198,8 +199,14 @@ class music(commands.Cog):
                 await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
                 return
             else:
+                if not ctx.guild.voice_client is None:
+                    if ctx.guild.id not in tts.tts_channel:
+                        await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="既にVCに入っています。",color=0xff0000))
+                        return
+                    await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="すでにVCに参加しています。\nTTSを切断するには、`n!tts leave`と入力してください。",color=0xff0000))
+                    return
                 await ctx.message.author.voice.channel.connect()
-                await ctx.message.reply(embed=nextcord.Embed(title="にら",description="今はまだ、テスト中なので動作が不安定です！\n`n!play [URL]`/`n!pause`/`n!resume`/`n!stop`/`n!leave`",color=0x00ff00))
+                await ctx.message.reply(embed=nextcord.Embed(title="Music Player",description="今はまだ、テスト中なので動作が不安定です！\n`n!play [URL]`/`n!pause`/`n!resume`/`n!stop`/`n!leave`",color=0x00ff00))
                 print(f"{datetime.datetime.now()} - {ctx.message.guild.name}でVCに接続")
                 return
         except BaseException as err:
@@ -216,9 +223,9 @@ class music(commands.Cog):
             if ctx.message.author.voice is None:
                 await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
                 return
-            elif ctx.message.guild.voice_client is None:
-                await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="先に`n!join`でボイスチャンネルに入れてください！",color=0xff0000))
-                return
+            elif ctx.guild.voice_client is None:
+                await ctx.author.voice.channel.connect()
+                await asyncio.sleep(1)
             else:
                 if len(ctx.message.content) <= 7:
                     await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="`n!play [URL]`という形で送信してください。",color=0xff0000))
@@ -381,6 +388,28 @@ class music(commands.Cog):
     音楽を再生してようがしてまいが、にらBOTをVCから蹴とばします。
     音楽系のコマンドの詳細は[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)からご確認ください。""")
     async def leave(self, ctx: commands.Context):
+        if len(ctx.message.content.split(" ",1)) > 1 and ctx.message.content.split(" ",1)[1] == "f":
+            try:
+                del tts.tts_list[ctx.guild.id]
+            except BaseException:
+                pass
+            try:
+                del music_list[ctx.guild.id]
+            except BaseException:
+                pass
+            try:
+                del music_f[ctx.guild.id]
+            except BaseException:
+                pass
+            try:
+                await ctx.guild.voice_client.disconnect()
+            except BaseException:
+                pass
+            await ctx.reply("強制的に切断しました。")
+            return
+        elif len(ctx.message.content.split(" ",1)) > 1 and ctx.message.content.split(" ",1)[1] != "f":
+            await ctx.reply("引数が不正です。切断するには`n!leave`と入力してください。")
+            return
         try:
             if ctx.message.author.voice is None:
                 await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
@@ -389,10 +418,14 @@ class music(commands.Cog):
                 await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="先に`n!join`でボイスチャンネルに入れてください！",color=0xff0000))
                 return
             else:
-                await ctx.message.guild.voice_client.disconnect()
-                await ctx.message.reply(embed=nextcord.Embed(title="にら",description="Disconnected",color=0x00ff00))
-                print(f"{datetime.datetime.now()} - {ctx.message.guild.name}のVCから切断")
-                return
+                if ctx.guild.id not in tts.tts_channel:
+                    await ctx.message.guild.voice_client.disconnect()
+                    await ctx.message.reply(embed=nextcord.Embed(title="Music Player",description="切断しました。",color=0x00ff00))
+                    print(f"{datetime.datetime.now()} - {ctx.message.guild.name}のVCから切断")
+                    return
+                else:
+                    await ctx.reply(embed=nextcord.Embed(title="エラー",description="TTSで接続しています。`n!tts leave`と入力して切断してください。\n何が起きてるのかよくわからず、強制的に切断する必要がある場合は、`n!leave f`と入力してください。",color=0xff0000))
+                    return
         except BaseException as err:
             await ctx.message.reply(embed=nextcord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
             print(f"[VC切断時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
@@ -445,6 +478,28 @@ class music(commands.Cog):
                 await ctx.message.reply(embed=nextcord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
                 print(f"[楽曲停止時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
                 return
+    
+    @commands.Cog.listener()
+    async def on_voice_state_update(self, member: nextcord.Member, before: nextcord.VoiceState, after: nextcord.VoiceState):
+        logging.info(after, member)
+        members = len(after.channel.members)
+        if members == 1:
+            await member.guild.voice_client.disconnect()
+            if member.guild.id in tts.tts_channel:
+                CHANNEL = self.bot.get_channel(tts.tts_channel[member.guild.id])
+                await CHANNEL.send("なんでみんないなくなっちゃうの！！！！(切断します。)")
+        elif member == self.bot.user and after.voice_states[self.bot.user.id].mute:
+            try:
+                await member.edit(mute=False)
+                if member.guild.id in tts.tts_channel:
+                    CHANNEL = self.bot.get_channel(tts.tts_channel[member.guild.id])
+                    await CHANNEL.send("......はぁっ！！！...はぁはぁ....\n呼吸できなくて死ぬかと思ったわ！！！")
+            except BaseException as err:
+                if member.guild.id in tts.tts_channel:
+                    CHANNEL = self.bot.get_channel(tts.tts_channel[member.guild.id])
+                    await CHANNEL.send("........(呼吸ができなくなって苦しそうだ。)")
+
 
 def setup(bot):
     bot.add_cog(music(bot))
+

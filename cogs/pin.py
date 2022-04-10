@@ -1,11 +1,12 @@
 import asyncio
-from nextcord.ext import commands
+from nextcord.ext import commands, tasks
 import nextcord
 import subprocess
 from subprocess import PIPE
 import os
 import sys
 from nextcord import Interaction, SlashOption, ChannelType
+import traceback
 
 sys.path.append('../')
 from util import admin_check, n_fc, eh
@@ -61,9 +62,12 @@ offにするには、`n!pin off`と送信してください。
 前に送ったピンメッセージが削除されずに送信されて、残っている場合は、にらBOTに適切な権限が与えられているか確認してください。
 """)
     async def pin(self, ctx: commands.Context):
-        if ctx.author.id != n_fc.owner_id:
+        if ctx.author.id != 669178357371371522:
             return
         args = ctx.message.content.split(" ", 2)
+        if len(args) == 1:
+            await ctx.reply("`n!pin on [メッセージ内容...(複数行可)]` と送ってください。")
+            return
         if args[1] == "on":
             if len(args) != 3:
                 await ctx.reply("・エラー\n引数が足りません。\n`n!pin on [メッセージ内容]`または`n!pin off`")
@@ -90,7 +94,29 @@ offにするには、`n!pin off`と送信してください。
         else:
             await ctx.reply("・エラー\n使い方が違います。\n`n!pin on [メッセージ内容]`または`n!pin off`")
             return
+    
+    @tasks.loop(seconds=3)
+    async def checkPin(bot: commands.Bot):
+        await bot.wait_until_ready()
+        try:
+            for i in n_fc.pinMessage.keys():
+                for j in n_fc.pinMessage[i].keys():
+                    CHANNEL = bot.get_channel(j)
+                    if CHANNEL.last_message.content == n_fc.pinMessage[i][j] and CHANNEL.last_message.author.id == bot.user.id:
+                        continue
+                    messages = await CHANNEL.history(limit=10).flatten()
+                    for message in messages:
+                        if message.content == n_fc.pinMessage[i][j] and message.author.id == bot.user.id:
+                            await message.delete()
+                    await CHANNEL.send(n_fc.pinMessage[i][j])
+        except BaseException:
+            logging.error(traceback.format_exc())
 
 
 def setup(bot):
     bot.add_cog(bottomup(bot))
+    bottomup.checkPin.start()
+
+def teardown(bot):
+    logging.info("Pin teradown!")
+    bottomup.checkPin.stop()
