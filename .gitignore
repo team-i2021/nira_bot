@@ -1,7 +1,7 @@
 __pycache__/
 .venv/
 *.nira
-nira.log
+nira.*log
 nira_dev.py
 setting.json
 js_test/

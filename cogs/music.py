@@ -223,10 +223,10 @@ class music(commands.Cog):
             if ctx.message.author.voice is None:
                 await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
                 return
-            elif ctx.guild.voice_client is None:
-                await ctx.author.voice.channel.connect()
-                await asyncio.sleep(1)
             else:
+                if ctx.guild.voice_client is None:
+                    await ctx.author.voice.channel.connect()
+                    await asyncio.sleep(1)
                 if len(ctx.message.content) <= 7:
                     await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="`n!play [URL]`という形で送信してください。",color=0xff0000))
                     return
