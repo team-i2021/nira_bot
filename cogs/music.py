@@ -210,7 +210,7 @@ class music(commands.Cog):
                 print(f"{datetime.datetime.now()} - {ctx.message.guild.name}でVCに接続")
                 return
         except BaseException as err:
-            await ctx.message.reply(embed=nextcord.Embed(title="エラー",description=f"```{err}```\n```sh\n{sys.exc_info()}```",color=0xff0000))
+            await ctx.message.reply(embed=nextcord.Embed(title="エラー",description=f"```sh\n{sys.exc_info()}```",color=0xff0000))
             print(f"[VC接続時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
             return
     
