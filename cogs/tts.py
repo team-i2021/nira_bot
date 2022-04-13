@@ -16,10 +16,10 @@ import re
 
 import sys
 sys.path.append('../')
-from util import n_fc, mc_status
-from util.tts_convert import convert
+from util import n_fc, mc_status, tts_convert
 import random
 import datetime
+
 
 # Text To Speech
 
@@ -198,7 +198,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                         break
             message.guild.voice_client.play(
                 nextcord.PCMVolumeTransformer(nextcord.FFmpegPCMAudio(
-                    f"https://api.su-shiki.com/v2/voicevox/audio/?text={convert(message.content)}&key={keys[random.randint(0,len(keys)-1)]}&speaker={speaker_author[message.author.id]}"
+                    f"https://api.su-shiki.com/v2/voicevox/audio/?text={tts_convert.convert(message.content)}&key={keys[random.randint(0,len(keys)-1)]}&speaker={speaker_author[message.author.id]}"
                 ),
                 volume=0.5)
             )
@@ -210,3 +210,4 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
 
 def setup(bot):
     bot.add_cog(tts(bot))
+    importlib.reload(tts_convert)

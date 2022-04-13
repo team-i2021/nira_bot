@@ -5,5 +5,5 @@ def convert(message: str) -> str:
     if message == "" or type(message) != str:
         raise ValueError()
     message = message.replace("?","？").replace("&","あんど").replace("=","いこーる").replace("\n","。").replace("/", "すらっしゅ")
-    message = re.sub("w{3}", "わらわらわら", message)
+    message = re.sub("w{3,}", "わらわらわら", message)
     return message
