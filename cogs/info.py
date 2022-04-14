@@ -40,8 +40,8 @@ class HelpSelect(nextcord.ui.Select):
                 nextcord.SelectOption(label='ウェルカムメッセージ送信', description="n!welcome" ,value=12),
                 nextcord.SelectOption(label='サーバー加入時 自動ロール付与', description="n!autorole", value=13),
                 nextcord.SelectOption(label='ボタンでロールを付与するパネル', description="n!rolepanel", value=14),
-                #nextcord.SelectOption(label='荒らし対策機能', description="n!mod", value=15),
-                #nextcord.SelectOption(label='メッセージ下部ピン止め機能', description="n!pin", value=16),
+                nextcord.SelectOption(label='荒らし対策機能(未完成)', description="n!mod", value=15),
+                nextcord.SelectOption(label='メッセージ下部ピン止め機能(未完成)', description="n!pin", value=16),
                 nextcord.SelectOption(label='サーバーを抜けてもロールを保持する', description="n!rk", value=17),
                 nextcord.SelectOption(label='Bump通知機能', description="n!bump", value=18),
             ]
@@ -63,8 +63,8 @@ class HelpSelect(nextcord.ui.Select):
         elif opt == ServerStatus or int(str(opt)[0]) == ServerStatus:
             options = [
                 nextcord.SelectOption(label='ジャンル選択に戻る...', value=0),
-                nextcord.SelectOption(label='Steam非公式サーバー\nステータスチェック', description="n!ss", value=41),
-                #nextcord.SelectOption(label='Minecraftサーバー\nステータスチェック', description="n!mc", value=42),
+                nextcord.SelectOption(label='Steam非公式サーバー ステータスチェック', description="n!ss", value=41),
+                nextcord.SelectOption(label='Minecraftサーバー ステータスチェック(未完成)', description="n!mc", value=42),
             ]
         elif opt == Embed or int(str(opt)[0]) == Embed:
             options = [
