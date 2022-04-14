@@ -5,12 +5,121 @@ from nextcord import Interaction, SlashOption, ChannelType
 import sys
 sys.path.append('../')
 from util import admin_check, n_fc, eh
-import util.help_command as help_command
-import nira_commands
+import importlib
+import util.help_command as hc
+
+
 #インフォ系
 
 CTX = 0
 SLASH = 1
+
+ManageServer, ManageUser, Amuse, ServerStatus, Embed, Reaction, VoiceClient, BotUtility, ChannelTopic = range(1,10)
+
+
+
+class HelpSelect(nextcord.ui.Select):
+    def __init__(self, opt = 0):
+
+        if opt == 0:
+            options = [
+                nextcord.SelectOption(label='サーバー管理/便利', value=ManageServer),
+                nextcord.SelectOption(label='ユーザー', value=ManageUser),
+                nextcord.SelectOption(label='娯楽', value=Amuse),
+                nextcord.SelectOption(label='サーバーステータス', value=ServerStatus),
+                nextcord.SelectOption(label='Embed', value=Embed),
+                nextcord.SelectOption(label='にらの反応系', value=Reaction),
+                nextcord.SelectOption(label='VC系', value=VoiceClient),
+                nextcord.SelectOption(label='にらBOT全般', value=BotUtility),
+                nextcord.SelectOption(label='チャンネルトピック', value=ChannelTopic),
+            ]
+        elif opt == ManageServer or int(str(opt)[0]) == ManageUser:
+            options = [
+                nextcord.SelectOption(label='ジャンル選択に戻る...', value=0),
+                nextcord.SelectOption(label='加入/離脱者情報表示', description="n!ui", value=11),
+                nextcord.SelectOption(label='ウェルカムメッセージ送信', description="n!welcome" ,value=12),
+                nextcord.SelectOption(label='サーバー加入時 自動ロール付与', description="n!autorole", value=13),
+                nextcord.SelectOption(label='ボタンでロールを付与するパネル', description="n!rolepanel", value=14),
+                #nextcord.SelectOption(label='荒らし対策機能', description="n!mod", value=15),
+                #nextcord.SelectOption(label='メッセージ下部ピン止め機能', description="n!pin", value=16),
+                nextcord.SelectOption(label='サーバーを抜けてもロールを保持する', description="n!rk", value=17),
+                nextcord.SelectOption(label='Bump通知機能', description="n!bump", value=18),
+            ]
+        elif opt == ManageUser or int(str(opt)[0]) == ManageUser:
+            options = [
+                nextcord.SelectOption(label='ジャンル選択に戻る...', value=0),
+                nextcord.SelectOption(label='ユーザー情報表示', description="n!d", value=21),
+                nextcord.SelectOption(label='管理者権限の有無をチェック', description="n!admin", value=22),
+            ]
+        elif opt == Amuse or int(str(opt)[0]) == Amuse:
+            options = [
+                nextcord.SelectOption(label='ジャンル選択に戻る...', value=0),
+                nextcord.SelectOption(label='サイコロ', description="n!dice", value=31),
+                nextcord.SelectOption(label='じゃんけん', description="n!janken", value=32),
+                nextcord.SelectOption(label='占い', description="n!uranai", value=33),
+                nextcord.SelectOption(label='Wordle風ゲーム', description="n!wordle", value=34),
+                nextcord.SelectOption(label='しりとり風ゲーム', description="n!srtr", value=35),
+            ]
+        elif opt == ServerStatus or int(str(opt)[0]) == ServerStatus:
+            options = [
+                nextcord.SelectOption(label='ジャンル選択に戻る...', value=0),
+                nextcord.SelectOption(label='Steam非公式サーバー\nステータスチェック', description="n!ss", value=41),
+                #nextcord.SelectOption(label='Minecraftサーバー\nステータスチェック', description="n!mc", value=42),
+            ]
+        elif opt == Embed or int(str(opt)[0]) == Embed:
+            options = [
+                nextcord.SelectOption(label='ジャンル選択に戻る...', value=0),
+                nextcord.SelectOption(label='Embedを送信する', description="n!embed", value=51),
+            ]
+        elif opt == Reaction or int(str(opt)[0]) == Reaction:
+            options = [
+                nextcord.SelectOption(label='ジャンル選択に戻る...', value=0),
+                nextcord.SelectOption(label='にらのコマンド/Bump以外の全反応設定', description="n!ar", value=61),
+                nextcord.SelectOption(label='自分で反応を追加するオートリプライ機能', description="n!er", value=62),
+                nextcord.SelectOption(label='特定の言葉に反応する便乗機能', description="n!nr", value=63),
+                nextcord.SelectOption(label='特定のチャンネルのメッセージをLINEに送る', description="n!line", value=64),
+            ]
+        elif opt == VoiceClient or int(str(opt)[0]) == VoiceClient:
+            options = [
+                nextcord.SelectOption(label='ジャンル選択に戻る...', value=0),
+                nextcord.SelectOption(label='VCにBOTを参加させる', description="n!join", value=71),
+                nextcord.SelectOption(label='VCからBOTを離脱させる', description="n!leave", value=72),
+                nextcord.SelectOption(label='読み上げ機能', description="n!tts", value=73),
+                nextcord.SelectOption(label='音楽を再生する', description="n!play", value=74),
+                nextcord.SelectOption(label='音楽再生を全部止める', description="n!stop", value=75),
+                nextcord.SelectOption(label='音楽再生を一時停止する', description="n!pause", value=76),
+                nextcord.SelectOption(label='音楽再生を再開する', description="n!resume", value=77),
+                nextcord.SelectOption(label='曲のリスト表示', description="n!list", value=78),
+                nextcord.SelectOption(label='リストの一番後ろを消す', description="n!pop", value=79),
+            ]
+        elif opt == BotUtility or int(str(opt)[0]) == BotUtility:
+            options = [
+                nextcord.SelectOption(label='ジャンル選択に戻る...', value=0),
+                nextcord.SelectOption(label='サーバーとのレイテンシを測る', description="n!ping", value=81),
+                nextcord.SelectOption(label='Webページ作成', description="n!html", value=82),
+                nextcord.SelectOption(label='にらBOTの情報表示', description="n!info", value=83),
+                nextcord.SelectOption(label='ヘルプ表示', description="n!help", value=84),
+            ]
+        elif opt == ChannelTopic or int(str(opt)[0]) == ChannelTopic:
+            options = [
+                nextcord.SelectOption(label='ジャンル選択に戻る...', value=0),
+                nextcord.SelectOption(label='そのチャンネルでにらの反応を無効化する', description="nira-off", value=91),
+            ]
+        
+        super().__init__(placeholder='Please select help content.', min_values=1, max_values=1, options=options)
+
+    async def callback(self, interaction: nextcord.Interaction):
+        try:
+            view, value, option = nextcord.ui.View(timeout=None), int(str(self.values[0])), int(str(self.values[0])[0])
+            view.add_item(HelpSelect(option))
+            if value != 0:
+                embed = nextcord.Embed(title=hc.helpContents[value].splitlines()[0], description="\n".join(hc.helpContents[value].splitlines()[1:]), color=0x00ff00)
+            else:
+                embed = nextcord.Embed(title="にらBOT HELP", description="```n!help```\nもうまったく更新してないヘルプページは[こちら](https://nira.f5.si/help.html)（非推奨）\n\n下のプルダウンからコマンド種類を選択してください。", color=0x00ff00)
+            await interaction.message.edit(embed=embed, view=view)
+        except BaseException as err:
+            await interaction.response.send_message(f"エラーが発生しました。\n```\n{err}```\nvalue: `{self.values[0]}`/`{int(str(self.values[0])[0])}`/`{option}`", ephemeral=True)
+
 
 class info_base():
     def info(self, ctx, type):
@@ -90,15 +199,23 @@ class info(commands.Cog):
     
     @commands.command(name="help", help="""\
 にらBOT又はコマンドのヘルプを表示します。
-普通に`n!help`とだけすると、にらBOTの簡易ヘルプが表示されます。
+普通に`n!help`とだけすると、にらBOTのヘルプが表示されます。
 `n!help`の後にヘルプを見たいコマンドを入れると、そのコマンドのヘルプを表示できます。
 例:`n!help info`
-一部のコマンドは、長すぎたり、見にくかったり、難しかったりするため、ヘルプページへのリンクを表示するだけってのもあります。""")
+一部のコマンドは、長すぎたり、見にくかったり、難しかったりするため、ヘルプページへのリンクを表示するだけってのもあります。
+
+なお、ヘルプページは[こちら](https://nira.f5.si/help.html)にあります。""")
     async def help(self, ctx: commands.Context):
-        command = ctx.message.content[7:]
-        if ctx.message.content[7:] == "":
-            command = None
-        await info_base.help(self, ctx, command, CTX)
+        command = ctx.message.content.split(" ",1)
+        if len(command) == 1:
+            view = nextcord.ui.View(timeout=None)
+            view.add_item(HelpSelect(0))
+            embed = nextcord.Embed(title="にらBOT HELP", description="```n!help```\nもうまったく更新してないヘルプページは[こちら](https://nira.f5.si/help.html)（非推奨）\n\n下のプルダウンからコマンド種類を選択してください。", color=0x00ff00)
+            await ctx.send(embed=embed, view=view)
+        else:
+            await info_base.help(self, ctx, command, CTX)
+
 
 def setup(bot):
+    importlib.reload(hc)
     bot.add_cog(info(bot))

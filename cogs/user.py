@@ -86,7 +86,8 @@ class user(commands.Cog):
             await ctx.reply("権限がありません。")
     
     @commands.command(name="ui", help="""\
-    誰かがDiscordサーバーに加入/離脱した際に、指定したチャンネルにそのユーザーの情報を表示します。""")
+    誰かがDiscordサーバーに加入/離脱した際に、指定したチャンネルにそのユーザーの情報を表示します。
+    それだけです。""")
     async def ui(self, ctx: commands.Context):
         if admin_check.admin_check(ctx.message.guild, ctx.message.author) or ctx.message.author.id in n_fc.py_admin:
             mes_arg = ctx.message.content.split(" ")

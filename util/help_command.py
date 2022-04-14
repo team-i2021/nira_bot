@@ -1,113 +1,555 @@
 # coding: utf-8
-from math import e
-from re import M
-import nextcord
-import asyncio
-from util import n_fc
 
-async def n_help(message, client):
-    if message.content == "n!help":
-        cn = "help"
-    else:
-        cn = message.content[7:]
-    embed = nextcord.Embed(title="にらBOT HELP", description=f"```n!{cn}```", color=0x00ff00)
-    embed.set_author(name="製作者：なつ", url="https://twitter.com/nattyan_tv", icon_url="https://pbs.twimg.com/profile_images/1388437778292113411/pBiEOtHL_400x400.jpg")
-    if cn == "ss":
-        embed.add_field(name="```ss```", value="Steam個人サーバーの状況をチェックします。\n`n!ss`以外は管理者権限が必要です。", inline=False)
-        embed.add_field(name="```n!ss add [サーバー名] [アドレス],[ポート番号]```", value="サーバーのリストに追加します。", inline=False)
-        embed.add_field(name="`[サーバー名]`", value="サーバーに付ける名前を入力します。", inline=False)
-        embed.add_field(name="`[アドレス]`", value="サーバーのアドレスを追加します。（グローバルIPアドレス）", inline=False)
-        embed.add_field(name="`[ポート番号]`", value="サーバーのポートを追加します。", inline=False)
-        embed.add_field(name="例", value="```n!ss add マップ1のさば 0.0.0.0,80```", inline=False)
-        embed.add_field(name="```n!ss edit [サーバーナンバー] [サーバー名] [アドレス],[ポート番号]```", value="サーバーのリストを編集します。", inline=False)
-        embed.add_field(name="`[サーバーナンバー]`", value="`n!ss list`などで、サーバーナンバー（*_adや*_nmの「*」の部分）を確認してください。", inline=False)
-        embed.add_field(name="`[サーバー名]`", value="サーバーに付ける名前を入力します。", inline=False)
-        embed.add_field(name="`[アドレス]`", value="サーバーのアドレスを追加します。（グローバルIPアドレス）", inline=False)
-        embed.add_field(name="`[ポート番号]`", value="サーバーのポートを追加します。", inline=False)
-        embed.add_field(name="例", value="```n!ss edit 1 マップ1の味噌鯖 0.0.0.0,8080```", inline=False)
-        embed.add_field(name="```n!ss list```", value="サーバーのリストを表示します。", inline=False)
-        embed.add_field(name="例", value="```n!ss list```", inline=False)
-        embed.add_field(name="```n!ss del [サーバーナンバー]```", value="リストから一つ選択してサーバーを削除します。", inline=False)
-        embed.add_field(name="例", value="```n!ss del 1```", inline=False)
-        embed.add_field(name="```n!ss del all```", value="サーバーのリストを全て削除します。", inline=False)
-        embed.add_field(name="例", value="```n!ss del all```", inline=False)
-        embed.add_field(name="```n!ss auto [on/off]```", value="30分ごとにサーバーステータスを取得して、鯖落ちしてたらメンションします。", inline=False)
-        embed.add_field(name="```[on/off]```", value="onにすると30分ごとにサーバーステータスを取得します。offにするか、鯖落ちが発生するまでずっと実行されます。\nここの値を指定しないと、AutoSSの状態を表示します。", inline=False)
-        embed.add_field(name="例", value="```n!ss auto on```", inline=False)
-    elif cn == "embed":
-        embed.add_field(name="```embed```", value="Embedを作成して送信します。", inline=False)
-        embed.add_field(name="```n!embed [カラー] [タイトル]\n[本文]```", value="サーバーのリストに追加します。", inline=False)
-        embed.add_field(name="`[カラー]`", value="サーバーに付ける名前を入力します。", inline=False)
-        embed.add_field(name="`[タイトル]`", value="サーバーのアドレスを追加します。（グローバルIPアドレス）", inline=False)
-        embed.add_field(name="`[本文]`", value="サーバーのポートを追加します。", inline=False)
-        embed.add_field(name="例", value="```n!embed 00ff00 これはにら。\nにらってうまいよなぁ...\nレバニラとかおいしいよな...```", inline=False)
-    elif cn == "srtr":
-        embed.add_field(name="```srtr```", value="しりとり（風の対話）を始めます。", inline=False)
-        embed.add_field(name="```n!srtr start```", value="そのチャンネルでしりとり（風の対話）を始めます。", inline=False)
-        embed.add_field(name="例", value="```n!srtr start```\n", inline=False)
-        embed.add_field(name="```n!srtr stop```", value="そのチャンネルでのしりとりを終了します。", inline=False)
-        embed.add_field(name="例", value="```n!srtr stop```", inline=False)
-    elif cn == "janken":
-        embed.add_field(name="```janken```", value="じゃんけんで遊びます。確率操作はしてません。", inline=False)
-        embed.add_field(name="```n!janken [出す手]```", value="じゃんけんできます。それだけです。", inline=False)
-        embed.add_field(name="`[出す手]`", value="グーかチョキかパーでお願いしますっ", inline=False)
-        embed.add_field(name="例", value="```n!janken グー```", inline=False)
-    elif cn == "uranai":
-        embed.add_field(name="```uranai```", value="あなたの運勢が占われます。確率ｓ(ry", inline=False)
-        embed.add_field(name="```n!uranai```", value="にらが占ってあげましょう...", inline=False)
-        embed.add_field(name="例", value="```n!uranai```", inline=False)
-    elif cn == "nr":
-        embed.add_field(name="```nr```", value="サーバーおよびチャンネルごとに通常反応の設定を変更します。\n確認以外は管理者権限が必要です。", inline=False)
-        embed.add_field(name="```n!nr```", value="チャンネルの通常反応設定の確認を行います。（サーバーで無効になっている場合はそちらが表示されます。）", inline=False)
-        embed.add_field(name="例", value="```n!nr```\n", inline=False)
-        embed.add_field(name="```n!nr [コマンド]```", value="チャンネルごとに通常反応設定変更を行います。", inline=False)
-        embed.add_field(name="`[コマンド]`", value="Trueで通常反応有効、Falseで通常反応が無効になります。", inline=False)
-        embed.add_field(name="例", value="```n!nr true```", inline=False)
-        embed.add_field(name="```n!nr all [コマンド]```", value="サーバーでの通常反応設定変更を行います。", inline=False)
-        embed.add_field(name="`[コマンド]`", value="Trueで通常反応有効、Falseで通常反応が無効になります。\nサーバーで通常反応設定が無効になっている場合は、チャンネルごとの設定も無効になります。", inline=False)
-        embed.add_field(name="例", value="```n!nr all false```", inline=False)
-    elif cn == "er":
-        embed.add_field(name="```er```", value="追加反応を設定します。\n`n!er list`以外は管理者権限が必要です。", inline=False)
-        embed.add_field(name="```n!er add [トリガー] [リターン]```", value="追加反応のリストに追加します。", inline=False)
-        embed.add_field(name="`[トリガー]`", value="反応する文を入力します。", inline=False)
-        embed.add_field(name="`[リターン]`", value="返信する文を入力します。", inline=False)
-        embed.add_field(name="例", value="```n!er add くろねこ かっこいい```", inline=False)
-        embed.add_field(name="```n!er edit [トリガー] [リターン]```", value="追加反応のリストを編集します。", inline=False)
-        embed.add_field(name="`[トリガー]`", value="反応する文を入力します。", inline=False)
-        embed.add_field(name="`[リターン]`", value="返信する文を入力します。", inline=False)
-        embed.add_field(name="例", value="```n!ss edit くろねこ クール！```", inline=False)
-        embed.add_field(name="```n!er list```", value="追加反応のリストを表示します。", inline=False)
-        embed.add_field(name="例", value="```n!er list```", inline=False)
-        embed.add_field(name="```n!er del```", value="追加反応のリストを削除します。", inline=False)
-        embed.add_field(name="例", value="```n!er del```", inline=False)
-    elif cn == "nr":
-        embed.add_field(name="```ui```", value="サーバーにユーザーが入ってきたときにそのユーザーの情報を表示するようにします。\n管理者権限が必要です。", inline=False)
-        embed.add_field(name="```n!ui set [チャンネルID]```", value="ユーザーの情報を表示させるようにします。", inline=False)
-        embed.add_field(name="`[チャンネルID]`", value="表示させるチャンネルのIDを入力します。", inline=False)
-        embed.add_field(name="例", value="```n!ui 123456789```\n", inline=False)
-        embed.add_field(name="```n!ui del```", value="ユーザーの情報を表示させないようにします。", inline=False)
-        embed.add_field(name="例", value="```n!nr del```", inline=False)
-        embed.add_field(name="```n!ui```", value="ユーザーの情報を表示させるように設定しているチャンネルの名前を表示します。", inline=False)
-        embed.add_field(name="例", value="```n!nr```", inline=False)
-    elif cn == "d":
-        embed.add_field(name="```d```", value="指定したユーザーの情報を表示します。", inline=False)
-        embed.add_field(name="```n!d [ユーザーID]```", value="指定したユーザーの情報を表示します。", inline=False)
-        embed.add_field(name="`[ユーザーID]`", value="表示するユーザーを指定します。", inline=False)
-        embed.add_field(name="例", value="```n!d 892759276152573953```\n", inline=False)
-        embed.add_field(name="```n!d```", value="自分自身の情報を表示します。", inline=False)
-        embed.add_field(name="例", value="```n!d```", inline=False)
-    else:
-        embed = nextcord.Embed(title="にらBOT HELP（にらちゃんの使い方）", description="気になるコマンドがあったら`n!help [command]`で調べてみよう！", color=0x00ff00)
-        embed.set_author(name="製作者：なつ", url="https://twitter.com/nattyan_tv", icon_url="https://pbs.twimg.com/profile_images/1388437778292113411/pBiEOtHL_400x400.jpg")
-        embed.add_field(name="```help```", value="このヘルプを表示します。", inline=False)
-        embed.add_field(name="```ss```", value="Steam個人サーバーの状況をチェックします。", inline=False)
-        embed.add_field(name="```embed```", value="Embedを作成して送信します。", inline=False)
-        embed.add_field(name="```srtr```", value="しりとり（風の対話）を始めます。", inline=False)
-        embed.add_field(name="```janken```", value="じゃんけんで遊びます。確率操作はしてません。", inline=False)
-        embed.add_field(name="```uranai```", value="あなたの運勢が占われます。確率ｓ(ry", inline=False)
-        embed.add_field(name="```nr```", value="通常反応の設定を変更します。", inline=False)
-        embed.add_field(name="```er```", value="追加返事機能の設定を行います。", inline=False)
-        embed.add_field(name="```ui```", value="サーバーにユーザーが入ってきたときにそのユーザーの情報を表示するようにします。", inline=False)
-        embed.add_field(name="```d```", value="指定されたユーザーの情報を表示します。", inline=False)
-        embed.add_field(name="・リアクションについて", value="このbotの発したメッセージの一部には、<:trash:908565976407236608>のリアクションが自動的に付きます。\nこのリアクションを押すとそのメッセージが削除されます。", inline=False)
-    await message.reply(embed=embed)
+helpContents = {
+    0: """\
+にらBOTへようこそ！
+にらBOTの使い方をまとめたヘルプです、ぜひご覧ください！
+
+・使い方
+`n!help`
+
+下に表示されるプルダウンから表示したいヘルプジャンル/コンテンツを選択してください。
+""",
+    1: """\
+サーバー管理/便利
+サーバーの管理を行ったりするのに使えたり、サーバーに便利な機能などがあります。
+""",
+    2: """\
+ユーザー
+ユーザー情報表示など、ユーザーに関する機能があります。
+""",
+    3: """\
+娯楽
+ちょっとしたゲームや、娯楽などに関する機能があります。
+""",
+    4: """\
+サーバーステータス
+Steam非公式サーバーやMinecraftサーバーのステータスに関する機能があります。
+""",
+    5: """\
+Embed
+Embed機能を使ったメッセージを送信することができます。
+""",
+    6: """\
+にらの反応系
+「にら」に反応する便乗機能をはじめ、特定の反応を作成するオートリプライのような機能、特定のチャンネルのメッセージをLINEに送信する機能などがあります。
+""",
+    7: """\
+VC系
+音楽再生や読み上げなど、VCに関する機能があります。
+""",
+    8: """\
+にらBOT全般
+ほかのコマンド種類に属さないような、「その他」みたいな機能があります。
+""",
+    9: """\
+チャンネルトピック
+チャンネルトピックに特定の文字列を入れることで発動する機能を確認できます。
+""",
+    11: """\
+加入/離脱者情報表示
+サーバーに誰かが入ってきた際や、サーバーから誰かが離脱した際に、情報（名前/ID/アカウント作成日/付与されていたロール/現在のサーバー人数）を、特定のチャンネルに送信することができます。
+例えば、アカウント作成日が明らかに最近で、荒らしぽっかったりするときに判別しやすくなります。
+
+・使い方
+`n!ui [チャンネルID]`
+(エイリアス: なし)
+
+・引数
+`[チャンネルID]`
+情報メッセージを送信するチャンネルのIDです。
+チャンネルIDを取得するには、[こちら](https://support.discord.com/hc/ja/articles/206346498-%E3%83%A6%E3%83%BC%E3%82%B6%E3%83%BC-%E3%82%B5%E3%83%BC%E3%83%90%E3%83%BC-%E3%83%A1%E3%83%83%E3%82%BB%E3%83%BC%E3%82%B8ID%E3%81%AF%E3%81%A9%E3%81%93%E3%81%A7%E8%A6%8B%E3%81%A4%E3%81%91%E3%82%89%E3%82%8C%E3%82%8B-)をご確認ください。
+
+・例
+`n!ui 123456789`
+""",
+    12: """\
+ウェルカムメッセージ送信
+サーバーに誰かが入ってきた際や、サーバーから誰かが離脱した際に、特定のメッセージを、特定のチャンネルに送信することができます。
+例えば、誰かが入ってきたときにお出迎えするために使ってみてください！
+
+・使い方
+`n!welcome [join/leave] [メッセージ本文]`
+(エイリアス: `youkoso`,`goodbye`,`ようこそ`,`Welcome`)
+
+・引数
+`[join/leave]`
+**join**か**leave**を指定してください。
+**join**と指定すると、誰かがサーバーに入った際のメッセージ、**leave**と指定すると、誰かがサーバーから離脱した際のメッセージが送信されます。
+
+`[メッセージ本文]`
+送信したいメッセージ本文です。
+メッセージ内には`%name%`/`%count%`/`%ment%`と入れることで、それぞれ`ユーザー名`/`ユーザー数`/`メンション`に置き換わります。
+
+・例
+`n!welcome join %name%さんこんにちは！ %count%人目のお客様です！`
+`n!welcome leave %name%さん、またね！`
+""",
+    13: """\
+サーバー加入時 自動ロール付与
+サーバーに誰かが入ってきた際に、自動的に指定したロールを付与します。
+
+・使い方
+`n!autorole [ロール名またはID]`
+(エイリアス: `自動ロール`,`オートロール`)
+
+・引数
+`[ロール名またはID]`
+付与したいロール名またはIDです。
+
+・例
+`n!autorole にら民`
+""",
+    14: """\
+ボタンでロールを付与するパネル
+ボタンを押すことでロールを付与/剥奪できるパネルを作成することができるコマンドです。
+「ロール部屋」とかってチャンネルを作って、このパネルだけを置いておけば、ロール付与/剥奪が簡単に行えます。
+ボタンは最大で25個まで一つのメッセージにくっつけられるので、ロールパネルのロール最大値は25です。
+
+・使い方
+```
+n!rolepanel [*タイトル]
+[ロール名またはID1]
+[ロール名またはID2]
+[ロール名またはID3]...
+```
+
+・引数
+`[*タイトル]`
+あってもなくてもかまいません。
+特定のメッセージをロールパネルのタイトルにしたい場合は入力してください。
+入力する場合は**rolepanel**の後に半角スペースを開けてから入力します。
+入力しない倍は、**rolepanel**の後にすぐ改行してからロールを入力していきます。
+
+`[ロール名またはID]`
+ボタンを押すことで付与/剥奪するロール名またはIDです。
+
+・例
+```
+n!rolepanel
+猫が好きな人
+犬が好きな人
+鳥が好きな人
+```
+""",
+    15: """\
+荒らし対策機能
+一分間に、指定数以上メッセージを送ったユーザーに特定のロールを付与し、荒らし対策とします。
+
+・使い方
+`n!mod on [メッセージ数] [付与するロール名またはID]`
+`n!mod off`
+
+・引数
+`[メッセージ数]`
+1分回の間に、この数を超えるメッセージを送った人にロールを付与します。
+
+`[付与するロール名またはID]`
+ミュート用に付与するロールを事前に作成しておき、ここで指定してください。
+
+・例
+`n!mod on 30 だまられろ！`
+""",
+    16: """\
+メッセージ下部ピン止め機能
+特定のメッセージを、常にチャンネルの一番下(最新メッセージ)においておきます。
+チャンネルを見たら、必ず目に入るような位置なので、そのチャンネルでの簡単なルールなどを書いておくといいでしょう。
+
+・使い方
+`n!pin on [メッセージ内容]`
+`n!pin off`
+
+・引数
+`[メッセージ内容]`
+下部にピン止めするメッセージの内容です。
+
+・例
+`n!pin on このチャンネルは随時ニュースが流れるよ`
+""",
+    17: """\
+サーバーを抜けてもロールを保持する
+そのサーバーを抜けても、ロールを保持することで、荒らしが「一回抜けて入りなおして、ロールを外して荒らす」みたいなことを防止できます。
+ロールキーパー機能です。
+
+・使い方
+`n!rk [on/off]`
+
+・引数
+`[on/off]`
+機能を有効にするか無効にするか設定できます。
+
+・例
+`n!rk on`
+""",
+    18: """\
+Bump通知機能
+disboardのBumpが出来る時間(2時間)になったらお知らせしてくれる機能です。
+
+・使い方
+`n!bump [on/off]`
+
+・引数
+[on/off]
+機能を有効にするか無効にするか設定できます。
+
+・例
+`n!bump on`
+""",
+    21: """\
+ユーザー情報表示
+自分または特定のユーザーの情報（名前/ID/アカウント作成日）を表示します。
+
+・使い方
+`n!d [*ユーザーID]`
+
+・引数
+`[*ユーザーID]`
+指定しないと、自分の情報を表示します。
+ユーザーIDを取得するには、[こちら](https://support.discord.com/hc/ja/articles/206346498-%E3%83%A6%E3%83%BC%E3%82%B6%E3%83%BC-%E3%82%B5%E3%83%BC%E3%83%90%E3%83%BC-%E3%83%A1%E3%83%83%E3%82%BB%E3%83%BC%E3%82%B8ID%E3%81%AF%E3%81%A9%E3%81%93%E3%81%A7%E8%A6%8B%E3%81%A4%E3%81%91%E3%82%89%E3%82%8C%E3%82%8B-)をご確認ください。
+
+・例
+`n!d`
+""",
+    22: """\
+管理者権限の有無をチェック
+あなたにサーバーの管理者権限（にらBOTの大体の操作権）があるかをチェックします。
+
+・使い方
+`n!admin`
+
+・例
+`n!admin`
+""",
+    31: """\
+サイコロ
+サイコロを振ります。
+
+・使い方
+`n!dice [サイコロの最大値]`
+
+・引数
+`[サイコロの最大値]`
+サイコロの最大値を指定します。
+サイコロは0からこの値までの中でランダムな数を表示します。
+なお、数値以外(マイナスなど)を指定しても、数値のみが反映されます。
+
+・例
+`n!dice 6`
+""",
+    32: """\
+じゃんけん
+じゃんけんしましょっか。
+なお、心理戦/AI機能などはなく、確率は同様に確からしいです。
+
+・使い方
+`n!janken [グー/チョキ/パー]`
+
+・引数
+`[グー/チョキ/パー]`
+じゃんけんの手を指定します。
+
+・例
+`n!janken チョキ`
+""",
+    33: """\
+占い
+あなたを占って見せます。
+なお、確率は同様に確からしいです。
+また、この結果によってあなたの人生が完璧に占われるわけではないので、あくまでも**参考**にしてください。
+
+・使い方
+`n!uranai`
+
+・例
+`n!uranai`
+""",
+    34: """\
+Wordle風ゲーム
+製作者の大好き（得意とは言ってない）なゲーム「Wordle」を模したゲームです。
+なお、プログラムはあまり正常ではないので、ご注意ください。
+遊び方については[こちら](https://snsdays.com/game-app/wodle-play-strategy/)をご確認ください。
+
+・使い方
+`n!wordle`
+
+・例
+`n!wordle`
+""",
+    35: """\
+しりとり風ゲーム
+コマンドを送ったチャンネルで、しりとり風のゲームを始めます。
+しりとり風というのは、送られたメッセージの最後の文字から始まる言葉をただ送り返すだけのもので、重複返しもあります。
+
+・使い方
+`n!srtr`
+
+・例
+`n!srtr`
+""",
+    41: """\
+Steam非公式サーバー ステータスチェック
+Steamの非公式サーバー（Dedicated Server）のステータスをチェックすることができる機能です。
+ゲームの対応リストは[こちら](https://developer.valvesoftware.com/wiki/Dedicated_Servers_List)をご確認ください。
+
+このコマンドの使い方は別のページにまとめてあります。
+[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/ss)をご確認ください。
+""",
+    42: """\
+Minecraftサーバー ステータスチェック
+MinecraftのJava版およびBedrock版のサーバーのステータスをチェックすることができる機能です。
+
+このコマンドの使い方は別ページにまとめてあります。
+[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/mc)をご確認ください。
+""",
+    51: """\
+Embedを送信する
+Embedを送信することができます。
+Embedとは、コマンドを送信したときにたまに返ってくる、横に色帯がついた、囲われたメッセージのことです。
+
+・使い方
+```
+n!embed [カラーコード] [タイトル]
+[本文]
+```
+
+・引数
+`[カラーコード]`
+EmbedのカラーコードをRGBのHEX形式(先頭の「0x」や「#」は不要)で指定します。
+カラーコードについてわからない方は、[こちら](https://bratcreator.work/color-code/)をご確認ください。
+
+`[タイトル]`
+Embedのタイトルを指定します。
+
+`[本文]`
+Embedの本文を指定します。
+""",
+    61: """\
+にらのコマンド/Bump以外の全反応設定
+チャンネルでのにらBOTの便乗機能および、追加反応(オートリプライ)での反応を有効/無効にすることができます。
+真面目なチャンネルなどでは設定しておいてください。怒られます。
+なお、この設定はチャンネルトピックでも使うことができます。
+`n!help`から`チャンネルトピック`->`そのチャンネルでにらの反応を無効化する`からご確認ください。
+
+・使い方
+`n!ar [on/off] [*all]`
+
+・引数
+`[on/off]`
+機能を有効にするか無効にするかを指定します。
+
+`[*all]`
+`on/off`の後に半角スペースを空けて`all`と指定すると、そのサーバーでの設定を有効/無効にできます。
+サーバー設定で無効になっている場合は、チャンネル設定で有効にしても反応しなくなります。
+
+・例
+`n!ar off`
+""",
+    62: """\
+自分で反応を追加するオートリプライ機能
+自分で「トリガー」と「リターン」を設定することで、にらBOTを、特定の言葉に反応させることができます。
+トリガーには正規表現を使うことができますが、半角スペースを使うことはできません。
+
+・使い方
+追加: `n!er add [トリガー] [リターン]`
+リスト: `n!er list`
+削除: `n!er del [トリガー]`
+
+・引数
+`[トリガー]`
+反応する言葉を指定します。
+
+`[リターン]`
+なんと返信させるかを指定します。
+
+・例
+`n!er add bot 呼んだ！？`
+""",
+    63: """\
+特定の言葉に反応する便乗機能
+チャンネルでのにらBOTの通常の反応機能の有効/無効設定です。
+にらBOTのメイン的な機能です。便乗します。
+
+・使い方
+`n!nr [on/off] [*all]`
+
+・引数
+`[on/off]`
+機能を有効にするか無効にするかを指定します。
+
+`[*all]`
+`on/off`の後に半角スペースを空けて`all`と指定すると、そのサーバーでの設定を有効/無効にできます。
+サーバー設定で無効になっている場合は、チャンネル設定で有効にしても反応しなくなります。
+
+・例
+`n!nr off`
+""",
+    64: """\
+特定のチャンネルのメッセージをLINEに送る
+コマンドを送信したチャンネルのメッセージを、LINEに送信することが可能です。
+ここで指す**LINE**とは、1対1のチャットおよび、(**オープンチャットを除く**)グループチャットのことです。
+**LINE**はLINE株式会社の商標または登録商標です。
+事前にLINE Notifyからトークンを発行しておく必要があります。
+トークンの発行などについては[こちら](https://qiita.com/nattyan_tv/items/33ac7a7269fe12e49198)をご確認ください。
+
+・使い方
+追加: `/line [トークン]`
+削除: `/line_del`
+(スラッシュコマンドです。)
+
+・引数
+`[トークン]`
+事前にLINE Notifyからトークンを発行しておく必要があります。
+トークンの発行などについては[こちら](https://qiita.com/nattyan_tv/items/33ac7a7269fe12e49198)をご確認ください。
+""",
+    71: """\
+VCにBOTを参加させる
+音楽再生をする際に、VCにBOTを参加させることができます。
+なお、読み上げ機能を使う際は`n!tts join`を使う必要があります。
+
+音楽再生のコマンドについては[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)にもまとめてあります。
+
+・使い方
+`n!join`
+
+・例
+`n!join`
+""",
+    72: """\
+VCからBOTを離脱させる
+音楽再生などが終わった際に、VCからBOTを離脱させることができます。
+なお、読み上げから切断する場合は`n!tts leave`を使う必要があります。
+また、BOTがバグってしまって、VCに取り残されてる場合にもこのコマンドを使うことができます。
+
+音楽再生のコマンドについては[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)にもまとめてあります。
+
+・使い方
+`n!leave [*f]`
+
+・引数
+`[*f]`
+`＊通常は指定しません。`
+BOTを強制的に離脱させたい場合は、`f`を指定してください。
+
+・例
+`n!leave`
+""",
+    73: """\
+読み上げ機能
+聞き専などで、しゃべりたいけどマイクが使えないみたいなときに、特定のチャンネルでのメッセージを読み上げてくれる機能です。
+`Text to speech`の略で`TTS`です。
+
+
+TTSの読み上げ音声には、VOICEVOXが使われています。  
+[各キャラクターについて](https://voicevox.hiroshiba.jp/)  
+キャラクターボイス: `VOICEVOX: 四国めたん`/`VOICEVOX: ずんだもん`/`VOICEVOX: 春日部つむぎ`/`雨晴はう`/`VOICEVOX: 波音リツ`/`VOICEVOX: 玄野武宏`/`VOICEVOX: 白上虎太郎`/`VOICEVOX: 青山龍星`/`VOICEVOX: 冥鳴ひまり`/`VOICEVOX: 九州そら`
+
+また、音声生成には[WEB版VOICEVOX](https://voicevox.su-shiki.com/)のAPIを使用させていただいております。
+
+
+・使い方
+参加: `n!tts join`
+声の選択: `n!tts voice`
+切断: `n!tts leave`
+
+・例
+`n!tts join`
+""",
+    74: """\
+音楽を再生する
+音楽再生を開始します。
+
+音楽再生のコマンドについては[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)にまとめてあります。
+""",
+    75: """\
+音楽再生を全部止める
+現在再生中の音楽を止め、プレイリストからも全曲を削除して、完璧に停止します。
+
+音楽再生のコマンドについては[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)にまとめてあります。
+""",
+    76: """\
+音楽を一時停止する
+音楽再生を一時停止します。
+
+音楽再生のコマンドについては[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)にまとめてあります。
+""",
+    77: """\
+音楽再生を再開する
+一時停止した音楽を再開させます。
+
+音楽再生のコマンドについては[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)にまとめてあります。
+""",
+    78: """\
+曲のリスト表示
+現在プレイリストに入っている曲数を表示します。
+
+音楽再生のコマンドについては[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)にまとめてあります。
+""",
+    79: """\
+リストの一番後ろを消す
+プレイリストの一番最後の曲を削除します。
+
+音楽再生のコマンドについては[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)にまとめてあります。
+""",
+    81: """\
+サーバーとのレイテンシを測る
+Discordサーバーとのレイテンシ(RTT)測定または、特定のサーバーとのPing疎通チェックを行います。
+Ping疎通チェックでは、localhostやLAN内のアドレスは指定||多分||できません。（しないでください。）
+
+・使い方
+`n!ping [*アドレス]`
+
+・引数
+`[*アドレス]`
+指定すると、Ping疎通チェックを行います。
+指定しないと、Discordサーバーとのレイテンシを測定します。
+
+・例
+`n!ping www.google.com`
+""",
+    82: """\
+Webページ作成
+HTMLコードを直接送信することで、そのHTMLのページへのURLを送信します。
+使用サービスのDynamic-pageについては[こちら](https://github.com/nattyan-tv/dynamic-page)をご確認ください。
+
+・使い方
+`n!html [HTMLコード]`
+
+・引数
+`[HTMLコード]`
+HTMLコードを指定してください。
+
+・例
+`n!html <h1>Hello World</h1>`
+""",
+    83: """\
+にらBOTの情報表示
+にらBOTの情報を表示するよ！
+
+・使い方
+`n!info`
+
+・例
+`n!info`
+""",
+    84: """\
+ヘルプ表示
+にらBOTのヘルプおよび、各コマンドのヘルプを表示します。
+
+・使い方
+`n!help [*コマンド]`
+
+・引数
+`[*コマンド]`
+指定すると、そのコマンドのヘルプを表示します。
+なにも指定せずに`n!help`とだけ送信すると、ヘルプメッセージが送信されます。
+
+・例
+`n!help help`
+""",
+    91: """\
+そのチャンネルでにらの反応を無効化する
+チャンネルトピックに`nira-off`と入力しておくと、そのチャンネルでのにらBOTの反応を無効化できます。
+同様のコマンド`n!ar`があります。
+`n!help`から`にらの反応系`->`にらのコマンド/Bump以外の全反応設定`と選択してください。
+"""
+}
