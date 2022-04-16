@@ -35,7 +35,13 @@ except BaseException as err:
     """)
     os._exit(1)
 
-PREFIX = "n!"
+
+
+HOME = os.path.dirname(__file__)
+SETTING = json.load(open(f'{sys.path[0]}/setting.json', 'r'))
+TOKEN = SETTING["tokens"]["nira_bot"]
+PREFIX = SETTING["prefix"]
+n_fc.py_admin = SETTING["py_admin"]
 
 ##### BOTの設定 #####
 intents = nextcord.Intents.all()  # デフォルトのIntentsオブジェクトを生成
@@ -69,10 +75,7 @@ BOTの設定ファイルが見つかりませんでした。
     os._exit(2)
 
 
-HOME = os.path.dirname(__file__)
-SETTING = json.load(open(f'{sys.path[0]}/setting.json', 'r'))
-TOKEN = SETTING["tokens"]["nira_bot"]
-n_fc.py_admin = SETTING["py_admin"]
+
 
 
 #loggingの設定

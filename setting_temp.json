@@ -3,5 +3,6 @@
         "nira_bot":"BOTのTOKEN"
     },
     "py_admin":[管理者用コマンドを実行できるユーザーのID(複数可)],
-    "voicevox":[WEB版VOICEVOXのAPIキー(複数可)]
+    "voicevox":[WEB版VOICEVOXのAPIキー(複数可)],
+    "prefix": プリフィックス
 }

@@ -11,7 +11,6 @@ import traceback
 import importlib
 import json
 global task
-from cogs import server_status
 import re
 
 import sys

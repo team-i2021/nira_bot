@@ -9,3 +9,5 @@ cogs/test.py
 .vscode/
 nira_dev*
 cogs/test.py
+cogs/audio_cache/
+cogs/tts_local.py

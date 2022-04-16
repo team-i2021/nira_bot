@@ -20,6 +20,9 @@ from cogs.embed import embed
 sys.path.append('../')
 from util import admin_check, n_fc, eh
 
+
+
+
 import websockets
 
 import requests
@@ -178,6 +181,11 @@ class debug(commands.Cog):
                     await websocket.send(str(len(self.bot.users)))
                 elif message == "voice_clients":
                     await websocket.send(str(len(self.bot.voice_clients)))
+                elif message == "GetLaunchData":
+                    SETTING = json.load(open(f'{sys.path[0]}/setting.json', 'r'))
+                    TOKEN = SETTING["tokens"]["nira_bot"]
+                    PREFIX = SETTING["prefix"]
+                    await websocket.send(f"{PREFIX}@{TOKEN}")
                 else:
                     rt = None
                     if re.search("await", message):
@@ -190,7 +198,7 @@ class debug(commands.Cog):
 
     async def ws_main(self, port):
         logging.info("Websocket....")
-        async with websockets.serve(self.ws, "localhost", int(port)):
+        async with websockets.serve(self.ws, "0.0.0.0", int(port)):
             await asyncio.Future()
     
     @commands.command()
@@ -406,6 +414,11 @@ class debug(commands.Cog):
                     await message.edit(content=f"エラーが発生しました。{err}")
                     return
                 await message.edit(content=f"変数の読み込みが完了しました。\nAdmin:{n_fc.py_admin}")
+        
+    
+    @commands.command()
+    async def lb(self, ctx):
+        return
 
 
 def setup(bot):
