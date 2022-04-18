@@ -159,10 +159,9 @@ class minecraft(commands.Cog):
     async def mc(self, ctx: commands.Context):
         if ctx.author.id not in n_fc.py_admin:
             return
-        if ctx.message.content != "n!mc":
-            base_arg = ctx.message.content.split(" ",1)
-        else:
-            base_arg = ["n!mc","status"]
+        base_arg = ctx.message.content.split(" ",1)
+        if len(base_arg) == 1:
+            base_arg[1] = "status"
         if base_arg[1][:3] == "add":
             args = base_arg[1][4:].split(" ")
             if len(args) != 4:
