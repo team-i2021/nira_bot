@@ -23,7 +23,15 @@ logger.addFilter(NoTokenLogFilter())
 formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
 logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
 
+mcMessage = {
+    "ja":{
+        "forbidden": "申し訳ございませんが、このコマンドは現在管理者のみ使用可能です。",
+        "add":{
+            "invalid_args":"引数の数が**少ない**又は**多い**です。\n`n!mc add [名前] [アドレス] [ポート番号] [java/be]`",
 
+        }
+    }
+}
 
 class minecraft_base:
     async def server_add(bot, ctx, name, host, port: int, server_type):
@@ -93,7 +101,7 @@ class minecraft_base:
         return
 
 
-    async def server_check(bot, ctx, id):
+    async def server_check(bot, ctx):
         # ID: None or String("all") or Int
         if ctx.guild.id not in n_fc.mc_server_list:
             await messages.mreply(ctx, f"{ctx.guild.name}にはMinecraftのサーバーは追加されていません。")
@@ -114,12 +122,12 @@ class minecraft_base:
                     if mc_status.minecraft_status.error_check(status):
                         embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",value=f":ng: Offline\n\n\n",inline=False)
                     else:
-                        ping = int(status.latency)
+                        ping = int(status.latency*1000)
                         players = status.players_online
                         if ping == 0:
-                            embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",value=f":white_check_mark: Online\n`{status.motd}`\nPlayers:`{players}人`\nGameMode:`{status.gamemode}`\n\n\n",inline=False)
+                            embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",value=f":white_check_mark: Online\n`{status.motd}`\nPlayers:`{players}/{status.players_max}人`\nGameMode:`{status.gamemode}`\n\n\n",inline=False)
                         else:
-                            embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",value=f":white_check_mark: Online\n`{status.motd}`\nPing:`{ping}ms`\nPlayers:`{players}人`\nGameMode:`{status.gamemode}`\n\n\n",inline=False)
+                            embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",value=f":white_check_mark: Online\n`{status.motd}`\nPing:`{ping}ms`\nPlayers:`{players}/{status.players_max}人`\nGameMode:`{status.gamemode}`\n\n\n",inline=False)
             except BaseException:
                 embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",value=f":ng: Offline\n\n\n",inline=False)
             embed.set_footer(text=f"Pingは参考値にしてください。")
@@ -158,14 +166,17 @@ class minecraft(commands.Cog):
     @commands.cooldown(1, 10, type=commands.BucketType.user)
     async def mc(self, ctx: commands.Context):
         if ctx.author.id not in n_fc.py_admin:
+            await ctx.reply(mcMessage["ja"]["forbidden"])
             return
-        base_arg = ctx.message.content.split(" ",1)
+        base_arg = ctx.message.content.split(" ", 1)
+        
         if len(base_arg) == 1:
-            base_arg[1] = "status"
+            base_arg.append("status")
+        
         if base_arg[1][:3] == "add":
             args = base_arg[1][4:].split(" ")
             if len(args) != 4:
-                await ctx.reply("引数の数が**少ない**又は**多い**です。\n`n!mc add [名前] [アドレス] [ポート番号] [java/be]`")
+                await ctx.reply(mcMessage["ja"]["add"]["invalid_arg"])
                 return
             try:
                 args[2] = int(args[2])
@@ -197,18 +208,9 @@ class minecraft(commands.Cog):
             await minecraft_base.server_list(self.bot, ctx)
             return
         else:
-            if base_arg[1] == "status":
-                arg = None
-            elif base_arg[1] == "all":
-                arg = "all"
-            else:
-                try:
-                    arg = int(base_arg[1])
-                except ValueError as err:
-                    await ctx.reply(f"サーバーIDの所には数値または「all」を入れなければなりません。\n```sh\n{err}```")
-                    return
-            await minecraft_base.server_check(self.bot, ctx, arg)
-            return
+            async with ctx.channel.typing():
+                await minecraft_base.server_check(self.bot, ctx)
+                return
     
     @nextcord.slash_command(name="mc add", description="Minecraftのサーバーを追加します。")
     async def mc_add(
@@ -248,3 +250,5 @@ class minecraft(commands.Cog):
 def setup(bot):
     bot.add_cog(minecraft(bot))
     importlib.reload(mc_status)
+
+
