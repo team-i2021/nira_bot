@@ -2,6 +2,7 @@
 
 #沢山のインポート
 try:
+    import os
     import nextcord
     from nextcord import message
     from nextcord.ext import commands
@@ -15,7 +16,6 @@ try:
     from concurrent.futures import ThreadPoolExecutor
     from util import n_fc, admin_check, web_api, server_check
     import json
-    import os
     import requests
     from cogs import ping as cogs_ping
     from cogs import debug as cogs_debug
