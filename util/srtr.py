@@ -80,6 +80,7 @@ async def on_srtr(message):
                 rnd = rnd - 1
                 if rnd not in w_rn:
                     reply_mes = ply_dt[rnd]
+                    srtr_data[message.guild.id][f"{lstr}_wd"].remove(reply_mes)
                     await message.reply(reply_mes)
                     return
                 else:
@@ -100,6 +101,7 @@ async def on_srtr(message):
                     rnd = rnd - 1
                     if rnd not in w_rn:
                         reply_mes = ply_dt[rnd]
+                        srtr_data[message.guild.id][f"{lstr}_wd"].remove(reply_mes)
                         await message.reply(reply_mes)
                         return
                     else:
