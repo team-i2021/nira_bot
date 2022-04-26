@@ -58,17 +58,12 @@ class siritori(commands.Cog):
             embed = nextcord.Embed(title="しりとり", description=f"{ctx.message.channel.name}でのしりとりを終了します。", color=0x00ff00)
             await ctx.message.reply(embed=embed)
             return
-        elif ctx.message.content == "n!srtr reload" and ctx.message.author.id in n_fc.py_admin:
-            try:
-                importlib.reload(srtr)
-                await ctx.reply("Reloaded.")
-            except BaseException as err:
-                await ctx.reply(f"err:`{str(err)}`")
         else:
             embed = nextcord.Embed(title="しりとり", description=f"`n!srtr start`でそのチャンネルでしりとり（風対話）を実行し、`n!srtr stop`でしりとりを停止します。", color=0x00ff00)
             await ctx.message.reply(embed=embed)
             return
 
 def setup(bot):
+    importlib.reload(srtr)
     bot.add_cog(siritori(bot))
     
