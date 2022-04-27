@@ -59,7 +59,8 @@ Webhookは使いたくない精神なので、ニラBOTが直々に送ってあ�
 
 offにするには、`n!pin off`と送信してください。
 
-前に送ったピンメッセージが削除されずに送信されて、残っている場合は、にらBOTに適切な権限が与えられているか確認してください。
+前に送ったピンメッセージが削除されずに送信されて、残っている場合は、にらBOTに適切な権限が与えられているか確認してみてください。
+もしくは、周期内にめちゃくちゃメッセージを送信された場合はメッセージが削除されないです。仕様です。許してヒヤシンス。
 """)
     async def pin(self, ctx: commands.Context):
         if ctx.author.id != 669178357371371522:
@@ -115,7 +116,7 @@ offにするには、`n!pin off`と送信してください。
 
 def setup(bot):
     bot.add_cog(bottomup(bot))
-    bottomup.checkPin.start()
+    bottomup.checkPin.start(bottomup(bot))
 
 def teardown(bot):
     logging.info("Pin teradown!")
