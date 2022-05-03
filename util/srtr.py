@@ -71,6 +71,7 @@ async def on_srtr(message):
             if len(srtr_data[message.guild.id][f"{lstr}_wd"]) == 0:
                 await message.reply(embed=nextcord.Embed(title="しりとり",description=f"にらBOTには`{lstr}`から始まる言葉がない！\nあなたの勝ちです！\n再度しりとりをするには、`n!srtr start`と入力してください！",color=0x00ff00))
                 del n_fc.srtr_bool_list[message.guild.id][message.channel.id]
+                del srtr_data[message.guild.id]
                 with open(f'{home_dir}/srtr_bool_list.nira', 'wb') as f:
                         pickle.dump(n_fc.srtr_bool_list, f)
                 return
@@ -93,6 +94,7 @@ async def on_srtr(message):
                 if len(srtr_data[message.guild.id][f"{lstr}_wd"]) == 0:
                     await message.reply(embed=nextcord.Embed(title="しりとり",description=f"にらBOTには`{lstr}`から始まる言葉がない！\nあなたの勝ちです！\n再度しりとりをするには、`n!srtr start`と入力してください！",color=0x00ff00))
                     del n_fc.srtr_bool_list[message.guild.id][message.channel.id]
+                    del srtr_data[message.guild.id]
                     with open(f'{home_dir}/srtr_bool_list.nira', 'wb') as f:
                         pickle.dump(n_fc.srtr_bool_list, f)
                     return
