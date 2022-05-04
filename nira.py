@@ -28,6 +28,7 @@ try:
     import asyncio
     from cogs import rolepanel
     from cogs import pin
+    from cogs import pollpanel
     print("モジュールインポート完了")
 except BaseException as err:
     print(f"""モジュールインポート時のエラー:{err}\n
@@ -80,6 +81,7 @@ BOTの設定ファイルが見つかりませんでした。
 
 #loggingの設定
 import logging
+
 class NoTokenLogFilter(logging.Filter):
     def filter(self, record):
         message = record.getMessage()
@@ -103,6 +105,12 @@ async def on_ready():
             rolepanel.PersistentViews = pickle.load(f)
         for i in rolepanel.PersistentViews:
             bot.add_view(rolepanel.RolePanelView(i))
+
+    if os.path.exists(f'{sys.path[0]}/PollViews.nira'):
+        with open(f'{sys.path[0]}/PollViews.nira', 'rb') as f:
+            pollpanel.PollViews = pickle.load(f)
+        for i in pollpanel.PollViews:
+            bot.add_view(pollpanel.PollViews(i))
     
     # asyncio.new_event_loop().run_in_executor(None, bottomup.MessagePin, bot)
     # asyncio.ensure_future(bottomup.MessagePin(bot))

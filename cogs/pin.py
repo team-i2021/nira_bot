@@ -102,7 +102,7 @@ offにするには、`n!pin off`と送信してください。
         try:
             for i in n_fc.pinMessage.keys():
                 for j in n_fc.pinMessage[i].keys():
-                    CHANNEL = self.bot.get_channel(j)
+                    CHANNEL = await self.bot.fetch_channel(j)
                     if CHANNEL.last_message.content == n_fc.pinMessage[i][j] and CHANNEL.last_message.author.id == self.bot.user.id:
                         continue
                     messages = await CHANNEL.history(limit=10).flatten()

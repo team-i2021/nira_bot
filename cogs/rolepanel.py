@@ -73,6 +73,15 @@ n!rolepanel [メッセージ内容]
 ロールは最大で25個まで指定できます。
 ただ、重複してのロール指定はできません。""")
     async def rolepanel(self, ctx: commands.Context):
+        if ctx.message.content == "n!rolepanel debug":
+            await ctx.message.add_reaction('🐛')
+            if ctx.author.id in n_fc.py_admin:
+                await ctx.send(f"{ctx.message.author.mention}", embed=nextcord.Embed(title="Views", description=PersistentViews, color=0x00ff00))
+                return
+            else:
+                await ctx.send(f"{ctx.message.author.mention}", embed=nextcord.Embed(title="ERR", description="あなたは管理者ではありません。", color=0xff0000))
+                return
+            return
         if admin_check(ctx.guild, ctx.author) == False:
             await ctx.send("あなたは管理者ではありません。")
             return
@@ -124,4 +133,8 @@ n!rolepanel [メッセージ内容]
 
 
 def setup(bot):
+    if os.path.exists(f'{sys.path[0]}/PersistentViews.nira'):
+        with open(f'{sys.path[0]}/PersistentViews.nira', 'rb') as f:
+            global PersistentViews
+            PersistentViews = pickle.load(f)
     bot.add_cog(rolepanel(bot))
