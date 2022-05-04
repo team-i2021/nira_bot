@@ -47,7 +47,7 @@ async def on_srtr(message):
         ply_dt = []
         srtr_str = ""
         logging.info(ply_dt)
-        if message.author.bot:
+        if message.author.bot or message.content == "" or message.content == None:
             return
         for i in range(len(kks.convert(message.content))):
             srtr_str = srtr_str + kks.convert(message.content)[i]["hira"]
