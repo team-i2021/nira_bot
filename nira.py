@@ -38,7 +38,7 @@ except BaseException as err:
 
 
 
-HOME = os.path.dirname(__file__)
+HOME = os.path.dirname(os.path.abspath(__file__))
 SETTING = json.load(open(f'{sys.path[0]}/setting.json', 'r'))
 TOKEN = SETTING["tokens"]["nira_bot"]
 PREFIX = SETTING["prefix"]
