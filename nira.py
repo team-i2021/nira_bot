@@ -60,11 +60,6 @@ bot.is_owner = is_owner
 print("BOTの設定完了")
 
 
-
-
-
-
-
 #設定読み込み
 if os.path.isfile(f'{sys.path[0]}/setting.json') == False:
     print("""[事前停止]
@@ -74,8 +69,6 @@ BOTの設定ファイルが見つかりませんでした。
 
 または、「setup.py」を実行して、画面の指示通りにしてください。""")
     os._exit(2)
-
-
 
 
 
@@ -221,11 +214,9 @@ for i in range(len(n_fc.save_list)):
             with open(f"{HOME}/{n_fc.save_list[i]}.nira", "wb") as f:
                 pickle.dump({},f)
     except BaseException as err:
-        logging.info(f"変数[{n_fc.save_list[i]}]のファイル読み込みに失敗しました。\n{err}")
-        func_error_count = 1
-if func_error_count > 0:
-    print(err, traceback.format_exc())
-    os._exit(4)
+        logging.info(f"変数[{n_fc.save_list[i]}]のファイル読み込みに失敗しました。\n{err}\n{traceback.format_exc()}")
+        print("変数の読み込み時にエラーが発生しました。ログを確認して、再度やり直してください。")
+        os._exit(4)
 print("変数の読み込み完了")
 
 

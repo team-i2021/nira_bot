@@ -33,7 +33,7 @@ class HelpSelect(nextcord.ui.Select):
                 nextcord.SelectOption(label='にらBOT全般', value=BotUtility),
                 nextcord.SelectOption(label='チャンネルトピック', value=ChannelTopic),
             ]
-        elif opt == ManageServer or int(str(opt)[0]) == ManageUser:
+        elif opt == ManageServer or int(str(opt)[0]) == ManageServer:
             options = [
                 nextcord.SelectOption(label='ジャンル選択に戻る...', value=0),
                 nextcord.SelectOption(label='加入/離脱者情報表示', description="n!ui", value=11),
@@ -44,7 +44,7 @@ class HelpSelect(nextcord.ui.Select):
                 nextcord.SelectOption(label='メッセージ下部ピン止め機能(未完成)', description="n!pin", value=16),
                 nextcord.SelectOption(label='サーバーを抜けてもロールを保持する', description="n!rk", value=17),
                 nextcord.SelectOption(label='Bump通知機能', description="n!bump", value=18),
-                nextcord.SelectOption(label='ボタンで投票するパネル(未完成)', description="n!pollpanel", value=19),
+                nextcord.SelectOption(label='ボタンで投票するパネル', description="n!pollpanel", value=19),
             ]
         elif opt == ManageUser or int(str(opt)[0]) == ManageUser:
             options = [

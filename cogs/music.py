@@ -1,5 +1,3 @@
-from calendar import c
-from lib2to3.pytree import Base
 from nextcord.ext import commands
 import nextcord
 
