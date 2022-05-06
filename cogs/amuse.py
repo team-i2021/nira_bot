@@ -12,6 +12,8 @@ from nextcord.ext.commands.core import command
 from util.wordle_data import words
 #娯楽系
 
+MESSAGE, SLASH = [0,1]
+
 import logging
 dir = sys.path[0]
 class NoTokenLogFilter(logging.Filter):
@@ -47,7 +49,7 @@ class amuse(commands.Cog):
         await ctx.reply(embed=nextcord.Embed(title="サイコロ", description=f"```{rnd_ex}```", color=0x00ff00))
         return
     
-    @nextcord.slash_command(name="dice", description="サイコロを振ります")
+    @nextcord.slash_command(name="amuse dice", description="サイコロを振ります")
     async def slash_dice(
         self,
         interaction = Interaction,
@@ -60,31 +62,19 @@ class amuse(commands.Cog):
         await messages.reply(interaction, "dice", embed=nextcord.Embed(title="サイコロ", description=f"```{rnd_ex}```", color=0x00ff00))
         return
 
-
-    @commands.command(name="janken", help="""\
-    じゃんけんで遊びます。
-    `n!janekn [グー/チョキ/パー]`
-    グーかチョキかパー以外を出したりすると少し煽られます。
-    [ルール解説](https://ja.wikipedia.org/wiki/%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93#:~:text=%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93%E3%81%AF2%E4%BA%BA%E4%BB%A5%E4%B8%8A,%E3%81%A8%E6%95%97%E8%80%85%E3%82%92%E6%B1%BA%E5%AE%9A%E3%81%99%E3%82%8B%E3%80%82)
-    
-    引数1:str
-    「グー」または「チョキ」または「パー」の手。""")
-    async def janken(self, ctx: commands.context):
-        if ctx.message.content == "n!janken":
-            embed = nextcord.Embed(title="Error", description="じゃんけんっていのは、「グー」「チョキ」「パー」のどれかを出して遊ぶゲームだよ。\n[ルール解説](https://ja.wikipedia.org/wiki/%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93#:~:text=%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93%E3%81%AF2%E4%BA%BA%E4%BB%A5%E4%B8%8A,%E3%81%A8%E6%95%97%E8%80%85%E3%82%92%E6%B1%BA%E5%AE%9A%E3%81%99%E3%82%8B%E3%80%82)\n```n!janken [グー/チョキ/パー]```", color=0xff0000)
-            await ctx.message.reply(embed=embed)
-            return
-        mes = ctx.message.content
+    def jankenEmbed(self, content, type):
+        if type == MESSAGE and content == "n!janken":
+            return nextcord.Embed(title="Error", description="じゃんけんっていのは、「グー」「チョキ」「パー」のどれかを出して遊ぶゲームだよ。\n[ルール解説](https://ja.wikipedia.org/wiki/%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93#:~:text=%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93%E3%81%AF2%E4%BA%BA%E4%BB%A5%E4%B8%8A,%E3%81%A8%E6%95%97%E8%80%85%E3%82%92%E6%B1%BA%E5%AE%9A%E3%81%99%E3%82%8B%E3%80%82)\n```n!janken [グー/チョキ/パー]```", color=0xff0000)
+        mes_te = ""
         try:
-            mes_te = mes.split(" ", 1)[1]
+            if type == MESSAGE:
+                mes_te = content.split(" ", 1)[1]
+            elif type == SLASH:
+                mes_te = content
         except BaseException as err:
-            embed = nextcord.Embed(title="Error", description=f"な、なんかエラー出たけど！？\n```n!janken [グー/チョキ/パー]```\n{err}", color=0xff0000)
-            await ctx.message.reply(embed=embed)
-            return
+            return nextcord.Embed(title="Error", description=f"な、なんかエラー出たけど！？\n```n!janken [グー/チョキ/パー]```\n{err}", color=0xff0000)
         if mes_te != "グー" and mes_te != "ぐー" and mes_te != "チョキ" and mes_te != "ちょき" and mes_te != "パー" and mes_te != "ぱー":
-            embed = nextcord.Embed(title="Error", description="じゃんけんっていのは、「グー」「チョキ」「パー」のどれかを出して遊ぶゲームだよ。\n[ルール解説](https://ja.wikipedia.org/wiki/%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93#:~:text=%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93%E3%81%AF2%E4%BA%BA%E4%BB%A5%E4%B8%8A,%E3%81%A8%E6%95%97%E8%80%85%E3%82%92%E6%B1%BA%E5%AE%9A%E3%81%99%E3%82%8B%E3%80%82)\n```n!janken [グー/チョキ/パー]```", color=0xff0000)
-            await ctx.message.reply(embed=embed)
-            return
+            return nextcord.Embed(title="Error", description="じゃんけんっていのは、「グー」「チョキ」「パー」のどれかを出して遊ぶゲームだよ。\n[ルール解説](https://ja.wikipedia.org/wiki/%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93#:~:text=%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93%E3%81%AF2%E4%BA%BA%E4%BB%A5%E4%B8%8A,%E3%81%A8%E6%95%97%E8%80%85%E3%82%92%E6%B1%BA%E5%AE%9A%E3%81%99%E3%82%8B%E3%80%82)\n```n!janken [グー/チョキ/パー]```", color=0xff0000)
         embed = nextcord.Embed(title="にらにらじゃんけん", description="```n!janken [グー/チョキ/パー]```", color=0x00ff00)
         if mes_te == "グー" or mes_te == "ぐー":
             mes_te = "```グー```"
@@ -130,14 +120,33 @@ class amuse(commands.Cog):
             elif mes_te == "```チョキ```":
                 res_jyan = ":pensive: あなたの勝ちですね..."
         embed.add_field(name="\n```RESULT```\n", value=res_jyan, inline=False)
-        await ctx.message.reply(embed=embed)
+        return embed
+
+    @commands.command(name="janken", help="""\
+    じゃんけんで遊びます。
+    `n!janekn [グー/チョキ/パー]`
+    グーかチョキかパー以外を出したりすると少し煽られます。
+    [ルール解説](https://ja.wikipedia.org/wiki/%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93#:~:text=%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93%E3%81%AF2%E4%BA%BA%E4%BB%A5%E4%B8%8A,%E3%81%A8%E6%95%97%E8%80%85%E3%82%92%E6%B1%BA%E5%AE%9A%E3%81%99%E3%82%8B%E3%80%82)
+    
+    引数1:str
+    「グー」または「チョキ」または「パー」の手。""")
+    async def janken(self, ctx: commands.context):
+        await ctx.message.reply(embed=self.jankenEmbed(ctx.message.content, MESSAGE))
+        return
+    
+    @nextcord.slash_command(name="amuse janken", description="じゃんけんをします！")
+    async def slash_janken(
+        self,
+        interaction = Interaction,
+        hand: str = SlashOption(
+            name = "janken hand",
+            description = "じゃんけんの手です。",
+            required=True
+        )):
+        await messages.reply(interaction, "dice", embed=self.jankenEmbed(hand, SLASH))
         return
 
-    @commands.command(name="uranai", help="""\
-    占いで遊びます。いや、ちゃんと占います。
-    ただ、これであなたの運勢が決まるわけではありません。
-    あなたの行いが良くなれば、自然と運勢も上がっていきますし、行いが悪くなれば、自然と運勢が下がっていきます。""")
-    async def uranai(self, ctx: commands.context):
+    def uranaiEmbed(self):
         rnd_uranai = random.randint(1, 100)
         if rnd_uranai >= 1 and rnd_uranai <= 5:
             ur_w = 0
@@ -185,8 +194,24 @@ class amuse(commands.Cog):
             ur_m = "星10は神の領域(当社調べ)だよ！！！！！凄い！！！(`1%`)"
         embed = nextcord.Embed(title="うらない", description=f"{stars}", color=0x00ff00)
         embed.add_field(name=f"あなたの運勢は**星10個中の{ur_w}個**です！", value=f"> {ur_m}")
-        await ctx.message.reply(embed=embed)
+        return embed
+
+    @commands.command(name="uranai", help="""\
+    占いで遊びます。いや、ちゃんと占います。
+    ただ、これであなたの運勢が決まるわけではありません。
+    あなたの行いが良くなれば、自然と運勢も上がっていきますし、行いが悪くなれば、自然と運勢が下がっていきます。""")
+    async def uranai(self, ctx: commands.context):
+        await ctx.message.reply(embed=self.uranaiEmbed())
         return
+    
+
+    @nextcord.slash_command(name="amuse uranai", description="占いをします")
+    async def slash_janken(
+        self,
+        interaction = Interaction):
+        await messages.reply(interaction, "占い", embed=self.uranaiEmbed())
+        return
+
     
     @commands.command(name="wordle", help="""\
     Wordleという、単語あてゲームです。
