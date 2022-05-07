@@ -31,7 +31,7 @@ class amuse(commands.Cog):
         self.bot = bot
     
     @nextcord.slash_command(name="amuse", description="娯楽系", guild_ids=[906400213495865344])
-    async def amuse_main(self):
+    async def amuse(self):
         pass
 
     @commands.command(name="dice", help="""\
@@ -52,8 +52,8 @@ class amuse(commands.Cog):
         await ctx.reply(embed=nextcord.Embed(title="サイコロ", description=f"```{rnd_ex}```", color=0x00ff00))
         return
     
-    @amuse_main.subcommand(name="dice", description="サイコロを振ります")
-    async def slash_dice(
+    @amuse.subcommand(name="dice", description="サイコロを振ります")
+    async def dice(
         self,
         interaction = Interaction,
         count: int = SlashOption(
@@ -137,8 +137,8 @@ class amuse(commands.Cog):
         await ctx.message.reply(embed=self.jankenEmbed(ctx.message.content, MESSAGE))
         return
     
-    @amuse_main.subcommand(name="janken", description="じゃんけんをします！")
-    async def slash_janken(
+    @amuse.subcommand(name="janken", description="じゃんけんをします！")
+    async def janken(
         self,
         interaction = Interaction,
         hand: str = SlashOption(
@@ -208,8 +208,8 @@ class amuse(commands.Cog):
         return
     
 
-    @amuse_main.subcommand(name="uranai", description="占いをします")
-    async def slash_janken(
+    @amuse.subcommand(name="uranai", description="占いをします")
+    async def uranai(
         self,
         interaction = Interaction):
         await messages.reply(interaction, "占い", embed=self.uranaiEmbed())
