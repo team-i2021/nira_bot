@@ -4,30 +4,19 @@
 try:
     import os
     import nextcord
-    from nextcord import message
     from nextcord.ext import commands
-    from nextcord.ext.commands.bot import Bot
-    from nextcord.ext.commands.core import command
-    from nextcord.utils import get
-    from os import getenv
     import sys
-    from nextcord import Interaction, SlashOption, ChannelType
-    from cogs.not_ready import not_ready
-    from concurrent.futures import ThreadPoolExecutor
-    from util import n_fc, admin_check, web_api, server_check
+    from nextcord import Interaction
+    from util import n_fc, admin_check, web_api
     import json
-    import requests
-    from cogs import ping as cogs_ping
     from cogs import debug as cogs_debug
     from cogs import server_status
-    from nextcord.embeds import Embed
     sys.setrecursionlimit(10000)#エラー回避
     import pickle
     import traceback
     import datetime
     import asyncio
     from cogs import rolepanel
-    from cogs import pin
     from cogs import pollpanel
     print("モジュールインポート完了")
 except BaseException as err:
@@ -42,6 +31,7 @@ HOME = os.path.dirname(os.path.abspath(__file__))
 SETTING = json.load(open(f'{sys.path[0]}/setting.json', 'r'))
 TOKEN = SETTING["tokens"]["nira_bot"]
 PREFIX = SETTING["prefix"]
+n_fc.GUILD_IDS = SETTING["guild_ids"]
 n_fc.py_admin = SETTING["py_admin"]
 
 ##### BOTの設定 #####
@@ -103,7 +93,7 @@ async def on_ready():
         with open(f'{sys.path[0]}/PollViews.nira', 'rb') as f:
             pollpanel.PollViews = pickle.load(f)
         for i in pollpanel.PollViews:
-            bot.add_view(pollpanel.PollViews(i))
+            bot.add_view(pollpanel.PollPanelView(i))
     
     # asyncio.new_event_loop().run_in_executor(None, bottomup.MessagePin, bot)
     # asyncio.ensure_future(bottomup.MessagePin(bot))

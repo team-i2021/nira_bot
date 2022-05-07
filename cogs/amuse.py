@@ -1,4 +1,5 @@
-from nextcord import Interaction, SlashOption, ChannelType
+import imp
+from nextcord import Interaction, SlashOption
 from util.slash_tool import messages
 from nextcord.ext import commands
 import nextcord
@@ -7,11 +8,14 @@ import re
 import listre
 import sys
 import urllib.parse
+from util.n_fc import GUILD_IDS
 
 from util.wordle_data import words
 #娯楽系
 
 MESSAGE, SLASH = [0,1]
+
+
 
 import logging
 dir = sys.path[0]
@@ -30,7 +34,7 @@ class amuse(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
     
-    @nextcord.slash_command(name="amuse", description="娯楽系", guild_ids=[906400213495865344])
+    @nextcord.slash_command(name="amuse", description="娯楽系", guild_ids=GUILD_IDS)
     async def amuse(self):
         pass
 
@@ -43,7 +47,7 @@ class amuse(commands.Cog):
 
     引数1:int
     ダイスの最大値。""")
-    async def dice(self, ctx: commands.context):
+    async def dice_ctx(self, ctx: commands.context):
         if ctx.message.content == "n!dice":
             await ctx.reply(embed=nextcord.Embed(title="エラー",description="サイコロだよ！\n`n!dice [max]`",color=0xff0000))
             return
@@ -133,7 +137,7 @@ class amuse(commands.Cog):
     
     引数1:str
     「グー」または「チョキ」または「パー」の手。""")
-    async def janken(self, ctx: commands.context):
+    async def janken_ctx(self, ctx: commands.context):
         await ctx.message.reply(embed=self.jankenEmbed(ctx.message.content, MESSAGE))
         return
     
@@ -210,7 +214,7 @@ class amuse(commands.Cog):
     
 
     @amuse.subcommand(name="uranai", description="占いをします")
-    async def uranai(
+    async def uranai_slash(
         self,
         interaction = Interaction):
         await messages.mreply(interaction, "占い", embed=self.uranaiEmbed())
