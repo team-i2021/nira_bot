@@ -1,7 +1,6 @@
 from mcstatus import MinecraftServer as mc, MinecraftBedrockServer as mcb
 import asyncio
 import threading
-from timeout_decorator import timeout, TimeoutError
 
 JAVA = 1
 BE = 2
@@ -17,7 +16,7 @@ class minecraft_status:
 
     def error_check(arg):
         """エラーの種類がネットワーク系のエラーかどうかを調べます。"""
-        return type(arg) == TimeoutError or type(arg) == ConnectionRefusedError or type(arg) == OSError
+        return type(arg) == ConnectionRefusedError or type(arg) == OSError
 
     async def java_unsync(loop, address):
         return await loop.run_in_executor(
