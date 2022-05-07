@@ -7,7 +7,6 @@ import re
 import listre
 import sys
 import urllib.parse
-from nextcord.ext.commands.core import command
 
 from util.wordle_data import words
 #娯楽系
@@ -53,7 +52,7 @@ class amuse(commands.Cog):
         await ctx.reply(embed=nextcord.Embed(title="サイコロ", description=f"```{rnd_ex}```", color=0x00ff00))
         return
     
-    @self.amuse_main.subcommand(name="dice", description="サイコロを振ります")
+    @amuse_main.subcommand(name="dice", description="サイコロを振ります")
     async def slash_dice(
         self,
         interaction = Interaction,
@@ -138,7 +137,7 @@ class amuse(commands.Cog):
         await ctx.message.reply(embed=self.jankenEmbed(ctx.message.content, MESSAGE))
         return
     
-    @self.amuse_main.subcommand(name="janken", description="じゃんけんをします！")
+    @amuse_main.subcommand(name="janken", description="じゃんけんをします！")
     async def slash_janken(
         self,
         interaction = Interaction,
@@ -209,7 +208,7 @@ class amuse(commands.Cog):
         return
     
 
-    @self.amuse_main.subcommand(name="uranai", description="占いをします")
+    @amuse_main.subcommand(name="uranai", description="占いをします")
     async def slash_janken(
         self,
         interaction = Interaction):
