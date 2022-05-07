@@ -6,4 +6,6 @@
     "voicevox":[WEB版VOICEVOXのAPIキー(複数可)],
     "prefix": プリフィックス,
     "guild_ids": [サーバーID(複数可)],
+    "unload_cogs": [],
+    "load_cogs": []
 }

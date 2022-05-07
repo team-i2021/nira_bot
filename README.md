@@ -14,8 +14,21 @@
 1. `pip install -r requirements.txt`でモジュールをインストールします。
 2. `setting_temp.json`を参考にして、`setting.json`にTOKENなどの必要な設定を書き込みます。
 
+### `setting.json`の設定項目について
+キー|内容|例|変数型
+---|---|---|---
+`tokens`-`nira_bot`|Botのトークン入れ|`"abcdefniofwpajrjr92.f3h208hfi0iffhifhihi"`|str
+`py_admin`|再起動やJishakuなどの管理者コマンドを使用できるユーザーのDiscordID|`[1234567989,987654321]`|list(int)
+`voicevox`|VOICEVOX WebAPIのAPIキー|`["abcdefg1234","1234abcdef"]`|list(str)
+`prefix`|コマンドのプレフィックス|`"n!"`|str
+`guild_id`|スラッシュコマンドを登録するGuildID。未指定で全サーバーに登録する。|`[1234567989,987654321]`|list(int)
+`unload_cogs`|cogsフォルダにあるPythonファイルで、Cogとして読み込まないファイルを指定する。|`["yabai.py","tondemonai.py"]`|list(str)
+`load_cogs`|Debugモードで起動した際に読み込むCogを指定する。|`["debug.py"]`|list(str)
+
+
 ## 起動
-`nira.py`を実行します。
+`nira.py`を実行します。  
+Debugモードで起動する場合は、引数として`-d`を指定します。
 
 # enhance-fix
 もし、プログラムに不具合があったり、機能改善をしてほしい場合は、[にらBOT Discordサーバー](https://discord.gg/awfFpCYTcP)の`#enhance-fix`でスレッドを立てるか、本レポジトリにissueやPRを立ててください。  

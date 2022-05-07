@@ -33,6 +33,11 @@ TOKEN = SETTING["tokens"]["nira_bot"]
 PREFIX = SETTING["prefix"]
 n_fc.GUILD_IDS = SETTING["guild_ids"]
 n_fc.py_admin = SETTING["py_admin"]
+UNLOAD_COGS = SETTING["unload_cogs"]
+LOAD_COGS = SETTING["load_cogs"]
+DEBUG = False
+if sys.argv[1] == "-d":
+    DEBUG = True
 
 ##### BOTの設定 #####
 intents = nextcord.Intents.all()  # デフォルトのIntentsオブジェクトを生成
@@ -214,8 +219,11 @@ try:
     cogs_dir = HOME + "/cogs"
     cogs_num = len(os.listdir(cogs_dir))
     cogs_list = os.listdir(cogs_dir)
+    if DEBUG:
+        cogs_num = len(LOAD_COGS)
+        cogs_list = LOAD_COGS
     for i in range(cogs_num):
-        if cogs_list[i][-3:] != ".py" or cogs_list[i] == "__pycache__" or cogs_list[i] == "not_ready.py":
+        if cogs_list[i][-3:] != ".py" or cogs_list[i] == "__pycache__" or cogs_list[i] == "not_ready.py" or cogs_list[i] in LOAD_COGS:
             continue
         bot.load_extension(f"cogs.{cogs_list[i][:-3]}")
 except BaseException as err:
