@@ -20,10 +20,14 @@ class messages:
         if kwargs == {}:
             kwargs["embed"] = None
             kwargs["ephemeral"] = None
+        elif "embed" not in kwargs:
+            kwargs["embed"] = None
+        elif "ephemeral" not in kwargs:
+            kwargs["ephemeral"] = None
         if type(message) == nextcord.Message:
             return message.reply(reply_message, embed=kwargs["embed"])
         elif type(message) == nextcord.Interaction:
-            return message.respond.response.send_message(reply_message, embed=kwargs["embed"],  ephemeral=kwargs["ephemeral"])
+            return message.response.send_message(reply_message, embed=kwargs["embed"],  ephemeral=kwargs["ephemeral"])
         elif type(message) == nextcord.ext.commands.Context:
             return message.reply(reply_message, embed=kwargs["embed"])
         else:

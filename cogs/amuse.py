@@ -62,7 +62,7 @@ class amuse(commands.Cog):
             required=True
         )):
         rnd_ex = random.randint(0, count)
-        await messages.reply(interaction, "dice", embed=nextcord.Embed(title="サイコロ", description=f"```{rnd_ex}```", color=0x00ff00))
+        await messages.mreply(interaction, "dice", embed=nextcord.Embed(title="サイコロ", description=f"```{rnd_ex}```", color=0x00ff00))
         return
 
     def jankenEmbed(self, content, type):
@@ -144,9 +144,10 @@ class amuse(commands.Cog):
         hand: str = SlashOption(
             name = "hand",
             description = "じゃんけんの手です。",
-            required=True
+            required=True,
+            choices={"グー": "グー", "チョキ": "チョキ", "パー": "パー"},
         )):
-        await messages.reply(interaction, "dice", embed=self.jankenEmbed(hand, SLASH))
+        await messages.mreply(interaction, "じゃんけん！", embed=self.jankenEmbed(hand, SLASH))
         return
 
     def uranaiEmbed(self):
@@ -212,7 +213,7 @@ class amuse(commands.Cog):
     async def uranai(
         self,
         interaction = Interaction):
-        await messages.reply(interaction, "占い", embed=self.uranaiEmbed())
+        await messages.mreply(interaction, "占い", embed=self.uranaiEmbed())
         return
 
     
