@@ -30,6 +30,10 @@ logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.
 class amuse(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+    
+    @nextcord.slash_command(name="amuse", description="娯楽系", guild_ids=[906400213495865344])
+    async def amuse_main(self):
+        pass
 
     @commands.command(name="dice", help="""\
     指定した最大目のダイスを振ります。
@@ -49,7 +53,7 @@ class amuse(commands.Cog):
         await ctx.reply(embed=nextcord.Embed(title="サイコロ", description=f"```{rnd_ex}```", color=0x00ff00))
         return
     
-    @nextcord.slash_command(name="amuse dice", description="サイコロを振ります")
+    @self.amuse_main.subcommand(name="dice", description="サイコロを振ります")
     async def slash_dice(
         self,
         interaction = Interaction,
@@ -134,7 +138,7 @@ class amuse(commands.Cog):
         await ctx.message.reply(embed=self.jankenEmbed(ctx.message.content, MESSAGE))
         return
     
-    @nextcord.slash_command(name="amuse janken", description="じゃんけんをします！")
+    @self.amuse_main.subcommand(name="janken", description="じゃんけんをします！")
     async def slash_janken(
         self,
         interaction = Interaction,
@@ -205,7 +209,7 @@ class amuse(commands.Cog):
         return
     
 
-    @nextcord.slash_command(name="amuse uranai", description="占いをします")
+    @self.amuse_main.subcommand(name="uranai", description="占いをします")
     async def slash_janken(
         self,
         interaction = Interaction):
