@@ -57,7 +57,7 @@ class amuse(commands.Cog):
         self,
         interaction = Interaction,
         count: int = SlashOption(
-            name = "dice count",
+            name = "count",
             description = "ダイスの最大目の数です",
             required=True
         )):
@@ -142,7 +142,7 @@ class amuse(commands.Cog):
         self,
         interaction = Interaction,
         hand: str = SlashOption(
-            name = "janken hand",
+            name = "hand",
             description = "じゃんけんの手です。",
             required=True
         )):
