@@ -1,93 +1,163 @@
 import asyncio
-from nextcord.ext import commands
-import nextcord
-import subprocess
-from subprocess import PIPE
-import os
-import sys
-from nextcord import Interaction, SlashOption, ChannelType
-from cogs.debug import save
+import logging
+from re import compile
 
-sys.path.append('../')
-from util import admin_check, n_fc, eh
+import nextcord
+from nextcord import Interaction, SlashOption, Role
+from nextcord.ext import commands
+
+from cogs.debug import save
+from util import admin_check, n_fc
+from util.n_fc import GUILD_IDS
+from util.slash_tool import messages
 
 # Autorole
 
-#loggingの設定
-import logging
+MESSAGE, SLASH = (0, 1)
+STATUS, ON, OFF = (0, 1, 2)
+ROLE_ID = compile(r"<@&[0-9]+?>")
 
+
+# loggingの設定
 class NoTokenLogFilter(logging.Filter):
     def filter(self, record):
         message = record.getMessage()
         return 'token' not in message
 
+
 logger = logging.getLogger(__name__)
 logger.addFilter(NoTokenLogFilter())
 formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
-logging.basicConfig(format=formatter, filename=f'/home/nattyantv/nira_bot_rewrite/nira.log', level=logging.INFO)
+logging.basicConfig(format=formatter, filename='/home/nattyantv/nira_bot_rewrite/nira.log', level=logging.INFO)
+
 
 class autorole(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.command(name="autorole", aliases=("自動ロール","オートロール"), help="""\
+    @nextcord.slash_command(name="autorole", description="自動ロール", guild_ids=GUILD_IDS)
+    async def autorole(self):
+        pass
+
+    def autorole_message(self, type, mode, user, guild, role: Role = None):
+        if not admin_check.admin_check(guild, user):
+            return ("自動ロール\nエラー：権限がありません。", None)
+
+        if mode == ON:
+            if role.name == "@everyone":
+                return ("自動ロール\nエラー：@everyone は無効です。", None)
+
+            n_fc.autorole[guild.id] = role.id
+            save()
+            return (None, nextcord.Embed(title="自動ロール", description=f"設定完了：{role.mention}を自動的に付与します。", color=0x00ff00))
+
+        elif mode == OFF:
+            if guild.id not in n_fc.autorole:
+                return ("サーバーで自動ロールは設定されていません。", None)
+            else:
+                del n_fc.autorole[guild.id]
+                save()
+                return ("サーバーで自動ロールを無効にしました。", None)
+
+        else:
+            if guild.id in n_fc.autorole:
+                msg = f"自動ロールは有効です。\n自動付与されるロールは{guild.get_role(n_fc.autorole[guild.id]).mention}です。"
+            else:
+                msg = "自動ロールは無効です。"
+
+            if type == SLASH:
+                usage = "`/autorole on [ロール]` / `/autorole off` / `/autorole status`"
+            else:
+                usage = "`n!autorole on [ロール名/ロールID/メンション]` / `n!autorole off`"
+
+            return (None, nextcord.Embed(title="自動ロール", description=f"{msg}\n{usage}", color=0x00ff00))
+
+    @commands.command(name="autorole", aliases=("自動ロール", "オートロール"), help="""\
     ユーザーが加入したときに、指定したロールを自動的に付与することが出来ます。
-    書き方: `n!autorole [ロール名またはロールID]`
+    書き方: `n!autorole [ロール名/ロールID/ロールへのメンション]`
 
     ・例
     ```
-    n!autorole にら民
+    n!autorole on にら民
     ```
 
 
     """)
-    async def autorole(self, ctx: commands.Context):
-        if not admin_check.admin_check(ctx.guild, ctx.author):
-            await ctx.reply("自動ロール\nエラー：権限がありません。")
-            return
-        args = ctx.message.content.split(" ", 3)
+    async def autorole_ctx(self, ctx: commands.Context):
+        args = ctx.message.content.split(" ", 2)
         if len(args) == 1:
-            if ctx.guild.id in n_fc.autorole:
-                role = ctx.guild.get_role(n_fc.autorole[ctx.guild.id])
-                embed = nextcord.Embed(title="自動ロール", description=f"自動ロールを有効にしています。\n自動ロールするロールは{role.mention}です。\n`n!autorole on [ロール名又はロールID]`/`n!autorole off`", color=0x00ff00)
-            else:
-                embed = nextcord.Embed(title="自動ロール", description="自動ロールを有効にしていません。\n`n!autorole on [ロール名又はロールID]`/`n!autorole off`", color=0x00ff00)
-            await ctx.reply(embed=embed)
-            return
-        if args[1] == "off":
-            if ctx.guild.id not in n_fc.autorole:
-                await ctx.reply("サーバーで自動ロールは設定されていません。")
-                return
-            else:
-                del n_fc.autorole[ctx.guild.id]
-                save()
-                await ctx.reply("サーバーで自動ロールを無効にしました。")
-                return
+            msg = self.autorole_message(MESSAGE, STATUS, ctx.author, ctx.guild)
+
+        elif args[1] == "off":
+            msg = self.autorole_message(MESSAGE, OFF, ctx.author, ctx.guild)
+
         elif args[1] == "on":
-            role_id = None
-            try:
-                role_id = int(args[2])
-            except ValueError:
-                roles = ctx.guild.roles
-                for i in range(len(roles)):
-                    if roles[i].name == args[2]:
-                        role_id = roles[i].id
-                        break
-                if role_id == None:
-                    await ctx.reply("自動ロール\nエラー：指定したロールが存在しません。")
-                    return
-            if role_id == None:
-                await ctx.reply("自動ロール\nエラー：指定したロールが存在しません。")
-                return
-            n_fc.autorole[ctx.guild.id] = role_id
-            await ctx.reply(embed=nextcord.Embed(title="自動ロール", description=f"設定完了：{ctx.guild.get_role(role_id).mention}を自動的に付与します。", color=0x00ff00))
-            save()
-            return
+            if len(args) < 3 or args[2] == "":
+                msg = ("自動ロール\nエラー：ロールを指定してください。", None)
+
+            # 空のリストは False になる
+            elif ctx.message.mentions or ctx.message.channel_mentions:
+                msg = ("自動ロール\nエラー：ロールでないメンションが含まれています。", None)
+
+            # ロールのメンション数が1より多いか、ロールのメンションとそうでない文字列が混在している
+            elif len(ctx.message.role_mentions) > 1 or \
+                    ctx.message.role_mentions and ROLE_ID.fullmatch(args[2]) is None:
+                msg = ("自動ロール\nエラー：ロールは１つのみ指定できます。", None)
+
+            elif ctx.message.role_mentions:
+                msg = self.autorole_message(MESSAGE, ON, ctx.author, ctx.guild, ctx.message.role_mentions[0])
+
+            else:
+                role = None
+
+                try:
+                    role = ctx.guild.get_role(int(args[2]))
+                except ValueError:
+                    pass
+
+                if role is None:
+                    for r in ctx.guild.roles:
+                        if r.name == args[2]:
+                            role = r
+                            break
+
+                if role is None:
+                    msg = ("自動ロール\nエラー：指定したロールが見つかりません。", None)
+                else:
+                    msg = self.autorole_message(MESSAGE, ON, ctx.author, ctx.guild, role)
+
         else:
-            embed = nextcord.Embed(title="自動ロール", description="コマンドの使用方法が不正です。\n`n!autorole on [ロール名又はロールID]`/`n!autorole off`", color=0x00ff00)
-            await ctx.reply(embed=embed)
-            return
-    
+            msg = (None, nextcord.Embed(title="自動ロール", description="コマンドの使用方法が不正です。\n`n!autorole on [ロール名又はロールID]`/`n!autorole off`", color=0x00ff00))
+
+        await messages.mreply(ctx, msg[0], embed=msg[1])
+        return
+
+    @autorole.subcommand(name="off", description="自動ロールを無効にします")
+    async def autorole_off(self, interaction: Interaction):
+        msg = self.autorole_message(SLASH, OFF, interaction.user, interaction.guild)
+        await messages.mreply(interaction, msg[0], embed=msg[1], ephemeral=True)
+        return
+
+    @autorole.subcommand(name="on", description="ユーザーが加入したときに自動的にロールを付与します")
+    async def autorole_on(
+            self,
+            interaction: Interaction,
+            role: Role = SlashOption(
+                name="role",
+                description="自動的に付与するロールです",
+                required=True
+            )
+    ):
+        msg = self.autorole_message(SLASH, ON, interaction.user, interaction.guild, role)
+        await messages.mreply(interaction, msg[0], embed=msg[1], ephemeral=True)
+        return
+
+    @autorole.subcommand(name="status", description="自動ロールの設定状態を確認します")
+    async def autorole_status(self, interaction: Interaction):
+        msg = self.autorole_message(SLASH, STATUS, interaction.user, interaction.guild)
+        await messages.mreply(interaction, msg[0], embed=msg[1], ephemeral=True)
+        return
+
     @commands.Cog.listener()
     async def on_member_join(self, member: nextcord.Member):
         if member.guild.id in n_fc.autorole:
@@ -95,6 +165,7 @@ class autorole(commands.Cog):
             await member.add_roles(role)
             return
         return
+
 
 def setup(bot):
     bot.add_cog(autorole(bot))

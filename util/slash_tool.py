@@ -19,21 +19,25 @@ class messages:
     def mreply(message, reply_message, **kwargs):
         if kwargs == {}:
             kwargs["embed"] = None
-            kwargs["ephemeral"] = None
+            kwargs["ephemeral"] = False
         elif "embed" not in kwargs:
             kwargs["embed"] = None
         elif "ephemeral" not in kwargs:
-            kwargs["ephemeral"] = None
+            kwargs["ephemeral"] = False
         if type(message) == nextcord.Message:
             return message.reply(reply_message, embed=kwargs["embed"])
         elif type(message) == nextcord.Interaction:
-            return message.response.send_message(reply_message, embed=kwargs["embed"],  ephemeral=kwargs["ephemeral"])
+            # InteractionResponse.send_message は embed=None すると例外を吐く
+            if kwargs["embed"] is None:
+                return message.response.send_message(reply_message, ephemeral=kwargs["ephemeral"])
+            else:
+                return message.response.send_message(reply_message, embed=kwargs["embed"], ephemeral=kwargs["ephemeral"])
         elif type(message) == nextcord.ext.commands.Context:
             return message.reply(reply_message, embed=kwargs["embed"])
         else:
             raise TypeError
             return
-    
+
     def content_check(message):
         if type(message) == nextcord.Message:
             return message.content
