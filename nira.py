@@ -38,6 +38,9 @@ LOAD_COGS = SETTING["load_cogs"]
 DEBUG = False
 if len(sys.argv) > 1 and sys.argv[1] == "-d":
     DEBUG = True
+    print(LOAD_COGS)
+
+
 
 ##### BOTの設定 #####
 intents = nextcord.Intents.all()  # デフォルトのIntentsオブジェクトを生成
@@ -48,11 +51,14 @@ bot = commands.Bot(command_prefix=PREFIX, intents=intents, help_command=None)
 bot.remove_command("help") #意味あるのかしらんけどjishakuのヘルプコマンド削除
 bot.load_extension("jishaku")
 
+
+
 # オーナー設定
 async def is_owner(author):
     return author.id in n_fc.py_admin
 bot.is_owner = is_owner
 print("BOTの設定完了")
+
 
 
 #設定読み込み
@@ -99,7 +105,7 @@ async def on_ready():
             pollpanel.PollViews = pickle.load(f)
         for i in pollpanel.PollViews:
             bot.add_view(pollpanel.PollPanelView(i))
-    
+
     # asyncio.new_event_loop().run_in_executor(None, bottomup.MessagePin, bot)
     # asyncio.ensure_future(bottomup.MessagePin(bot))
 
@@ -112,7 +118,7 @@ async def on_ready():
             n_fc.role_keeper[i.id][j.id] = [k.id for k in j.roles if k.name != "@everyone"]
     print(n_fc.role_keeper)
     cogs_debug.save()
-    
+
     print("ユーザー情報読み込み完了")
     await bot.change_presence(activity=nextcord.Game(name="起動中...(2/2)", type=1), status=nextcord.Status.idle)
 
@@ -132,8 +138,19 @@ async def on_ready():
         except BaseException as err:
             print(err, traceback.format_exc())
     print("AutoSSのタスク復元完了")
-    await bot.change_presence(activity=nextcord.Game(name="n!info | にらゲー", type=1), status=nextcord.Status.online)
+
+    if not DEBUG:
+        await bot.change_presence(activity=nextcord.Game(name=f"{PREFIX}help | にらゲー", type=1), status=nextcord.Status.online)
+    else:
+        await bot.change_presence(activity=nextcord.Game(name=f"{PREFIX} | にらゲー開発", type=1), status=nextcord.Status.dnd)
+
     print("Welcome to nira-bot!")
+    print(f"""\
+USER: {bot.user.name}#{bot.user.discriminator}
+ID: {bot.user.id}
+COGS: {[dict(bot.cogs)[i].qualified_name for i in dict(bot.cogs).keys()]}
+COMMANDS: {[i.name for i in list(bot.commands)]}
+""")
 
 #機能しなかったときの保険↓
 #loop = asyncio.get_event_loop()
@@ -192,6 +209,8 @@ async def line_del(interaction: Interaction):
         await interaction.response.send_message(f"{interaction.channel.name}でのLINEトークンを削除しました。", ephemeral = True)
 
 
+
+# 変数読み込み
 func_error_count = 0
 for i in range(len(n_fc.save_list)):
     logging.info(f"Start:{n_fc.save_list[i]}")
@@ -215,6 +234,8 @@ for i in range(len(n_fc.save_list)):
 print("変数の読み込み完了")
 
 
+
+# Cogの読み込み
 try:
     cogs_dir = HOME + "/cogs"
     cogs_num = len(os.listdir(cogs_dir))
@@ -223,7 +244,7 @@ try:
         cogs_num = len(LOAD_COGS)
         cogs_list = LOAD_COGS
     for i in range(cogs_num):
-        if cogs_list[i][-3:] != ".py" or cogs_list[i] == "__pycache__" or cogs_list[i] == "not_ready.py" or cogs_list[i] in LOAD_COGS:
+        if cogs_list[i][-3:] != ".py" or cogs_list[i] == "__pycache__" or cogs_list[i] == "not_ready.py" or cogs_list[i] in UNLOAD_COGS:
             continue
         bot.load_extension(f"cogs.{cogs_list[i][:-3]}")
 except BaseException as err:
@@ -232,11 +253,14 @@ except BaseException as err:
 print("Cogの読み込み完了")
 
 
+
 def main():
     # BOT起動
     print("BOT起動開始...")
     bot.run(TOKEN)
     print("BOT終了")
+
+
 
 if __name__ == "__main__":
     main()
