@@ -74,7 +74,9 @@ class autorole(commands.Cog):
 
     @commands.command(name="autorole", aliases=("自動ロール", "オートロール"), help="""\
     ユーザーが加入したときに、指定したロールを自動的に付与することが出来ます。
-    書き方: `n!autorole [ロール名/ロールID/ロールへのメンション]`
+    ・使い方
+    設定: `n!autorole on [ロール名/ロールID/ロールへのメンション]`
+    無効化: `n!autorole off`
 
     ・例
     ```
