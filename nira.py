@@ -36,7 +36,7 @@ n_fc.py_admin = SETTING["py_admin"]
 UNLOAD_COGS = SETTING["unload_cogs"]
 LOAD_COGS = SETTING["load_cogs"]
 DEBUG = False
-if sys.argv[1] == "-d":
+if len(sys.argv) > 1 and sys.argv[1] == "-d":
     DEBUG = True
 
 ##### BOTの設定 #####
