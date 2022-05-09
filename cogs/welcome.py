@@ -32,22 +32,22 @@ class welcome(commands.Cog):
         self.bot = bot
 
     @commands.command(name="welcome", aliases=("youkoso","goodbye","ようこそ","Welcome"), help="""\
-    ユーザーが加入/離脱したときに、特定のメッセージをこのチャンネルに送信するようにします。
-    書き方: `n!welcome [join/leave]` `[メッセージ]`
-    (メッセージは複数行可能です。)
+ユーザーが加入/離脱したときに、特定のメッセージをこのチャンネルに送信するようにします。
+書き方: `n!welcome [join/leave]` `[メッセージ]`
+(メッセージは複数行可能です。)
 
-    メッセージ内には`%name%`/`%count%`/`%ment%`と入れることで、それぞれ`ユーザー名`/`ユーザー数`/`メンション`に置き換わります。
+メッセージ内には`%name%`/`%count%`/`%ment%`と入れることで、それぞれ`ユーザー名`/`ユーザー数`/`メンション`に置き換わります。
 
-    ・例
-    ```
-    n!welcome join %name%さんこんちゃ！！！！！
-    ```
+・例
+```
+n!welcome join %name%さんこんちゃ！！！！！
+```
 
-    ```
-    n!welcome leave %name%さんばいばい！！！
-    ```
+```
+n!welcome leave %name%さんばいばい！！！
+```
 
-    """)
+""")
     async def welcome(self, ctx: commands.Context):
         if not admin_check.admin_check(ctx.guild, ctx.author):
             await ctx.reply("・Welcomeメッセージコマンド\nエラー：権限がありません。")

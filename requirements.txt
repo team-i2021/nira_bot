@@ -3,7 +3,7 @@ jaconv==0.3
 jishaku==2.3.2
 listre==1.0.0
 mcstatus==6.5.0
-nextcord==2.0.0a8
+nextcord==2.0.0a10
 niconico-dl==2.2.7
 psutil==5.9.0
 pycparser==2.21

@@ -1,4 +1,5 @@
 from nextcord.ext import commands
+from nextcord import Interaction, SlashOption
 import nextcord
 import re
 import pickle
@@ -10,6 +11,7 @@ from cogs.embed import embed
 sys.path.append('../')
 from util import admin_check, n_fc, eh
 
+
 #ユーザー情報表示系
 
 home_dir = os.path.dirname(__file__)[:-4]
@@ -17,6 +19,19 @@ home_dir = os.path.dirname(__file__)[:-4]
 class user(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+    
+    @nextcord.slash_command(
+            name="d",
+            description="ユーザー情報表示",
+            guild_ids=n_fc.GUILD_IDS
+        )
+        async def d_slash(
+                self,
+                interaction: Interaction,
+                user: nextcord.user = SlashOption(
+                    name = "user",
+
+                )):
     
     @commands.command(name="d", help="""\
     ユーザーの情報を表示します。

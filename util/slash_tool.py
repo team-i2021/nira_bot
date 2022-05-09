@@ -16,7 +16,11 @@ logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.
 
 
 class messages:
-    def mreply(message, reply_message, **kwargs):
+    def mreply(message: nextcord.ext.commands.Context or nextcord.Message or nextcord.Interaction, reply_message: str, **kwargs):
+        """
+第1引数: 返信元のメッセージやコンテキストやインタラクション
+第2引数: 返信するメッセージ
+*第3引数: EmbedやEphemeralなどの設定"""
         if kwargs == {}:
             kwargs["embed"] = None
             kwargs["ephemeral"] = False

@@ -99,19 +99,24 @@ offにするには、`n!pin off`と送信してください。
     @tasks.loop(seconds=3)
     async def checkPin(self):
         await self.bot.wait_until_ready()
-        try:
-            for i in n_fc.pinMessage.keys():
-                for j in n_fc.pinMessage[i].keys():
-                    CHANNEL = await self.bot.fetch_channel(j)
+        for i in n_fc.pinMessage.keys():
+            for j in n_fc.pinMessage[i].keys():
+                CHANNEL = await self.bot.fetch_channel(j)
+                try:
                     if CHANNEL.last_message.content == n_fc.pinMessage[i][j] and CHANNEL.last_message.author.id == self.bot.user.id:
                         continue
-                    messages = await CHANNEL.history(limit=10).flatten()
-                    for message in messages:
-                        if message.content == n_fc.pinMessage[i][j] and message.author.id == self.bot.user.id:
+                except BaseException as err:
+                    continue
+                messages = await CHANNEL.history(limit=10).flatten()
+                for message in messages:
+                    if message.content == n_fc.pinMessage[i][j] and message.author.id == self.bot.user.id:
+                        try:
                             await message.delete()
-                    await CHANNEL.send(n_fc.pinMessage[i][j])
-        except BaseException:
-            logging.error(traceback.format_exc())
+                        except BaseException as err:
+                            continue
+                await CHANNEL.send(n_fc.pinMessage[i][j])
+
+# logging.error(traceback.format_exc())
 
 
 def setup(bot):

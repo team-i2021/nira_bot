@@ -1,12 +1,39 @@
 from nextcord.ext import commands
 import nextcord
+from nextcord import Interaction
 import urllib.parse
+from util.n_fc import GUILD_IDS
 
 
+class CodeInsert(nextcord.ui.Modal):
+    def __init__(self):
+        super().__init__(
+            "HTML Code",
+            timeout=None,
+        )
 
-class code(commands.Cog):
+        self.code = nextcord.ui.TextInput(
+            label="HTMLコード",
+            style=nextcord.TextInputStyle.paragraph,
+            placeholder="<h1>Hello, world!</h1><h5>See you, world...!</h5>",
+            required=True,
+        )
+        self.add_item(self.code)
+
+    async def callback(self, interaction: nextcord.Interaction) -> None:
+        embed = nextcord.Embed(title="Dynamic-page", description=f"ページは[こちら](https://nattyan-tv.github.io/dynamic-page/output.html#{urllib.parse.quote(self.code.value)})", color=0x00ff00)
+        embed.set_footer(text="Powered by Dynamic-page\nhttps://github.com/nattyan-tv/dynamic-page")
+        await interaction.send(embed=embed)
+
+
+class Code(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+    
+    @nextcord.slash_command(name="html", description="HTMLを入力してページを返します。", guild_ids=GUILD_IDS)
+    async def html_slash(self, interaction: Interaction):
+        modal = CodeInsert()
+        await interaction.response.send_modal(modal=modal)
 
     @commands.command()
     async def html(self, ctx: commands.Context):
@@ -19,4 +46,4 @@ class code(commands.Cog):
         await ctx.reply(embed=embed)
 
 def setup(bot):
-    bot.add_cog(code(bot))
+    bot.add_cog(Code(bot))
