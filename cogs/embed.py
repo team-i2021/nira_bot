@@ -10,7 +10,9 @@ from util import admin_check, n_fc, eh
 #embedを送信する機能
 
 
-# 作ったはいいものの動かないから困ってます()
+## 作ったはいいものの動かないから困ってます()
+## The above exception was the direct cause of the following exception:
+## nextcord.errors.ApplicationInvokeError: Command raised an exception: TypeError: Object of type TextInput is not JSON serializable
 class EmbedMaker(nextcord.ui.Modal):
     def __init__(self):
         super().__init__(

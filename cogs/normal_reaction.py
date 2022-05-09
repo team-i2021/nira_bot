@@ -89,8 +89,8 @@ reaction_list = [
     r'黒棺|くろひつぎ|藍染隊長|クロヒツギ|あいぜんそうすけ'
     ]
 
-# 0:メッセージ反応,1:添付ファイル反応,2:特殊反応(にら画像),3:特殊反応(にらテキスト),4:特殊反応(Guild指定画像),5:特殊反応(Guild指定文字)
-# ファイル/反応数
+# 0:メッセージ反応,1:添付ファイル反応,2:特殊反応(にら画像),3:特殊反応(にらテキスト),4:特殊反応(Guild指定画像),5:特殊反応(Guild指定文字),6:リアクション
+# ファイル/反応数/0
 # 反応ファイルなど
 reaction_files = {
     0:[0,1,"おっ、かわいいな"],
@@ -124,7 +124,7 @@ reaction_files = {
     28:[0,1,"https://www.youtube.com/IkumonTV"],
     29:[4,1,"apple"],
     30:[4,3,"sarmon"],
-    31:[0,1,"<:natsu:908565532268179477>"],
+    31:[6,0,"<:natsu:908565532268179477>"],
     32:[4,1,"12pp"],
     33:[5,2,"https://twitter.com/namae_1216",":heart: by apple"],
     34:[1,1,"mike"],
@@ -242,6 +242,10 @@ def n_reaction(message: nextcord.Message, *custom: int):
                     rnd = random.randint(1, reaction_files[ans[1]][1])
                     return message.reply(reaction_files[ans[1]][rnd+1])
 
+        # リアクション追加
+        elif reaction_files[ans[1]][0] == 6:
+            return message.add_reaction(reaction_files[ans[1]][2])
+
 
 class normal_reaction(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -307,7 +311,7 @@ class normal_reaction(commands.Cog):
             except BaseException as err:
                 if re.search("object NoneType can't be used in 'await' expression", str(err)) == None:
                     logging.error(err)
-            if sended_mes != "":
+            if sended_mes != "" and sended_mes != None:
                 await sended_mes.add_reaction("<:trash:908565976407236608>")
                 await asyncio.sleep(3)
                 try:

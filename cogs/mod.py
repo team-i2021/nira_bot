@@ -43,7 +43,6 @@ class mod(commands.Cog):
             return
         if message.author.id not in counter.messageCounter:
             counter.messageCounter[message.author.id] = 0
-        logging.info(message.content)
         counter.messageCounter[message.author.id] = counter.messageCounter[message.author.id] + 1
         if counter.messageCounter[message.author.id] > n_fc.mod_list[message.guild.id]["counter"] - 3 and counter.messageCounter[message.author.id] < n_fc.mod_list[message.guild.id]["counter"]:
             await message.channel.send(f"{message.author.mention}\nメッセージ送信数が多いです。あまり多いとミュートされます。")
