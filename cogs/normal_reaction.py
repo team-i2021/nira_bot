@@ -25,7 +25,7 @@ logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.
 
 home_dir = os.path.dirname(__file__)[:-4]
 
-from cogs.embed import embed
+
 sys.path.append('../')
 from util import admin_check, n_fc, eh, web_api
 import util.srtr as srtr

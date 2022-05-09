@@ -3,6 +3,7 @@
 #沢山のインポート
 try:
     import os
+    import traceback
     import nextcord
     from nextcord.ext import commands
     import sys
@@ -13,16 +14,18 @@ try:
     from cogs import server_status
     sys.setrecursionlimit(10000)#エラー回避
     import pickle
-    import traceback
     import datetime
     import asyncio
     from cogs import rolepanel
     from cogs import pollpanel
     print("モジュールインポート完了")
 except BaseException as err:
-    print(f"""モジュールインポート時のエラー:{err}\n
-    「pip install -r requirements.txt」でモジュールをインストールするか、「setup.py」を実行してモジュールをインストールしてください。
-    """)
+    print(f"""モジュールインポート時のエラー:{err}
+「pip install -r requirements.txt」でモジュールをインストールするか、「setup.py」を実行してモジュールをインストールしてください。
+
+--python traceback--
+{traceback.format_exc()}
+""")
     os._exit(1)
 
 

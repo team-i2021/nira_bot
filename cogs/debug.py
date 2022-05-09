@@ -16,7 +16,7 @@ import importlib
 import sys
 
 from nextcord.ext.commands.core import command
-from cogs.embed import embed
+
 sys.path.append('../')
 from util import admin_check, n_fc, eh
 

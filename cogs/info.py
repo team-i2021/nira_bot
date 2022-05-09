@@ -4,7 +4,7 @@ from nextcord import Interaction, SlashOption, ChannelType
 
 import sys
 sys.path.append('../')
-from util import admin_check, n_fc, eh
+from util import admin_check, n_fc, eh, slash_tool
 import importlib
 import util.help_command as hc
 
@@ -118,8 +118,10 @@ class HelpSelect(nextcord.ui.Select):
             else:
                 embed = nextcord.Embed(title="にらBOT HELP", description="```n!help```\nもうまったく更新してないヘルプページは[こちら](https://nira.f5.si/help.html)（非推奨）\n\n下のプルダウンからコマンド種類を選択してください。", color=0x00ff00)
             await interaction.message.edit(embed=embed, view=view)
+            return
         except BaseException as err:
             await interaction.response.send_message(f"エラーが発生しました。\n```\n{err}```\nvalue: `{self.values[0]}`/`{int(str(self.values[0])[0])}`/`{option}`", ephemeral=True)
+            return
 
 
 class info_base():
@@ -137,31 +139,32 @@ class info_base():
 例えば、ARKとか7DaysToDieとかなんか色々...[対応ゲーム一覧](https://developer.valvesoftware.com/wiki/Dedicated_Servers_List)
 また、Minecraftのサーバーステータス表示にもそのうち対応させる予定です。（1000年以内に）""", inline=False)
         embed.add_field(name="困ったり暇だったら...", value="[ここ](https://discord.gg/awfFpCYTcP)から謎な雑談鯖に入れるよ！", inline=False)
-        if ctx.author.id in n_fc.py_admin:
-            embed.add_field(name="ってかお前って...", value="開発者だよな...\n開発者ならヘルプなんか見なくても何でも出来て当然だよなっ！（非常食風）\n\n[メインレポジトリ](https://github.com/nattyan-tv/nira_bot) / [ウェブページレポジトリ](https://github.com/nattyan-tv/)")
         if type == CTX:
+            if ctx.author.id in n_fc.py_admin:
+                embed.add_field(name="ってかお前って...", value="開発者だよな...\n開発者ならヘルプなんか見なくても何でも出来て当然だよなっ！（非常食風）\n\n[メインレポジトリ](https://github.com/nattyan-tv/nira_bot) / [ウェブページレポジトリ](https://github.com/nattyan-tv/)")
             return ctx.reply(embed=embed)
         elif type == SLASH:
+            if ctx.user.id in n_fc.py_admin:
+                embed.add_field(name="ってかお前って...", value="開発者だよな...\n開発者ならヘルプなんか見なくても何でも出来て当然だよなっ！（非常食風）\n\n[メインレポジトリ](https://github.com/nattyan-tv/nira_bot) / [ウェブページレポジトリ](https://github.com/nattyan-tv/)")
             return ctx.response.send_message(embed=embed)
     
     def help(self, ctx, command, type):
         if command == None:
-            embed = nextcord.Embed(title="にらBOT HELP", description="```n!help```", color=0x00ff00)
-            embed.set_author(name="製作者: なつ\n(Twitter: @nattyan_tv/GitHub: @nattyan-tv)", url="https://twitter.com/nattyan_tv", icon_url="https://pbs.twimg.com/profile_images/1498660479920603136/X-qtNrnL_400x400.jpg")
-            embed.add_field(name="なんだい？僕に用かな？", value="`n!help [目的のコマンド]`と送信すると、そのコマンドの簡易ヘルプが見れるよ。", inline=False)
-            embed.add_field(name="（旧互換性を保つためのやつ）", value="ずっと更新してないヘルプページは[こちら](https://nira.f5.si/help.html)", inline=False)
+            view = nextcord.ui.View(timeout=None)
+            view.add_item(HelpSelect(0))
+            embed = nextcord.Embed(title="にらBOT HELP", description="```/help```\nもうまったく更新してないヘルプページは[こちら](https://nira.f5.si/help.html)（非推奨）\n\n下のプルダウンからコマンド種類を選択してください。", color=0x00ff00)
             if type == CTX:
-                return ctx.reply(embed=embed)
+                return ctx.reply(embed=embed, view=view)
             elif type == SLASH:
-                return ctx.response.send_message(embed=embed)
-        if command[1] not in [i.name for i in list(self.bot.commands)]:
+                return ctx.response.send_message(embed=embed, view=view)
+        if command not in [i.name for i in list(self.bot.commands)]:
             if type == CTX:
-                return ctx.reply(f"そのコマンドは存在しないようです。")
+                return ctx.reply(f"そのコマンド`{command}`は存在しないようです。")
             elif type == SLASH:
-                return ctx.response.send_message("そのコマンドは存在しないようです。")
-        embed = nextcord.Embed(title=f"`n!{command[1]}`", description="コマンドヘルプ", color=0x00ff00)
+                return ctx.response.send_message(f"そのコマンド`{command}`は存在しないようです。")
+        embed = nextcord.Embed(title=f"`n!{command}`", description="コマンドヘルプ", color=0x00ff00)
         for i in range(len(list(self.bot.commands))):
-            if list(self.bot.commands)[i].name == command[1]:
+            if list(self.bot.commands)[i].name == command:
                 if list(self.bot.commands)[i].help == None:
                     embed.add_field(name="Sorry...", value="このコマンドのヘルプは存在しないか、現在制作中です。")
                     if type == CTX:
@@ -173,30 +176,38 @@ class info_base():
                 if type == CTX:
                     return ctx.reply(embed=embed)
                 elif type == SLASH:
-                    return ctx.response.send_message("そのコマンドは存在しないようです。")
+                    return ctx.response.send_message(embed=embed)
 
 class info(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
 
-    @nextcord.slash_command(name="info", description="にらBOTの情報を表示します。")
-    async def slashcommand_info(self, interaction: Interaction):
+    @nextcord.slash_command(name="info", description="にらBOTの情報を表示します。", guild_ids=n_fc.GUILD_IDS)
+    async def info_slash(self, interaction: Interaction):
         await info_base.info(self, interaction, SLASH)
         return
 
     @commands.command(name="info", help="""\
-        にらBOTの情報を表示します。
-        どのようなコマンドがあるかを大雑把に説明したり、Discordサポートサーバー、GitHubレポジトリへのリンクがあります。""")
+にらBOTの情報を表示します。
+どのようなコマンドがあるかを大雑把に説明したり、Discordサポートサーバー、GitHubレポジトリへのリンクがあります。""")
     async def info(self, ctx: commands.Context):
         await info_base.info(self, ctx, CTX)
         return
     
     @nextcord.slash_command(name="help", description="にらBOT及び、コマンドのヘルプを表示します。")
-    async def slashcommand_help(self, Interaction: Interaction, command: str):
+    async def help_slash(
+            self,
+            interaction: Interaction,
+            command: str = SlashOption(
+                name="command",
+                description="ヘルプを表示するコマンドを指定します。",
+                required=False
+            )
+        ):
         if command == "":
             command = None
-        await info_base.help(self, Interaction, command, SLASH)
+        await info_base.help(self, interaction, command, SLASH)
     
     @commands.command(name="help", help="""\
 にらBOT又はコマンドのヘルプを表示します。
@@ -214,7 +225,7 @@ class info(commands.Cog):
             embed = nextcord.Embed(title="にらBOT HELP", description="```n!help```\nもうまったく更新してないヘルプページは[こちら](https://nira.f5.si/help.html)（非推奨）\n\n下のプルダウンからコマンド種類を選択してください。", color=0x00ff00)
             await ctx.send(embed=embed, view=view)
         else:
-            await info_base.help(self, ctx, command, CTX)
+            await info_base.help(self, ctx, command[1], CTX)
 
 
 def setup(bot):

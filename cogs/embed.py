@@ -51,14 +51,14 @@ class EmbedMaker(nextcord.ui.Modal):
         await interaction.send(embed=embed)
 
 
-class Embed(commands.Cog):
+class SendEmbed(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
     
-    #@nextcord.slash_command(name="embed", description="Embedを作成して送信します。", guild_ids=n_fc.GUILD_IDS)
-    #async def embed_slash(self, interaction: Interaction):
-    #    modal = EmbedMaker()
-    #    await interaction.response.send_modal(modal=modal)
+    @nextcord.slash_command(name="embed", description="Embedを作成して送信します。", guild_ids=n_fc.GUILD_IDS)
+    async def embed_slash(self, interaction: Interaction):
+        modal = EmbedMaker()
+        await interaction.response.send_modal(modal=modal)
 
     
     @commands.command(name="embed", help="""\
@@ -98,4 +98,4 @@ Embedの本文です。
 
 
 def setup(bot):
-    bot.add_cog(Embed(bot))
+    bot.add_cog(SendEmbed(bot))

@@ -4,7 +4,7 @@ import pickle
 import requests
 
 import sys
-from cogs.embed import embed
+
 from cogs import server_status
 sys.path.append('../')
 from util import admin_check, n_fc, eh

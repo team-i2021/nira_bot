@@ -1,4 +1,3 @@
-from nextcord import embeds
 from nextcord.ext import commands
 import nextcord
 import pickle
