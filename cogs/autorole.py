@@ -19,6 +19,7 @@ ROLE_ID = compile(r"<@&[0-9]+?>")
 
 
 # loggingの設定
+dir = sys.path[0]
 class NoTokenLogFilter(logging.Filter):
     def filter(self, record):
         message = record.getMessage()
@@ -28,7 +29,7 @@ class NoTokenLogFilter(logging.Filter):
 logger = logging.getLogger(__name__)
 logger.addFilter(NoTokenLogFilter())
 formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
-logging.basicConfig(format=formatter, filename='/home/nattyantv/nira_bot_rewrite/nira.log', level=logging.INFO)
+logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
 
 
 class autorole(commands.Cog):

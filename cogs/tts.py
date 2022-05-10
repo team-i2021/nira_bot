@@ -35,7 +35,7 @@ logger.addFilter(NoTokenLogFilter())
 formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
 logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
 
-SETTING = json.load(open(f'{sys.path[0]}/setting.json', 'r'))
+SETTING = json.load(open(f'{dir}/setting.json', 'r'))
 keys = SETTING["voicevox"]
 
 Effective = True
@@ -96,16 +96,55 @@ class tts(commands.Cog):
 
     @tts_slash.subcommand(name="join", description="BOTをVCに参加させます")
     async def join_slash(self, interaction: Interaction):
+        if not Effective:
+            await interaction.response.send_message(embed=nextcord.Embed(title="エラー", description="管理者にお伝えください。\n`VOICEVOX API Key doesn't exist.`\nVOICEVOX WebAPIのキーが存在しません。\n`setting.json`の`voicevox`欄にAPIキーを入力してから、`cogs/tts.py`をリロードしてください。", color=0xff0000))
+            return
+        if interaction.user.voice is None:
+            await interaction.response.send_message(embed=nextcord.Embed(title="TTSエラー",description="先にVCに接続してください。",color=0xff0000), ephemeral=True)
+            return
+        else:
+            if not ctx.message.guild.voice_client is None:
+                await interaction.response.send_message(embed=nextcord.Embed(title="TTSエラー",description="既にVCに入っています。\n音楽再生から切り替える場合は、`n!leave`->`n!tts join`の順に入力してください。",color=0xff0000), ephemeral=True)
+                return
+            await interaction.user.voice.channel.connect()
+            tts_channel[interaction.guild.id] = interaction.channel.id
+            await interaction.response.send_message("接続しました" ,embed=nextcord.Embed(title="TTS",description="""\
+TTSの読み上げ音声には、VOICEVOXが使われています。  
+[各キャラクターについて](https://voicevox.hiroshiba.jp/)  
+キャラクターボイス: `VOICEVOX: 四国めたん`/`VOICEVOX: ずんだもん`/`VOICEVOX: 春日部つむぎ`/`雨晴はう`/`VOICEVOX: 波音リツ`/`VOICEVOX: 玄野武宏`/`VOICEVOX: 白上虎太郎`/`VOICEVOX: 青山龍星`/`VOICEVOX: 冥鳴ひまり`/`VOICEVOX: 九州そら`
+
+また、音声生成には[WEB版VOICEVOX](https://voicevox.su-shiki.com/)のAPIを使用させていただいております。""",color=0x00ff00))
+            interaction.guild.voice_client.play(
+                nextcord.PCMVolumeTransformer(nextcord.FFmpegPCMAudio(
+                    f"https://api.su-shiki.com/v2/voicevox/audio/?text=接続しました&key={keys[random.randint(0,len(keys)-1)]}&speaker=2"
+                ),
+                volume=0.5)
+            )
+            return
         return
 
 
     @tts_slash.subcommand(name="leave", description="BOTからVCを離脱させます")
     async def leave_slash(self, interaction: Interaction):
+        if interaction.user.voice is None:
+            await interaction.response.send_message(embed=nextcord.Embed(title="TTSエラー",description="先にボイスチャンネルに接続してください。",color=0xff0000), ephemeral=True)
+            return
+        else:
+            if interaction.guild.voice_client is None:
+                await interaction.response.send_message(embed=nextcord.Embed(title="TTSエラー",description="そもそも入ってないっす...(´・ω・｀)",color=0xff0000), ephemeral=True)
+                return
+            await interaction.guild.voice_client.disconnect()
+            del tts_channel[interaction.guild.id]
+            await interaction.response.send_message(embed=nextcord.Embed(title="TTS",description="あっ...ばいばーい...",color=0x00ff00))
+            return
         return
 
 
     @tts_slash.subcommand(name="voice", description="読み上げの声の種類を変更します")
     async def voice_slash(self, interaction: Interaction):
+        view = nextcord.ui.View(timeout=None)
+        view.add_item(VoiceSelect())
+        await interaction.response.send_message("下のプルダウンから声を選択してください。",view=view)
         return
 
 
@@ -124,7 +163,7 @@ TTSは、(暫定的だけど)[WEB版VOICEVOX](https://voicevox.su-shiki.com/)の
 API制限などが来た場合はご了承ください。許せ。""")
     async def tts(self, ctx: commands.Context):
         if not Effective:
-            await ctx.reply(embed=nextcord.Embed(title="エラー", description="管理者にお伝えください。\n`VOICEVOX API Key doesn't exist.`\nVOICEVOX WebAPIのキーが存在しません。\n`setting.json`の`voicevox`欄にAPIキーを入力してから、`cogs.tts.py`をリロードしてください。", color=0xff0000))
+            await ctx.reply(embed=nextcord.Embed(title="エラー", description="管理者にお伝えください。\n`VOICEVOX API Key doesn't exist.`\nVOICEVOX WebAPIのキーが存在しません。\n`setting.json`の`voicevox`欄にAPIキーを入力してから、`cogs/tts.py`をリロードしてください。", color=0xff0000))
             return
         args = ctx.message.content.split(" ",2)
         if len(args) != 2:

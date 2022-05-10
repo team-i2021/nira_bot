@@ -31,7 +31,7 @@ from util import admin_check, n_fc, eh, web_api
 import util.srtr as srtr
 
 image_root = "https://team-i2021.github.io/nira_bot/images"
-image_loc = "/home/nattyantv/nira_bot_rewrite/images"
+image_loc = f"{dir}/images"
 
 #通常反応をまとめたもの。
 

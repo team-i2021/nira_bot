@@ -13,7 +13,7 @@ SET, DEL, STATUS = (0, 1, 2)
 
 #ユーザー情報表示系
 
-home_dir = os.path.dirname(__file__)[:-4]
+home_dir = sys.path[0]
 
 class user(commands.Cog):
     def __init__(self, bot: commands.Bot):
