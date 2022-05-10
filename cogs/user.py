@@ -19,18 +19,26 @@ class user(commands.Cog):
         self.bot = bot
     
     @nextcord.slash_command(
-            name="d",
+            name="user",
             description="ユーザー情報表示",
             guild_ids=n_fc.GUILD_IDS
         )
-    async def d_slash(
+    async def user_slash(
             self,
             interaction: Interaction,
             user: nextcord.User = SlashOption(
                 name = "user",
-
-            )):
-        pass
+                description = "情報を表示するユーザー",
+                required=False
+            )
+        ):
+        if user == None:
+            user = interaction.user
+        embed = nextcord.Embed(title="User Info", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
+        embed.set_thumbnail(url=f"https://cdn.discordapp.com/avatars/{user.id}/{str(user.avatar)}")
+        embed.add_field(name="アカウント製作日", value=f"```{user.created_at}```")
+        await interaction.response.send_message(embed=embed)
+        return
     
     @commands.command(name="d", help="""\
     ユーザーの情報を表示します。
