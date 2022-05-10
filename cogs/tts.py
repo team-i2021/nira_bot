@@ -1,5 +1,5 @@
 import nextcord
-from nextcord import Interaction
+from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
 from nextcord.utils import get
 from os import getenv
@@ -37,6 +37,10 @@ logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.
 
 SETTING = json.load(open(f'{sys.path[0]}/setting.json', 'r'))
 keys = SETTING["voicevox"]
+
+Effective = True
+if len(keys) == 0:
+    Effective = False
 
 global tts_channel, speaker_author
 tts_channel = {}
@@ -83,7 +87,28 @@ class VoiceSelect(nextcord.ui.Select):
 class tts(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-    
+
+
+    @nextcord.slash_command(name="tts", description="テキストチャンネルの内容をVCで読み上げます")
+    async def tts_slash(self, interaction: Interaction):
+        pass
+
+
+    @tts_slash.subcommand(name="join", description="BOTをVCに参加させます")
+    async def join_slash(self, interaction: Interaction):
+        return
+
+
+    @tts_slash.subcommand(name="leave", description="BOTからVCを離脱させます")
+    async def leave_slash(self, interaction: Interaction):
+        return
+
+
+    @tts_slash.subcommand(name="voice", description="読み上げの声の種類を変更します")
+    async def voice_slash(self, interaction: Interaction):
+        return
+
+
     @commands.command(name='tts', aliases=("読み上げ","よみあげ"), help="""\
 VCに乱入して、代わりに読み上げてくれる機能。
 
@@ -98,6 +123,9 @@ VCに乱入して、代わりに読み上げてくれる機能。
 TTSは、(暫定的だけど)[WEB版VOICEVOX](https://voicevox.su-shiki.com/)のAPIを使用させていただいております。
 API制限などが来た場合はご了承ください。許せ。""")
     async def tts(self, ctx: commands.Context):
+        if not Effective:
+            await ctx.reply(embed=nextcord.Embed(title="エラー", description="管理者にお伝えください。\n`VOICEVOX API Key doesn't exist.`\nVOICEVOX WebAPIのキーが存在しません。\n`setting.json`の`voicevox`欄にAPIキーを入力してから、`cogs.tts.py`をリロードしてください。", color=0xff0000))
+            return
         args = ctx.message.content.split(" ",2)
         if len(args) != 2:
             await ctx.reply("・読み上げ機能\nエラー：書き方が間違っています。\n\n`n!tts join`: 参加\n`n!tts leave`: 退出")
