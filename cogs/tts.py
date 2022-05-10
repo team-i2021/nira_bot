@@ -39,7 +39,7 @@ SETTING = json.load(open(f'{sys.path[0]}/setting.json', 'r'))
 keys = SETTING["voicevox"]
 
 Effective = True
-if len(keys) == 1:
+if len(keys) == 0:
     Effective = False
 
 global tts_channel, speaker_author
