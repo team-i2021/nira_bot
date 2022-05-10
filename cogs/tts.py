@@ -38,6 +38,10 @@ logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.
 SETTING = json.load(open(f'{sys.path[0]}/setting.json', 'r'))
 keys = SETTING["voicevox"]
 
+Effective = True
+if len(keys) == 1:
+    Effective = False
+
 global tts_channel, speaker_author
 tts_channel = {}
 speaker_author = {}
@@ -119,6 +123,9 @@ VCに乱入して、代わりに読み上げてくれる機能。
 TTSは、(暫定的だけど)[WEB版VOICEVOX](https://voicevox.su-shiki.com/)のAPIを使用させていただいております。
 API制限などが来た場合はご了承ください。許せ。""")
     async def tts(self, ctx: commands.Context):
+        if not Effective:
+            await ctx.reply(embed=nextcord.Embed(title="エラー", description="管理者にお伝えください。\n`VOICEVOX API Key doesn't exist.`\nVOICEVOX WebAPIのキーが存在しません。\n`setting.json`の`voicevox`欄にAPIキーを入力してから、`cogs.tts.py`をリロードしてください。", color=0xff0000))
+            return
         args = ctx.message.content.split(" ",2)
         if len(args) != 2:
             await ctx.reply("・読み上げ機能\nエラー：書き方が間違っています。\n\n`n!tts join`: 参加\n`n!tts leave`: 退出")
