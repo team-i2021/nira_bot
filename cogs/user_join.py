@@ -4,9 +4,7 @@ import re
 import sys
 import json
 from cogs.debug import save
-from cogs.embed import embed
 import asyncio
-sys.path.append('../')
 from util import admin_check, n_fc, eh
 
 #loggingの設定

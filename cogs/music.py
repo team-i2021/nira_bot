@@ -11,8 +11,6 @@ import youtube_dl
 import youtube_dlc
 import json
 import sys
-from cogs.embed import embed
-sys.path.append('../')
 from util import admin_check, n_fc, eh, server_check
 
 import urllib.request

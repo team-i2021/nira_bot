@@ -7,8 +7,6 @@ import pickle
 import sys,os
 
 from cogs.debug import save
-from cogs.embed import embed
-sys.path.append('../')
 from util import admin_check, n_fc, eh
 
 
@@ -25,13 +23,14 @@ class user(commands.Cog):
             description="ユーザー情報表示",
             guild_ids=n_fc.GUILD_IDS
         )
-        async def d_slash(
-                self,
-                interaction: Interaction,
-                user: nextcord.user = SlashOption(
-                    name = "user",
+    async def d_slash(
+            self,
+            interaction: Interaction,
+            user: nextcord.User = SlashOption(
+                name = "user",
 
-                )):
+            )):
+        pass
     
     @commands.command(name="d", help="""\
     ユーザーの情報を表示します。

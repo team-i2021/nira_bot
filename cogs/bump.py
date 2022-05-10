@@ -9,8 +9,6 @@ import time
 import math
 
 import sys
-from cogs.embed import embed
-sys.path.append('../')
 from util import admin_check, n_fc, eh
 import util.srtr as srtr
 
