@@ -7,8 +7,9 @@ import pickle
 import sys,os
 
 from cogs.debug import save
-from util import admin_check, n_fc, eh
+from util import admin_check, n_fc, eh, slash_tool
 
+SET, DEL, STATUS = (0, 1, 2)
 
 #ユーザー情報表示系
 
@@ -106,7 +107,33 @@ class user(commands.Cog):
             return
         else:
             await ctx.reply("権限がありません。")
-    
+
+
+    async def ui_config(bot: nextcord.Bot, interaction: Interactioin or commands.Context, type: int, guild_id: int, channel):
+        if type == SET:
+            try:
+                n_fc.welcome_id_list[guild_id] = channel.id
+                save()
+                CHANNEL = await bot.fetch_channel(n_fc.welcome_id_list[guild_id])
+                await CHANNEL.send("このチャンネルが、ユーザー情報表示チャンネルとして指定されました。")
+                return slash_tool.messages.mreply(interaction, embed=nextcord.Embed(title="ユーザー情報表示設定",description=f"<#{channel.id}>に指定されました。", color=0x00ff00),ephemeral=True)
+            except BaseException as err:
+                return slash_tool.messages.mreply(interaction, embed=nextcord.Embed(title="ユーザー情報表示設定",description=f"エラーが発生しました。\n```\n{err}```", color=0xff000),ephemeral=True)
+        elif type == DEL:
+            try:
+                if guild_id not in n_fc.welcome_id_list:
+                    return slash_tool.messages.mreply(interaction, embed=nextcord.Embed(title="ユーザー情報表示設定",description=f"このサーバーには登録されていません。", color=0xff0000), ephemeral=True)
+                del n_fc.welcome_id_list[guild_id]
+                return slash_tool.messages.mreply(interaction, embed=nextcord.Embed(title="ユーザー情報表示設定",description=f"設定を削除しました。", color=0x00ff00),ephemeral=True)
+            except BaseException as err:
+                return slash_tool.messages.mreply(interaction, embed=nextcord.Embed(title="ユーザー情報表示設定",description=f"エラーが発生しました。\n```\n{err}```", color=0xff000),ephemeral=True)
+        elif type == STATUS:
+            if guild_id not in n_fc.welcome_id_list:
+                return slash_tool.messages.mreply(interaction, embed=nextcord.Embed(title="ユーザー情報表示設定",description=f"サーバーで設定は`無効`です", color=0x00ff00),ephemeral=True)
+            else:
+                return slash_tool.messages.mreply(interaction, embed=nextcord.Embed(title="ユーザー情報表示設定",description=f"サーバーで設定は`有効`です\n設定チャンネル: <#{n_fc.welcome_id_list[guild_id]}>", color=0x00ff00),ephemeral=True)
+
+
     @commands.command(name="ui", help="""\
     誰かがDiscordサーバーに加入/離脱した際に、指定したチャンネルにそのユーザーの情報を表示します。
     それだけです。""")
@@ -114,59 +141,17 @@ class user(commands.Cog):
         if admin_check.admin_check(ctx.message.guild, ctx.message.author) or ctx.message.author.id in n_fc.py_admin:
             mes_arg = ctx.message.content.split(" ")
             if len(mes_arg) == 1:
-                try:
-                    if ctx.message.guild.id in n_fc.welcome_id_list:
-                        seted_id = int(n_fc.welcome_id_list[ctx.message.guild.id])
-                        channel = self.bot.get_channel(int(n_fc.welcome_id_list[ctx.message.guild.id]))
-                        await ctx.message.reply(f"チャンネル：{channel.name}")
-                        return
-                    else:
-                        await ctx.message.reply("設定されていません。\n\n・追加```n!ui set [チャンネルID]```・削除```n!ui del```")
-                        return
-                except BaseException as err:
-                    await ctx.message.reply(embed=eh.eh(err))
-                    return
+                await self.ui_config(self.bot, ctx, STATUS, ctx.guild.id, None)
+                return
             elif mes_arg[1] == "set":
-                try:
-                    set_id = int("".join(re.findall(r'[0-9]', mes_arg[2])))
-                    n_fc.welcome_id_list[ctx.message.guild.id] = set_id
-                    with open(f'{home_dir}/welcome_id_list.nira', 'wb') as f:
-                        pickle.dump(n_fc.welcome_id_list, f)
-                    channel = self.bot.get_channel(n_fc.welcome_id_list[ctx.message.guild.id])
-                    await channel.send("追加完了メッセージ\nこのメッセージが指定のチャンネルに送信されていれば完了です。")
-                    await ctx.message.reply("追加完了のメッセージを指定されたチャンネルに送信しました。\n送信されていない場合はにらBOTに適切な権限が与えられているかご確認ください。")
-                    return
-                except BaseException as err:
-                    await ctx.message.reply(embed=eh.eh(err))
-                    return
+                set_id = int("".join(re.findall(r'[0-9]', mes_arg[2])))
+                await self.ui_config(self.bot, ctx, SET, ctx.guild.id, set_id)
+                return
             elif  mes_arg[1] == "del":
-                try:
-                    if ctx.message.guild.id not in n_fc.welcome_id_list:
-                        seted_id = n_fc.welcome_id_list[ctx.message.guild.id]
-                        del n_fc.welcome_id_list[ctx.message.guild.id]
-                        with open(f'{home_dir}/welcome_id_list.nira', 'wb') as f:
-                            pickle.dump(n_fc.welcome_id_list, f)
-                        await ctx.message.reply(f"削除しました。\n再度同じ設定をする場合は```n!ui set {seted_id}```と送信してください。")
-                        return
-                    else:
-                        await ctx.message.reply("設定されていません。")
-                        return
-                except BaseException as err:
-                    await ctx.message.reply(embed=eh.eh(err))
-                    return
+                await self.ui_config(self.bot, ctx, DEL, ctx.guild.id, None)
+                return
             else:
-                try:
-                    if ctx.message.guild.id in n_fc.welcome_id_list:
-                        seted_id = int(n_fc.welcome_id_list[ctx.message.guild.id])
-                        channel = self.bot.get_channel(int(n_fc.welcome_id_list[ctx.message.guild.id]))
-                        await ctx.message.reply(f"チャンネル：{channel.name}")
-                        return
-                    else:
-                        await ctx.message.reply("設定されていません。\n\n・追加```n!ui set [チャンネルID]```・削除```n!ui del```")
-                        return
-                except BaseException as err:
-                    await ctx.message.reply(embed=eh.eh(err))
-                    return
+                await self.ui_config(self.bot, ctx, STATUS, ctx.guild.id, None)
 
         else:
             await ctx.message.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
