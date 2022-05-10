@@ -36,7 +36,7 @@ class user(commands.Cog):
         if user == None:
             user = interaction.user
         embed = nextcord.Embed(title="User Info", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
-        embed.set_thumbnail(url=f"https://cdn.discordapp.com/avatars/{user.id}/{str(user.avatar)}")
+        embed.set_thumbnail(url=user.avatar.url)
         embed.add_field(name="アカウント製作日", value=f"```{user.created_at}```")
         await interaction.response.send_message(embed=embed)
         return
@@ -51,7 +51,7 @@ class user(commands.Cog):
         if ctx.message.content == "n!d":
             user = await self.bot.fetch_user(ctx.message.author.id)
             embed = nextcord.Embed(title="User Info", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
-            embed.set_thumbnail(url=f"https://cdn.discordapp.com/avatars/{user.id}/{str(user.avatar)}")
+            embed.set_thumbnail(url=user.avatar.url)
             embed.add_field(name="アカウント製作日", value=f"```{user.created_at}```")
             await ctx.message.reply(embed=embed)
             return
@@ -60,7 +60,7 @@ class user(commands.Cog):
             try:
                 user = await self.bot.fetch_user(user_id)
                 embed = nextcord.Embed(title="User Info", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
-                embed.set_thumbnail(url=f"https://cdn.discordapp.com/avatars/{user.id}/{str(user.avatar)}")
+                embed.set_thumbnail(url=user.avatar.url)
                 embed.add_field(name="アカウント製作日", value=f"```{user.created_at}```")
                 await ctx.message.reply(embed=embed)
                 return
