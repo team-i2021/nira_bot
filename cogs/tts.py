@@ -1,5 +1,5 @@
 import nextcord
-from nextcord import Interaction
+from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
 from nextcord.utils import get
 from os import getenv
@@ -83,7 +83,28 @@ class VoiceSelect(nextcord.ui.Select):
 class tts(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-    
+
+
+    @nextcord.slash_command(name="tts", description="テキストチャンネルの内容をVCで読み上げます")
+    async def tts_slash(self, interaction: Interaction):
+        pass
+
+
+    @tts_slash.subcommand(name="join", description="BOTをVCに参加させます")
+    async def join_slash(self, interaction: Interaction):
+        return
+
+
+    @tts_slash.subcommand(name="leave", description="BOTからVCを離脱させます")
+    async def leave_slash(self, interaction: Interaction):
+        return
+
+
+    @tts_slash.subcommand(name="voice", description="読み上げの声の種類を変更します")
+    async def voice_slash(self, interaction: Interaction):
+        return
+
+
     @commands.command(name='tts', aliases=("読み上げ","よみあげ"), help="""\
 VCに乱入して、代わりに読み上げてくれる機能。
 
