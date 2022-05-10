@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import sys
 from re import compile
 
 import nextcord
