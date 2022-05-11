@@ -48,7 +48,7 @@ class EmbedMaker(nextcord.ui.Modal):
         embed = nextcord.Embed(
             title=self.embed_title.value,
             description=self.embed_description.value,
-            color=int("".join(re.findall(r"[0-9]|[a-f]",self.embed_color.value).group(), 16)),
+            color=int("".join(re.findall(r"[0-9]|[a-f]",self.embed_color.value)).group(), 16),
         )
         await interaction.send(embed=embed)
 
