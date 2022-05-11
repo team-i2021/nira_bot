@@ -20,35 +20,35 @@ class EmbedMaker(nextcord.ui.Modal):
             timeout=None,
         )
 
-        self.title = nextcord.ui.TextInput(
+        self.embed_title = nextcord.ui.TextInput(
             label="タイトル",
             style=nextcord.TextInputStyle.short,
             placeholder="ご報告！",
             required=True,
         )
-        self.add_item(self.title)
+        self.add_item(self.embed_title)
 
-        self.color = nextcord.ui.TextInput(
+        self.embed_color = nextcord.ui.TextInput(
             label="色",
             style=nextcord.TextInputStyle.short,
             placeholder="#00ff00",
             required=True,
         )
-        self.add_item(self.color)
+        self.add_item(self.embed_color)
 
-        self.description = nextcord.ui.TextInput(
+        self.embed_description = nextcord.ui.TextInput(
             label="本文",
             style=nextcord.TextInputStyle.paragraph,
             placeholder="にらBOTを導入しました！いえい！",
             required=True,
         )
-        self.add_item(self.description)
+        self.add_item(self.embed_description)
 
     async def callback(self, interaction: nextcord.Interaction) -> None:
         embed = nextcord.Embed(
-            title=self.title.value,
-            description=self.description.value,
-            color=int("".join(re.findall(r"[0-9]|[a-f]",self.color.value).group(), 16)),
+            title=self.embed_title.value,
+            description=self.embed_description.value,
+            color=int("".join(re.findall(r"[0-9]|[a-f]",self.embed_color.value).group(), 16)),
         )
         await interaction.send(embed=embed)
 
