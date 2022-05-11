@@ -39,9 +39,9 @@ async def ping_there(ctx, adr, type):
     elif type == 0:
         res = subprocess.run(f"ping {adr} -c 4 -W 3", stdout=PIPE, stderr=PIPE, shell=True, text=True)
         if res.returncode == 0:
-            await ctx.response.send_message(f"`{adr}`に接続できました。\n```{res.stdout}```")
+            await ctx.followup.send(f"`{adr}`に接続できました。\n```{res.stdout}```")
         else:
-            await ctx.response.send_message(f"`{adr}`に接続できませんでした。")
+            await ctx.followup.send(f"`{adr}`に接続できませんでした。")
 
 #ctx.message == None:こまんど
 async def base_ping(bot, ctx: commands.Context, adr):
