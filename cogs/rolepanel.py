@@ -1,5 +1,5 @@
 import nextcord
-from nextcord import Interaction, message
+from nextcord import Interaction, SlashOption, Role
 from nextcord.ext import commands
 from nextcord.utils import get
 from os import getenv
@@ -60,6 +60,25 @@ class rolepanel(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
     
+    @nextcord.slash_command(name="rolepanel", description="ロールパネルを設置します")
+    async def rolepanel_slash(
+            self,
+            interaction: Interaction,
+            role1: Role = SlashOption(
+                name="role1",
+                description="1つ目のロール",
+                required=True
+            ),
+            role2: Role = SlashOption(
+                name="role2",
+                description="2つ目のロール",
+                required=False
+            ),
+        ):
+        return
+
+
+
     @commands.command(name="rolepanel", aliases=["ロールパネル","rp","ろーるぱねる","ろーぱね"], help="""\
 ロールパネル機能
 
