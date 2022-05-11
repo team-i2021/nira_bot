@@ -49,7 +49,7 @@ async def base_ping(bot, ctx: commands.Context, adr):
         logger.info(f"DiscordサーバーとのPing値：{round(bot.latency * 1000)}ms")
         await ctx.followup.send(embed=nextcord.Embed(title="Ping", description=f"現在のPing値は`{round(bot.latency * 1000)}`msです。", color=0x00ff00))
         return
-    elif type(ctx) == Interaction == None and adr != None:
+    elif type(ctx) == Interaction and adr != None:
         if adr[8:] == "192.168." or adr == "127.0.0.1" or adr == "localhost" or adr == "0.0.0.0" or adr == "127.0.1" or adr == "127.1" or adr == "2130706433" or adr == "0x7F000001" or adr == "017700000001":
             if ctx.author.id not in n_fc.py_admin:
                 await ctx.followup.send(embed=nextcord.Embed(title="Ping", description=f"localhostおよびLAN内にはPingできません\n||多分...||",color=0xff0000),ephemeral=True)

@@ -103,7 +103,7 @@ class tts(commands.Cog):
             await interaction.response.send_message(embed=nextcord.Embed(title="TTSエラー",description="先にVCに接続してください。",color=0xff0000), ephemeral=True)
             return
         else:
-            if not ctx.message.guild.voice_client is None:
+            if not interaction.guild.voice_client is None:
                 await interaction.response.send_message(embed=nextcord.Embed(title="TTSエラー",description="既にVCに入っています。\n音楽再生から切り替える場合は、`n!leave`->`n!tts join`の順に入力してください。",color=0xff0000), ephemeral=True)
                 return
             await interaction.user.voice.channel.connect()
