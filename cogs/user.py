@@ -112,7 +112,7 @@ class user(commands.Cog):
             await ctx.reply("権限がありません。")
 
 
-    async def ui_config(bot: commands.Bot, interaction: Interaction or commands.Context, type: int, guild_id: int, channel: nextcord.channel):
+    async def ui_config(self, bot: commands.Bot, interaction: Interaction or commands.Context, type: int, guild_id: int, channel: nextcord.channel):
         if type == SET:
             try:
                 n_fc.welcome_id_list[guild_id] = channel.id
