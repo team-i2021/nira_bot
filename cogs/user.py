@@ -144,7 +144,7 @@ class user(commands.Cog):
     async def set_slash(
             self,
             interaction: Interaction,
-            channel: nextcord.TextChannel = SlashOption(
+            channel: nextcord.abc.GuildChannel = SlashOption(
                 name="channel",
                 description="メッセージを送信するチャンネルです",
                 required=True
