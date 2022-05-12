@@ -150,7 +150,7 @@ class user(commands.Cog):
                 required=True
             )
         ):
-        if admin_check(interaction.guild, interaction.user):
+        if admin_check.admin_check(interaction.guild, interaction.user):
             await self.ui_config(self.bot, interaction, SET, interaction.guild.id, channel)
         else:
             await interaction.response.send_message("管理者権限がありません。", ephemeral=True)
@@ -161,7 +161,7 @@ class user(commands.Cog):
             self,
             interaction: Interaction
         ):
-        if admin_check(interaction.guild, interaction.user):
+        if admin_check.admin_check(interaction.guild, interaction.user):
             await self.ui_config(self.bot, interaction, DEL, interaction.guild.id, None)
         else:
             await interaction.response.send_message("管理者権限がありません。", ephemeral=True)
@@ -172,7 +172,7 @@ class user(commands.Cog):
             self,
             interaction: Interaction
         ):
-        if admin_check(interaction.guild, interaction.user):
+        if admin_check.admin_check(interaction.guild, interaction.user):
             await self.ui_config(self.bot, interaction, STATUS, interaction.guild.id, None)
         else:
             await interaction.response.send_message("管理者権限がありません。", ephemeral=True)
