@@ -1,6 +1,7 @@
 from nextcord.ext import commands
 import nextcord
 import re
+from io import StringIO
 from nextcord import Interaction
 
 import sys
@@ -10,9 +11,6 @@ from util import admin_check, n_fc, eh
 #embedを送信する機能
 
 
-## 作ったはいいものの動かないから困ってます()
-## The above exception was the direct cause of the following exception:
-## nextcord.errors.ApplicationInvokeError: Command raised an exception: TypeError: Object of type TextInput is not JSON serializable
 class EmbedMaker(nextcord.ui.Modal):
     def __init__(self):
         super().__init__(
@@ -24,6 +22,7 @@ class EmbedMaker(nextcord.ui.Modal):
             label="タイトル",
             style=nextcord.TextInputStyle.short,
             placeholder="ご報告！",
+            max_length=256,
             required=True,
         )
         self.add_item(self.embed_title)
@@ -32,6 +31,8 @@ class EmbedMaker(nextcord.ui.Modal):
             label="色",
             style=nextcord.TextInputStyle.short,
             placeholder="#00ff00",
+            min_length=7,
+            max_length=7,
             required=True,
         )
         self.add_item(self.embed_color)
@@ -45,12 +46,41 @@ class EmbedMaker(nextcord.ui.Modal):
         self.add_item(self.embed_description)
 
     async def callback(self, interaction: nextcord.Interaction) -> None:
-        embed = nextcord.Embed(
-            title=self.embed_title.value,
-            description=self.embed_description.value,
-            color=int("".join(re.findall(r"[0-9]|[a-f]",self.embed_color.value)).group(), 16),
-        )
-        await interaction.send(embed=embed)
+        ephemeral = False
+        files = []
+
+        if re.fullmatch(r"#[0-9a-f]{6}", self.embed_color.value, re.I) is not None:
+            embed = nextcord.Embed(
+                title=self.embed_title.value,
+                description=self.embed_description.value,
+                color=int(self.embed_color.value[1:], 16),
+            )
+
+        else:
+            ephemeral = True
+            embed = nextcord.Embed(
+                title="Error",
+                description="カラーコードが不正です。[こちら](https://bratcreator.work/color-code/)をご覧ください。\n入力した内容は添付ファイルから確認できます。",
+                color=0xff0000,
+            )
+            embed.add_field(
+                name="iPhoneをご利用の方",
+                value="ファイルをタップした後、右下にあるコンパスアイコンのボタンを押すとブラウザでファイルを開くことができます。\nSafariの場合はさらに[表示]を押してください。",
+                inline=False
+            )
+            text = StringIO(f"""\
+・タイトル
+{self.embed_title.value}
+
+・色
+{self.embed_color.value}
+
+・本文
+{self.embed_description.value}
+""")
+            files.append(nextcord.File(text, filename="embed.txt", description="入力した内容"))
+
+        await interaction.send(embed=embed, files=files, ephemeral=ephemeral)
 
 
 class SendEmbed(commands.Cog):
@@ -62,7 +92,6 @@ class SendEmbed(commands.Cog):
         modal = EmbedMaker()
         await interaction.response.send_modal(modal=modal)
 
-    
     @commands.command(name="embed", help="""\
 あなたの代わりに**にらBOT**がEmbedを送信します。
 ```n!embed [color] [title]
@@ -88,7 +117,7 @@ Embedの本文です。
             return
         try:
             mes_ch = ctx.message.content.splitlines()
-            emb_clr = int("".join(re.findall(r'[0-9]|[a-f]', str(mes_ch[0].split(" ", 3)[1]))), 16)
+            emb_clr = int("".join(re.findall(r'[0-9a-f]', str(mes_ch[0].split(" ", 3)[1]))), 16)
             emb_title = str(mes_ch[0].split(" ", 3)[2])
             emb_desc = "\n".join(mes_ch[1:])
             embed = nextcord.Embed(title=emb_title, description=emb_desc, color=emb_clr)
