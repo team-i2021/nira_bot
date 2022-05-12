@@ -47,6 +47,16 @@ n!welcome join %name%さんこんちゃ！！！！！
 n!welcome leave %name%さんばいばい！！！
 ```
 
+メッセージの部分に`off`と入力すると、設定を削除します。
+
+・例
+```
+n!welcome join off
+```
+
+```
+n!welcome leave off
+```
 """)
     async def welcome(self, ctx: commands.Context):
         if not admin_check.admin_check(ctx.guild, ctx.author):
@@ -59,12 +69,38 @@ n!welcome leave %name%さんばいばい！！！
         if args[1] != "join" and args[1] != "leave":
             await ctx.reply(f"・Welcomeメッセージコマンド\nエラー：書き方が間違っています。")
             return
+        if args[2] == "off":
+            if ctx.guild.id in n_fc.welcome_message_list:
+                if args[1] in n_fc.welcome_message_list[ctx.guild.id]:
+                    del n_fc.welcome_message_list[ctx.guid.id][args[1]]
+                else:
+                    await ctx.reply(f"・Welcomeメッセージコマンド\n{args[1]}用メッセージは設定されていません。")
+            else:
+                await ctx.reply(f"・Welcomeメッセージコマンド\n{ctx.guild.name}には設定されていません。")
+            return
         if ctx.guild.id not in n_fc.welcome_message_list:
             n_fc.welcome_message_list[ctx.guild.id] = {args[1]: (args[2], ctx.channel.id)}
         else:
             n_fc.welcome_message_list[ctx.guild.id][args[1]] = (args[2], ctx.channel.id)
         await ctx.reply(f"・Welcomeメッセージコマンド\n・成功\n```\n{args[2]}```\n{ctx.channel.name}にメッセージを設定しました。")
         save()
+        return
+    
+    @nextcord.slash_command(name="welcome",description="誰かがサーバー加入/離脱した時にメッセージを送信します。")
+    async def welcome_slash(self, interaction: Interaction):
+        pass
+    
+    @welcome_slash.subcommand(name="join",description="サーバー加入時のメッセージを指定します")
+    async def join_slash(
+            self,
+            interaction: Interaction,
+            message: str = SlashOption(
+                name="message",
+                description="送信するメッセージ内容",
+                required=True,
+                choices={"設定の削除...": "off"}
+            )
+        ):
         return
     
     @commands.Cog.listener()
