@@ -35,29 +35,29 @@ class bump(commands.Cog):
             user = interaction.author
         if action == STATUS:
             if interaction.guild.id not in n_fc.bump_list:
-                return slash_tool.messages.mreply(embed=nextcord.Embed(title="Bump通知", description=f"{interaction.guild.name}でBump設定は無効です。", color=0x00ff00))
+                return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="Bump通知", description=f"{interaction.guild.name}でBump設定は無効です。", color=0x00ff00))
             else:
                 if n_fc.bump_list[interaction.guild.id] != None:
-                    return slash_tool.messages.mreply(embed=nextcord.Embed(title="Bump通知", description=f"{interaction.guild.name}でBump設定は有効です。\nメンションロール:<@&{n_fc.bump_list[interaction.guild.id]}>", color=0x00ff00))
+                    return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="Bump通知", description=f"{interaction.guild.name}でBump設定は有効です。\nメンションロール:<@&{n_fc.bump_list[interaction.guild.id]}>", color=0x00ff00))
                 else:
-                    return slash_tool.messages.mreply(embed=nextcord.Embed(title="Bump通知", description=f"{interaction.guild.name}でBump設定は有効です。\nメンションロール:なし", color=0x00ff00))
+                    return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="Bump通知", description=f"{interaction.guild.name}でBump設定は有効です。\nメンションロール:なし", color=0x00ff00))
         elif action == SET:
             if admin_check.admin_check(interaction.guild, user):
                 n_fc.bump_list[interaction.guild.id] = item
                 if n_fc.bump_list[interaction.guild.id] != None:
-                    return slash_tool.messages.mreply(embed=nextcord.Embed(title="Bump通知", description=f"{interaction.guild.name}でBump通知の設定を有効にしました。\nメンションロール:<@&{n_fc.bump_list[interaction.guild.id]}>", color=0x00ff00))
+                    return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="Bump通知", description=f"{interaction.guild.name}でBump通知の設定を有効にしました。\nメンションロール:<@&{n_fc.bump_list[interaction.guild.id]}>", color=0x00ff00))
                 else:
-                    return slash_tool.messages.mreply(embed=nextcord.Embed(title="Bump通知", description=f"{interaction.guild.name}でBump通知の設定を有効にしました。\nメンションロール:なし", color=0x00ff00))
+                    return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="Bump通知", description=f"{interaction.guild.name}でBump通知の設定を有効にしました。\nメンションロール:なし", color=0x00ff00))
             else:
-                return slash_tool.messages.mreply(embed=nextcord.Embed(title="エラー", description=f"管理者権限がありません。", color=0xff0000))
+                return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="エラー", description=f"管理者権限がありません。", color=0xff0000))
         elif action == DEL:
             if admin_check.admin_check(interaction.guild, user):
                 del n_fc.bump_list[interaction.guild.id]
-                return slash_tool.messages.mreply(embed=nextcord.Embed(title="Bump通知", description=f"{interaction.guild.name}でBump通知の設定を無効にしました。", color=0x00ff00))
+                return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="Bump通知", description=f"{interaction.guild.name}でBump通知の設定を無効にしました。", color=0x00ff00))
             else:
-                return slash_tool.messages.mreply(embed=nextcord.Embed(title="エラー", description=f"管理者権限がありません。", color=0xff0000))
+                return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="エラー", description=f"管理者権限がありません。", color=0xff0000))
         else:
-            return slash_tool.messages.mreply(embed=nextcord.Embed(title="Bump設定", description="`n!bump`:Bump通知の設定の状態表示\n`n!bump on`:サーバーでのBump通知の設定を有効にします。\n`n!bump off`:サーバーでのBump通知の設定を無効にします。", color=0x00ff00))
+            return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="Bump設定", description="`n!bump`:Bump通知の設定の状態表示\n`n!bump on`:サーバーでのBump通知の設定を有効にします。\n`n!bump off`:サーバーでのBump通知の設定を無効にします。", color=0x00ff00))
     
     @commands.command(name="bump", help="""\
 Disboardの通知設定を行います。
