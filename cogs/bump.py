@@ -81,7 +81,7 @@ Disboardの通知設定を行います。
             else:
                 role = None
                 try:
-                    role = ctx.guild.get_roles(int(args[2]))
+                    role = ctx.guild.get_role(int(args[2]))
                 except ValueError:
                     pass
                 
