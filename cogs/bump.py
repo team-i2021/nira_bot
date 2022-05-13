@@ -43,7 +43,10 @@ class bump(commands.Cog):
                     return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="Bump通知", description=f"{interaction.guild.name}でBump設定は有効です。\nメンションロール:なし", color=0x00ff00))
         elif action == SET:
             if admin_check.admin_check(interaction.guild, user):
-                n_fc.bump_list[interaction.guild.id] = item
+                if item is None:
+                    n_fc.bump_list[interaction.guild.id] = None
+                else:
+                    n_fc.bump_list[interaction.guild.id] = item.id
                 if n_fc.bump_list[interaction.guild.id] != None:
                     return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="Bump通知", description=f"{interaction.guild.name}でBump通知の設定を有効にしました。\nメンションロール:<@&{n_fc.bump_list[interaction.guild.id]}>", color=0x00ff00))
                 else:
