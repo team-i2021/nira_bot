@@ -100,6 +100,39 @@ Disboardの通知設定を行います。
             await self.bump_config(ctx, DEL, None)
         else:
             await self.bump_config(ctx, 302050872383242240, None)
+    
+    @nextcord.slash_command(name="bump", description="bumpの設定をします")
+    async def bump_slash(self, interaction):
+        pass
+    
+    @bump_slash.subcommand(name="set", description="bumpの通知をします")
+    async def set_slash(
+            self,
+            interaction: Interaction,
+            role: nextcord.Role = SlashOption(
+                name="role",
+                description="bump通知をする際にメンションしてほしい場合は指定します",
+                required=False
+            )
+        ):
+        await self.bump_config(interaction, SET, role)
+        return
+    
+    @bump_slash.subcommand(name="del", description="bumpの通知設定を削除します")
+    async def del_slash(
+            self,
+            interaction: Interaction
+        ):
+        await self.bump_config(interaction, DEL, None)
+        return
+    
+    @bump_slash.subcommand(name="status", description="bump通知の設定状況を確認します")
+    async def status_slash(
+            self,
+            interaction: Interaction
+        ):
+        await self.bump_config(interaction, STATUS, None)
+        return
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
@@ -118,12 +151,17 @@ Disboardの通知設定を行います。
             await message.channel.send(embed=nextcord.Embed(title="Bump通知設定", description=f"<t:{math.floor(time.time())+7200}:f>、<t:{math.floor(time.time())+7200}:R>に通知します。", color=0x00ff00))
             await asyncio.sleep(7200)
             bump_rnd = random.randint(1,3)
+            messageContent = ""
+            if n_fc.bump_list[message.guild.id] is None:
+                messageContent = "にらBOT Bump通知"
+            else:
+                messageContent = f"<@&{n_fc.bump_list[message.guild.id]}>"
             if bump_rnd == 1:
-                await message.channel.send(f"<@&{n_fc.bump_list[message.guild.id]}>", embed=nextcord.Embed(title="Bumpの時間よ！", description=f"Bumpしたければすればいいんじゃないの...？(ツンデレ)\n```/bump```", color=0x00ff00))
+                await message.channel.send(messageContent, embed=nextcord.Embed(title="Bumpの時間よ！", description=f"Bumpしたければすればいいんじゃないの...？(ツンデレ)\n```/bump```", color=0x00ff00))
             elif bump_rnd == 2:
-                await message.channel.send(f"<@&{n_fc.bump_list[message.guild.id]}>", embed=nextcord.Embed(title="Bumpしやがれください！", description=f"お前がBumpするんだよ、あくしろよ！\n```/bump```", color=0x00ff00))
+                await message.channel.send(messageContent, embed=nextcord.Embed(title="Bumpしやがれください！", description=f"お前がBumpするんだよ、あくしろよ！\n```/bump```", color=0x00ff00))
             elif bump_rnd == 3:
-                await message.channel.send(f"<@&{n_fc.bump_list[message.guild.id]}>", embed=nextcord.Embed(title="Bumpしましょう！", description=f"Bumpの時間ですよ！\n```/bump```", color=0x00ff00))
+                await message.channel.send(messageContent, embed=nextcord.Embed(title="Bumpしましょう！", description=f"Bumpの時間ですよ！\n```/bump```", color=0x00ff00))
             return
 
 def setup(bot):
