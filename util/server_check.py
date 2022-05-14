@@ -51,6 +51,15 @@ async def server_check_async(loop, embed, type, g_id, n):
         None, server_check, embed, type, g_id, n
     )
 
+def RetryInfo(address, count: int):
+    for _ in range(count):
+        try:
+            info = a2s.info(address)
+            return info
+        except BaseException:
+            pass
+    return None
+
 # サーバーのステータスをチェックする
 def server_check(embed, type, g_id, n):
     try:
@@ -68,6 +77,9 @@ def server_check(embed, type, g_id, n):
                 if type == 1:
                     embed.add_field(name=f"> {sv_nm}", value=f"```Steam WEB APIでサーバーが認識されていません。```", inline=False)
                 return True
+        #sv_dt = RetryInfo(sv_ad, 3)
+        #if sv_dt is None:
+        #    raise BaseException()
         sv_dt = a2s.info(sv_ad)
         if type == 0:
             embed.add_field(name=f"> {sv_dt.server_name} - {sv_dt.map_name}", value=":white_check_mark:オンライン", inline=False)
@@ -96,6 +108,7 @@ def server_check(embed, type, g_id, n):
         elif type == 1:
             embed.add_field(name="> Online User", value=f"```{sv_us}```", inline=False)
     except BaseException as err:
+        logging.info(type(err), err)
         if str(err) == "timed out":
             if type == 0:
                 embed.add_field(name=f"> {sv_nm}", value=":ng:サーバーに接続できませんでした。(タイムアウト)\n==========", inline=False)
