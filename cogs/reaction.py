@@ -1,4 +1,5 @@
 from nextcord.ext import commands
+from nextcord import Interaction, SlashOption
 import nextcord
 import pickle
 import math
@@ -6,21 +7,61 @@ import math
 import sys,os
 
 sys.path.append('../')
-from util import admin_check, n_fc, eh
+from util import admin_check, n_fc, eh, web_api
 
-home_dir = os.path.dirname(__file__)[:-4]
+DIR = sys.path[0]
 
 #通常反応や追加反応の反応系
+
+class NotifyTokenSet(nextcord.ui.Modal):
+    def __init__(self):
+        super().__init__(
+            "LINE Notify設定",
+            timeout=None
+        )
+
+        self.token = nextcord.ui.TextInput(
+            label="LINE Notify TOKEN",
+            style=nextcord.TextInputStyle.short,
+            placeholder="トークンを入力してください",
+            required=True
+        )
+        self.add_item(self.token)
+        #self.add_item(nextcord.ui.Button("トークンを設定する", style=nextcord.ButtonStyle.green, custom_id="token_set"))
+        #self.add_item(nextcord.ui.Button("キャンセル", style=nextcord.ButtonStyle.red, custom_id="cancel"))
+
+    async def callback(self, interaction: Interaction) -> None:
+        await interaction.response.defer()
+        if self.token.value == "" or self.token.value is None:
+            await interaction.followup.send("トークンは必須です。", ephemeral=True)
+            return
+        if admin_check.admin_check(interaction.guild, interaction.user) == False:
+            await interaction.followup.send("あなたにはサーバーの管理権限がないため実行できません。", ephemeral = True)
+        else:
+            token_result = web_api.line_token_check(self.token.value)
+            if token_result[0] == False:
+                await interaction.followup.send(f"そのトークンは無効なようです。\n```{token_result[1]}```", ephemeral = True)
+                return
+            if interaction.guild.id not in n_fc.notify_token:
+                n_fc.notify_token[interaction.guild.id] = {interaction.channel.id: self.token.value}
+            else:
+                n_fc.notify_token[interaction.guild.id][interaction.channel.id] = self.token.value
+            with open(f'{DIR}/notify_token.nira', 'wb') as f:
+                pickle.dump(n_fc.notify_token, f)
+            await interaction.followup.send(f"{interaction.guild.name}/{interaction.channel.name}で`{self.token.value}`を保存します。\nトークンが他のユーザーに見られないようにしてください。", ephemeral = True)
+
 
 class reaction(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
     
-    @commands.command(name="line", help="DiscordのメッセージをLINEに送信します。")
+    @commands.command(name="line", help="""\
+DiscordのメッセージをLINEに送信します。
+LINE Notifyという機能を用いて、DiscordのメッセージをLINEに送信します。""")
     async def line(self, ctx: commands.Context):
         embed = nextcord.Embed(title="DiscordのメッセージをLINEに送信する機能", description="使い方", color=0x00ff00)
-        embed.add_field(name="**このコマンドはスラッシュコマンドです**", value="`/line [token]`というような形でコマンドを送ってください。\nその際、スラッシュコマンドであることを確認してください。\ntokenの流出はとんでもないことにつながります。", inline=False)
-        embed.add_field(name="**TOKENって何？**", value="TOKENとは簡単に言えばキーです。LINE Notifyのページから発行してきてください。\n[TOKENの発行方法](https://qiita.com/nattyan_tv/items/33ac7a7269fe12e49198)", inline=False)
+        embed.add_field(name="**このコマンドはスラッシュコマンドです**", value="`/line set`というスラッシュコマンドを送ると、TOKENを入力する画面が表示されるので、そこにTOKENを入力してください。\nちなみにTOKENの流出はとんでもないことにつながるので、気をつけてください。", inline=False)
+        embed.add_field(name="**TOKENって何？**", value="TOKENとは簡単に言えばパスワードです。LINE Notifyのページから発行してきてください。\n[TOKENの発行方法](https://qiita.com/nattyan_tv/items/33ac7a7269fe12e49198)", inline=False)
         await ctx.reply(embed=embed)
 
     @commands.command(name="er", help="""\
@@ -43,7 +84,7 @@ class reaction(commands.Cog):
                 n_fc.ex_reaction_list[ctx.message.guild.id][f'{value+1}_tr'] = str(react_triger)
                 n_fc.ex_reaction_list[ctx.message.guild.id][f'{value+1}_re'] = str(react_return)
                 await ctx.message.reply(f"トリガー：{ra[0]}\nリターン：{ra[1]}")
-                with open(f'{home_dir}/ex_reaction_list.nira', 'wb') as f:
+                with open(f'{DIR}/ex_reaction_list.nira', 'wb') as f:
                     pickle.dump(n_fc.ex_reaction_list, f)
                 return
             except BaseException as err:
@@ -80,7 +121,7 @@ class reaction(commands.Cog):
                         break
                 if rt_e == 1:
                     await ctx.message.reply(f"トリガー：{b_tr}\nリターン：{b_re}")
-                    with open(f'{home_dir}/ex_reaction_list.nira', 'wb') as f:
+                    with open(f'{DIR}/ex_reaction_list.nira', 'wb') as f:
                         pickle.dump(n_fc.ex_reaction_list, f)
                     return
                 elif rt_e == 0:
@@ -133,11 +174,11 @@ class reaction(commands.Cog):
                 n_fc.reaction_bool_list[ctx.message.guild.id] = {}
                 n_fc.reaction_bool_list[ctx.message.guild.id][ctx.message.channel.id] = 1
                 n_fc.reaction_bool_list[ctx.message.guild.id]["all"] = 1
-                with open(f'{home_dir}/reaction_bool_list.nira', 'wb') as f:
+                with open(f'{DIR}/reaction_bool_list.nira', 'wb') as f:
                     pickle.dump(n_fc.reaction_bool_list, f)
             if ctx.message.channel.id not in n_fc.reaction_bool_list[ctx.message.guild.id]:
                 n_fc.reaction_bool_list[ctx.message.guild.id][ctx.message.channel.id] = 1
-                with open(f'{home_dir}/reaction_bool_list.nira', 'wb') as f:
+                with open(f'{DIR}/reaction_bool_list.nira', 'wb') as f:
                     pickle.dump(n_fc.reaction_bool_list, f)
             if ctx.message.content == "n!nr":
                 if n_fc.reaction_bool_list[ctx.message.guild.id]["all"] == 0:
@@ -189,11 +230,11 @@ class reaction(commands.Cog):
             if ctx.message.guild.id not in n_fc.all_reaction_list:
                 print(n_fc.all_reaction_list)
                 n_fc.all_reaction_list[ctx.message.guild.id] = {}
-                with open(f'{home_dir}/all_reaction_list.nira', 'wb') as f:
+                with open(f'{DIR}/all_reaction_list.nira', 'wb') as f:
                     pickle.dump(n_fc.all_reaction_list, f)
             if ctx.message.channel.id not in n_fc.all_reaction_list[ctx.message.guild.id]:
                 n_fc.all_reaction_list[ctx.message.guild.id][ctx.message.channel.id] = 1
-                with open(f'{home_dir}/all_reaction_list.nira', 'wb') as f:
+                with open(f'{DIR}/all_reaction_list.nira', 'wb') as f:
                     pickle.dump(n_fc.all_reaction_list, f)
             if ctx.message.content == "n!ar":
                 if n_fc.all_reaction_list[ctx.message.guild.id][ctx.message.channel.id] == 1:
@@ -221,6 +262,31 @@ class reaction(commands.Cog):
         except BaseException as err:
             await ctx.message.reply(embed=eh.eh(err))
             return
+    
+    @nextcord.slash_command(name="line", description="LINE Notifyの設定")
+    async def line_slash(self, interaction: Interaction):
+        pass
+
+    @line_slash.subcommand(name="set", description="LINE Notifyのトークンを設定します。")
+    async def line_set_slash(self, interaction: Interaction):
+        modal = NotifyTokenSet()
+        await interaction.response.send_modal(modal=modal)
+
+    @line_slash.subcommand(name="del", description="LINE Notifyのトークンを削除します。")
+    async def line_del_slash(self, interaction: Interaction):
+        if admin_check.admin_check(interaction.guild, interaction.user) == False:
+            await interaction.response.send_message("あなたにはサーバーの管理権限がないため実行できません。", ephemeral = True)
+        else:
+            if interaction.guild.id not in n_fc.notify_token:
+                await interaction.response.send_message(f"{interaction.guild.name}では、LINEトークンが設定されていません。", ephemeral = True)
+                return
+            if interaction.channel.id not in n_fc.notify_token[interaction.guild.id]:
+                await interaction.response.send_message(f"{interaction.channel.name}では、LINEトークンが設定されていません。", ephemeral = True)
+                return
+            del n_fc.notify_token[interaction.guild.id][interaction.channel.id]
+            with open(f'{DIR}/notify_token.nira', 'wb') as f:
+                pickle.dump(n_fc.notify_token, f)
+            await interaction.response.send_message(f"{interaction.channel.name}でのLINEトークンを削除しました。", ephemeral = True)
 
 def setup(bot):
     bot.add_cog(reaction(bot))

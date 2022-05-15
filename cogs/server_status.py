@@ -12,7 +12,7 @@ import importlib
 #loggingの設定
 import logging
 import os
-import re
+import re, importlib
 
 PREFIX = "n!"
 
@@ -426,6 +426,7 @@ class server_status(commands.Cog):
         async def reload(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
             try:
                 status_message = n_fc.pid_ss[interaction.guild.id][1]
+                n_fc.pid_ss[interaction.guild.id][0].cancel()
                 n_fc.pid_ss[interaction.guild.id] = (asyncio.ensure_future(ss_force(asyncio.get_event_loop(), status_message)), status_message)
                 await interaction.response.send_message('Reloaded!', ephemeral=True)
                 logging.info("reloaded")
@@ -443,7 +444,6 @@ class server_status(commands.Cog):
         @nextcord.ui.button(label='もう一度チェックする', style=nextcord.ButtonStyle.green)
         async def recheck(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
             try:
-                
                 embed = nextcord.Embed(title="Server Status Checker", description=f":globe_with_meridians:Status\n==========", color=0x00ff00)
                 for i in map(str, range(1, int(n_fc.steam_server_list[interaction.guild.id]["value"])+1)):
                     await server_check.server_check_async(asyncio.get_event_loop(), embed, 0, interaction.guild.id, i)
@@ -467,4 +467,6 @@ class server_status(commands.Cog):
 
 def setup(bot):
     bot.add_cog(server_status(bot))
+    #importlib.reload(server_check)
+
 

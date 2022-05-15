@@ -1,4 +1,4 @@
-import pip, site, importlib, os, traceback, json
+import pip, importlib, os, traceback, json
 
 def main():
     print("モジュールのインストールを始めます...")

@@ -25,8 +25,8 @@ except BaseException as err:
 
 --python traceback--
 {traceback.format_exc()}
-""")
-    os._exit(1)
+""", file=sys.stderr)
+    os._exit(0)
 
 
 
@@ -39,10 +39,7 @@ n_fc.py_admin = SETTING["py_admin"]
 UNLOAD_COGS = SETTING["unload_cogs"]
 LOAD_COGS = SETTING["load_cogs"]
 DEBUG = False
-if len(sys.argv) > 1 and sys.argv[1] == "-d":
-    DEBUG = True
-    print(LOAD_COGS)
-
+if len(sys.argv) > 1 and sys.argv[1] == "-d": DEBUG = True; print(f"NIRA Bot Debug Mode\nThe following will be loaded... :{LOAD_COGS}");
 
 
 ##### BOTの設定 #####
@@ -71,13 +68,14 @@ BOTの設定ファイルが見つかりませんでした。
 「nira.py」があるフォルダに「setting.json」をおいてください。
 「setting_temp.json」というテンプレートがありますのでそちらを参考にしてください。
 
-または、「setup.py」を実行して、画面の指示通りにしてください。""")
-    os._exit(2)
+または、「setup.py」を実行して、画面の指示通りにしてください。""", file=sys.stderr)
+    os._exit(0)
 
 
 
 #loggingの設定
 import logging
+
 
 class NoTokenLogFilter(logging.Filter):
     def filter(self, record):
@@ -119,7 +117,7 @@ async def on_ready():
             n_fc.role_keeper[i.id] = {"rk": 0}
         for j in i.members:
             n_fc.role_keeper[i.id][j.id] = [k.id for k in j.roles if k.name != "@everyone"]
-    print(n_fc.role_keeper)
+    if DEBUG: print(n_fc.role_keeper);
     cogs_debug.save()
 
     print("ユーザー情報読み込み完了")
@@ -142,10 +140,8 @@ async def on_ready():
             print(err, traceback.format_exc())
     print("AutoSSのタスク復元完了")
 
-    if not DEBUG:
-        await bot.change_presence(activity=nextcord.Game(name=f"{PREFIX}help | にらゲー", type=1), status=nextcord.Status.online)
-    else:
-        await bot.change_presence(activity=nextcord.Game(name=f"{PREFIX} | にらゲー開発", type=1), status=nextcord.Status.dnd)
+    if not DEBUG: await bot.change_presence(activity=nextcord.Game(name=f"{PREFIX}help | にらゲー", type=1), status=nextcord.Status.online)
+    else: await bot.change_presence(activity=nextcord.Game(name=f"{PREFIX} | にらゲー開発", type=1), status=nextcord.Status.dnd)
 
     print("Welcome to nira-bot!")
     print(f"""\
@@ -171,46 +167,10 @@ async def reload(interaction: Interaction):
         return
     else:
         status_message = n_fc.pid_ss[interaction.guild.id][1]
+        n_fc.pid_ss[interaction.guild.id][0].cancel()
         n_fc.pid_ss[interaction.guild.id] = (asyncio.ensure_future(server_status.ss_force(bot.loop, status_message)),status_message)
         await interaction.response.send_message("リロードしました。", ephemeral = True)
         return
-
-@bot.slash_command(description="LINE Notifyのトークンを設定します。")
-async def line(interaction: Interaction, token: str):
-    if token == "":
-        await interaction.response.send_message("トークンは必須です。", ephemeral=True)
-        return
-    if admin_check.admin_check(interaction.guild, interaction.user) == False:
-        await interaction.response.send_message("あなたにはサーバーの管理権限がないため実行できません。", ephemeral = True)
-    else:
-        token_result = web_api.line_token_check(token)
-        if token_result[0] == False:
-            await interaction.response.send_message(f"そのトークンは無効なようです。\n```{token_result[1]}```", ephemeral = True)
-            return
-        if interaction.guild.id not in n_fc.notify_token:
-            n_fc.notify_token[interaction.guild.id] = {interaction.channel.id: token}
-        else:
-            n_fc.notify_token[interaction.guild.id][interaction.channel.id] = token
-        with open(f'{HOME}/notify_token.nira', 'wb') as f:
-            pickle.dump(n_fc.notify_token, f)
-        await interaction.response.send_message(f"{interaction.guild.name}/{interaction.channel.name}で`{token}`を保存します。\nトークンが他のユーザーに見られないようにしてください。", ephemeral = True)
-
-@bot.slash_command(description="LINE Notifyのトークンを削除します。")
-async def line_del(interaction: Interaction):
-    if admin_check.admin_check(interaction.guild, interaction.user) == False:
-        await interaction.response.send_message("あなたにはサーバーの管理権限がないため実行できません。", ephemeral = True)
-    else:
-        if interaction.guild.id not in n_fc.notify_token:
-            await interaction.response.send_message(f"{interaction.guild.name}では、LINEトークンが設定されていません。", ephemeral = True)
-            return
-        if interaction.channel.id not in n_fc.notify_token[interaction.guild.id]:
-            await interaction.response.send_message(f"{interaction.channel.name}では、LINEトークンが設定されていません。", ephemeral = True)
-            return
-        del n_fc.notify_token[interaction.guild.id][interaction.channel.id]
-        with open(f'{HOME}/notify_token.nira', 'wb') as f:
-            pickle.dump(n_fc.notify_token, f)
-        await interaction.response.send_message(f"{interaction.channel.name}でのLINEトークンを削除しました。", ephemeral = True)
-
 
 
 # 変数読み込み
@@ -232,10 +192,9 @@ for i in range(len(n_fc.save_list)):
                 pickle.dump({},f)
     except BaseException as err:
         logging.info(f"変数[{n_fc.save_list[i]}]のファイル読み込みに失敗しました。\n{err}\n{traceback.format_exc()}")
-        print("変数の読み込み時にエラーが発生しました。ログを確認して、再度やり直してください。")
-        os._exit(4)
+        print("変数の読み込み時にエラーが発生しました。ログを確認して、再度やり直してください。", file=sys.stderr)
+        os._exit(0)
 print("変数の読み込み完了")
-
 
 
 # Cogの読み込み
@@ -243,16 +202,13 @@ try:
     cogs_dir = HOME + "/cogs"
     cogs_num = len(os.listdir(cogs_dir))
     cogs_list = os.listdir(cogs_dir)
-    if DEBUG:
-        cogs_num = len(LOAD_COGS)
-        cogs_list = LOAD_COGS
+    if DEBUG: cogs_num = len(LOAD_COGS); cogs_list = LOAD_COGS;
     for i in range(cogs_num):
-        if cogs_list[i][-3:] != ".py" or cogs_list[i] == "__pycache__" or cogs_list[i] == "not_ready.py" or cogs_list[i] in UNLOAD_COGS:
-            continue
+        if cogs_list[i][-3:] != ".py" or cogs_list[i] == "__pycache__" or cogs_list[i] == "not_ready.py" or cogs_list[i] in UNLOAD_COGS: continue;
         bot.load_extension(f"cogs.{cogs_list[i][:-3]}")
 except BaseException as err:
-    print(err, traceback.format_exc())
-    os._exit(8)
+    print(err, traceback.format_exc(), file=sys.stderr)
+    os._exit(0)
 print("Cogの読み込み完了")
 
 

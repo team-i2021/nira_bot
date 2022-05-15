@@ -6,13 +6,8 @@
 - Python3.8以上
 
 ## セットアップ
-### 方法1
-1. 同梱の`setup.py`を実行します。(にらBOTを動かすPython/ユーザーで実行してください。)
-2. 画面の指示の通りにします。
-
-### 方法2
-1. `pip install -r requirements.txt`でモジュールをインストールします。
-2. `setting_temp.json`を参考にして、`setting.json`にTOKENなどの必要な設定を書き込みます。
+1. `pip3 install -r requirements.txt`などの方法で、`requirements.txt`のモジュールをインストールします。
+2. `setting_temp.json`及び下の表を参考にして、`setting.json`にTOKENなどの必要な設定を書き込みます。
 
 ### `setting.json`の設定項目について
 キー|内容|例|変数型
@@ -28,7 +23,11 @@
 
 ## 起動
 `nira.py`を実行します。  
-Debugモードで起動する場合は、引数として`-d`を指定します。
+Debugモードで起動する場合は、引数として`-d`を指定します。  
+Debugモードで起動すると、下記の状態になります。  
+- `setting.json`の`load_cogs`で指定されたCogのみが読み込まれます。  
+- 起動時に通常より少し多くのコンソール表示が行われます。  
+- BOTのステータス表示が少し変わります。
 
 # enhance-fix
 もし、プログラムに不具合があったり、機能改善をしてほしい場合は、[にらBOT Discordサーバー](https://discord.gg/awfFpCYTcP)の`#enhance-fix`でスレッドを立てるか、本レポジトリにissueやPRを立ててください。  

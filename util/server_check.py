@@ -25,9 +25,9 @@ logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.
 # 主にサーバーステータスを取得するコード
 
 def ip_check(address: str) -> bool:
-    """指定したaddressがドメインか、IPアドレスかどうかを判定します。\n
-    （数字とピリオドだけであればTrue）
-    """
+    """\
+指定したaddressがドメインか、IPアドレスかどうかを判定します。
+（正確に言うと数字とピリオドだけであればTrue）"""
     if re.search("[^0-9.]", address):
         return False
     else:
@@ -51,7 +51,9 @@ async def server_check_async(loop, embed, type, g_id, n):
         None, server_check, embed, type, g_id, n
     )
 
-def RetryInfo(address, count: int):
+
+def RetryInfo(address, count: int) -> a2s.SourceInfo or None:
+    """サーバーのステータスを取得しますが、その際`count`回リトライします。"""
     for _ in range(count):
         try:
             info = a2s.info(address)
@@ -77,10 +79,10 @@ def server_check(embed, type, g_id, n):
                 if type == 1:
                     embed.add_field(name=f"> {sv_nm}", value=f"```Steam WEB APIでサーバーが認識されていません。```", inline=False)
                 return True
-        #sv_dt = RetryInfo(sv_ad, 3)
-        #if sv_dt is None:
-        #    raise BaseException()
-        sv_dt = a2s.info(sv_ad)
+        sv_dt = RetryInfo(sv_ad, 3)
+        if sv_dt is None:
+            raise TimeoutError("timed out")
+        #sv_dt = a2s.info(sv_ad)
         if type == 0:
             embed.add_field(name=f"> {sv_dt.server_name} - {sv_dt.map_name}", value=":white_check_mark:オンライン", inline=False)
         elif type == 1:
@@ -108,7 +110,6 @@ def server_check(embed, type, g_id, n):
         elif type == 1:
             embed.add_field(name="> Online User", value=f"```{sv_us}```", inline=False)
     except BaseException as err:
-        logging.info(type(err), err)
         if str(err) == "timed out":
             if type == 0:
                 embed.add_field(name=f"> {sv_nm}", value=":ng:サーバーに接続できませんでした。(タイムアウト)\n==========", inline=False)
@@ -130,7 +131,9 @@ def ss_bool(g_id, n):
             if ip_check(sv_ad[0]):
                 if web_api.server_status(sv_ad[0], sv_ad[1]) == False:
                     continue
-            a2s.info(sv_ad)
+            sv_dt = RetryInfo(sv_ad, 3)
+            if sv_dt is None:
+                raise TimeoutError("timed out")
             a2s.players(sv_ad)
         except BaseException:
             pass
@@ -150,7 +153,9 @@ def ss_pin_embed(embed, g_id, n):
             if web_api.server_status(sv_ad[0], sv_ad[1]) == False:
                 embed.add_field(name=f"> {sv_nm}", value=":ng:オフライン\n==========", inline=False)
                 return
-        sv_dt = a2s.info(sv_ad)
+        sv_dt = RetryInfo(sv_ad, 3)
+        if sv_dt is None:
+            raise TimeoutError("timed out")
         embed.add_field(name=f"> {sv_dt.server_name} - {sv_dt.map_name}", value=":white_check_mark:オンライン", inline=False)
         user = ""
         sv_us = a2s.players(sv_ad)
