@@ -5,13 +5,45 @@ import pickle
 import math
 
 import sys,os
+from cogs.debug import save
 
 sys.path.append('../')
-from util import admin_check, n_fc, eh, web_api
+from util import admin_check, n_fc, eh, web_api, slash_tool
 
 DIR = sys.path[0]
 
+SET, DEL, STATUS = (0,1,2)
+AR, ER, NR = ("all_reaction_list", "ex_reaction_list", "reaction_bool_list")
+
 #通常反応や追加反応の反応系
+
+def changeSetting(
+        ActionType:int,
+        FunctionName:str,
+        interaction:Interaction or commands.Context,
+        **kwargs:dict
+    ):
+    """kwargs = {"key": key:str, "value": value:str}"""
+    if ActionType == SET:
+        try:
+            exec(f"n_fc.{FunctionName}[{interaction.guild.id}]['{kwargs['key']}'] = '{kwargs['value']}'")
+            save()
+            return True
+        except BaseException as err:
+            return [False, err]
+    elif ActionType == DEL:
+        try:
+            exec(f"del n_fc.{FunctionName}[{interaction.guild.id}]['{kwargs['key']}']")
+            save()
+            return True
+        except BaseException as err:
+            return [False, err]
+    elif ActionType == STATUS:
+        try:
+            return eval(f"n_fc.{FunctionName}[{interaction.guild.id}]['{kwargs['key']}']")
+        except BaseException as err:
+            return [False, err]
+
 
 class NotifyTokenSet(nextcord.ui.Modal):
     def __init__(self):
@@ -70,25 +102,28 @@ LINE Notifyという機能を用いて、DiscordのメッセージをLINEに送�
 トリガーには正規表現を使うことが出来ます。が、スペースを含むことはできませんのでご了承ください。""")
     async def er(self, ctx: commands.Context):
         if ctx.message.content[:8] == "n!er add":
-            if ctx.message.content == "n!er add":
-                await ctx.message.reply("構文が異なります。\n```n!er add [トリガー] [返信文]```")
-                return
-            try:
-                if ctx.message.guild.id not in n_fc.ex_reaction_list:
-                    n_fc.ex_reaction_list[ctx.message.guild.id] = {"value":0}
-                value = n_fc.ex_reaction_list[ctx.message.guild.id]["value"]
-                ra = ctx.message.content[9:].split(" ", 1)
-                react_triger = ra[0]
-                react_return = ra[1]
-                n_fc.ex_reaction_list[ctx.message.guild.id]["value"] = n_fc.ex_reaction_list[ctx.message.guild.id]["value"]+1
-                n_fc.ex_reaction_list[ctx.message.guild.id][f'{value+1}_tr'] = str(react_triger)
-                n_fc.ex_reaction_list[ctx.message.guild.id][f'{value+1}_re'] = str(react_return)
-                await ctx.message.reply(f"トリガー：{ra[0]}\nリターン：{ra[1]}")
-                with open(f'{DIR}/ex_reaction_list.nira', 'wb') as f:
-                    pickle.dump(n_fc.ex_reaction_list, f)
-                return
-            except BaseException as err:
-                await ctx.message.reply(embed=eh.eh(err))
+            if admin_check.admin_check(ctx.guild, ctx.author):
+                if ctx.message.content == "n!er add":
+                    await ctx.message.reply("構文が異なります。\n```n!er add [トリガー] [返信文]```")
+                    return
+                try:
+                    if ctx.message.guild.id not in n_fc.ex_reaction_list:
+                        n_fc.ex_reaction_list[ctx.message.guild.id] = {"value":0}
+                    value = n_fc.ex_reaction_list[ctx.message.guild.id]["value"]
+                    ra = ctx.message.content[9:].split(" ", 1)
+                    react_triger = ra[0]
+                    react_return = ra[1]
+                    changeSetting(SET, ER, ctx, key="value", value=value+1)
+                    changeSetting(SET, ER, ctx, key=f'{value+1}_tr', value=str(react_triger))
+                    changeSetting(SET, ER, ctx, key=f'{value+1}_re', value=str(react_return))
+                    await ctx.message.reply(f"トリガー：{ra[0]}\nリターン：{ra[1]}")
+                    with open(f'{DIR}/ex_reaction_list.nira', 'wb') as f:
+                        pickle.dump(n_fc.ex_reaction_list, f)
+                    return
+                except BaseException as err:
+                    await ctx.message.reply(embed=eh.eh(err))
+            else:
+                await ctx.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
         if ctx.message.content[:9] == "n!er list":
             if ctx.message.guild.id not in n_fc.ex_reaction_list or n_fc.ex_reaction_list[ctx.message.guild.id]["value"] == 0:
                 await ctx.message.reply("追加返答は設定されていません。")

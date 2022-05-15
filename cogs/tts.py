@@ -238,12 +238,14 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
         else:
             await ctx.reply("・読み上げ機能\nエラー：書き方が間違っています。\n\n`n!tts join`: 参加\n`n!tts leave`: 退出\n`n!tts voice`: 声選択")
             return
-    
+
 
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
         if message.guild.voice_client is None:
+            return
+        if message.content is None or message.content == "":
             return
         if message.author.bot:
             return
@@ -253,6 +255,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
             return
         if message.content.startswith("n!"):
             return
+        
         try:
             if message.author.id not in speaker_author:
                 speaker_author[message.author.id] = 2
