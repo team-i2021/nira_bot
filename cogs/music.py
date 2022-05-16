@@ -4,7 +4,7 @@ import nextcord
 import asyncio
 import datetime
 import sys
-
+import traceback
 import re
 import niconico_dl
 import youtube_dl
@@ -477,23 +477,43 @@ class music(commands.Cog):
     
     @commands.Cog.listener()
     async def on_voice_state_update(self, member: nextcord.Member, before: nextcord.VoiceState, after: nextcord.VoiceState):
-        logging.info(after, member)
-        members = len(after.channel.members)
-        if members == 1:
-            await member.guild.voice_client.disconnect()
-            if member.guild.id in tts.tts_channel:
-                CHANNEL = self.bot.get_channel(tts.tts_channel[member.guild.id])
-                await CHANNEL.send("なんでみんないなくなっちゃうの！！！！(切断します。)")
-        elif member == self.bot.user and after.voice_states[self.bot.user.id].mute:
+        print(f"MEMBER:{member}")
+        try:
+            print(f"BEFORE:{len(before.channel.members)}/{self.bot.user in before.channel.members}/{before.channel.voice_states[self.bot.user.id].mute}")
+            if len(before.channel.members) == 1 and self.bot.user in before.channel.members:
+                if member.guild.id in music_list:
+                    del music_list[member.guild.id]
+                if member.guild.id in music_f:
+                    del music_f[member.guild.id]
+                if member.guild.id in url_type:
+                    del url_type[member.guild.id]
+                if member.guild.id in tts.tts_channel:
+                    CHANNEL = await self.bot.fetch_channel(tts.tts_channel[member.guild.id])
+                    await CHANNEL.send(f"なんでみんないなくなっちゃうの！！！！！！\n(一人になったため切断します。)")
+                    del tts.tts_channel[member.guild.id]
+                await member.guild.voice_client.disconnect()
+        except BaseException as err:
+            logging.error(traceback.format_exc())
+            #print(traceback.format_exc(),err)
+            pass
+        try:
+            print(f"AFTER:{len(after.channel.members)}/{self.bot.user in after.channel.members}/{after.channel.voice_states[self.bot.user.id].mute}")
+        except BaseException as err:
+            logging.error(traceback.format_exc())
+            #print(traceback.format_exc(),err)
+            pass
+        
+        if self.bot.user.id in after.channel.voice_states and after.channel.voice_states[self.bot.user.id].mute:
             try:
                 await member.edit(mute=False)
                 if member.guild.id in tts.tts_channel:
-                    CHANNEL = self.bot.get_channel(tts.tts_channel[member.guild.id])
-                    await CHANNEL.send("......はぁっ！！！...はぁはぁ....\n呼吸できなくて死ぬかと思ったわ！！！")
+                    CHANNEL = await self.bot.fetch_channel(tts.tts_channel[member.guild.id])
+                    await CHANNEL.send(f"....はぁっ！！！...はぁはぁ....\n呼吸できなくて死ぬかと思ったわ！！！\n(~~かわいそうなので~~喋れないのでミュートしないであげてください。)")
             except BaseException as err:
+                print(err)
                 if member.guild.id in tts.tts_channel:
-                    CHANNEL = self.bot.get_channel(tts.tts_channel[member.guild.id])
-                    await CHANNEL.send("........(呼吸ができなくなって苦しそうだ。)")
+                    CHANNEL = await self.bot.fetch_channel(tts.tts_channel[member.guild.id])
+                    await CHANNEL.send(f".................(にらBOTは呼吸が出来なくて苦しそうだ。)\n(~~かわいそうなので~~喋れないのでミュートを解除してください。)")
 
 
 def setup(bot):
