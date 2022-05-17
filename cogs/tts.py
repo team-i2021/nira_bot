@@ -13,9 +13,10 @@ import json
 global task
 import re
 
+
 import sys
 sys.path.append('../')
-from util import n_fc, mc_status, tts_convert
+from util import n_fc, mc_status, tts_convert, tts_dict
 import random
 import datetime
 
@@ -148,6 +149,17 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
         return
 
 
+    @tts_slash.subcommand(name="reload", description="Reload TTS modules.")
+    async def reload_slash(self, interaction: Interaction):
+        if interaction.user.id in n_fc.py_admin:
+            importlib.reload(tts_convert)
+            importlib.reload(tts_dict)
+            await interaction.response.send_message(nextcord.Embed(title="Reloaded.", description="TTS modules were reloaded.", color=0x00ff00),ephemeral=True)
+        else:
+            await interaction.response.send_message(nextcord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000),ephemeral=True)
+        return
+
+
     @commands.command(name='tts', aliases=("読み上げ","よみあげ"), help="""\
 VCに乱入して、代わりに読み上げてくれる機能。
 
@@ -169,6 +181,7 @@ API制限などが来た場合はご了承ください。許せ。""")
         if len(args) != 2:
             await ctx.reply("・読み上げ機能\nエラー：書き方が間違っています。\n\n`n!tts join`: 参加\n`n!tts leave`: 退出")
             return
+
         if args[1] == "join":
             try:
                 if ctx.author.voice is None:
@@ -198,6 +211,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                 await ctx.reply(embed=nextcord.Embed(title="TTSエラー",description=f"```{err}```\n```sh\n{sys.exc_info()}```",color=0xff0000))
                 print(f"[TTS接続時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
                 return
+
         elif args[1] == "leave":
             try:
                 if ctx.author.voice is None:
@@ -216,6 +230,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                 await ctx.reply(embed=nextcord.Embed(title="TTSエラー",description=f"```{err}```\n```sh\n{sys.exc_info()}```",color=0xff0000))
                 print(f"[TTS切断時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
                 return
+
         elif args[1] == "voice":
             try:
                 if ctx.author.voice is None:
@@ -235,10 +250,18 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                 print(f"[TTS voice change時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
                 return
 
-        else:
+        elif args[1] == "reload" and ctx.author.id in n_fc.py_admin:
+            importlib.reload(tts_convert)
+            importlib.reload(tts_dict)
+            await ctx.reply("Reloaded.")
+
+        elif args[1] == "reload" and ctx.author.id not in n_fc.py_admin:
             await ctx.reply("・読み上げ機能\nエラー：書き方が間違っています。\n\n`n!tts join`: 参加\n`n!tts leave`: 退出\n`n!tts voice`: 声選択")
             return
 
+        else:
+            await ctx.reply("・読み上げ機能\nエラー：書き方が間違っています。\n\n`n!tts join`: 参加\n`n!tts leave`: 退出\n`n!tts voice`: 声選択")
+            return
 
 
     @commands.Cog.listener()
@@ -279,4 +302,4 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
 
 def setup(bot):
     bot.add_cog(tts(bot))
-    importlib.reload(tts_convert)
+
