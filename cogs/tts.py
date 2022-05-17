@@ -145,7 +145,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
     async def voice_slash(self, interaction: Interaction):
         view = nextcord.ui.View(timeout=None)
         view.add_item(VoiceSelect())
-        await interaction.response.send_message("下のプルダウンから声を選択してください。",view=view)
+        await interaction.response.send_message("下のプルダウンから声を選択してください。",view=view,ephemeral=True)
         return
 
 

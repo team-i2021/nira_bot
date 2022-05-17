@@ -29,6 +29,6 @@ def convert(message: str) -> str:
         message = message.replace(word, read)
     message = convertE2K(message)
     message = message.replace("?","？").replace("&","あんど").replace("=","いこーる").replace("\n","。").replace("/", "すらっしゅ").replace(" ", "、").replace(" ", "、")
-    message = message.replace(r"<[0-9a-z_:]>","えもじ").replace(r"<#[0-9]>","ちゃんねる").replace(r"<@[0-9]>","ゆーざー").replace(r"<@&[0-9]>","ろーる")
+    message = message.replace(r"<[0-9a-z_:]{1,}>","えもじ").replace(r"<#[0-9]{1,}>","ちゃんねる").replace(r"<@[0-9]{1,}>","ゆーざー").replace(r"<@&[0-9]{1,}>","ろーる")
     message = re.sub("w{3,}", "わらわらわら", message)
     return message
