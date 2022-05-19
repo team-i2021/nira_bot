@@ -165,7 +165,8 @@ async def base_cog(bot, ctx, command, name):
 class debug(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-    
+
+
     async def ws(self, websocket, path):
         async for message in websocket:
             try:
@@ -196,11 +197,13 @@ class debug(commands.Cog):
             except BaseException as err:
                 await websocket.send(f"An error has occured:{err}")
 
+
     async def ws_main(self, port):
         logging.info("Websocket....")
         async with websockets.serve(self.ws, "0.0.0.0", int(port)):
             await asyncio.Future()
-    
+
+
     @commands.command()
     async def websocket(self, ctx: commands.Context):
         if ctx.message.author.id in n_fc.py_admin:
@@ -214,6 +217,7 @@ class debug(commands.Cog):
             await ctx.message.add_reaction("\U00002705")
         else:
             await ctx.message.reply(embed=nextcord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000))
+
 
     @commands.command()
     async def restart(self, ctx: commands.Context):
@@ -246,6 +250,7 @@ class debug(commands.Cog):
             await ctx.message.reply(embed=embed)
             return
 
+
     @commands.command()
     async def exit(self, ctx: commands.Context):
         if ctx.message.author.id in n_fc.py_admin:
@@ -277,6 +282,7 @@ class debug(commands.Cog):
             embed = nextcord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000)
             await ctx.message.reply(embed=embed)
             return
+
 
     @commands.command()
     async def py(self, ctx: commands.Context):
@@ -327,6 +333,7 @@ class debug(commands.Cog):
         await ctx.message.add_reaction("\U0001F197")
         return
 
+
     @commands.command()
     async def sh(self, ctx: commands.Context):
         if ctx.message.author.id not in n_fc.py_admin:
@@ -359,6 +366,7 @@ class debug(commands.Cog):
             await ctx.message.reply(f"```{rt_sh}```")
             return
 
+
     @commands.command()
     async def save(self, ctx: commands.Context):
         if ctx.message.author.id in n_fc.py_admin:
@@ -374,12 +382,14 @@ class debug(commands.Cog):
             await ctx.message.reply(embed=embed)
             return
 
+
     @commands.command()
     async def cog(self, ctx: commands.Context):
         command = None
         name = None
         await base_cog(self.bot, ctx, command, name)
         return
+
 
     @commands.command()
     async def reaction(self, ctx: commands.Context):
@@ -399,6 +409,7 @@ class debug(commands.Cog):
             except BaseException as err:
                 await ctx.reply(f"```{err}```")
 
+
     @commands.command()
     async def debug(self, ctx: commands.Context):
         if ctx.author.id in n_fc.py_admin:
@@ -410,12 +421,13 @@ class debug(commands.Cog):
                     load()
                     SETTING = json.load(open(f'{sys.path[0]}/setting.json', 'r'))
                     n_fc.py_admin = SETTING["py_admin"]
+                    n_fc.GUILD_IDS = SETTING["guild_ids"]
                 except BaseException as err:
                     await message.edit(content=f"エラーが発生しました。{err}")
                     return
                 await message.edit(content=f"変数の読み込みが完了しました。\nAdmin:{n_fc.py_admin}")
-        
-    
+
+
     @commands.command()
     async def lb(self, ctx):
         return

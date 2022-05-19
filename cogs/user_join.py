@@ -43,7 +43,7 @@ class user_join(commands.Cog):
             else:
                 embed = nextcord.Embed(title="あれ、また会った？", description=f"名前： `{member.name}`\nID: `{member.id}`", color=0x00ff00)
 
-            embed.set_thumbnail(url=user.avatar.url)
+            embed.set_thumbnail(url=member.avatar.url)
             embed.add_field(name="アカウント製作日", value=f"```{member.created_at}```")
             embed.add_field(name="現在のユーザー数", value=f"`{len(member.guild.members)}`人")
             if member.guild.id in n_fc.welcome_id_list:

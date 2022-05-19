@@ -7,7 +7,9 @@
 
 ## セットアップ
 1. `pip3 install -r requirements.txt`などの方法で、`requirements.txt`のモジュールをインストールします。
-2. `setting_temp.json`及び下の表を参考にして、`setting.json`にTOKENなどの必要な設定を書き込みます。
+2. データベースの情報を`util/gapi.json`に書き込みます。  
+データベースについては[こちら](https://nattyan-tv.github.io/nira-note/bot/notes/database)をご確認ください。
+3. `setting_temp.json`及び下の表を参考にして、`setting.json`にTOKENなどの必要な設定を書き込みます。
 
 ### `setting.json`の設定項目について
 キー|内容|例|変数型
@@ -16,6 +18,7 @@
 `py_admin`|再起動やJishakuなどの管理者コマンドを使用できるユーザーのDiscordID|`[1234567989,987654321]`|list(int)
 `voicevox`|VOICEVOX WebAPIのAPIキー|`["abcdefg1234","1234abcdef"]`|list(str)
 `prefix`|コマンドのプレフィックス|`"n!"`|str
+`database`|データベースのキー|`"abcdefghijklmn12345-opqrstuvwxyz67890"`|str
 `guild_ids`|スラッシュコマンドを登録するGuildID。未指定で全サーバーに登録する。|`[1234567989,987654321]`|list(int)
 `unload_cogs`|cogsフォルダにあるPythonファイルで、Cogとして読み込まないファイルを指定する。|`["yabai.py","tondemonai.py"]`|list(str)
 `load_cogs`|Debugモードで起動した際に読み込むCogを指定する。|`["debug.py"]`|list(str)

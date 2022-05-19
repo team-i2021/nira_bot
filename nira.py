@@ -30,6 +30,18 @@ except BaseException as err:
 
 
 
+#設定読み込み
+if os.path.isfile(f'{sys.path[0]}/setting.json') == False:
+    print("""[事前停止]
+BOTの設定ファイルが見つかりませんでした。
+「nira.py」があるフォルダに「setting.json」をおいてください。
+「setting_temp.json」というテンプレートがありますのでそちらを参考にしてください。
+
+または、「setup.py」を実行して、画面の指示通りにしてください。""", file=sys.stderr)
+    os._exit(0)
+
+
+
 HOME = os.path.dirname(os.path.abspath(__file__))
 SETTING = json.load(open(f'{sys.path[0]}/setting.json', 'r'))
 TOKEN = SETTING["tokens"]["nira_bot"]
@@ -58,18 +70,6 @@ async def is_owner(author):
     return author.id in n_fc.py_admin
 bot.is_owner = is_owner
 print("BOTの設定完了")
-
-
-
-#設定読み込み
-if os.path.isfile(f'{sys.path[0]}/setting.json') == False:
-    print("""[事前停止]
-BOTの設定ファイルが見つかりませんでした。
-「nira.py」があるフォルダに「setting.json」をおいてください。
-「setting_temp.json」というテンプレートがありますのでそちらを参考にしてください。
-
-または、「setup.py」を実行して、画面の指示通りにしてください。""", file=sys.stderr)
-    os._exit(0)
 
 
 

@@ -493,13 +493,13 @@ class music(commands.Cog):
                     del tts.tts_channel[member.guild.id]
                 await member.guild.voice_client.disconnect()
         except BaseException as err:
-            logging.error(traceback.format_exc())
+            #logging.error(traceback.format_exc())
             #print(traceback.format_exc(),err)
             pass
         try:
             print(f"AFTER:{len(after.channel.members)}/{self.bot.user in after.channel.members}/{after.channel.voice_states[self.bot.user.id].mute}")
         except BaseException as err:
-            logging.error(traceback.format_exc())
+            #logging.error(traceback.format_exc())
             #print(traceback.format_exc(),err)
             pass
         
