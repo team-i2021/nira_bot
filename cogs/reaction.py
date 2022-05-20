@@ -86,15 +86,8 @@ class NotifyTokenSet(nextcord.ui.Modal):
 class reaction(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-    
-    @commands.command(name="line", help="""\
-DiscordのメッセージをLINEに送信します。
-LINE Notifyという機能を用いて、DiscordのメッセージをLINEに送信します。""")
-    async def line(self, ctx: commands.Context):
-        embed = nextcord.Embed(title="DiscordのメッセージをLINEに送信する機能", description="使い方", color=0x00ff00)
-        embed.add_field(name="**このコマンドはスラッシュコマンドです**", value="`/line set`というスラッシュコマンドを送ると、TOKENを入力する画面が表示されるので、そこにTOKENを入力してください。\nちなみにTOKENの流出はとんでもないことにつながるので、気をつけてください。", inline=False)
-        embed.add_field(name="**TOKENって何？**", value="TOKENとは簡単に言えばパスワードです。LINE Notifyのページから発行してきてください。\n[TOKENの発行方法](https://qiita.com/nattyan_tv/items/33ac7a7269fe12e49198)", inline=False)
-        await ctx.reply(embed=embed)
+
+
 
     @commands.command(name="er", help="""\
 追加で新しいにらの反応を作り出すことが出来ます。
@@ -195,7 +188,136 @@ LINE Notifyという機能を用いて、DiscordのメッセージをLINEに送�
                     await ctx.reply("Ok")
                     return
         return
-    
+
+
+    @nextcord.slash_command(name="er", description="追加反応設定", guild_ids=n_fc.GUILD_IDS)
+    async def er_slash(self, interaction: Interaction):
+        pass
+
+
+    @er_slash.subcommand(name="add", description="追加反応の設定追加")
+    async def add_er_slash(
+            self,
+            interaction: Interaction,
+            triggerMessage: str = SlashOption(
+                name="triggerMessage",
+                description="トリガー",
+                required=True
+            ),
+            returnMessage: str = SlashOption(
+                name="returnMessage",
+                description="返答文",
+                required=True
+            )
+        ):
+        if admin_check.admin_check(interaction.guild, interaction.user):
+            try:
+                if interaction.guild.id not in n_fc.ex_reaction_list:
+                    n_fc.ex_reaction_list[interaction.guild.id] = {"value":0}
+                value = n_fc.ex_reaction_list[interaction.guild.id]["value"]
+                react_triger = triggerMessage
+                react_return = returnMessage
+                changeSetting(SET, ER, interaction, key="value", value=value+1)
+                changeSetting(SET, ER, interaction, key=f'{value+1}_tr', value=str(react_triger))
+                changeSetting(SET, ER, interaction, key=f'{value+1}_re', value=str(react_return))
+                await interaction.response.send_message(f"トリガー：{react_triger}\nリターン：{react_return}")
+                with open(f'{DIR}/ex_reaction_list.nira', 'wb') as f:
+                    pickle.dump(n_fc.ex_reaction_list, f)
+                return
+            except BaseException as err:
+                await interaction.response.send_message(embed=eh.eh(err))
+        else:
+            await interaction.response.send_message("管理者権限がありません。", ephemeral=True)
+            return
+
+
+    @er_slash.subcommand(name="del", description="追加反応の削除")
+    async def del_er_slash(
+            self,
+            interaction: Interaction,
+            triggerMessage: str = SlashOption(
+                name="triggerMessage",
+                description="トリガー。`all`と入力するとすべての反応を削除します。",
+                required=True
+            )
+        ):
+        if admin_check.admin_check(interaction.guild, interaction.user):
+            if interaction.guild.id not in n_fc.ex_reaction_list:
+                await interaction.response.send_message(f"`{interaction.guild.name}`では追加返答は設定されていません。", ephemeral=True)
+            else:
+                if triggerMessage == "all":
+                    del n_fc.ex_reaction_list[interaction.guild.id]
+                    await interaction.response.send_message(f"`{interaction.guild.id}`での追加反応の設定を削除しました。")
+                else:
+                    await interaction.response.defer()
+                    result = None
+                    triger = triggerMessage
+                    for i in range(math.floor((len(n_fc.ex_reaction_list[interaction.guild.id])-1)/2)):
+                        if n_fc.ex_reaction_list[interaction.guild.id][f"{i+1}_tr"] == triger:
+                            result = i
+                            break
+                        continue
+                    if result == None:
+                        await interaction.followup.send(f"`{triger}`というトリガーが見つかりませんでした。\n不具合がある場合は全消しするか、サポートサーバーへご連絡ください。", ephemeral=True)
+                        return
+                    for i in range(math.floor((len(n_fc.ex_reaction_list[interaction.guild.id])-1)/2)-(result+1)):
+                        n_fc.ex_reaction_list[interaction.guild.id][f"{result+i+1}_tr"] = n_fc.ex_reaction_list[interaction.guild.id][f"{result+i+2}_tr"]
+                        n_fc.ex_reaction_list[interaction.guild.id][f"{result+i+1}_re"] = n_fc.ex_reaction_list[interaction.guild.id][f"{result+i+2}_re"]
+                    await interaction.followup.send(f"`{triger}`を削除しました。")
+                    return
+        else:
+            await interaction.response.send_message("管理者権限がありません。", ephemeral=True)
+            return
+
+
+    @er_slash.subcommand(name="edit", description="追加反応の編集")
+    async def edit_er_slash(
+            self,
+            interaction: Interaction,
+            triggerMessage: str = SlashOption(
+                name="triggerMessage",
+                description="トリガー",
+                required=True
+            ),
+            returnMessage: str = SlashOption(
+                name="returnMessage",
+                description="返答文",
+                required=True
+            )
+        ):
+        if admin_check.admin_check(interaction.guild, interaction.user):
+            if interaction.guild.id not in n_fc.ex_reaction_list:
+                await interaction.response.send_message("追加反応は登録されていません。", ephemeral=True)
+                return
+            if n_fc.ex_reaction_list[interaction.guild.id]["value"] == 0:
+                await interaction.response.send_message("追加反応は登録されていません。", ephemeral=True)
+                return
+            await interaction.response.defer()
+            b_tr = triggerMessage
+            b_re = returnMessage
+            try:
+                rt_e = 0
+                for i in range(math.floor((len(n_fc.ex_reaction_list[interaction.guild.id])-1)/2)):
+                    if n_fc.ex_reaction_list[interaction.guild.id][f"{i+1}_tr"] == b_tr:
+                        n_fc.ex_reaction_list[interaction.guild.id][f"{i+1}_re"] = b_re
+                        rt_e = 1
+                        break
+                if rt_e == 1:
+                    await interaction.followup.send(f"トリガー：{b_tr}\nリターン：{b_re}")
+                    with open(f'{DIR}/ex_reaction_list.nira', 'wb') as f:
+                        pickle.dump(n_fc.ex_reaction_list, f)
+                    return
+                elif rt_e == 0:
+                    await interaction.followup.send("そのトリガーは登録されていません！", ephemeral=True)
+                    return
+            except BaseException as err:
+                await interaction.response.send_message(embed=eh.eh(err))
+                return
+        else:
+            await interaction.response.send_message("管理者権限がありません。", ephemeral=True)
+            return
+
+
     @commands.command(name="nr", help="""\
 にらBOTの通常反応（にらとか）を無効にしたりすることが出来ます。
 `n!nr`:今の状態を表示
@@ -252,7 +374,55 @@ LINE Notifyという機能を用いて、DiscordのメッセージをLINEに送�
         except BaseException as err:
             await ctx.message.reply(embed=eh.eh(err))
             return
-    
+
+
+    @nextcord.slash_command(name="nr", description="通常反応設定")
+    async def nr_slash(self, interaction):
+        pass
+
+
+    @nr_slash.subcommand(name="channel", description="チャンネルでの通常反応設定")
+    async def channel_nr_slash(
+            self,
+            interaction: Interaction,
+            setting: int = SlashOption(
+                name="setting",
+                description="チャンネルでの通常設定の有効化/無効化",
+                choices={"有効":1, "無効":0}
+            )
+        ):
+        if admin_check.admin_check(interaction.guild, interaction.user):
+            if interaction.guild.id not in n_fc.reaction_bool_list:
+                n_fc.reaction_bool_list[interaction.guild.id] = {interaction.channel.id: setting}
+            else:
+                n_fc.reaction_bool_list[interaction.guild.id][interaction.channel.id] = setting
+            await interaction.response.send_message(embed=nextcord.Embed(title="Normal Reaction Setting", description=f"チャンネル <#{interaction.channel.id}> での通常反応を変更しました。", color=0x00ff00), ephemeral=True)
+        else:
+            await interaction.response.send_message(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000), ephemeral=True)
+            return
+
+
+    @nr_slash.subcommand(name="server", description="サーバーでの通常反応設定")
+    async def server_nr_slash(
+            self,
+            interaction: Interaction,
+            setting: int = SlashOption(
+                name="setting",
+                description="サーバーでの通常設定の有効化/無効化",
+                choices={"有効":1, "無効":0}
+            )
+        ):
+        if admin_check.admin_check(interaction.guild, interaction.user):
+            if interaction.guild.id not in n_fc.reaction_bool_list:
+                n_fc.reaction_bool_list[interaction.guild.id] = {"all": setting, interaction.channel.id: 1}
+            else:
+                n_fc.reaction_bool_list[interaction.guild.id]["all"] = setting
+            await interaction.response.send_message(embed=nextcord.Embed(title="Normal Reaction Setting", description=f"サーバー `{interaction.guild.name}` での通常反応を変更しました。", color=0x00ff00), ephemeral=True)
+        else:
+            await interaction.response.send_message(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000), ephemeral=True)
+            return
+
+
     @commands.command(name="ar",help="""\
 にらBOTの通常反応及び追加反応(Bump通知および`n!`コマンド以外のすべて)を無効にしたりすることが出来ます。
 `n!ar`:今の状態を表示
@@ -297,15 +467,49 @@ LINE Notifyという機能を用いて、DiscordのメッセージをLINEに送�
         except BaseException as err:
             await ctx.message.reply(embed=eh.eh(err))
             return
-    
+
+
+    @nextcord.slash_command(name="ar", description="チャンネル全体反応設定")
+    async def ar_slash(
+            self,
+            interaction: Interaction,
+            setting: int = SlashOption(
+                name="setting",
+                description="チャンネルでの全体設定の有効化/無効化",
+                choices={"有効":1, "無効":0}
+            )
+        ):
+        if admin_check.admin_check(interaction.guild, interaction.user):
+            if interaction.guild.id not in n_fc.all_reaction_list:
+                n_fc.all_reaction_list[interaction.guild.id] = {interaction.channel.id: setting}
+            else:
+                n_fc.all_reaction_list[interaction.guild.id][interaction.channel.id] = setting
+            await interaction.response.send_message(embed=nextcord.Embed(title="All Reaction Setting", description=f"チャンネル <#{interaction.channel.id}> での全体反応を変更しました。", color=0x00ff00), ephemeral=True)
+        else:
+            await interaction.response.send_message(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000), ephemeral=True)
+            return
+
+
+    @commands.command(name="line", help="""\
+DiscordのメッセージをLINEに送信します。
+LINE Notifyという機能を用いて、DiscordのメッセージをLINEに送信します。""")
+    async def line(self, ctx: commands.Context):
+        embed = nextcord.Embed(title="DiscordのメッセージをLINEに送信する機能", description="使い方", color=0x00ff00)
+        embed.add_field(name="**このコマンドはスラッシュコマンドです**", value="`/line set`というスラッシュコマンドを送ると、TOKENを入力する画面が表示されるので、そこにTOKENを入力してください。\nちなみにTOKENの流出はとんでもないことにつながるので、気をつけてください。", inline=False)
+        embed.add_field(name="**TOKENって何？**", value="TOKENとは簡単に言えばパスワードです。LINE Notifyのページから発行してきてください。\n[TOKENの発行方法](https://qiita.com/nattyan_tv/items/33ac7a7269fe12e49198)", inline=False)
+        await ctx.reply(embed=embed)
+
+
     @nextcord.slash_command(name="line", description="LINE Notifyの設定")
     async def line_slash(self, interaction: Interaction):
         pass
+
 
     @line_slash.subcommand(name="set", description="LINE Notifyのトークンを設定します。")
     async def line_set_slash(self, interaction: Interaction):
         modal = NotifyTokenSet()
         await interaction.response.send_modal(modal=modal)
+
 
     @line_slash.subcommand(name="del", description="LINE Notifyのトークンを削除します。")
     async def line_del_slash(self, interaction: Interaction):
@@ -322,6 +526,7 @@ LINE Notifyという機能を用いて、DiscordのメッセージをLINEに送�
             with open(f'{DIR}/notify_token.nira', 'wb') as f:
                 pickle.dump(n_fc.notify_token, f)
             await interaction.response.send_message(f"{interaction.channel.name}でのLINEトークンを削除しました。", ephemeral = True)
+
 
 def setup(bot):
     bot.add_cog(reaction(bot))
