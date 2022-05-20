@@ -433,6 +433,30 @@ class debug(commands.Cog):
         return
 
 
+    @commands.command(name="db")
+    async def db(self, ctx: commands.Context):
+        if ctx.author.id in n_fc.py_admin:
+            args = ctx.message.content.split(" ", 2)
+            if len(args) == 1 or len(args) > 3:
+                await ctx.reply(f"```sh\nn!db [read/write] [cell] [data]```")
+                return
+            else:
+                if args[0] == "write":
+                    if len(args) != 3:
+                        await ctx.reply("An required argument is missing.")
+                        return
+                    else:
+                        DBS.update_acell(args[1], args[2])
+                        await ctx.message.add_reaction("\U0001F197")
+                        return
+                elif args[0] == "read":
+                    await ctx.reply(f"```py\n{DBS.acell(args[1]).value}```")
+                    return
+        else:
+            await ctx.message.reply(embed=nextcord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000))
+            return
+
+
 def setup(bot):
     bot.add_cog(debug(bot))
     importlib.reload(slash_tool)
