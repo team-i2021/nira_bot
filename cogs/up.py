@@ -10,9 +10,9 @@ import gspread
 import json
 import re
 from re import compile
-from oauth2client.service_account import ServiceAccountCredentials
+
 from util.n_fc import GUILD_IDS, py_admin
-from util import slash_tool, admin_check
+from util import slash_tool, admin_check, database
 
 DIR = sys.path[0]
 class NoTokenLogFilter(logging.Filter):
@@ -28,20 +28,7 @@ logging.basicConfig(format=formatter, filename=f'{DIR}/nira.log', level=logging.
 SET, DEL, STATUS = (0,1,2)
 ROLE_ID = compile(r"<@&[0-9]+?>")
 
-def connect_gspread(jsonf,key):
-    scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
-    credentials = ServiceAccountCredentials.from_json_keyfile_name(jsonf, scope)
-    gc = gspread.authorize(credentials)
-    SPREADSHEET_KEY = key
-    worksheet = gc.open_by_key(SPREADSHEET_KEY).sheet1
-    return worksheet
-
-# https://qiita.com/164kondo/items/eec4d1d8fd7648217935
-
-
-jsonFile = f"{sys.path[0]}/util/gapi.json"
-spreadKey = str(json.load(open(f'{sys.path[0]}/setting.json', 'r'))["database"])
-DBS = connect_gspread(jsonFile,spreadKey)
+DBS = database.openSheet()
 DATABASE_KEY = "B4"
 
 UpperData = {}
@@ -113,38 +100,39 @@ DissokuのUpをしたら、その1時間後に通知します。
 `n!up on @( ᐛ )وｱｯﾊﾟｧｧｧｧｧｧｧｧｧｧｧｧｧｧ!!`
 `n!up off`""")
     async def up(self, ctx: commands.Context):
-        args = ctx.message.content.split(" ", 3)
-        if len(args) == 1:
-            await UpNotifyConfig(self.bot, ctx, STATUS, None)
-            return
-        elif len(args) > 3:
-            await ErrorSend(ctx)
-            # error
-            return
-        elif len(args) == 2:
-            if args[1] == "on":
-                await UpNotifyConfig(self.bot, ctx, SET, None)
-            elif args[1] == "off":
-                await UpNotifyConfig(self.bot, ctx, DEL, None)
-            elif args[1][:5] == "debug":
-                if ctx.author.id in py_admin:
-                    debugArg = args[1].split(":", 1)
-                    if len(debugArg) == 1:
-                        debugArg = ""
-                    else:
-                        debugArg = debugArg[1]
-                    if debugArg == "current":
-                        await ctx.reply(f"```py\n[SHOW] Device\n{UpperData}```")
-                    elif debugArg == "server":
-                        await ctx.reply(f"```py\n[SHOW] Server\n{DBS.acell(DATABASE_KEY).value}```")
-                    elif debugArg == "write":
-                        writeDatabase()
-                        await ctx.reply(f"```sh\n[WRITE] Device -> Server\nExecuted.```")
-                    elif debugArg == "read":
-                        readDatabase()
-                        await ctx.reply(f"```sh\n[READ] Server -> Device\nExecuted.```")
-                    else:
-                        await ctx.reply(f"""\
+        if admin_check.admin_check(ctx.guild, ctx.author):
+            args = ctx.message.content.split(" ", 3)
+            if len(args) == 1:
+                await UpNotifyConfig(self.bot, ctx, STATUS, None)
+                return
+            elif len(args) > 3:
+                await ErrorSend(ctx)
+                # error
+                return
+            elif len(args) == 2:
+                if args[1] == "on":
+                    await UpNotifyConfig(self.bot, ctx, SET, None)
+                elif args[1] == "off":
+                    await UpNotifyConfig(self.bot, ctx, DEL, None)
+                elif args[1][:5] == "debug":
+                    if ctx.author.id in py_admin:
+                        debugArg = args[1].split(":", 1)
+                        if len(debugArg) == 1:
+                            debugArg = ""
+                        else:
+                            debugArg = debugArg[1]
+                        if debugArg == "current":
+                            await ctx.reply(f"```py\n[SHOW] Device\n{UpperData}```")
+                        elif debugArg == "server":
+                            await ctx.reply(f"```py\n[SHOW] Server\n{DBS.acell(DATABASE_KEY).value}```")
+                        elif debugArg == "write":
+                            writeDatabase()
+                            await ctx.reply(f"```sh\n[WRITE] Device -> Server\nExecuted.```")
+                        elif debugArg == "read":
+                            readDatabase()
+                            await ctx.reply(f"```sh\n[READ] Server -> Device\nExecuted.```")
+                        else:
+                            await ctx.reply(f"""\
 ```sh
 [HELP] Database Manager
 
@@ -154,38 +142,41 @@ current - Show UpperData of device
 server - Show UpperData of server
 write - write UpperData of device to server
 read - read UpperData from server to device```""")
-                    return
+                        return
+                    else:
+                        await ctx.reply(embed=nextcord.Embed(title="エラー", description="あなたはBOTの管理者ではありません。", color=0xff0000))
+                        return
                 else:
-                    await ctx.reply(embed=nextcord.Embed(title="エラー", description="あなたはBOTの管理者ではありません。", color=0xff0000))
-                    return
-            else:
-                await ErrorSend(ctx)
-            return
-        else:
-            if args[1] == "on":
-                if ROLE_ID.fullmatch(args[2]):
-                    await UpNotifyConfig(self.bot, ctx, SET, int(ROLE_ID.fullmatch(args[2]).group().replace("<@&", "").replace(">", "")))
-                    return
-
-                role = None
-                try:
-                    role = ctx.guild.get_role(int(args[2]))
-                except ValueError:
-                    pass
-
-                if role is None:
-                    for i in ctx.guild.roles:
-                        if i.name == args[2]:
-                            role = i
-                            break
-
-                if role is None:
-                    await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"指定したロール`{args[2]}`が見つかりませんでした。", color=0xff0000))
-                    return
-                await UpNotifyConfig(self.bot, ctx, SET, role.id)
+                    await ErrorSend(ctx)
                 return
             else:
-                await ErrorSend(ctx)
+                if args[1] == "on":
+                    if ROLE_ID.fullmatch(args[2]):
+                        await UpNotifyConfig(self.bot, ctx, SET, int(ROLE_ID.fullmatch(args[2]).group().replace("<@&", "").replace(">", "")))
+                        return
+
+                    role = None
+                    try:
+                        role = ctx.guild.get_role(int(args[2]))
+                    except ValueError:
+                        pass
+
+                    if role is None:
+                        for i in ctx.guild.roles:
+                            if i.name == args[2]:
+                                role = i
+                                break
+
+                    if role is None:
+                        await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"指定したロール`{args[2]}`が見つかりませんでした。", color=0xff0000))
+                        return
+                    await UpNotifyConfig(self.bot, ctx, SET, role.id)
+                    return
+                else:
+                    await ErrorSend(ctx)
+        else:
+            await ctx.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
+            return
 
 
     @nextcord.slash_command(name="up", description="Dissoku通知", guild_ids=GUILD_IDS)
