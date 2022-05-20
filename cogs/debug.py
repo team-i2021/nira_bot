@@ -382,6 +382,40 @@ class debug(commands.Cog):
             await ctx.message.reply(embed=embed)
             return
 
+    @nextcord.slash_command(name="cog", description="Manage cogs.", guild_ids=n_fc.GUILD_IDS)
+    async def cog_slash(self, interaction):
+        pass
+
+    @cog_slash.subcommand(name="list", description="List cogs.")
+    async def list_cog_slash(self, interaction):
+        await interaction.response.send_message(f"```py\n{list(dict(self.bot.cogs).keys())}```",ephemeral=True)
+
+    @cog_slash.subcommand(name="load", description="Load cog.")
+    async def load_cogs_slash(self, interaction: Interaction, cogname: str):
+        await interaction.response.defer()
+        try:
+            self.bot.load_extension(f"cogs.{cogname}")
+            await interaction.followup.send(f"The cog `cogs.{cogname}` successfully loaded.", ephemeral=True)
+        except BaseException as err:
+            await interaction.followup.send(f"Failed to load cog `cogs.{cogname}`.\n```py\n{err}```", ephemeral=True)
+
+    @cog_slash.subcommand(name="reload", description="Reload cog.")
+    async def load_cogs_slash(self, interaction: Interaction, cogname: str):
+        await interaction.response.defer()
+        try:
+            self.bot.reload_extension(f"cogs.{cogname}")
+            await interaction.followup.send(f"The cog `cogs.{cogname}` successfully reloaded.", ephemeral=True)
+        except BaseException as err:
+            await interaction.followup.send(f"Failed to reload cog `cogs.{cogname}`.\n```py\n{err}```", ephemeral=True)
+
+    @cog_slash.subcommand(name="unload", description="Unload cog.")
+    async def load_cogs_slash(self, interaction: Interaction, cogname: str):
+        await interaction.response.defer()
+        try:
+            self.bot.unload_extension(f"cogs.{cogname}")
+            await interaction.followup.send(f"The cog `cogs.{cogname}` successfully unloaded.", ephemeral=True)
+        except BaseException as err:
+            await interaction.followup.send(f"Failed to unload cog `cogs.{cogname}`.\n```py\n{err}```", ephemeral=True)
 
     @commands.command()
     async def cog(self, ctx: commands.Context):
