@@ -36,75 +36,76 @@ class HelpSelect(nextcord.ui.Select):
         elif opt == ManageServer or int(str(opt)[0]) == ManageServer:
             options = [
                 nextcord.SelectOption(label='ジャンル選択に戻る...', value=0),
-                nextcord.SelectOption(label='加入/離脱者情報表示', description="n!ui", value=11),
-                nextcord.SelectOption(label='ウェルカムメッセージ送信', description="n!welcome" ,value=12),
-                nextcord.SelectOption(label='サーバー加入時 自動ロール付与', description="n!autorole", value=13),
-                nextcord.SelectOption(label='ボタンでロールを付与するパネル', description="n!rolepanel", value=14),
-                nextcord.SelectOption(label='荒らし対策機能(未完成)', description="n!mod", value=15),
-                nextcord.SelectOption(label='メッセージ下部ピン止め機能(未完成)', description="n!pin", value=16),
-                nextcord.SelectOption(label='サーバーを抜けてもロールを保持する', description="n!rk", value=17),
-                nextcord.SelectOption(label='Bump通知機能', description="n!bump", value=18),
-                nextcord.SelectOption(label='ボタンで投票するパネル', description="n!pollpanel", value=19),
+                nextcord.SelectOption(label='加入/離脱者情報表示', description="n!ui", value=101),
+                nextcord.SelectOption(label='ウェルカムメッセージ送信', description="n!welcome" ,value=102),
+                nextcord.SelectOption(label='サーバー加入時 自動ロール付与', description="n!autorole", value=103),
+                nextcord.SelectOption(label='ボタンでロールを付与するパネル', description="n!rolepanel", value=104),
+                nextcord.SelectOption(label='荒らし対策機能(未完成)', description="n!mod", value=105),
+                nextcord.SelectOption(label='メッセージ下部ピン止め機能(未完成)', description="n!pin", value=106),
+                nextcord.SelectOption(label='サーバーを抜けてもロールを保持する', description="n!rk", value=107),
+                nextcord.SelectOption(label='Bump通知機能', description="n!bump", value=108),
+                nextcord.SelectOption(label='ボタンで投票するパネル', description="n!pollpanel", value=109),
+                nextcord.SelectOption(label='Dissoku Up通知機能', description="n!up", value=110),
             ]
         elif opt == ManageUser or int(str(opt)[0]) == ManageUser:
             options = [
                 nextcord.SelectOption(label='ジャンル選択に戻る...', value=0),
-                nextcord.SelectOption(label='ユーザー情報表示', description="n!d", value=21),
-                nextcord.SelectOption(label='管理者権限の有無をチェック', description="n!admin", value=22),
+                nextcord.SelectOption(label='ユーザー情報表示', description="n!d", value=201),
+                nextcord.SelectOption(label='管理者権限の有無をチェック', description="n!admin", value=202),
             ]
         elif opt == Amuse or int(str(opt)[0]) == Amuse:
             options = [
                 nextcord.SelectOption(label='ジャンル選択に戻る...', value=0),
-                nextcord.SelectOption(label='サイコロ', description="n!dice", value=31),
-                nextcord.SelectOption(label='じゃんけん', description="n!janken", value=32),
-                nextcord.SelectOption(label='占い', description="n!uranai", value=33),
-                nextcord.SelectOption(label='Wordle風ゲーム', description="n!wordle", value=34),
-                nextcord.SelectOption(label='しりとり風ゲーム', description="n!srtr", value=35),
+                nextcord.SelectOption(label='サイコロ', description="n!dice", value=301),
+                nextcord.SelectOption(label='じゃんけん', description="n!janken", value=302),
+                nextcord.SelectOption(label='占い', description="n!uranai", value=303),
+                nextcord.SelectOption(label='Wordle風ゲーム', description="n!wordle", value=304),
+                nextcord.SelectOption(label='しりとり風ゲーム', description="n!srtr", value=305),
             ]
         elif opt == ServerStatus or int(str(opt)[0]) == ServerStatus:
             options = [
                 nextcord.SelectOption(label='ジャンル選択に戻る...', value=0),
-                nextcord.SelectOption(label='Steam非公式サーバー ステータスチェック', description="n!ss", value=41),
-                nextcord.SelectOption(label='Minecraftサーバー ステータスチェック(未完成)', description="n!mc", value=42),
+                nextcord.SelectOption(label='Steam非公式サーバー ステータスチェック', description="n!ss", value=401),
+                nextcord.SelectOption(label='Minecraftサーバー ステータスチェック(未完成)', description="n!mc", value=402),
             ]
         elif opt == Embed or int(str(opt)[0]) == Embed:
             options = [
                 nextcord.SelectOption(label='ジャンル選択に戻る...', value=0),
-                nextcord.SelectOption(label='Embedを送信する', description="n!embed", value=51),
+                nextcord.SelectOption(label='Embedを送信する', description="n!embed", value=501),
             ]
         elif opt == Reaction or int(str(opt)[0]) == Reaction:
             options = [
                 nextcord.SelectOption(label='ジャンル選択に戻る...', value=0),
-                nextcord.SelectOption(label='にらのコマンド/Bump以外の全反応設定', description="n!ar", value=61),
-                nextcord.SelectOption(label='自分で反応を追加するオートリプライ機能', description="n!er", value=62),
-                nextcord.SelectOption(label='特定の言葉に反応する便乗機能', description="n!nr", value=63),
-                nextcord.SelectOption(label='特定のチャンネルのメッセージをLINEに送る', description="n!line", value=64),
+                nextcord.SelectOption(label='にらのコマンド/Bump以外の全反応設定', description="n!ar", value=601),
+                nextcord.SelectOption(label='自分で反応を追加するオートリプライ機能', description="n!er", value=602),
+                nextcord.SelectOption(label='特定の言葉に反応する便乗機能', description="n!nr", value=603),
+                nextcord.SelectOption(label='特定のチャンネルのメッセージをLINEに送る', description="n!line", value=604),
             ]
         elif opt == VoiceClient or int(str(opt)[0]) == VoiceClient:
             options = [
                 nextcord.SelectOption(label='ジャンル選択に戻る...', value=0),
-                nextcord.SelectOption(label='VCにBOTを参加させる', description="n!join", value=71),
-                nextcord.SelectOption(label='VCからBOTを離脱させる', description="n!leave", value=72),
-                nextcord.SelectOption(label='読み上げ機能', description="n!tts", value=73),
-                nextcord.SelectOption(label='音楽を再生する', description="n!play", value=74),
-                nextcord.SelectOption(label='音楽再生を全部止める', description="n!stop", value=75),
-                nextcord.SelectOption(label='音楽再生を一時停止する', description="n!pause", value=76),
-                nextcord.SelectOption(label='音楽再生を再開する', description="n!resume", value=77),
-                nextcord.SelectOption(label='曲のリスト表示', description="n!list", value=78),
-                nextcord.SelectOption(label='リストの一番後ろを消す', description="n!pop", value=79),
+                nextcord.SelectOption(label='VCにBOTを参加させる', description="n!join", value=701),
+                nextcord.SelectOption(label='VCからBOTを離脱させる', description="n!leave", value=702),
+                nextcord.SelectOption(label='読み上げ機能', description="n!tts", value=703),
+                nextcord.SelectOption(label='音楽を再生する', description="n!play", value=704),
+                nextcord.SelectOption(label='音楽再生を全部止める', description="n!stop", value=705),
+                nextcord.SelectOption(label='音楽再生を一時停止する', description="n!pause", value=706),
+                nextcord.SelectOption(label='音楽再生を再開する', description="n!resume", value=707),
+                nextcord.SelectOption(label='曲のリスト表示', description="n!list", value=708),
+                nextcord.SelectOption(label='リストの一番後ろを消す', description="n!pop", value=709),
             ]
         elif opt == BotUtility or int(str(opt)[0]) == BotUtility:
             options = [
                 nextcord.SelectOption(label='ジャンル選択に戻る...', value=0),
-                nextcord.SelectOption(label='サーバーとのレイテンシを測る', description="n!ping", value=81),
-                nextcord.SelectOption(label='Webページ作成', description="n!html", value=82),
-                nextcord.SelectOption(label='にらBOTの情報表示', description="n!info", value=83),
-                nextcord.SelectOption(label='ヘルプ表示', description="n!help", value=84),
+                nextcord.SelectOption(label='サーバーとのレイテンシを測る', description="n!ping", value=801),
+                nextcord.SelectOption(label='Webページ作成', description="n!html", value=802),
+                nextcord.SelectOption(label='にらBOTの情報表示', description="n!info", value=803),
+                nextcord.SelectOption(label='ヘルプ表示', description="n!help", value=804),
             ]
         elif opt == ChannelTopic or int(str(opt)[0]) == ChannelTopic:
             options = [
                 nextcord.SelectOption(label='ジャンル選択に戻る...', value=0),
-                nextcord.SelectOption(label='そのチャンネルでにらの反応を無効化する', description="nira-off", value=91),
+                nextcord.SelectOption(label='そのチャンネルでにらの反応を無効化する', description="nira-off", value=901),
             ]
         
         super().__init__(placeholder='Please select help content.', min_values=1, max_values=1, options=options)
