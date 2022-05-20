@@ -30,7 +30,6 @@ class error(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx: commands.Context, event: Exception):
         try:
-            ruizi,ruizi_max,ruizi_cm,i = None,None,None,None
             if isinstance(event, commands.CommandOnCooldown):
                 rtime = str(event).split(" ")[7]
                 await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"そのコマンドは現在クールタイム中です。\n```残り：{rtime}```", color=0xff0000))
@@ -47,7 +46,7 @@ class error(commands.Cog):
                     close_oneline = "(ヘルプがないコマンド)"
                 await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"`n!{keyword_command}`というコマンドは存在しません。\n`n!help`でコマンドを確認してください。\n\nもしかして：`n!{close_command}`:`{close_oneline}`", color=0xff0000))
             else:
-                await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"エラーが発生しました。\n\n・エラー内容```py\n{str(event)}```\n```sh\n{traceback.format_exc()}```\n[サポートサーバー](https://discord.gg/awfFpCYTcP)", color=0xff0000))
+                await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"エラーが発生しました。\n\n・エラー内容```py\n{str(event)}```\n```sh\n{traceback.format_exc()}```\n```py\n{sys.exc_info()}```\n[サポートサーバー](https://discord.gg/awfFpCYTcP)", color=0xff0000))
                 logging.error(f"エラーが発生しました。\non_error：{str(event)}")
             return
         except BaseException as err:
