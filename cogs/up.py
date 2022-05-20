@@ -226,6 +226,7 @@ read - read UpperData from server to device```""")
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
+        await asyncio.sleep(5)
         if message.guild == None:
             return
         if message.guild.id not in UpperData:
@@ -268,7 +269,7 @@ read - read UpperData from server to device```""")
 def setup(bot):
     readDatabase()
     bot.add_cog(UpNotify(bot))
-    UpNotify.writeDatabaseLoop.start()
+    UpNotify.writeDatabaseLoop.start(UpNotify(bot))
 
 
 def teradown(bot):
