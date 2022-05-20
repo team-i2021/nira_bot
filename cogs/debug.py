@@ -1,4 +1,4 @@
-from discord import Interaction
+from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
 import nextcord
 import os
@@ -385,7 +385,7 @@ class debug(commands.Cog):
             await ctx.message.reply(embed=embed)
             return
 
-    @nextcord.slash_command(name="cog", description="Manage cogs.", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="extension", description="Manage cogs.", guild_ids=n_fc.GUILD_IDS)
     async def cog_slash(self, interaction):
         pass
 
@@ -394,7 +394,7 @@ class debug(commands.Cog):
         await interaction.response.send_message(f"```py\n{list(dict(self.bot.cogs).keys())}```",ephemeral=True)
 
     @cog_slash.subcommand(name="load", description="Load cog.")
-    async def load_cogs_slash(self, interaction: Interaction, cogname: str):
+    async def load_cogs_slash(self, interaction: Interaction, cogname: str = SlashOption(name="cogname",description="Cog name.",required=True)):
         await interaction.response.defer()
         try:
             self.bot.load_extension(f"cogs.{cogname}")
@@ -403,7 +403,7 @@ class debug(commands.Cog):
             await interaction.followup.send(f"Failed to load cog `cogs.{cogname}`.\n```py\n{err}```", ephemeral=True)
 
     @cog_slash.subcommand(name="reload", description="Reload cog.")
-    async def load_cogs_slash(self, interaction: Interaction, cogname: str):
+    async def load_cogs_slash(self, interaction: Interaction, cogname: str = SlashOption(name="cogname",description="Cog name.",required=True)):
         await interaction.response.defer()
         try:
             self.bot.reload_extension(f"cogs.{cogname}")
@@ -412,7 +412,7 @@ class debug(commands.Cog):
             await interaction.followup.send(f"Failed to reload cog `cogs.{cogname}`.\n```py\n{err}```", ephemeral=True)
 
     @cog_slash.subcommand(name="unload", description="Unload cog.")
-    async def load_cogs_slash(self, interaction: Interaction, cogname: str):
+    async def load_cogs_slash(self, interaction: Interaction, cogname: str = SlashOption(name="cogname",description="Cog name.",required=True)):
         await interaction.response.defer()
         try:
             self.bot.unload_extension(f"cogs.{cogname}")
@@ -420,7 +420,7 @@ class debug(commands.Cog):
         except BaseException as err:
             await interaction.followup.send(f"Failed to unload cog `cogs.{cogname}`.\n```py\n{err}```", ephemeral=True)
 
-    @commands.command()
+    @commands.command(name="cog", help="Manage cogs.")
     async def cog(self, ctx: commands.Context):
         command = None
         name = None
