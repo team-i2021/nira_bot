@@ -1,3 +1,4 @@
+from discord import Interaction
 from nextcord.ext import commands
 import nextcord
 import os
@@ -18,7 +19,7 @@ import sys
 from nextcord.ext.commands.core import command
 
 sys.path.append('../')
-from util import admin_check, n_fc, eh
+from util import admin_check, n_fc, eh, database
 
 
 
@@ -46,6 +47,8 @@ home_dir = os.path.dirname(__file__)[:-4]
 
 #管理者向けdebug
 
+DBS = database.openSheet()
+DATABASE_KEY = "B2"
 
 def save():
     for i in range(len(n_fc.save_list)):
