@@ -59,10 +59,10 @@ class amuse(commands.Cog):
         args = ctx.message.content.split(" ",1)
         max_count, min_count = (0,0)
         if len(args) == 2:
-            min_count = int("".join(re.findall(r'[0-9]', args[1]])))
+            min_count = int("".join(re.findall(r'[0-9]', args[1])))
         else:
             min_count = 1
-        max_count = int("".join(re.findall(r'[0-9]', args[0]])))
+        max_count = int("".join(re.findall(r'[0-9]', args[0])))
         rnd_ex = random.randint(min_count, max_count)
         await ctx.reply(embed=nextcord.Embed(title=f"サイコロ\n`{min_count}-{max_count}`", description=f"```{rnd_ex}```", color=0x00ff00))
         return
