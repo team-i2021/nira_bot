@@ -39,34 +39,52 @@ class amuse(commands.Cog):
         pass
 
     @commands.command(name="dice", help="""\
-    指定した最大目のダイスを振ります。
-    数値以外は無視されます。
-    例:`n!dice 10`(0-10のダイス)
-    例:`n!dice a12`(0-12のダイス)
-    例:`n!dice -290`(0-290のダイス)    
+指定した最大目のダイスを振ります。
+数値以外(マイナスとか文字とか)は無視されます。
+例:`n!dice 10`(1-10のダイス)
+例:`n!dice a12 2`(2-12のダイス)
+例:`n!dice -290 -13`(13-290のダイス)
 
-    引数1:int
-    ダイスの最大値。""")
+引数1:int
+ダイスの最大値。
+
+引数2:int（省略可能）
+ダイスの最小値
+デフォルト:1
+""")
     async def dice_ctx(self, ctx: commands.context):
         if ctx.message.content == "n!dice":
             await ctx.reply(embed=nextcord.Embed(title="エラー",description="サイコロだよ！\n`n!dice [max]`",color=0xff0000))
             return
-        max_count = int("".join(re.findall(r'[0-9]', ctx.message.content[7:])))
-        rnd_ex = random.randint(0, max_count)
-        await ctx.reply(embed=nextcord.Embed(title="サイコロ", description=f"```{rnd_ex}```", color=0x00ff00))
+        args = ctx.message.content.split(" ",1)
+        max_count, min_count = (0,0)
+        if len(args) == 2:
+            min_count = int("".join(re.findall(r'[0-9]', args[1]])))
+        else:
+            min_count = 1
+        max_count = int("".join(re.findall(r'[0-9]', args[0]])))
+        rnd_ex = random.randint(min_count, max_count)
+        await ctx.reply(embed=nextcord.Embed(title=f"サイコロ\n`{min_count}-{max_count}`", description=f"```{rnd_ex}```", color=0x00ff00))
         return
     
     @amuse.subcommand(name="dice", description="サイコロを振ります")
     async def dice(
         self,
         interaction = Interaction,
-        count: int = SlashOption(
-            name = "count",
+        max_count: int = SlashOption(
+            name = "max_count",
             description = "ダイスの最大目の数です",
             required=True
-        )):
-        rnd_ex = random.randint(0, count)
-        await messages.mreply(interaction, "dice", embed=nextcord.Embed(title="サイコロ", description=f"```{rnd_ex}```", color=0x00ff00))
+        ),
+        min_count: int = SlashOption(
+            name = "min_count",
+            description = "ダイスの最小目の数です デフォルトは1です",
+            required=False,
+            default=1
+        ),
+        ):
+        rnd_ex = random.randint(min_count, max_count)
+        await messages.mreply(interaction, "", embed=nextcord.Embed(title=f"サイコロ\n`{min_count}-{max_count}`", description=f"```{rnd_ex}```", color=0x00ff00))
         return
 
     def jankenEmbed(self, content, type):
