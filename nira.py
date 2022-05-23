@@ -1,23 +1,20 @@
 # coding: utf-8
 
 #沢山のインポート
+import os, sys, json, traceback, datetime, asyncio, re
 try:
-    import os
-    import traceback
     import nextcord
     from nextcord.ext import commands
-    import sys
     from nextcord import Interaction
-    from util import n_fc, admin_check, web_api
-    import json
+    from util import n_fc
+    # from util import database
     from cogs import debug as cogs_debug
     from cogs import server_status
     sys.setrecursionlimit(10000)#エラー回避
     import pickle
-    import datetime
-    import asyncio
     from cogs import rolepanel
     from cogs import pollpanel
+    import websockets
     print("モジュールインポート完了")
 except BaseException as err:
     print(f"""モジュールインポート時のエラー:{err}
@@ -77,11 +74,13 @@ print("BOTの設定完了")
 import logging
 
 
+
 class NoTokenLogFilter(logging.Filter):
     def filter(self, record):
         message = record.getMessage()
         return 'token' not in message
 
+#DBS = database.openSheet()
 
 
 logger = logging.getLogger(__name__)
@@ -91,6 +90,29 @@ logging.basicConfig(format=formatter, filename=f'{HOME}/nira.log', level=logging
 print("外部設定完了")
 
 
+#async def ws(websocket, path):
+#    async for message in websocket:
+#        try:
+#            if message == "guilds":
+#                await websocket.send(str(len(bot.guilds)))
+#            elif message == "users":
+#                await websocket.send(str(len(bot.users)))
+#            elif message == "voice_clients":
+#                await websocket.send(str(len(bot.voice_clients)))
+#            elif message[:7] == "captcha":
+#                user, guild = [int(i) for i in message[8:].split(" ",1)]
+#                value = readValue(DBS, "B6")
+#                role = value[guild]
+#                Guild = await bot.fetch_guild(guild)
+#                Member = await Guild.fetch_member(user)
+#                await Member.add_roles(role)
+#        except BaseException as err:
+#            await websocket.send(f"An error has occured:{err}")
+#
+#async def ws_main(port):
+#    logging.info("Websocket....")
+#    async with websockets.serve(ws, "0.0.0.0", int(port)):
+#        await asyncio.Future()
 
 @bot.event
 async def on_ready():
