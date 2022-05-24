@@ -24,5 +24,5 @@ def writeValue(data, cell, value) -> None:
 
 
 # https://qiita.com/164kondo/items/eec4d1d8fd7648217935
-# B2:テスト/B3:TTS/B4:Up通知/B5:Reminder/B6:Captcha
+# B2:テスト/B3:TTS/B4:Up通知/B5:Reminder/B6:Captcha/B7:InviteURLs
 
