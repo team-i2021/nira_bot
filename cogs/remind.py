@@ -332,7 +332,7 @@ read - read UpperData from server to device```""")
             for time in messages.keys():
                 if time == now_time:
                     try:
-                        message = RemindData[channel][time]
+                        message = RemindData[channel][time].replace("%date%", dt.strftime("%m/%d"))
                         Ch = await self.bot.fetch_channel(int(channel))
                         await Ch.send(message)
                     except BaseException as err:
