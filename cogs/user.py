@@ -119,24 +119,25 @@ class user(commands.Cog):
                 save()
                 CHANNEL = await bot.fetch_channel(n_fc.welcome_id_list[guild_id])
                 await CHANNEL.send("このチャンネルが、ユーザー情報表示チャンネルとして指定されました。")
-                return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定",description=f"<#{channel.id}>に指定されました。", color=0x00ff00),ephemeral=True)
+                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定",description=f"<#{channel.id}>に指定されました。", color=0x00ff00),ephemeral=True)
             except BaseException as err:
-                return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定",description=f"エラーが発生しました。\n```\n{err}```", color=0xff000),ephemeral=True)
+                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定",description=f"エラーが発生しました。\n```\n{err}```", color=0xff000),ephemeral=True)
         elif type == DEL:
             try:
                 if guild_id not in n_fc.welcome_id_list:
-                    return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定",description=f"このサーバーには登録されていません。", color=0xff0000), ephemeral=True)
+                    await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定",description=f"このサーバーには登録されていません。", color=0xff0000), ephemeral=True)
+                    return
                 del n_fc.welcome_id_list[guild_id]
-                return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定",description=f"設定を削除しました。", color=0x00ff00),ephemeral=True)
+                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定",description=f"設定を削除しました。", color=0x00ff00),ephemeral=True)
             except BaseException as err:
-                return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定",description=f"エラーが発生しました。\n```\n{err}```", color=0xff000),ephemeral=True)
+                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定",description=f"エラーが発生しました。\n```\n{err}```", color=0xff000),ephemeral=True)
         elif type == STATUS:
             if guild_id not in n_fc.welcome_id_list:
-                return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定",description=f"サーバーで設定は`無効`です", color=0x00ff00),ephemeral=True)
+                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定",description=f"サーバーで設定は`無効`です", color=0x00ff00),ephemeral=True)
             else:
-                return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定",description=f"サーバーで設定は`有効`です\n設定チャンネル: <#{n_fc.welcome_id_list[guild_id]}>", color=0x00ff00),ephemeral=True)
+                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定",description=f"サーバーで設定は`有効`です\n設定チャンネル: <#{n_fc.welcome_id_list[guild_id]}>", color=0x00ff00),ephemeral=True)
 
-    @nextcord.slash_command(name="ui", description="サーバー加入/離脱した場合にそのユーザーの情報を表示します")
+    @nextcord.slash_command(name="ui", description="サーバー加入/離脱した場合にそのユーザーの情報を表示します", guild_ids=n_fc.GUILD_IDS)
     async def ui_slash(self, interaction):
         pass
 
@@ -179,8 +180,8 @@ class user(commands.Cog):
         return
 
     @commands.command(name="ui", help="""\
-    誰かがDiscordサーバーに加入/離脱した際に、指定したチャンネルにそのユーザーの情報を表示します。
-    それだけです。""")
+誰かがDiscordサーバーに加入/離脱した際に、指定したチャンネルにそのユーザーの情報を表示します。
+それだけです。""")
     async def ui(self, ctx: commands.Context):
         if admin_check.admin_check(ctx.message.guild, ctx.message.author) or ctx.message.author.id in n_fc.py_admin:
             mes_arg = ctx.message.content.split(" ")
