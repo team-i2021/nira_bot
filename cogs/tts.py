@@ -90,7 +90,7 @@ class tts(commands.Cog):
         self.bot = bot
 
 
-    @nextcord.slash_command(name="tts", description="テキストチャンネルの内容をVCで読み上げます")
+    @nextcord.slash_command(name="tts", description="テキストチャンネルの内容をVCで読み上げます", guild_ids=n_fc.GUILD_IDS)
     async def tts_slash(self, interaction: Interaction):
         pass
 

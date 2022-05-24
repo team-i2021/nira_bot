@@ -104,7 +104,7 @@ Disboardの通知設定を行います。
         else:
             await self.bump_config(ctx, 302050872383242240, None)
     
-    @nextcord.slash_command(name="bump", description="bumpの設定をします")
+    @nextcord.slash_command(name="bump", description="bumpの設定をします", guild_ids=n_fc.GUILD_IDS)
     async def bump_slash(self, interaction):
         pass
     

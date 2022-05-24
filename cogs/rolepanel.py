@@ -114,7 +114,7 @@ class rolepanel(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
     
-    @nextcord.slash_command(name="rolepanel", description="ロールパネルを設置します")
+    @nextcord.slash_command(name="rolepanel", description="ロールパネルを設置します", guild_ids=n_fc.GUILD_IDS)
     async def rolepanel_slash(
             self,
             interaction: Interaction,

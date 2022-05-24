@@ -86,7 +86,7 @@ n!welcome leave off
         save()
         return
     
-    @nextcord.slash_command(name="welcome",description="誰かがサーバー加入/離脱した時にメッセージを送信します。")
+    @nextcord.slash_command(name="welcome",description="誰かがサーバー加入/離脱した時にメッセージを送信します。", guild_ids=n_fc.GUILD_IDS)
     async def welcome_slash(self, interaction: Interaction):
         pass
     

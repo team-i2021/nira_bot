@@ -376,7 +376,7 @@ class reaction(commands.Cog):
             return
 
 
-    @nextcord.slash_command(name="nr", description="通常反応設定")
+    @nextcord.slash_command(name="nr", description="通常反応設定", guild_ids=n_fc.GUILD_IDS)
     async def nr_slash(self, interaction):
         pass
 
@@ -469,7 +469,7 @@ class reaction(commands.Cog):
             return
 
 
-    @nextcord.slash_command(name="ar", description="チャンネル全体反応設定")
+    @nextcord.slash_command(name="ar", description="チャンネル全体反応設定", guild_ids=n_fc.GUILD_IDS)
     async def ar_slash(
             self,
             interaction: Interaction,

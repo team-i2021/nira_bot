@@ -196,7 +196,7 @@ class info(commands.Cog):
         await info_base.info(self, ctx, CTX)
         return
     
-    @nextcord.slash_command(name="help", description="にらBOT及び、コマンドのヘルプを表示します。")
+    @nextcord.slash_command(name="help", description="にらBOT及び、コマンドのヘルプを表示します。", guild_ids=n_fc.GUILD_IDS)
     async def help_slash(
             self,
             interaction: Interaction,

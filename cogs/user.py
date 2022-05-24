@@ -68,7 +68,7 @@ class user(commands.Cog):
                 await ctx.message.reply(embed=nextcord.Embed(title="Error", description="ユーザーが存在しないか、データが取得できませんでした。", color=0xff0000))
                 return
     
-    @nextcord.slash_command(name="rk", description="ロールキーパー機能の設定")
+    @nextcord.slash_command(name="rk", description="ロールキーパー機能の設定", guild_ids=n_fc.GUILD_IDS)
     async def rk_slash(self, interaction: Interaction):
         pass
 
