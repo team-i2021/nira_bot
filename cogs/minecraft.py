@@ -253,7 +253,7 @@ MinecraftのJava/BEサーバーのステータスを表示します
                 return
             args = base_arg[1][4:].split(" ")
             if len(args) != 4:
-                await ctx.reply(mcMessage["ja"]["add"]["invalid_arg"])
+                await ctx.reply(mcMessage["ja"]["add"]["invalid_args"])
                 return
             try:
                 args[2] = int(args[2])
