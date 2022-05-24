@@ -206,6 +206,8 @@ n!remind on 8:25 おはようございます！
                 return
 
             del RemindData[ctx.channel.id][time]
+            if len(RemindData[ctx.channel.id]) == 0:
+                del RemindData[ctx.channel.id]
             writeDatabase()
             await ctx.reply(embed=nextcord.Embed(title="削除完了", description=f"<#{ctx.channel.id}> での`{time}`のリマインドメッセージを削除しました。", color=0x00ff00))
             return
@@ -300,6 +302,8 @@ read - read UpperData from server to device```""")
                 return
 
             del RemindData[interaction.channel.id][timeB]
+            if len(RemindData[interaction.channel.id]) == 0:
+                del RemindData[interaction.channel.id]
             writeDatabase()
             await interaction.followup.send(embed=nextcord.Embed(title="削除完了", description=f"<#{interaction.channel.id}> での`{timeB}`のリマインドメッセージを削除しました。", color=0x00ff00))
             return
