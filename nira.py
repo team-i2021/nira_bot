@@ -207,7 +207,7 @@ for i in range(len(n_fc.save_list)):
             if n_fc.save_list[i] == "notify_token.nira":
                 logging.info("LINE NotifyのTOKENのため、表示はされません。")
             else:
-                exec(f"logging.info(n_fc.{n_fc.save_list[i]})")
+                if DEBUG: exec(f"logging.info(n_fc.{n_fc.save_list[i]})");
         else:
             logging.info("ファイルが存在しません。")
             with open(f"{HOME}/{n_fc.save_list[i]}.nira", "wb") as f:
