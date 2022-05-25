@@ -128,12 +128,13 @@ class Invite(commands.Cog):
         if interaction.guild.id not in InviteData:
             InviteData[interaction.guild.id] = {i.url: [None, i.uses] for i in await interaction.guild.invites()}
             database.writeValue(DBS, DATABASE_KEY, InviteData)
-        embed = nextcord.Embed(title="招待リスト", description="", color=0x00FF00)
+        EmbedDescription = ""
         for key, value in InviteData[interaction.guild.id].items():
             if value[0] is not None:
-                embed.add_field(name=f"[{value[0]}]({key})", value=f"使用された回数: `{value[1]}`", inline=False)
+                EmbedDescription += f"[{value[0]}]({key}) - `{value[1]}`回\n"
             else:
-                embed.add_field(name=f"[{key}]({key})", value=f"使用された回数: `{value[1]}`", inline=False)
+                EmbedDescription += f"[{key}]({key}) - `{value[1]}`回\n"
+        embed = nextcord.Embed(title="招待リスト", description=EmbedDescription, color=0x00FF00)
         await interaction.followup.send(embed=embed)
         return
 
@@ -160,12 +161,13 @@ class Invite(commands.Cog):
             if ctx.guild.id not in InviteData:
                 InviteData[ctx.guild.id] = {i.url: [None, i.uses] for i in await ctx.guild.invites()}
                 database.writeValue(DBS, DATABASE_KEY, InviteData)
-            embed = nextcord.Embed(title="招待リスト", description="", color=0x00FF00)
+            EmbedDescription = ""
             for key, value in InviteData[ctx.guild.id].items():
                 if value[0] is not None:
-                    embed.add_field(name=f"[{value[0]}]({key})", value=f"使用された回数: `{value[1]}`", inline=False)
+                    EmbedDescription += f"[{value[0]}]({key}) - `{value[1]}`回\n"
                 else:
-                    embed.add_field(name=f"[{key}]({key})", value=f"使用された回数: `{value[1]}`", inline=False)
+                    EmbedDescription += f"[{key}]({key}) - `{value[1]}`回\n"
+            embed = nextcord.Embed(title="招待リスト", description=EmbedDescription, color=0x00FF00)
             await ctx.reply(embed=embed)
             return
         
