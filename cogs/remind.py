@@ -134,8 +134,6 @@ n!remind on 8:25 おはようございます！
 `n!remind off 08:25`
 `n!remind list`""")
     async def remind(self, ctx: commands.Context):
-        if ctx.author.id != 669178357371371522:
-            return
         args = ctx.message.content.split(" ", 3)
         if len(args) < 2:
             await ctx.reply(embed=nextcord.Embed(title="使い方", description="`n!remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`\n`n!remind off [時間(hh:mm)]`\n`n!remind list`\n\n詳しくは`n!help remind`を参照してください。",color=0xff0000))
