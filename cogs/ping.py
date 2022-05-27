@@ -91,13 +91,13 @@ class ping(commands.Cog):
 
     @nextcord.slash_command(name="ping", description="Discordサーバー又は、指定サーバーとのレイテンシを計測します。", guild_ids=n_fc.GUILD_IDS)
     async def ping_slash(
-        self,
-        interaction = Interaction,
-        address: str = SlashOption(
-            name="address",
-            description="アドレス。指定しないとDiscordサーバーとのRTTを表示します。",
-            required=False,
-        )
+            self,
+            interaction = Interaction,
+            address: str = SlashOption(
+                name="address",
+                description="アドレス。指定しないとDiscordサーバーとのRTTを表示します。",
+                required=False,
+            )
         ):
         await interaction.response.defer()
         await base_ping(self.bot, interaction, address)
