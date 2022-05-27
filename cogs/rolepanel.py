@@ -33,31 +33,42 @@ logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.
 
 
 class RolePanelSlashInput(nextcord.ui.Modal):
-    def __init__(self, count:int, bot, content_title):
+    def __init__(self, bot):
         super().__init__(
             "ロールパネル",
             timeout=None
         )
-        self.content_title = content_title
+
         self.bot = bot
-        
-        self.TextInputs = []
-        for i in range(count):
-            self.TextInputs.append(
-                nextcord.ui.TextInput(
-                    label=f"{i+1}番目のロールの名前又はID",
-                    style=nextcord.TextInputStyle.short,
-                    placeholder=f"にら民",
-                    required=True
-                )
-            )
-            self.add_item(self.TextInputs[i])
-        
+
+        self.EmbedTitle = nextcord.ui.TextInput(
+            label=f"ロールパネルのタイトル",
+            style=nextcord.TextInputStyle.short,
+            placeholder=f"こっからロールとってね",
+            required=False
+        )
+        self.add_item(self.EmbedTitle)
+
+        self.Roles = nextcord.ui.TextInput(
+            label=f"ロールの名前又はID（ロールごとに改行！）",
+            style=nextcord.TextInputStyle.paragraph,
+            placeholder=f"にら民1\nにら民2\n1234567890",
+            required=True
+        )
+        self.add_item(self.Roles)
+
     async def callback(self, interaction: Interaction) -> None:
         await interaction.response.defer()
-        values = [i.value for i in self.TextInputs if i.value != ""]
+
+        values = [i for i in self.Roles.value.splitlines() if i.value != ""]
+
+        if len(values) > 25:
+            await interaction.followup.send("ロールパネル機能は最大で24個まで選択肢を指定できます。")
+            return
+    
         embed_content = ""
         ViewArgs = []
+
         for i in range(len(values)):
             role_id = None
             try:
@@ -76,11 +87,19 @@ class RolePanelSlashInput(nextcord.ui.Modal):
                 return
             embed_content += f"{i+1}: <@&{role_id}>\n"
             ViewArgs.append([i+1, role_id])
+
         self.bot.add_view(RolePanelView(ViewArgs))
         PersistentViews.append(ViewArgs)
         with open(f'{sys.path[0]}/PersistentViews.nira', 'wb') as f:
             pickle.dump(PersistentViews, f)
-        await interaction.followup.send(embed=nextcord.Embed(title=self.content_title, description=embed_content, color=0x00ff00), view=RolePanelView(ViewArgs))
+        if self.EmbedTitle.value == "" or self.EmbedTitle.value is None:
+            self.EmbedTitle.value = "にらBOTロールパネル"
+        try:
+            await interaction.followup.send(embed=nextcord.Embed(title=self.content_title, description=embed_content, color=0x00ff00), view=RolePanelView(ViewArgs))
+        except BaseException as err:
+            await interaction.followup.send(f"エラー: `{err}`")
+            return
+
 
 
 
@@ -118,20 +137,10 @@ class rolepanel(commands.Cog):
     async def rolepanel_slash(
             self,
             interaction: Interaction,
-            count: int = SlashOption(
-                name="count",
-                description="ロールの数",
-                required=True
-            ),
-            title: int = SlashOption(
-                name="title",
-                description="Embedのタイトル",
-                required=False
-            ),
         ):
         if title == None:
             title = "にらBOTロールパネル"
-        modal = RolePanelSlashInput(count, self.bot, title)
+        modal = RolePanelSlashInput(self.bot)
         await interaction.response.send_modal(modal=modal)
         return
 

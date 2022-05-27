@@ -35,6 +35,72 @@ formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(me
 logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
 
 
+class PollPanelSlashInput(nextcord.ui.Modal):
+    def __init__(self, bot):
+        super().__init__(
+            "投票パネル",
+            timeout=None
+        )
+
+        self.bot = bot
+
+        self.EmbedTitle = nextcord.ui.TextInput(
+            label=f"投票パネルのタイトル",
+            style=nextcord.TextInputStyle.short,
+            placeholder=f"好きな猫に投票してね",
+            required=False
+        )
+        self.add_item(self.EmbedTitle)
+
+        self.PollType = nextcord.ui.TextInput(
+            label=f"投票タイプ",
+            style=nextcord.TextInputStyle.short,
+            placeholder=f"「0」で一人一票、「1」で一人何票でも",
+            required=True
+        )
+        self.add_item(self.PollType)
+
+        self.Polls = nextcord.ui.TextInput(
+            label=f"投票内容（投票内容ごとに改行！）",
+            style=nextcord.TextInputStyle.paragraph,
+            placeholder=f"しろねこ\nくろねこ\nみけねこ",
+            required=True
+        )
+        self.add_item(self.Polls)
+
+
+    async def callback(self, interaction: Interaction) -> None:
+        await interaction.response.defer()
+
+        values = [i for i in self.Polls.value.splitlines() if i.value != ""]
+
+        if "".join(re.findall(r'[0-1]', self.PollType.value)) == "":
+            await interaction.followup.send("投票タイプは、「0」か「1」で入力してください")
+            return
+
+        if len(values) > 25:
+            await interaction.followup.send("投票パネル機能は最大で24個まで選択肢を指定できます。")
+            return
+
+        embed_content = ""
+        if int("".join(re.findall(r'[0-1]', self.PollType.value))) == 0:
+            embed_content =  "`一人一票`\n" + ":なし\n".join(values) + ":なし"
+        else:
+            embed_content =  "`一人何票でも`\n" + ":なし\n".join(values) + ":なし"
+
+        self.bot.add_view(PollPanelView(values))
+        PollViews.append(values)
+        if self.EmbedTitle.value == "" or self.EmbedTitle.value is None:
+            self.EmbedTitle.value = "にらBOT投票パネル"
+        with open(f'{sys.path[0]}/PollViews.nira', 'wb') as f:
+            pickle.dump(PollViews, f)
+        try:
+            await interaction.followup.send(f"作成者:{interaction.user.mention}",embed=nextcord.Embed(title=f"{self.EmbedTitle.value}", description=embed_content, color=0x00ff00), view=PollPanelView(values))
+        except BaseException as err:
+            await interaction.followup.send(f"エラー: `{err}`")
+            return
+
+
 
 class PollPanelView(nextcord.ui.View):
     def __init__(self, args):
@@ -183,7 +249,6 @@ n!pollpanel [on/off] [メッセージ内容]
             embed_content =  "`一人何票でも`\n" + ":なし\n".join(ViewArgs) + ":なし"
             poll_type = False
 
-        
         self.bot.add_view(PollPanelView(ViewArgs))
         PollViews.append(ViewArgs)
         with open(f'{sys.path[0]}/PollViews.nira', 'wb') as f:
