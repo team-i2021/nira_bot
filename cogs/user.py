@@ -19,11 +19,7 @@ class user(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
     
-    @nextcord.slash_command(
-            name="user",
-            description="ユーザー情報表示",
-            guild_ids=n_fc.GUILD_IDS
-        )
+    @nextcord.slash_command(name="user", description="ユーザー情報表示", guild_ids=n_fc.GUILD_IDS)
     async def user_slash(
             self,
             interaction: Interaction,
@@ -67,10 +63,32 @@ class user(commands.Cog):
             except BaseException:
                 await ctx.message.reply(embed=nextcord.Embed(title="Error", description="ユーザーが存在しないか、データが取得できませんでした。", color=0xff0000))
                 return
-    
+
+
     @nextcord.slash_command(name="rk", description="ロールキーパー機能の設定", guild_ids=n_fc.GUILD_IDS)
-    async def rk_slash(self, interaction: Interaction):
-        pass
+    async def rk_slash(
+            self,
+            interaction: Interaction,
+            SettingValue: int = SlashOption(
+                name = "SettingValue",
+                description = "設定値",
+                required=True,
+                choices={"有効にする":1, "無効にする":0}
+            )
+        ):
+        if admin_check.admin_check(interaction.guild, interaction.user):
+            if interaction.guild.id in n_fc.role_keeper:
+                n_fc.role_keeper[interaction.guild.id]["rk"] = SettingValue
+                await interaction.response.send_message(embed=nextcord.Embed(title="Role Keeper", description="設定を変更しました。", color=0x00ff00))
+                return
+            else:
+                n_fc.role_keeper[interaction.guild.id] = {"rk":SettingValue}
+                await interaction.response.send_message(embed=nextcord.Embed(title="Role Keeper", description="設定を変更しました。", color=0x00ff00))
+                return
+        else:
+            await interaction.response.send_message(embed=nextcord.Embed(title="Error", description="権限がありません。", color=0xff0000))
+            return
+
 
     @commands.command(name="rk", help="""\
 ロールキーパー機能です。
