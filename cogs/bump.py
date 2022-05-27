@@ -61,7 +61,7 @@ class bump(commands.Cog):
                 return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="エラー", description=f"管理者権限がありません。", color=0xff0000))
         else:
             return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="Bump設定", description="`n!bump`:Bump通知の設定の状態表示\n`n!bump on`:サーバーでのBump通知の設定を有効にします。\n`n!bump off`:サーバーでのBump通知の設定を無効にします。", color=0x00ff00))
-    
+
     @commands.command(name="bump", help="""\
 Disboardの通知設定を行います。
 
@@ -72,8 +72,7 @@ Disboardの通知設定を行います。
 ・例
 `n!bump on`
 `n!bump on @Bumper`
-`n!bump off`
-""")
+`n!bump off`""")
     async def bump(self, ctx: commands.Context):
         args = ctx.message.content.split(" ",3)
         if len(args) == 1:
@@ -103,11 +102,11 @@ Disboardの通知設定を行います。
             await self.bump_config(ctx, DEL, None)
         else:
             await self.bump_config(ctx, 302050872383242240, None)
-    
+
     @nextcord.slash_command(name="bump", description="bumpの設定をします", guild_ids=n_fc.GUILD_IDS)
     async def bump_slash(self, interaction):
         pass
-    
+
     @bump_slash.subcommand(name="set", description="bumpの通知をします")
     async def set_slash(
             self,
@@ -120,7 +119,7 @@ Disboardの通知設定を行います。
         ):
         await self.bump_config(interaction, SET, role)
         return
-    
+
     @bump_slash.subcommand(name="del", description="bumpの通知設定を削除します")
     async def del_slash(
             self,
@@ -128,7 +127,7 @@ Disboardの通知設定を行います。
         ):
         await self.bump_config(interaction, DEL, None)
         return
-    
+
     @bump_slash.subcommand(name="status", description="bump通知の設定状況を確認します")
     async def status_slash(
             self,

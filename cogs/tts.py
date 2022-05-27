@@ -53,12 +53,12 @@ class VoiceSelect(nextcord.ui.Select):
 
         options = [
             nextcord.SelectOption(label='四国めたん/あまあま', value=0),
-            nextcord.SelectOption(label='ずんだもん/あまあま', value=1),
             nextcord.SelectOption(label='四国めたん/ノーマル', value=2),
-            nextcord.SelectOption(label='ずんだもん/ノーマル', value=3),
             nextcord.SelectOption(label='四国めたん/セクシー', value=4),
-            nextcord.SelectOption(label='ずんだもん/セクシー', value=5),
             nextcord.SelectOption(label='四国めたん/ツンツン', value=6),
+            nextcord.SelectOption(label='ずんだもん/あまあま', value=1),
+            nextcord.SelectOption(label='ずんだもん/ノーマル', value=3),
+            nextcord.SelectOption(label='ずんだもん/セクシー', value=5),
             nextcord.SelectOption(label='ずんだもん/ツンツン', value=7),
             nextcord.SelectOption(label='春日部つむぎ/ノーマル', value=8),
             nextcord.SelectOption(label='波音リツ/ノーマル', value=9),

@@ -72,8 +72,7 @@ class mod(commands.Cog):
 
     @commands.command(name="mod", help="""\
 一応、特定数異常のメッセージを20秒以内に送信した人がミュートされていくはずです。
-ちゃんと作ってません。はい。
-""")
+ちゃんと作ってません。はい。""")
     async def mod(self, ctx: commands.Context):
         if ctx.message.content[:8] == "n!mod on":
             if admin_check.admin_check(ctx.guild, ctx.author):

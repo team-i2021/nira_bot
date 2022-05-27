@@ -495,8 +495,12 @@ DiscordのメッセージをLINEに送信します。
 LINE Notifyという機能を用いて、DiscordのメッセージをLINEに送信します。""")
     async def line(self, ctx: commands.Context):
         embed = nextcord.Embed(title="DiscordのメッセージをLINEに送信する機能", description="使い方", color=0x00ff00)
-        embed.add_field(name="**このコマンドはスラッシュコマンドです**", value="`/line set`というスラッシュコマンドを送ると、TOKENを入力する画面が表示されるので、そこにTOKENを入力してください。\nちなみにTOKENの流出はとんでもないことにつながるので、気をつけてください。", inline=False)
-        embed.add_field(name="**TOKENって何？**", value="TOKENとは簡単に言えばパスワードです。LINE Notifyのページから発行してきてください。\n[TOKENの発行方法](https://qiita.com/nattyan_tv/items/33ac7a7269fe12e49198)", inline=False)
+        embed.add_field(name="**このコマンドはスラッシュコマンドです**", value="""\
+`/line set`というスラッシュコマンドを送ると、TOKENを入力する画面が表示されるので、そこにTOKENを入力してください。
+ちなみにTOKENの流出はとんでもないことにつながるので、気をつけてください。""", inline=False)
+        embed.add_field(name="**TOKENって何？**", value="""\
+TOKENとは簡単に言えばパスワードです。LINE Notifyのページから発行してきてください。
+[TOKENの発行方法](https://qiita.com/nattyan_tv/items/33ac7a7269fe12e49198)""", inline=False)
         await ctx.reply(embed=embed)
 
 

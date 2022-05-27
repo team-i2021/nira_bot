@@ -2,6 +2,7 @@
 
 #沢山のインポート
 import os, sys, json, traceback, datetime, asyncio, re
+
 try:
     import nextcord
     from nextcord.ext import commands
