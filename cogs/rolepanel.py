@@ -60,12 +60,12 @@ class RolePanelSlashInput(nextcord.ui.Modal):
     async def callback(self, interaction: Interaction) -> None:
         await interaction.response.defer()
 
-        values = [i for i in self.Roles.value.splitlines() if i.value != ""]
+        values = [i for i in self.Roles.value.splitlines() if i != ""]
 
         if len(values) > 25:
             await interaction.followup.send("ロールパネル機能は最大で24個まで選択肢を指定できます。")
             return
-    
+
         embed_content = ""
         ViewArgs = []
 
@@ -95,7 +95,7 @@ class RolePanelSlashInput(nextcord.ui.Modal):
         if self.EmbedTitle.value == "" or self.EmbedTitle.value is None:
             self.EmbedTitle.value = "にらBOTロールパネル"
         try:
-            await interaction.followup.send(embed=nextcord.Embed(title=self.content_title, description=embed_content, color=0x00ff00), view=RolePanelView(ViewArgs))
+            await interaction.followup.send(embed=nextcord.Embed(title=self.EmbedTitle.value, description=embed_content, color=0x00ff00), view=RolePanelView(ViewArgs))
         except BaseException as err:
             await interaction.followup.send(f"エラー: `{err}`")
             return
@@ -136,10 +136,8 @@ class rolepanel(commands.Cog):
     @nextcord.slash_command(name="rolepanel", description="ロールパネルを設置します", guild_ids=n_fc.GUILD_IDS)
     async def rolepanel_slash(
             self,
-            interaction: Interaction,
+            interaction: Interaction
         ):
-        if title == None:
-            title = "にらBOTロールパネル"
         modal = RolePanelSlashInput(self.bot)
         await interaction.response.send_modal(modal=modal)
         return

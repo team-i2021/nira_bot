@@ -56,7 +56,9 @@ class PollPanelSlashInput(nextcord.ui.Modal):
             label=f"投票タイプ",
             style=nextcord.TextInputStyle.short,
             placeholder=f"「0」で一人一票、「1」で一人何票でも",
-            required=True
+            required=True,
+            min_length=1,
+            max_length=1,
         )
         self.add_item(self.PollType)
 
@@ -72,7 +74,7 @@ class PollPanelSlashInput(nextcord.ui.Modal):
     async def callback(self, interaction: Interaction) -> None:
         await interaction.response.defer()
 
-        values = [i for i in self.Polls.value.splitlines() if i.value != ""]
+        values = [i for i in self.Polls.value.splitlines() if i != ""]
 
         if "".join(re.findall(r'[0-1]', self.PollType.value)) == "":
             await interaction.followup.send("投票タイプは、「0」か「1」で入力してください")
@@ -194,7 +196,18 @@ class PollPanelEnd(nextcord.ui.Button):
 class pollpanel(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-    
+
+
+    @nextcord.slash_command(name="pollpanel", description="投票パネルを設置します", guild_ids=n_fc.GUILD_IDS)
+    async def rolepanel_slash(
+            self,
+            interaction: Interaction
+        ):
+        modal = PollPanelSlashInput(self.bot)
+        await interaction.response.send_modal(modal=modal)
+        return
+
+
     @commands.command(name="pollpanel", aliases=["ポールパネル","pp","poll",], help="""\
 投票パネル機能
 
