@@ -86,7 +86,7 @@ class user_join(commands.Cog):
                 embed.add_field(name="招待リンク", value=f"{invitedFrom}から招待を受けました！", inline=False)
             database.writeValue(DBS, DATABASE_KEY, InviteData)
         except BaseException as err:
-            logging.error(f"{err}\n{}```・デバッグ用`{[keyword_command,close_command,close_description]}`""")            logging.error(f"エラー処理中のエラー\non_error：{traceback.format_exc()}\nハンドリング中のエラー：{err}")            returndef setup(bot):}")
+            logging.error(f"{err}\n{traceback.format_exc()}")
 
         try:
             if member.guild.id in n_fc.welcome_id_list:
