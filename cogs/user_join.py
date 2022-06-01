@@ -1,5 +1,6 @@
 from nextcord.ext import commands
 import nextcord
+import traceback
 import re
 import sys
 import json
@@ -51,7 +52,10 @@ class user_join(commands.Cog):
                 for i in range(len(member.guild.members)):
                     if member.guild.members[i].id != member.id:
                         n_fc.role_keeper[member.guild.id][member.guild.members[i].id] = [j.id for j in member.guild.members[i].roles if j.name != "@everyone"]
+        except BaseException as err:
+            logging.error(err)
 
+        try:
             if member.id not in n_fc.role_keeper[member.guild.id]:
                 embed = nextcord.Embed(title="こんにちは！", description=f"名前： `{member.name}`\nID: `{member.id}`", color=0x00ff00)
             else:
@@ -60,7 +64,10 @@ class user_join(commands.Cog):
             embed.set_thumbnail(url=member.avatar.url)
             embed.add_field(name="アカウント製作日", value=f"```{member.created_at}```")
             embed.add_field(name="現在のユーザー数", value=f"`{len(member.guild.members)}`人")
-
+        except BaseException as err:
+            logging.error(err)
+        
+        try:
             InviteData = readValue()
             if member.guild.id not in InviteData:
                 InviteData[member.guild.id] = {i.url: [None, i.uses] for i in await member.guild.invites()}
@@ -78,7 +85,10 @@ class user_join(commands.Cog):
                     invitedFrom = f"[{invitedUrl.url}]({invitedUrl.url})"
                 embed.add_field(name="招待リンク", value=f"{invitedFrom}から招待を受けました！", inline=False)
             database.writeValue(DBS, DATABASE_KEY, InviteData)
+        except BaseException as err:
+            logging.error(f"{err}\n{}```・デバッグ用`{[keyword_command,close_command,close_description]}`""")            logging.error(f"エラー処理中のエラー\non_error：{traceback.format_exc()}\nハンドリング中のエラー：{err}")            returndef setup(bot):}")
 
+        try:
             if member.guild.id in n_fc.welcome_id_list:
                 members_message = await channel.send(embed=embed)
             else:
