@@ -61,7 +61,8 @@ class user_join(commands.Cog):
             else:
                 embed = nextcord.Embed(title="あれ、また会った？", description=f"名前： `{member.name}`\nID: `{member.id}`", color=0x00ff00)
 
-            embed.set_thumbnail(url=member.avatar.url)
+            if member.avatar is not None:
+                embed.set_thumbnail(url=member.avatar.url)
             embed.add_field(name="アカウント製作日", value=f"```{member.created_at}```")
             embed.add_field(name="現在のユーザー数", value=f"`{len(member.guild.members)}`人")
         except BaseException as err:
@@ -133,7 +134,8 @@ class user_join(commands.Cog):
             else:
                 channel = None
             embed = nextcord.Embed(title="また来てねー！", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
-            embed.set_thumbnail(url=user.avatar.url)
+            if user.avatar is not None:
+                embed.set_thumbnail(url=user.avatar.url)
             embed.add_field(name="現在のユーザー数", value=f"`{len(member.guild.members)}`人")
             role_text = ""
             role_ids = []
