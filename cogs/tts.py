@@ -263,6 +263,41 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
             await ctx.reply("・読み上げ機能\nエラー：書き方が間違っています。\n\n`n!tts join`: 参加\n`n!tts leave`: 退出\n`n!tts voice`: 声選択")
             return
 
+    @nextcord.message_command(name="メッセージを読み上げる", guild_ids=n_fc.GUILD_IDS)
+    async def speak_message(self, interaction: Interaction, message: nextcord.Message):
+        await interaction.response.defer(ephemeral=True)
+        try:
+            if interaction.user.voice is None:
+                await interaction.followup.send(embed=nextcord.Embed(title="TTSエラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
+                return
+            else:
+                if interaction.guild.voice_client is None:
+                    await interaction.followup.send(embed=nextcord.Embed(title="TTSエラー",description="にらBOTがボイスチャンネルに接続されていません。",color=0xff0000))
+                    return
+
+                if message.content == "" or message.content is None:
+                    await interaction.followup.send(embed=nextcord.Embed(title="TTSエラー",description="メッセージが空です。",color=0xff0000))
+                    return
+                if interaction.user.id not in speaker_author:
+                    speaker_author[interaction.user.id] = 2
+                if interaction.guild.voice_client.is_playing():
+                    while True:
+                        if interaction.guild.voice_client.is_playing():
+                            await asyncio.sleep(0.1)
+                        else:
+                            break
+                await interaction.followup.send(embed=nextcord.Embed(title="TTS",description=f"```\n{message.content}```\nを読み上げます...",color=0x00ff00))
+                interaction.guild.voice_client.play(
+                    nextcord.PCMVolumeTransformer(nextcord.FFmpegPCMAudio(
+                        f"https://api.su-shiki.com/v2/voicevox/audio/?text={tts_convert.convert(message.content)}&key={keys[random.randint(0,len(keys)-1)]}&speaker={speaker_author[interaction.user.id]}"
+                    ),
+                    volume=0.5)
+                )
+                return
+        except BaseException as err:
+            await interaction.followup.send(embed=nextcord.Embed(title="TTSエラー",description=f"```{err}```\n```sh\n{sys.exc_info()}```",color=0xff0000))
+            print(f"[TTS読み上げ時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
+            return
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
