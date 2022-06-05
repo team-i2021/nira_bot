@@ -12,6 +12,16 @@ class check(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
     
+    @nextcord.user_command(name="管理者権限チェック", guild_ids=n_fc.GUILD_IDS)
+    async def admin_user(self, interaction: Interaction, member: nextcord.Member):
+        if admin_check.admin_check(member.guild, member):
+            await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ADMIN", description=f"権限があるようです。", color=0x00ff00))
+        elif interaction.user.id in n_fc.py_admin:
+            await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ADMIN", description=f"サーバー権限はありませんが、コマンドは実行できます。（BOT開発者）", color=0xffff00))
+        else:
+            await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ADMIN", description=f"権限がないようです。\n**（管理者権限を付与したロールがありませんでした。）**\n自分が管理者の場合は、自分に管理者権限を付与したロールを付けてください。", color=0xff0000))
+        return
+    
     @nextcord.slash_command(name="admin", description="管理者権限チェック", guild_ids=n_fc.GUILD_IDS)
     async def admin_slash(self, interaction: Interaction):
         if admin_check.admin_check(interaction.guild, interaction.user):
