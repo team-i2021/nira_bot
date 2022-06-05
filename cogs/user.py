@@ -18,7 +18,27 @@ home_dir = sys.path[0]
 class user(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-    
+
+    def UserInfoEmbed(self, member: nextcord.Member or nextcord.User):
+        if member.bot:
+            embed = nextcord.Embed(title="User Info", description=f"名前：`{member.name}` __[BOT]__\nID：`{member.id}`", color=0x00ff00)
+        else:
+            embed = nextcord.Embed(title="User Info", description=f"名前：`{member.name}`\nID：`{member.id}`", color=0x00ff00)
+        if member.banner is not None:
+            embed.set_image(url=member.banner.url)
+        if member.avatar is not None:
+            embed.set_thumbnail(url=member.avatar.url)
+        embed.add_field(name="アカウント製作日", value=f"```{member.created_at}```", inline=False)
+        if type(member) is nextcord.Member:
+            embed.add_field(name="サーバー参加日", value=f"```{member.joined_at}```", inline=False)
+        
+        return embed
+
+    @nextcord.user_command(name="ユーザー情報表示", guild_ids=n_fc.GUILD_IDS)
+    async def member_info(self, interaction: Interaction, member: nextcord.Member):
+        await interaction.response.send_message(embed=self.UserInfoEmbed(member))
+        return
+
     @nextcord.slash_command(name="user", description="ユーザー情報表示", guild_ids=n_fc.GUILD_IDS)
     async def user_slash(
             self,
@@ -29,12 +49,9 @@ class user(commands.Cog):
                 required=False
             )
         ):
-        if user == None:
+        if user is None:
             user = interaction.user
-        embed = nextcord.Embed(title="User Info", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
-        embed.set_thumbnail(url=user.avatar.url)
-        embed.add_field(name="アカウント製作日", value=f"```{user.created_at}```")
-        await interaction.response.send_message(embed=embed)
+        await interaction.response.send_message(embed=self.UserInfoEmbed(user))
         return
     
     @commands.command(name="d", help="""\
@@ -45,20 +62,14 @@ class user(commands.Cog):
     **メンションでも指定できますが、いざこざとかにつながるかもしれないのでしないほうが得策です。**""")
     async def d(self, ctx: commands.Context):
         if ctx.message.content == "n!d":
-            user = await self.bot.fetch_user(ctx.message.author.id)
-            embed = nextcord.Embed(title="User Info", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
-            embed.set_thumbnail(url=user.avatar.url)
-            embed.add_field(name="アカウント製作日", value=f"```{user.created_at}```")
-            await ctx.message.reply(embed=embed)
+            user = await self.bot.fetch_user(ctx.author.id)
+            await ctx.message.reply(embed=self.UserInfoEmbed(user))
             return
         else:
             user_id = int("".join(re.findall(r'[0-9]', ctx.message.content[4:])))
             try:
                 user = await self.bot.fetch_user(user_id)
-                embed = nextcord.Embed(title="User Info", description=f"名前：`{user.name}`\nID：`{user.id}`", color=0x00ff00)
-                embed.set_thumbnail(url=user.avatar.url)
-                embed.add_field(name="アカウント製作日", value=f"```{user.created_at}```")
-                await ctx.message.reply(embed=embed)
+                await ctx.message.reply(embed=self.UserInfoEmbed(user))
                 return
             except BaseException:
                 await ctx.message.reply(embed=nextcord.Embed(title="Error", description="ユーザーが存在しないか、データが取得できませんでした。", color=0xff0000))
