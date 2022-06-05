@@ -35,7 +35,7 @@ class amuse(commands.Cog):
         self.bot = bot
     
     @nextcord.slash_command(name="amuse", description="娯楽系", guild_ids=GUILD_IDS)
-    async def amuse(self):
+    async def amuse(self, interaction: Interaction):
         pass
 
     @commands.command(name="dice", help="""\
@@ -53,7 +53,7 @@ class amuse(commands.Cog):
 デフォルト:1""")
     async def dice_ctx(self, ctx: commands.context):
         if ctx.message.content == "n!dice":
-            await ctx.reply(embed=nextcord.Embed(title="エラー",description="サイコロだよ！\n`n!dice [max]`",color=0xff0000))
+            await ctx.reply(embed=nextcord.Embed(title="エラー",description="サイコロだよ！\n`n!dice [最大値] [最小値]`",color=0xff0000))
             return
         args = ctx.message.content.split(" ",2)
         max_count, min_count = (0,0)
@@ -76,26 +76,74 @@ class amuse(commands.Cog):
         rnd_ex = random.randint(min_count, max_count)
         await ctx.reply(embed=nextcord.Embed(title=f"サイコロ\n`{min_count}-{max_count}`", description=f"```{rnd_ex}```", color=0x00ff00))
         return
-    
-    @amuse.subcommand(name="dice", description="サイコロを振ります")
-    async def dice(
-        self,
-        interaction = Interaction,
-        max_count: int = SlashOption(
-            name = "max_count",
-            description = "ダイスの最大目の数です",
-            required=True
-        ),
-        min_count: int = SlashOption(
-            name = "min_count",
-            description = "ダイスの最小目の数です デフォルトは1です",
-            required=False,
-            default=1
-        ),
+
+    @amuse.subcommand(description="dice subcommand group")
+    async def dice(self, interaction: Interaction):
+        pass
+
+    @dice.subcommand(description="普通のサイコロを振ります")
+    async def normal(
+            self,
+            interaction: Interaction,
+            max_count: int = SlashOption(
+                name = "max_count",
+                description = "ダイスの最大目の数です",
+                required=True
+            ),
+            min_count: int = SlashOption(
+                name = "min_count",
+                description = "ダイスの最小目の数です デフォルトは1です",
+                required=False,
+                default=1
+            ),
         ):
+        if max_count < min_count:
+            await messages.mreply(interaction, "", embed=nextcord.Embed(title="エラー",description="最大値が最小値より小さいよ！",color=0xff0000))
+            return
         rnd_ex = random.randint(min_count, max_count)
         await messages.mreply(interaction, "", embed=nextcord.Embed(title=f"サイコロ\n`{min_count}-{max_count}`", description=f"```{rnd_ex}```", color=0x00ff00))
         return
+
+    @dice.subcommand(description="TRPG用のサイコロを振ります")
+    async def trpg(
+            self,
+            interaction: Interaction,
+            NumberOfDice: int = SlashOption(
+                name = "NumberOfDice",
+                description = "ダイスの数です",
+                required=True
+            ),
+            DiceCount: int = SlashOption(
+                name = "DiceCount",
+                description = "ダイスの最大目の数です",
+                required=True
+            ),
+        ):
+        await interaction.response.defer()
+        if NumberOfDice < 1:
+            await interaction.response.edit(embed=nextcord.Embed(title="エラー",description="ダイスの数は1以上です！",color=0xff0000))
+            return
+        if DiceCount < 1:
+            await interaction.response.edit(embed=nextcord.Embed(title="エラー",description="ダイスの最大目は1以上です！",color=0xff0000))
+            return
+        if NumberOfDice > 10000:
+            await interaction.response.edit(embed=nextcord.Embed(title="エラー",description="負荷防止のため、ダイスの数は10000以下です！",color=0xff0000))
+            return
+
+        dices = []
+        diceAllCount = 0
+        for _ in range(NumberOfDice):
+            Num = random.randint(1, DiceCount)
+            dices.append(Num)
+            diceAllCount += Num
+        
+        embed = nextcord.Embed(title=f"サイコロ\n`{NumberOfDice}D{DiceCount}`", description=f"```{diceAllCount}```", color=0x00ff00)
+
+        dice_numbers = str(dices)
+        if len(dice_numbers) > 1000:
+            dice_numbers = dice_numbers[:1000] + "..."
+        embed.add_field(name="ダイスの目の詳細", value=f"```\n{dice_numbers}```", inline=False)
+
 
     def jankenEmbed(self, content, type):
         if type == MESSAGE and content == "n!janken":
