@@ -110,43 +110,39 @@ class Amuse(commands.Cog):
     async def trpg(
         self,
         interaction: Interaction,
-        NumberOfDice: int = SlashOption(
-            name="NumberOfDice",
+        number_dice: int = SlashOption(
+            name="number_dice",
             description="ダイスの数です。「n」の部分です。",
-            required=True
+            required=True,
+            min_value=1,
+            max_value=10000
         ),
-        DiceCount: int = SlashOption(
-            name="DiceCount",
+        dice_count: int = SlashOption(
+            name="dice_count",
             description="ダイスの最大目の数です。「r」の部分です。",
-            required=True
+            required=True,
+            min_value=1,
+            max_value=10000
         ),
     ):
         await interaction.response.defer()
-        if NumberOfDice < 1:
-            await interaction.response.edit(embed=nextcord.Embed(title="エラー", description="ダイスの数は1以上です！", color=0xff0000))
-            return
-        if DiceCount < 1:
-            await interaction.response.edit(embed=nextcord.Embed(title="エラー", description="ダイスの最大目は1以上です！", color=0xff0000))
-            return
-        if NumberOfDice > 10000:
-            await interaction.response.edit(embed=nextcord.Embed(title="エラー", description="負荷防止のため、ダイスの数は10000以下です！", color=0xff0000))
-            return
 
-    #    dices = []
-    #    diceAllCount = 0
-    #    for _ in range(NumberOfDice):
-    #        Num = random.randint(1, DiceCount)
-    #        dices.append(Num)
-    #        diceAllCount += Num
+        dices = []
+        diceAllCount = 0
+        for _ in range(number_dice):
+            Num = random.randint(1, dice_count)
+            dices.append(Num)
+            diceAllCount += Num
 
-    #    embed = nextcord.Embed(
-    #        title=f"サイコロ\n`{NumberOfDice}D{DiceCount}`", description=f"```{diceAllCount}```", color=0x00ff00)
+        embed = nextcord.Embed(
+            title=f"サイコロ\n`{number_dice}D{dice_count}`", description=f"```{diceAllCount}```", color=0x00ff00)
 
-    #    dice_numbers = str(dices)
-    #    if len(dice_numbers) > 1000:
-    #        dice_numbers = dice_numbers[:1000] + "..."
-    #    embed.add_field(name="ダイスの目の詳細",
-    #                    value=f"```\n{dice_numbers}```", inline=False)
+        dice_numbers = str(dices)
+        if len(dice_numbers) > 1000:
+            dice_numbers = dice_numbers[:1000] + "..."
+        embed.add_field(name="ダイスの目の詳細",
+                        value=f"```\n{dice_numbers}```", inline=False)
+        await interaction.followup.send(embed=embed)
 
     def jankenEmbed(self, content, type):
         if type == MESSAGE and content == "n!janken":
