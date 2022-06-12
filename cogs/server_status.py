@@ -1,3 +1,10 @@
+import re
+import traceback
+from util import admin_check, eh, n_fc, server_check
+import os
+import logging
+import importlib
+import asyncio
 import datetime
 import pickle
 import sys
@@ -7,31 +14,26 @@ from nextcord import SlashOption, Interaction
 from nextcord.ext import commands
 
 sys.path.append('../')
-import asyncio
-import datetime
-import importlib
-#loggingの設定
-import logging
-import os
-import re, importlib
+# loggingの設定
 
 PREFIX = "n!"
 
 home_dir = os.path.dirname(__file__)[:-4]
 
 dir = sys.path[0]
-from util import admin_check, eh, n_fc, server_check
-import traceback
+
 
 class NoTokenLogFilter(logging.Filter):
     def filter(self, record):
         message = record.getMessage()
         return 'token' not in message
 
+
 logger = logging.getLogger(__name__)
 logger.addFilter(NoTokenLogFilter())
 formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
-logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
+logging.basicConfig(
+    format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
 
 ss_check_result = {}
 
@@ -51,22 +53,24 @@ ss_commands = f"""・SS系コマンド一覧
 `{PREFIX}ss [サーバーID]`: 指定したサーバーIDのステータスのみを表示します。
 """
 
-async def ss_force(loop, message:nextcord.Message):
-    await message.edit(content="Loading status...",view=None)
+
+async def ss_force(loop, message: nextcord.Message):
+    await message.edit(content="Loading status...", view=None)
     while True:
         try:
-            embed = nextcord.Embed(title="ServerStatus Checker", description=f"LastCheck:{datetime.datetime.now()}", color=0x00ff00)
+            embed = nextcord.Embed(
+                title="ServerStatus Checker", description=f"LastCheck:{datetime.datetime.now()}", color=0x00ff00)
             for i in range(int(n_fc.steam_server_list[message.guild.id]["value"])):
                 await server_check.ss_pin_async(loop, embed, message.guild.id, i + 1)
             await message.edit(f"AutoSS実行中\n止めるには`n!ss auto off`\n再試行するには`n!ss auto force {message.channel.id} {message.id}`又は`/reload`", embed=embed, view=server_status.Reload_SS_Auto())
             logging.info("Status loaded.")
             await asyncio.sleep(60*10)
         except BaseException as err:
-            logging.info(err,traceback.format_exc())
+            logging.info(err, traceback.format_exc())
             await message.edit(content=f"err:{err}")
             await ss_force(loop, message)
 
-#async def ss_pin(self, ment_id, message):
+# async def ss_pin(self, ment_id, message):
 #    ss_check_result[message.guild.id] = {}
 #    await message.edit(content=f"チェックシステムを有効化しています...")
 #    logging.info(f"{message.guild.name}にてAutoSSが有効になりました。")
@@ -96,15 +100,18 @@ async def ss_force(loop, message:nextcord.Message):
 #            await asyncio.sleep(5)
 #        await asyncio.sleep(60*30) # 60秒*30＝30分
 
+
 async def get_mes(bot, channel_id, message_id):
     ch_obj = await bot.fetch_channel(channel_id)
     messs = await ch_obj.fetch_message(message_id)
     return messs
 
+
 async def launch_ss(bot, channel_id, message_id):
     ch_obj = await bot.fetch_channel(channel_id)
     messs = await ch_obj.fetch_message(message_id)
     await ss_force(bot, messs)
+
 
 async def ss_loop_goes(self, ment_id, message):
     ss_check_result[message.guild.id] = {}
@@ -121,11 +128,13 @@ async def ss_loop_goes(self, ment_id, message):
                 await asyncio.sleep(5)
                 if await server_check.server_check_loop(self.bot.loop, message.guild.id, i) == False:
                     await message.edit(content=f"チェック結果：失敗(2/3)\n最終チェック時刻：`{datetime.datetime.now()}`")
-                    logging.error(f"{message.guild.name}でのAutoSSチェック結果：失敗（2/3回目）")
+                    logging.error(
+                        f"{message.guild.name}でのAutoSSチェック結果：失敗（2/3回目）")
                     await asyncio.sleep(5)
                     if await server_check.server_check_loop(self.bot.loop, message.guild.id, i) == False:
                         await message.edit(content=f"チェック結果：失敗(3/3)\n最終チェック時刻：`{datetime.datetime.now()}`")
-                        logging.error(f"{message.guild.name}でのAutoSSチェック結果：失敗（3/3回目）")
+                        logging.error(
+                            f"{message.guild.name}でのAutoSSチェック結果：失敗（3/3回目）")
                         await message.edit(content=f"チェック結果：失敗(メッセージを送信して終了します。)\n最終チェック時刻：`{datetime.datetime.now()}`")
                         await message.channel.send(f"<@{ment_id}> - もしかして鯖落ちしてたりしません...？\n\nAutoSSが無効になりました。\n一応`n!ss`で確認してみましょう！")
                         return False
@@ -133,17 +142,18 @@ async def ss_loop_goes(self, ment_id, message):
             logging.info(f"{message.guild.name}でのAutoSSチェック結果：成功")
             await message.edit(content=f"最後のチェック結果：成功\n最終チェック時刻：`{datetime.datetime.now()}`")
             await asyncio.sleep(5)
-        await asyncio.sleep(60*30) # 60秒*30＝30分
+        await asyncio.sleep(60*30)  # 60秒*30＝30分
 
 
-#コマンド内部
+# コマンド内部
 async def ss_base(self, ctx: commands.Context):
     if ctx.message.content == f"{PREFIX}ss":
         if ctx.message.guild.id not in n_fc.steam_server_list:
             await ctx.message.reply("サーバーは登録されていません。")
             return
         async with ctx.message.channel.typing():
-            embed = nextcord.Embed(title="Server Status Checker", description=f"{ctx.message.author.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
+            embed = nextcord.Embed(title="Server Status Checker",
+                                   description=f"{ctx.message.author.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
             for i in map(str, range(1, int(n_fc.steam_server_list[ctx.message.guild.id]["value"])+1)):
                 await server_check.server_check_async(self.bot.loop, embed, 0, ctx.message.guild.id, i)
             await asyncio.sleep(1)
@@ -161,12 +171,15 @@ async def ss_base(self, ctx: commands.Context):
                     n_fc.steam_server_list[ctx.guild.id] = {"value": "0"}
                 ad_name = str(args[2])
                 address = " ".join(args[3:])
-                ad_ip = str(re.sub("[^0-9a-zA-Z._-]", "", address.split(",")[0]))
+                ad_ip = str(re.sub("[^0-9a-zA-Z._-]",
+                            "", address.split(",")[0]))
                 ad_port = int(re.sub("[^0-9]", "", address.split(",")[1]))
                 sset_point = int(n_fc.steam_server_list[ctx.guild.id]["value"])
-                n_fc.steam_server_list[ctx.guild.id][f"{sset_point + 1}_ad"] = (ad_ip, ad_port)
+                n_fc.steam_server_list[ctx.guild.id][f"{sset_point + 1}_ad"] = (
+                    ad_ip, ad_port)
                 n_fc.steam_server_list[ctx.guild.id][f"{sset_point + 1}_nm"] = ad_name
-                n_fc.steam_server_list[ctx.guild.id]["value"] = str(sset_point + 1)
+                n_fc.steam_server_list[ctx.guild.id]["value"] = str(
+                    sset_point + 1)
                 await ctx.reply(f"サーバー名：{ad_name}\nサーバーアドレス: ({ad_ip},{ad_port})")
                 with open(f'{home_dir}/steam_server_list.nira', 'wb') as f:
                     pickle.dump(n_fc.steam_server_list, f)
@@ -182,9 +195,11 @@ async def ss_base(self, ctx: commands.Context):
         else:
             if admin_check.admin_check(ctx.guild, ctx.message.author) or ctx.message.author.id in n_fc.py_admin:
                 user = await self.bot.fetch_user(ctx.message.author.id)
-                embed = nextcord.Embed(title="Steam Server List", description=f"「{ctx.guild.name}」のサーバーリスト\n```保存数：{str(n_fc.steam_server_list[ctx.guild.id]['value'])}```", color=0x00ff00)
+                embed = nextcord.Embed(
+                    title="Steam Server List", description=f"「{ctx.guild.name}」のサーバーリスト\n```保存数：{str(n_fc.steam_server_list[ctx.guild.id]['value'])}```", color=0x00ff00)
                 for i in range(int(n_fc.steam_server_list[ctx.guild.id]['value'])):
-                    embed.add_field(name=f"ID: `{i+1}`\n保存名: `{str(n_fc.steam_server_list[ctx.guild.id][f'{i+1}_nm'])}`", value=f"アドレス：`{str(n_fc.steam_server_list[ctx.guild.id][f'{i+1}_ad'])}`")
+                    embed.add_field(
+                        name=f"ID: `{i+1}`\n保存名: `{str(n_fc.steam_server_list[ctx.guild.id][f'{i+1}_nm'])}`", value=f"アドレス：`{str(n_fc.steam_server_list[ctx.guild.id][f'{i+1}_ad'])}`")
                 await user.send(embed=embed)
                 await ctx.message.add_reaction("\U00002705")
                 return
@@ -207,7 +222,8 @@ async def ss_base(self, ctx: commands.Context):
                 if len(ctx.message.content) <= 13:
                     ment_id = ctx.message.author.id
                 else:
-                    ment_id = str("".join(re.findall(r'[0-9]', ctx.message.content[13:])))
+                    ment_id = str(
+                        "".join(re.findall(r'[0-9]', ctx.message.content[13:])))
                     if ment_id == "":
                         await ctx.reply("ユーザーIDが不正です。\n`n!ss auto on [UserID]`")
                         return
@@ -215,7 +231,8 @@ async def ss_base(self, ctx: commands.Context):
                 if ctx.guild.id in n_fc.pid_ss:
                     await mes_ss.edit(content=f"既に{ctx.guild.name}でタスクが実行されています。")
                     return
-                n_fc.pid_ss[ctx.guild.id] = (self.bot.loop.create_task(ss_loop_goes(self, ment_id, mes_ss)), mes_ss)
+                n_fc.pid_ss[ctx.guild.id] = (self.bot.loop.create_task(
+                    ss_loop_goes(self, ment_id, mes_ss)), mes_ss)
                 return
             except BaseException as err:
                 await ctx.reply(embed=eh.eh(err))
@@ -249,18 +266,21 @@ async def ss_base(self, ctx: commands.Context):
                 return
             if len(ctx.message.content) <= 16:
                 n_fc.force_ss_list[ctx.guild.id] = [ctx.channel.id, mes_ss.id]
-                n_fc.pid_ss[ctx.guild.id] = (self.bot.loop.create_task(ss_force(asyncio.get_event_loop(), mes_ss)),mes_ss)
+                n_fc.pid_ss[ctx.guild.id] = (self.bot.loop.create_task(
+                    ss_force(asyncio.get_event_loop(), mes_ss)), mes_ss)
                 return
             else:
                 try:
-                    messs = await get_mes(self.bot, ctx.message.content[16:].split(" ",1)[0], ctx.message.content[16:].split(" ", 1)[1])
+                    messs = await get_mes(self.bot, ctx.message.content[16:].split(" ", 1)[0], ctx.message.content[16:].split(" ", 1)[1])
                 except BaseException as err:
                     logging.error(err)
                     await ctx.reply("メッセージが見つかりませんでした。")
                     return
                 await messs.edit(content="現在変更をしています...")
-                n_fc.force_ss_list[ctx.guild.id] = [ctx.message.content[16:].split(" ",1)[0], ctx.message.content[16:].split(" ", 1)[1]]
-                n_fc.pid_ss[ctx.guild.id] = (self.bot.loop.create_task(ss_force(asyncio.get_event_loop(), messs)),messs)
+                n_fc.force_ss_list[ctx.guild.id] = [ctx.message.content[16:].split(
+                    " ", 1)[0], ctx.message.content[16:].split(" ", 1)[1]]
+                n_fc.pid_ss[ctx.guild.id] = (self.bot.loop.create_task(
+                    ss_force(asyncio.get_event_loop(), messs)), messs)
                 return
         else:
             if ctx.guild.id not in n_fc.pid_ss:
@@ -303,7 +323,7 @@ async def ss_base(self, ctx: commands.Context):
         except BaseException as err:
             await ctx.message.reply(embed=eh.eh(err))
             return
-    
+
     elif args[1] == "sort":
         if len(args) != 4:
             await ctx.reply(f"引数が足りないか多いです。\n`{PREFIX}ss sort [サーバーID1] [サーバーID2]`")
@@ -321,13 +341,13 @@ async def ss_base(self, ctx: commands.Context):
             await ctx.reply(f"サーバーIDは1から順につけられます。\n無効なサーバーIDを指定しないでください。")
             return
         try:
-            n_fc.steam_server_list[ctx.guild.id][f"{args[2]}_nm"], n_fc.steam_server_list[ctx.guild.id][f"{args[2]}_ad"], n_fc.steam_server_list[ctx.guild.id][f"{args[3]}_nm"], n_fc.steam_server_list[ctx.guild.id][f"{args[3]}_ad"] = n_fc.steam_server_list[ctx.guild.id][f"{args[3]}_nm"], n_fc.steam_server_list[ctx.guild.id][f"{args[3]}_ad"], n_fc.steam_server_list[ctx.guild.id][f"{args[2]}_nm"], n_fc.steam_server_list[ctx.guild.id][f"{args[2]}_ad"]
+            n_fc.steam_server_list[ctx.guild.id][f"{args[2]}_nm"], n_fc.steam_server_list[ctx.guild.id][f"{args[2]}_ad"], n_fc.steam_server_list[ctx.guild.id][f"{args[3]}_nm"], n_fc.steam_server_list[ctx.guild.id][
+                f"{args[3]}_ad"] = n_fc.steam_server_list[ctx.guild.id][f"{args[3]}_nm"], n_fc.steam_server_list[ctx.guild.id][f"{args[3]}_ad"], n_fc.steam_server_list[ctx.guild.id][f"{args[2]}_nm"], n_fc.steam_server_list[ctx.guild.id][f"{args[2]}_ad"]
             await ctx.reply("入れ替えが完了しました。")
             return
         except BaseException as err:
             await ctx.reply(f"入れ替え中にエラーが発生しました。\n{err}")
             return
-
 
     elif args[1] == "del":
         if ctx.guild.id not in n_fc.steam_server_list:
@@ -347,16 +367,19 @@ async def ss_base(self, ctx: commands.Context):
                     await ctx.message.reply(embed=nextcord.Embed(title="エラー", description="リストで0以下のナンバーは振り当てられていません。", color=0xff0000))
                     return
                 try:
-                    all_value = int(n_fc.steam_server_list[ctx.guild.id]["value"])
+                    all_value = int(
+                        n_fc.steam_server_list[ctx.guild.id]["value"])
                     print(all_value)
                     for i in range(all_value - del_num):
                         print(i)
-                        n_fc.steam_server_list[ctx.guild.id][f"{del_num + i - 1}_nm"] = n_fc.steam_server_list[ctx.guild.id][f"{del_num + i}_nm"]
-                        n_fc.steam_server_list[ctx.guild.id][f"{del_num + i - 1}_ad"] = n_fc.steam_server_list[ctx.guild.id][f"{del_num + i}_ad"]
+                        n_fc.steam_server_list[ctx.guild.id][
+                            f"{del_num + i - 1}_nm"] = n_fc.steam_server_list[ctx.guild.id][f"{del_num + i}_nm"]
+                        n_fc.steam_server_list[ctx.guild.id][
+                            f"{del_num + i - 1}_ad"] = n_fc.steam_server_list[ctx.guild.id][f"{del_num + i}_ad"]
                     del n_fc.steam_server_list[ctx.guild.id][f"{all_value}_nm"]
                     del n_fc.steam_server_list[ctx.guild.id][f"{all_value}_ad"]
                     n_fc.steam_server_list[ctx.guild.id]["value"] = all_value - 1
-                    await ctx.message.reply(embed=nextcord.Embed(title="削除", description=f"ID:{del_num}のサーバーをリストから削除しました。", color=0xff0000))   
+                    await ctx.message.reply(embed=nextcord.Embed(title="削除", description=f"ID:{del_num}のサーバーをリストから削除しました。", color=0xff0000))
                 except BaseException as err:
                     print(err)
                     await ctx.message.reply(embed=eh.eh(err))
@@ -380,33 +403,35 @@ async def ss_base(self, ctx: commands.Context):
                 del n_fc.steam_server_list[ctx.guild.id]
                 with open(f'{home_dir}/steam_server_list.nira', 'wb') as f:
                     pickle.dump(n_fc.steam_server_list, f)
-                await del_re.edit(content=None,embed=nextcord.Embed(title="リスト削除", description=f"{ctx.author.mention}\nリストは正常に削除されました。", color=0xffffff))
+                await del_re.edit(content=None, embed=nextcord.Embed(title="リスト削除", description=f"{ctx.author.mention}\nリストは正常に削除されました。", color=0xffffff))
                 return
             return
         return
-    
+
     elif args[1] == "all":
         if ctx.guild.id not in n_fc.steam_server_list:
             await ctx.message.reply("サーバーは登録されていません。")
             return
         async with ctx.channel.typing():
-            embed = nextcord.Embed(title="Server Status Checker", description=f"{ctx.message.author.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
+            embed = nextcord.Embed(title="Server Status Checker",
+                                   description=f"{ctx.message.author.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
             for i in map(str, range(1, int(n_fc.steam_server_list[ctx.guild.id]["value"])+1)):
                 await server_check.server_check_async(self.bot.loop, embed, 1, ctx.guild.id, i)
             await asyncio.sleep(1)
             await ctx.message.reply(embed=embed)
             return
-    
+
     elif len(args) > 2:
         await ctx.reply(f"引数とか何かがおかしいです。\n\n{ss_commands}")
         return
-    
+
     else:
         if ctx.guild.id not in n_fc.steam_server_list:
             await ctx.message.reply("サーバーは登録されていません。")
             return
         async with ctx.channel.typing():
-            embed = nextcord.Embed(title="Server Status Checker", description=f"{ctx.message.author.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
+            embed = nextcord.Embed(title="Server Status Checker",
+                                   description=f"{ctx.message.author.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
             server_check.server_check(embed, 0, ctx.guild.id, args[1])
             await asyncio.sleep(1)
             await ctx.message.reply(embed=embed)
@@ -417,8 +442,8 @@ class server_status(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-
     # AutoSS Force用のView
+
     class Reload_SS_Auto(nextcord.ui.View):
         def __init__(self):
             super().__init__(timeout=None)
@@ -428,7 +453,8 @@ class server_status(commands.Cog):
             try:
                 status_message = n_fc.pid_ss[interaction.guild.id][1]
                 n_fc.pid_ss[interaction.guild.id][0].cancel()
-                n_fc.pid_ss[interaction.guild.id] = (asyncio.ensure_future(ss_force(asyncio.get_event_loop(), status_message)), status_message)
+                n_fc.pid_ss[interaction.guild.id] = (asyncio.ensure_future(
+                    ss_force(asyncio.get_event_loop(), status_message)), status_message)
                 await interaction.response.send_message('Reloaded!', ephemeral=True)
                 logging.info("reloaded")
 
@@ -436,8 +462,8 @@ class server_status(commands.Cog):
                 await interaction.response.send_message(f'エラーが発生しました。\n{err}', ephemeral=True)
                 logging.error(err)
 
-
     # SS再チェック用のView
+
     class Recheck_SS_Embed(nextcord.ui.View):
         def __init__(self):
             super().__init__(timeout=None)
@@ -445,18 +471,18 @@ class server_status(commands.Cog):
         @nextcord.ui.button(label='もう一度チェックする', style=nextcord.ButtonStyle.green)
         async def recheck(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
             try:
-                embed = nextcord.Embed(title="Server Status Checker", description=f":globe_with_meridians:Status\n==========", color=0x00ff00)
+                embed = nextcord.Embed(
+                    title="Server Status Checker", description=f":globe_with_meridians:Status\n==========", color=0x00ff00)
                 for i in map(str, range(1, int(n_fc.steam_server_list[interaction.guild.id]["value"])+1)):
                     await server_check.server_check_async(asyncio.get_event_loop(), embed, 0, interaction.guild.id, i)
                 await interaction.response.send_message('ServerCheck', embed=embed, view=server_status.Recheck_SS_Embed())
                 logging.info("rechecked")
-                
+
             except BaseException as err:
                 await interaction.response.send_message(f"エラーが発生しました。\n{err}", ephemeral=True)
                 logging.err(err)
 
-
-    @commands.command(name="ss",help="""\
+    @commands.command(name="ss", help="""\
 Steam非公式サーバーのステータスを表示します
 このコマンドは、**user毎**で**10秒**のクールダウンがあります。
 このコマンドのヘルプは別ページにあります。
@@ -465,101 +491,104 @@ Steam非公式サーバーのステータスを表示します
     async def ss(self, ctx: commands.Context):
         await ss_base(self, ctx)
 
-
     @nextcord.slash_command(name="ss", description="Show Steam Dedicated Server's status", guild_ids=n_fc.GUILD_IDS)
     async def ss_slash(self, interaction: Interaction):
         pass
 
-
     @ss_slash.subcommand(name="add", description="Steam非公式サーバーを追加します")
     async def add_slash(
-            self,
-            interaction: Interaction,
-            ServerName: str = SlashOption(
-                name="ServerName",
-                description="オフライン時に表示されるサーバーの名前",
-                required=True
-            ),
-            ServerAddress: str = SlashOption(
-                name="ServerAddress",
-                description="サーバーのIPアドレスまたはドメイン名",
-                required=True
-            ),
-            ServerPort: int = SlashOption(
-                name="ServerPort",
-                description="サーバーのポート番号",
-                required=True
-            )
-        ):
-            await interaction.response.defer()
-            try:
-                if admin_check.admin_check(interaction.guild, interaction.user):
-                    if interaction.guild.id not in n_fc.steam_server_list:
-                        n_fc.steam_server_list[interaction.guild.id] = {"value": "0"}
-                    SSValue = int(n_fc.steam_server_list[interaction.guild.id]["value"])
-                    n_fc.steam_server_list[interaction.guild.id][f"{SSValue + 1}_ad"] = (ServerAddress, ServerPort)
-                    n_fc.steam_server_list[interaction.guild.id][f"{SSValue + 1}_nm"] = ServerName
-                    n_fc.steam_server_list[interaction.guild.id]["value"] = str(SSValue + 1)
-                    with open(f'{home_dir}/steam_server_list.nira', 'wb') as f:
-                        pickle.dump(n_fc.steam_server_list, f)
-                    await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description=f"サーバーの追加に成功しました。\サーバー名：`{ServerName}`\nサーバーアドレス: `{ServerAddress}:{ServerPort}`", color=0x00ff00), ephemeral=True)
-                    return
-                else:
-                    await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="管理者権限がありません。", color=0xff0000), ephemeral=True)
-                    return
-            except BaseException as err:
-                await interaction.followup.send(f"サーバー追加時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
+        self,
+        interaction: Interaction,
+        ServerName: str = SlashOption(
+            name="name",
+            description="オフライン時に表示されるサーバーの名前",
+            required=True
+        ),
+        ServerAddress: str = SlashOption(
+            name="address",
+            description="サーバーのIPアドレスまたはドメイン名",
+            required=True
+        ),
+        ServerPort: int = SlashOption(
+            name="port",
+            description="サーバーのポート番号",
+            required=True
+        )
+    ):
+        await interaction.response.defer()
+        try:
+            if admin_check.admin_check(interaction.guild, interaction.user):
+                if interaction.guild.id not in n_fc.steam_server_list:
+                    n_fc.steam_server_list[interaction.guild.id] = {
+                        "value": "0"}
+                SSValue = int(
+                    n_fc.steam_server_list[interaction.guild.id]["value"])
+                n_fc.steam_server_list[interaction.guild.id][f"{SSValue + 1}_ad"] = (
+                    ServerAddress, ServerPort)
+                n_fc.steam_server_list[interaction.guild.id][f"{SSValue + 1}_nm"] = ServerName
+                n_fc.steam_server_list[interaction.guild.id]["value"] = str(
+                    SSValue + 1)
+                with open(f'{home_dir}/steam_server_list.nira', 'wb') as f:
+                    pickle.dump(n_fc.steam_server_list, f)
+                await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description=f"サーバーの追加に成功しました。\サーバー名：`{ServerName}`\nサーバーアドレス: `{ServerAddress}:{ServerPort}`", color=0x00ff00), ephemeral=True)
                 return
-
+            else:
+                await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="管理者権限がありません。", color=0xff0000), ephemeral=True)
+                return
+        except BaseException as err:
+            await interaction.followup.send(f"サーバー追加時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
+            return
 
     @ss_slash.subcommand(name="del", description="Steam非公式サーバーを削除します")
     async def del_slash(
-            self,
-            interaction: Interaction,
-            ServerID: int = SlashOption(
-                name="ServerID",
-                description="削除するサーバーのID",
-                required=True
-            )
-        ):
-            await interaction.response.defer()
-            try:
-                if admin_check.admin_check(interaction.guild, interaction.user):
-                    if interaction.guild.id not in n_fc.steam_server_list:
-                        await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="このサーバーにはSteam Dedicated Serverは追加されていません。", color=0xff0000), ephemeral=True)
-                        return
-                    if f"{ServerID}_ad" not in n_fc.steam_server_list[interaction.guild.id]:
-                        await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="指定されたIDのサーバーは存在しません。", color=0xff0000), ephemeral=True)
-                        return
-                    del n_fc.steam_server_list[interaction.guild.id][f"{ServerID}_nm"]
-                    del n_fc.steam_server_list[interaction.guild.id][f"{ServerID}_ad"]
-                    with open(f'{home_dir}/steam_server_list.nira', 'wb') as f:
-                        pickle.dump(n_fc.steam_server_list, f)
-                    await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description=f"サーバーの削除に成功しました。", color=0x00ff00), ephemeral=True)
-                    return
-                else:
-                    await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="管理者権限がありません。", color=0xff0000), ephemeral=True)
-                    return
-            except BaseException as err:
-                await interaction.followup.send(f"サーバー削除時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
-                return
-
-
-    @ss_slash.subcommand(name="list", description="Steam非公式サーバーの一覧を表示します")
-    async def list_slash(self, interaction: Interaction):
+        self,
+        interaction: Interaction,
+        ServerID: int = SlashOption(
+            name="server_id",
+            description="削除するサーバーのID",
+            required=True
+        )
+    ):
         await interaction.response.defer()
         try:
             if admin_check.admin_check(interaction.guild, interaction.user):
                 if interaction.guild.id not in n_fc.steam_server_list:
                     await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="このサーバーにはSteam Dedicated Serverは追加されていません。", color=0xff0000), ephemeral=True)
                     return
-                SSValue = int(n_fc.steam_server_list[interaction.guild.id]["value"])
+                if f"{ServerID}_ad" not in n_fc.steam_server_list[interaction.guild.id]:
+                    await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="指定されたIDのサーバーは存在しません。", color=0xff0000), ephemeral=True)
+                    return
+                del n_fc.steam_server_list[interaction.guild.id][f"{ServerID}_nm"]
+                del n_fc.steam_server_list[interaction.guild.id][f"{ServerID}_ad"]
+                with open(f'{home_dir}/steam_server_list.nira', 'wb') as f:
+                    pickle.dump(n_fc.steam_server_list, f)
+                await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description=f"サーバーの削除に成功しました。", color=0x00ff00), ephemeral=True)
+                return
+            else:
+                await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="管理者権限がありません。", color=0xff0000), ephemeral=True)
+                return
+        except BaseException as err:
+            await interaction.followup.send(f"サーバー削除時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
+            return
+
+    @ss_slash.subcommand(name="list", description="Steam非公式サーバーの一覧を表示します")
+    async def list_slash(self, interaction: Interaction):
+        await interaction.response.defer(ephemeral=True)
+        try:
+            if admin_check.admin_check(interaction.guild, interaction.user):
+                if interaction.guild.id not in n_fc.steam_server_list:
+                    await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="このサーバーにはSteam Dedicated Serverは追加されていません。", color=0xff0000), ephemeral=True)
+                    return
+                SSValue = int(
+                    n_fc.steam_server_list[interaction.guild.id]["value"])
                 if SSValue == 0:
                     await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="Steam Dedicated Serverは追加されていません。", color=0xff0000), ephemeral=True)
                     return
-                embed = nextcord.Embed(title="SteamDedicatedServer", description=f"{interaction.guild.name}", color=0x00ff00)
+                embed = nextcord.Embed(
+                    title="SteamDedicatedServer", description=f"{interaction.guild.name}", color=0x00ff00)
                 for i in range(1, SSValue + 1):
-                    embed.add_field(name=f"{i}番目のサーバー", value=f"サーバー名：`{n_fc.steam_server_list[interaction.guild.id][f'{i}_nm']}`\nサーバーアドレス：`{n_fc.steam_server_list[interaction.guild.id][f'{i}_ad'][0]}:{n_fc.steam_server_list[interaction.guild.id][f'{i}_ad'][1]}`", inline=False)
+                    embed.add_field(
+                        name=f"{i}番目のサーバー", value=f"サーバー名：`{n_fc.steam_server_list[interaction.guild.id][f'{i}_nm']}`\nサーバーアドレス：`{n_fc.steam_server_list[interaction.guild.id][f'{i}_ad'][0]}:{n_fc.steam_server_list[interaction.guild.id][f'{i}_ad'][1]}`", inline=False)
                 await interaction.user.send(embed=embed)
                 await interaction.followup.send("Sended!", ephemeral=True)
                 return
@@ -570,29 +599,29 @@ Steam非公式サーバーのステータスを表示します
             await interaction.followup.send(f"サーバー一覧表示時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
-
     @ss_slash.subcommand(name="sort", description="Steam非公式サーバーの一覧をソートします")
     async def sort_slash(
-            self,
-            interaction: Interaction,
-            SortSource: int = SlashOption(
-                name="SortSource",
-                description="置き換え元のサーバーID",
-                required=True
-            ),
-            SortDestination: int = SlashOption(
-                name="SortDestination",
-                description="置き換え先のサーバーID",
-                required=True
-            )
-        ):
+        self,
+        interaction: Interaction,
+        SortSource: int = SlashOption(
+            name="source",
+            description="置き換え元のサーバーID",
+            required=True
+        ),
+        SortDestination: int = SlashOption(
+            name="destination",
+            description="置き換え先のサーバーID",
+            required=True
+        )
+    ):
         await interaction.response.defer()
         try:
             if admin_check.admin_check(interaction.guild, interaction.user):
                 if interaction.guild.id not in n_fc.steam_server_list:
                     await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="このサーバーにはSteam Dedicated Serverは追加されていません。", color=0xff0000), ephemeral=True)
                     return
-                SSValue = int(n_fc.steam_server_list[interaction.guild.id]["value"])
+                SSValue = int(
+                    n_fc.steam_server_list[interaction.guild.id]["value"])
                 if SSValue == 0:
                     await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="Steam Dedicated Serverは追加されていません。", color=0xff0000), ephemeral=True)
                     return
@@ -605,7 +634,8 @@ Steam非公式サーバーのステータスを表示します
                 if SortSource <= 0 or SortDestination <= 0:
                     await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="指定したIDは不正です。", color=0xff0000), ephemeral=True)
                     return
-                n_fc.steam_server_list[interaction.guild.id][f"{SortSource}_nm"], n_fc.steam_server_list[interaction.guild.id][f"{SortSource}_ad"], n_fc.steam_server_list[interaction.guild.id][f"{SortDestination}_nm"], n_fc.steam_server_list[interaction.guild.id][f"{SortDestination}_ad"] = n_fc.steam_server_list[interaction.guild.id][f"{SortDestination}_nm"], n_fc.steam_server_list[interaction.guild.id][f"{SortDestination}_ad"], n_fc.steam_server_list[interaction.guild.id][f"{SortSource}_nm"], n_fc.steam_server_list[interaction.guild.id][f"{SortSource}_ad"]
+                n_fc.steam_server_list[interaction.guild.id][f"{SortSource}_nm"], n_fc.steam_server_list[interaction.guild.id][f"{SortSource}_ad"], n_fc.steam_server_list[interaction.guild.id][f"{SortDestination}_nm"], n_fc.steam_server_list[interaction.guild.id][f"{SortDestination}_ad"] = n_fc.steam_server_list[
+                    interaction.guild.id][f"{SortDestination}_nm"], n_fc.steam_server_list[interaction.guild.id][f"{SortDestination}_ad"], n_fc.steam_server_list[interaction.guild.id][f"{SortSource}_nm"], n_fc.steam_server_list[interaction.guild.id][f"{SortSource}_ad"]
                 await interaction.followup.send("ソートが完了しました。", ephemeral=True)
                 return
             else:
@@ -615,39 +645,39 @@ Steam非公式サーバーのステータスを表示します
             await interaction.followup.send(f"ソート時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
-
     @ss_slash.subcommand(name="edit", description="Steam非公式サーバーの一覧を編集します")
     async def edit_slash(
-            self,
-            interaction: Interaction,
-            EditSource: int = SlashOption(
-                name="EditSource",
-                description="置き換え元のサーバーID",
-                required=True
-            ),
-            ServerName: str = SlashOption(
-                name="ServerName",
-                description="サーバー名",
-                required=True
-            ),
-            ServerAddress: str = SlashOption(
-                name="ServerAddress",
-                description="サーバーアドレス",
-                required=True
-            ),
-            ServerPort: int = SlashOption(
-                name="ServerPort",
-                description="サーバーポート",
-                required=True
-            )
-        ):
+        self,
+        interaction: Interaction,
+        EditSource: int = SlashOption(
+            name="source",
+            description="置き換え元のサーバーID",
+            required=True
+        ),
+        ServerName: str = SlashOption(
+            name="name",
+            description="サーバー名",
+            required=True
+        ),
+        ServerAddress: str = SlashOption(
+            name="address",
+            description="サーバーアドレス",
+            required=True
+        ),
+        ServerPort: int = SlashOption(
+            name="port",
+            description="サーバーポート",
+            required=True
+        )
+    ):
         await interaction.response.defer()
         try:
             if admin_check.admin_check(interaction.guild, interaction.user):
                 if interaction.guild.id not in n_fc.steam_server_list:
                     await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="このサーバーにはSteam Dedicated Serverは追加されていません。", color=0xff0000), ephemeral=True)
                     return
-                SSValue = int(n_fc.steam_server_list[interaction.guild.id]["value"])
+                SSValue = int(
+                    n_fc.steam_server_list[interaction.guild.id]["value"])
                 if SSValue == 0:
                     await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="Steam Dedicated Serverは追加されていません。", color=0xff0000), ephemeral=True)
                     return
@@ -658,7 +688,8 @@ Steam非公式サーバーのステータスを表示します
                     await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="指定したIDは不正です。", color=0xff0000), ephemeral=True)
                     return
                 n_fc.steam_server_list[interaction.guild.id][f"{EditSource}_nm"] = ServerName
-                n_fc.steam_server_list[interaction.guild.id][f"{EditSource}_ad"] = (ServerAddress, ServerPort)
+                n_fc.steam_server_list[interaction.guild.id][f"{EditSource}_ad"] = (
+                    ServerAddress, ServerPort)
                 await interaction.followup.send("編集が完了しました。", ephemeral=True)
             else:
                 await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="管理者権限がありません。", color=0xff0000), ephemeral=True)
@@ -667,47 +698,45 @@ Steam非公式サーバーのステータスを表示します
             await interaction.followup.send(f"編集時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
-
     @ss_slash.subcommand(name="auto", description="Get Steam Dedicated Server's status automatically.")
     async def auto_slash(self, interaction: Interaction):
         pass
 
-
     @auto_slash.subcommand(name="on", description="鯖が落ちたと思われる際に通知する")
     async def auto_on_slash(
-            self,
-            interaction: Interaction,
-            mentionUser: nextcord.User = SlashOption(
-                name="mentionUser",
-                description="メンションするユーザー",
-                required=True
-            )
-        ):
-            await interaction.response.defer()
-            try:
-                if interaction.guild.id not in n_fc.steam_server_list:
-                    await interaction.followup.send("サーバーが登録されていません。", ephemeral=True)
-                    return
-
-                ment_id = str(mentionUser.id)
-                mes_ss = await interaction.followup.send(f"Starting process...")
-
-                if interaction.guild.id in n_fc.pid_ss:
-                    await mes_ss.edit(content=f"既に{interaction.guild.name}でタスクが実行されています。")
-                    return
-
-                n_fc.pid_ss[interaction.guild.id] = (self.bot.loop.create_task(ss_loop_goes(self, ment_id, mes_ss)), mes_ss)
-                return
-            except BaseException as err:
-                await interaction.followup.send(embed=eh.eh(err), ephemeral=True)
+        self,
+        interaction: Interaction,
+        mention_user: nextcord.User = SlashOption(
+            name="mention_user",
+            description="メンションするユーザー",
+            required=True
+        )
+    ):
+        await interaction.response.defer()
+        try:
+            if interaction.guild.id not in n_fc.steam_server_list:
+                await interaction.followup.send("サーバーが登録されていません。", ephemeral=True)
                 return
 
+            ment_id = str(mention_user.id)
+            mes_ss = await interaction.followup.send(f"Starting process...")
+
+            if interaction.guild.id in n_fc.pid_ss:
+                await mes_ss.edit(content=f"既に{interaction.guild.name}でタスクが実行されています。")
+                return
+
+            n_fc.pid_ss[interaction.guild.id] = (self.bot.loop.create_task(
+                ss_loop_goes(self, ment_id, mes_ss)), mes_ss)
+            return
+        except BaseException as err:
+            await interaction.followup.send(embed=eh.eh(err), ephemeral=True)
+            return
 
     @auto_slash.subcommand(name="off", description="鯖が落ちたと思われる際に通知しないようにする")
     async def auto_off_slash(
-            self,
-            interaction: Interaction
-        ):
+        self,
+        interaction: Interaction
+    ):
         await interaction.response.defer()
         if interaction.guild.id not in n_fc.pid_ss:
             await interaction.followup.send("既に無効になっているか、コマンドが実行されていません。", ephemeral=True)
@@ -725,79 +754,83 @@ Steam非公式サーバーのステータスを表示します
             await interaction.followup.send(embed=eh.eh(err), ephemeral=True)
             return
 
-
     @auto_slash.subcommand(name="force", description="ずっと更新する鯖ステ表示を送信します")
     async def auto_force_slash(
-            self,
-            interaction: Interaction,
-            ForceSSChannelID: int = SlashOption(
-                name="ForceSSChannelID",
-                description="（復元する場合のみ）チャンネルID",
-                required=False
-            ),
-            ForceSSMessageID: int = SlashOption(
-                name="ForceSSMessageID",
-                description="（復元する場合のみ）メッセージID",
-                required=False
-            )
-        ):
-            await interaction.response.defer()
-            if interaction.guild.id in n_fc.pid_ss:
-                await interaction.followup.send(f"既に{interaction.guild.name}で他のAutoSSタスクが実行されています。", ephemeral=True)
+        self,
+        interaction: Interaction,
+        channel_id: int = SlashOption(
+            name="channel_id",
+            description="（復元する場合のみ）チャンネルID",
+            required=False
+        ),
+        message_id: int = SlashOption(
+            name="message_id",
+            description="（復元する場合のみ）メッセージID",
+            required=False
+        )
+    ):
+        await interaction.response.defer()
+        if interaction.guild.id in n_fc.pid_ss:
+            await interaction.followup.send(f"既に{interaction.guild.name}で他のAutoSSタスクが実行されています。", ephemeral=True)
+            return
+        if interaction.guild.id not in n_fc.steam_server_list:
+            await interaction.followup.send("サーバーが登録されていません。", ephemeral=True)
+            return
+        mes_ss = await interaction.channel.send(f"Check your set message!")
+        if interaction.guild.id in n_fc.pid_ss:
+            await mes_ss.edit(content=f"既に{interaction.guild.name}でタスクが実行されています。", ephemeral=True)
+            return
+        if channel_id is not None and message_id is not None:
+            n_fc.force_ss_list[interaction.guild.id] = [
+                interaction.channel.id, mes_ss.id]
+            n_fc.pid_ss[interaction.guild.id] = (self.bot.loop.create_task(
+                ss_force(asyncio.get_event_loop(), mes_ss)), mes_ss)
+            return
+        else:
+            try:
+                messs = await get_mes(self.bot, channel_id, message_id)
+            except BaseException as err:
+                logging.error(err)
+                await interaction.followup.send("メッセージが見つかりませんでした。", ephemeral=True)
                 return
-            if interaction.guild.id not in n_fc.steam_server_list:
-                await interaction.followup.send("サーバーが登録されていません。", ephemeral=True)
-                return
-            mes_ss = await interaction.channel.send(f"Check your set message!")
-            if interaction.guild.id in n_fc.pid_ss:
-                await mes_ss.edit(content=f"既に{interaction.guild.name}でタスクが実行されています。", ephemeral=True)
-                return
-            if ForceSSChannelID is not None and ForceSSMessageID is not None:
-                n_fc.force_ss_list[interaction.guild.id] = [interaction.channel.id, mes_ss.id]
-                n_fc.pid_ss[interaction.guild.id] = (self.bot.loop.create_task(ss_force(asyncio.get_event_loop(), mes_ss)),mes_ss)
-                return
-            else:
-                try:
-                    messs = await get_mes(self.bot, ForceSSChannelID, ForceSSMessageID)
-                except BaseException as err:
-                    logging.error(err)
-                    await interaction.followup.send("メッセージが見つかりませんでした。", ephemeral=True)
-                    return
-                await messs.edit(content="現在変更をしています...")
-                n_fc.force_ss_list[interaction.guild.id] = [ForceSSChannelID, ForceSSMessageID]
-                n_fc.pid_ss[interaction.guild.id] = (self.bot.loop.create_task(ss_force(asyncio.get_event_loop(), messs)),messs)
-                return
-
+            await messs.edit(content="現在変更をしています...")
+            n_fc.force_ss_list[interaction.guild.id] = [channel_id, message_id]
+            n_fc.pid_ss[interaction.guild.id] = (self.bot.loop.create_task(
+                ss_force(asyncio.get_event_loop(), messs)), messs)
+            return
 
     @ss_slash.subcommand(name="status", description="Steam非公式サーバーのステータスを表示します")
     async def status_slash(
-            self,
-            interaction: Interaction,
-            ServerID: str = SlashOption(
-                name="ServerID",
-                description="デフォルトは空白。特定のサーバーだけ指定したい場合はIDを入力してください。又はallで詳細に表示します。",
-                required=False
-            )
-        ):
+        self,
+        interaction: Interaction,
+        server_id: str = SlashOption(
+            name="server_id",
+            description="デフォルトは空白。特定のサーバーだけ指定したい場合はIDを入力してください。又はallで詳細に表示します。",
+            required=False
+        )
+    ):
         await interaction.response.defer()
 
         try:
-            if ServerID == "all":
+            if server_id == "all":
                 if interaction.guild.id not in n_fc.steam_server_list:
                     await interaction.followup.send("サーバーは登録されていません。", ephemeral=True)
                     return
-                embed = nextcord.Embed(title="Server Status Checker", description=f"{interaction.user.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
+                embed = nextcord.Embed(
+                    title="Server Status Checker", description=f"{interaction.user.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
                 for i in map(str, range(1, int(n_fc.steam_server_list[interaction.guild.id]["value"])+1)):
                     await server_check.server_check_async(self.bot.loop, embed, 1, interaction.guild.id, i)
                 await interaction.followup.send(embed=embed)
                 return
 
-            elif ServerID != "":
+            elif server_id is not None:
                 if interaction.guild.id not in n_fc.steam_server_list:
                     await interaction.followup.send("サーバーは登録されていません。", ephemeral=True)
                     return
-                embed = nextcord.Embed(title="Server Status Checker", description=f"{interaction.user.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
-                server_check.server_check(embed, 0, interaction.guild.id, ServerID)
+                embed = nextcord.Embed(
+                    title="Server Status Checker", description=f"{interaction.user.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
+                server_check.server_check(
+                    embed, 0, interaction.guild.id, server_id)
                 await interaction.followup.send(embed=embed)
                 return
 
@@ -805,7 +838,8 @@ Steam非公式サーバーのステータスを表示します
                 if interaction.guild.id not in n_fc.steam_server_list:
                     await interaction.followup.send("サーバーは登録されていません。", ephemeral=True)
                     return
-                embed = nextcord.Embed(title="Server Status Checker", description=f"{interaction.user.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
+                embed = nextcord.Embed(
+                    title="Server Status Checker", description=f"{interaction.user.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
                 for i in map(str, range(1, int(n_fc.steam_server_list[interaction.guild.id]["value"])+1)):
                     await server_check.server_check_async(self.bot.loop, embed, 0, interaction.guild.id, i)
                 await interaction.followup.send(embed=embed, view=server_status.Recheck_SS_Embed())
@@ -816,9 +850,6 @@ Steam非公式サーバーのステータスを表示します
             return
 
 
-
 def setup(bot):
     bot.add_cog(server_status(bot))
-    #importlib.reload(server_check)
-
-
+    # importlib.reload(server_check)
