@@ -373,12 +373,13 @@ async def ss_base(self, ctx: commands.Context):
                     for i in range(all_value - del_num):
                         print(i)
                         n_fc.steam_server_list[ctx.guild.id][
-                            f"{del_num + i - 1}_nm"] = n_fc.steam_server_list[ctx.guild.id][f"{del_num + i}_nm"]
+                            f"{del_num + i}_nm"] = n_fc.steam_server_list[ctx.guild.id][f"{del_num + i + 1}_nm"]
                         n_fc.steam_server_list[ctx.guild.id][
-                            f"{del_num + i - 1}_ad"] = n_fc.steam_server_list[ctx.guild.id][f"{del_num + i}_ad"]
+                            f"{del_num + i}_ad"] = n_fc.steam_server_list[ctx.guild.id][f"{del_num + i + 1}_ad"]
                     del n_fc.steam_server_list[ctx.guild.id][f"{all_value}_nm"]
                     del n_fc.steam_server_list[ctx.guild.id][f"{all_value}_ad"]
-                    n_fc.steam_server_list[ctx.guild.id]["value"] = all_value - 1
+                    n_fc.steam_server_list[ctx.guild.id]["value"] = str(
+                        all_value - 1)
                     await ctx.message.reply(embed=nextcord.Embed(title="削除", description=f"ID:{del_num}のサーバーをリストから削除しました。", color=0xff0000))
                 except BaseException as err:
                     print(err)
@@ -558,6 +559,13 @@ Steam非公式サーバーのステータスを表示します
                 if f"{ServerID}_ad" not in n_fc.steam_server_list[interaction.guild.id]:
                     await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="指定されたIDのサーバーは存在しません。", color=0xff0000), ephemeral=True)
                     return
+                all_count = int(
+                    n_fc.steam_server_list[interaction.guild.id]["value"])
+                for i in range(all_count - ServerID):
+                    n_fc.steam_server_list[interaction.guild.id][
+                        f"{ServerID + i}_nm"] = n_fc.steam_server_list[interaction.guild.id][f"{ServerID + i + 1}_nm"]
+                    n_fc.steam_server_list[interaction.guild.id][
+                        f"{ServerID + i}_ad"] = n_fc.steam_server_list[interaction.guild.id][f"{ServerID + i + 1}_ad"]
                 del n_fc.steam_server_list[interaction.guild.id][f"{ServerID}_nm"]
                 del n_fc.steam_server_list[interaction.guild.id][f"{ServerID}_ad"]
                 with open(f'{home_dir}/steam_server_list.nira', 'wb') as f:
@@ -650,8 +658,8 @@ Steam非公式サーバーのステータスを表示します
         self,
         interaction: Interaction,
         EditSource: int = SlashOption(
-            name="source",
-            description="置き換え元のサーバーID",
+            name="server_id",
+            description="編集するサーバーID",
             required=True
         ),
         ServerName: str = SlashOption(
