@@ -8,5 +8,6 @@
     "database": データベースキー,
     "guild_ids": [サーバーID(複数可)],
     "unload_cogs": [],
-    "load_cogs": []
+    "load_cogs": [],
+    "translate":DeepL APIのキー,
 }
