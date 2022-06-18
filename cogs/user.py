@@ -210,7 +210,10 @@ class user(commands.Cog):
 
     @commands.command(name="ui", help="""\
 誰かがDiscordサーバーに加入/離脱した際に、指定したチャンネルにそのユーザーの情報を表示します。
-それだけです。""")
+それだけです。
+
+`n!ui set [チャンネルID]`
+`n!ui del`""")
     async def ui(self, ctx: commands.Context):
         if admin_check.admin_check(ctx.message.guild, ctx.message.author) or ctx.message.author.id in n_fc.py_admin:
             mes_arg = ctx.message.content.split(" ")
