@@ -200,12 +200,12 @@ class reaction(commands.Cog):
             self,
             interaction: Interaction,
             triggerMessage: str = SlashOption(
-                name="triggerMessage",
+                name="trigger_message",
                 description="トリガー",
                 required=True
             ),
             returnMessage: str = SlashOption(
-                name="returnMessage",
+                name="return_message",
                 description="返答文",
                 required=True
             )
@@ -236,7 +236,7 @@ class reaction(commands.Cog):
             self,
             interaction: Interaction,
             triggerMessage: str = SlashOption(
-                name="triggerMessage",
+                name="trigger_message",
                 description="トリガー。`all`と入力するとすべての反応を削除します。",
                 required=True
             )
@@ -275,12 +275,12 @@ class reaction(commands.Cog):
             self,
             interaction: Interaction,
             triggerMessage: str = SlashOption(
-                name="triggerMessage",
+                name="trigger_message",
                 description="トリガー",
                 required=True
             ),
             returnMessage: str = SlashOption(
-                name="returnMessage",
+                name="return_message",
                 description="返答文",
                 required=True
             )

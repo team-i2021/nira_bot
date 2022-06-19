@@ -81,7 +81,7 @@ class user(commands.Cog):
             self,
             interaction: Interaction,
             SettingValue: int = SlashOption(
-                name = "SettingValue",
+                name = "setting_value",
                 description = "設定値",
                 required=True,
                 choices={"有効にする":1, "無効にする":0}

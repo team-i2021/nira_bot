@@ -107,7 +107,7 @@ offにするには、`n!pin off`と送信してください。
             self,
             interaction: Interaction,
             messageContent: str = SlashOption(
-                name="messageContent",
+                name="message_content",
                 description="ピン留めするメッセージ",
                 required=True,
             ),
