@@ -403,7 +403,7 @@ class debug(commands.Cog):
             await interaction.followup.send(f"Failed to load cog `cogs.{cogname}`.\n```py\n{err}```", ephemeral=True)
 
     @cog_slash.subcommand(name="reload", description="Reload cog.")
-    async def load_cogs_slash(self, interaction: Interaction, cogname: str = SlashOption(name="cogname",description="Cog name.",required=True)):
+    async def reload_cogs_slash(self, interaction: Interaction, cogname: str = SlashOption(name="cogname",description="Cog name.",required=True)):
         await interaction.response.defer()
         try:
             self.bot.reload_extension(f"cogs.{cogname}")
@@ -412,7 +412,7 @@ class debug(commands.Cog):
             await interaction.followup.send(f"Failed to reload cog `cogs.{cogname}`.\n```py\n{err}```", ephemeral=True)
 
     @cog_slash.subcommand(name="unload", description="Unload cog.")
-    async def load_cogs_slash(self, interaction: Interaction, cogname: str = SlashOption(name="cogname",description="Cog name.",required=True)):
+    async def unload_cogs_slash(self, interaction: Interaction, cogname: str = SlashOption(name="cogname",description="Cog name.",required=True)):
         await interaction.response.defer()
         try:
             self.bot.unload_extension(f"cogs.{cogname}")
