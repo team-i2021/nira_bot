@@ -504,7 +504,7 @@ TOKENとは簡単に言えばパスワードです。LINE Notifyのページか�
         await ctx.reply(embed=embed)
 
 
-    @nextcord.slash_command(name="line", description="LINE Notifyの設定")
+    @nextcord.slash_command(name="line", description="LINE Notifyの設定", guild_ids=n_fc.GUILD_IDS)
     async def line_slash(self, interaction: Interaction):
         pass
 
