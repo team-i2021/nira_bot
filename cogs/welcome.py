@@ -94,7 +94,7 @@ n!welcome leave off
             self,
             interaction: Interaction,
             MessageType: int = SlashOption(
-                name="MessageType",
+                name="message_type",
                 description="サーバー参加時か離脱時かを選択してください",
                 required=True,
                 choices={"参加時": 1, "離脱時": 2}
@@ -130,7 +130,7 @@ n!welcome leave off
             self,
             interaction: Interaction,
             MessageType: int = SlashOption(
-                name="MessageType",
+                name="message_type",
                 description="サーバー参加時か離脱時かを選択してください",
                 required=True,
                 choices={"参加時": 1, "離脱時": 2}
@@ -162,7 +162,7 @@ n!welcome leave off
             self,
             interaction: Interaction,
             MessageType: int = SlashOption(
-                name="MessageType",
+                name="message_type",
                 description="サーバー参加時か離脱時かを選択してください",
                 required=True,
                 choices={"参加時": 1, "離脱時": 2}

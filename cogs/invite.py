@@ -60,12 +60,12 @@ class Invite(commands.Cog):
             self,
             interaction: Interaction,
             InviteAlias: str = SlashOption(
-                name="InviteAlias",
+                name="invite_alias",
                 description="招待リンクにつける名前です",
                 required=True
             ),
             InviteURL: str = SlashOption(
-                name="InviteURL",
+                name="invite_url",
                 description="名前を付ける招待リンクまたは招待コードです [https://discord.gg/abcD1234]or[abcD1234]",
                 required=True
             )
@@ -95,7 +95,7 @@ class Invite(commands.Cog):
             self,
             interaction: Interaction,
             InviteURL: str = SlashOption(
-                name="InviteURL",
+                name="invite_url",
                 description="名前を削除する招待リンクまたは招待コードです [https://discord.gg/abcD1234]or[abcD1234]",
                 required=True
             )
