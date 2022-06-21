@@ -35,7 +35,7 @@ logging.basicConfig(
     format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
 
 
-async def ping_there(adr, message: nextcord.Message):
+async def ping_there(adr, message: nextcord.Message or Interaction):
     command = ""
     if platform.system() == "Windows":
         command = f"ping {adr} -n 3 -w 3"
@@ -60,7 +60,7 @@ async def ping_there(adr, message: nextcord.Message):
 # ctx.message == None:こまんど
 
 
-async def base_ping(bot, client: HTTP_db.Client, adr, message: nextcord.Message):
+async def base_ping(bot, client: HTTP_db.Client, adr, message: nextcord.Message or Interaction):
     if adr == DISCORD:
         bot_latency = round(bot.latency * 1000, 2)
         await message.edit(embed=nextcord.Embed(title="Ping", description=f"- Discord Server\n`{bot_latency}`ms\n\n- Database Server\n`Connecting...`", color=0x00ff00))
@@ -99,7 +99,7 @@ class ping(commands.Cog):
     @nextcord.slash_command(name="ping", description="Discordサーバー又は、指定サーバーとのレイテンシを計測します。", guild_ids=n_fc.GUILD_IDS)
     async def ping_slash(
         self,
-        interaction=Interaction,
+        interaction: Interaction,
         address: str = SlashOption(
             name="address",
             description="アドレス。指定しないとDiscordサーバーとのRTTを表示します。",
@@ -108,8 +108,8 @@ class ping(commands.Cog):
     ):
         if address is None:
             address = DISCORD
-        message = await interaction.response.send_message(embed=nextcord.Embed(title="Ping", description=f"Ping測定中...", color=0x00ff00))
-        await base_ping(self.bot, self.client, address, message)
+        await interaction.response.send_message(embed=nextcord.Embed(title="Ping", description=f"Ping測定中...", color=0x00ff00))
+        await base_ping(self.bot, self.client, address, interaction)
 
     @commands.command(name="ping", help="""\
 レイテンシを表示します。
