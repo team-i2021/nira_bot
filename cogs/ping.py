@@ -108,8 +108,8 @@ class ping(commands.Cog):
     ):
         if address is None:
             address = DISCORD
-        await interaction.response.send_message(embed=nextcord.Embed(title="Ping", description=f"Ping測定中...", color=0x00ff00))
-        await base_ping(self.bot, self.client, address, interaction)
+        await interaction.send(embed=nextcord.Embed(title="Ping", description=f"Ping測定中...", color=0x00ff00))
+        await base_ping(self.bot, self.client, address, await interaction.original_message())
 
     @commands.command(name="ping", help="""\
 レイテンシを表示します。
