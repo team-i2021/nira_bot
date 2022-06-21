@@ -12,6 +12,7 @@ from nextcord import Interaction, SlashOption, ChannelType
 import json
 import HTTP_db
 import platform
+import ipaddress
 
 sys.path.append('../')
 # pingを送信するだけ
@@ -62,21 +63,24 @@ async def ping_there(adr, message: nextcord.Message or Interaction):
 
 async def base_ping(bot, client: HTTP_db.Client, adr, message: nextcord.Message or Interaction):
     if adr == DISCORD:
-        bot_latency = round(bot.latency * 1000, 2)
-        await message.edit(embed=nextcord.Embed(title="Ping", description=f"- Discord Server\n`{bot_latency}`ms\n\n- Database Server\n`Connecting...`", color=0x00ff00))
+        bot_latency = round(bot.latency * 1000, 3)
+        await message.edit(embed=nextcord.Embed(title="Ping", description=f"- Discord Server```\n{bot_latency}ms```\n- Database Server```\nConnecting...```", color=0x00ff00))
         try:
             data = await client.ping()
-            db_latency = round(float(data.ping), 2)
-            await message.edit(embed=nextcord.Embed(title="Ping", description=f"- Discord Server\n`{bot_latency}`ms\n\n- Database Server\n`{db_latency}`ms", color=0x00ff00))
+            db_latency = round(float(data.ping) * 1000, 3)
+            await message.edit(embed=nextcord.Embed(title="Ping", description=f"- Discord Server```\n{bot_latency}ms```\n- Database Server```\n{db_latency}ms```", color=0x00ff00))
             return
-        except HTTP_db.UnknownDatabaseError:
-            await message.edit(embed=nextcord.Embed(title="Ping", description=f"- Discord Server\n`{bot_latency}`ms\n\n- Database Server\n`Connection Error.`", color=0x00ff00))
+        except Exception as err:
+            await message.edit(embed=nextcord.Embed(title="Ping", description=f"- Discord Server```\n{bot_latency}ms```\n- Database Server```\nDatabase Connection Error.\n{err}```", color=0x00ff00))
             return
 
     elif adr != DISCORD:
-        if adr[:8] == "192.168." or adr == "127.0.0.1" or adr == "localhost" or adr == "0.0.0.0" or adr == "127.0.1" or adr == "127.1" or adr == "2130706433" or adr == "0x7F000001" or adr == "017700000001":
-            await message.edit(embed=nextcord.Embed(title="Ping", description=f"localhostおよびLAN内にはPingできません\n||多分...||", color=0x00ff00))
-            return
+        try:
+            if adr == "localhost" or ipaddress.ip_address(adr).is_private:
+                await message.edit(embed=nextcord.Embed(title="Ping", description=f"`localhost`及びLAN内へのPingはできません。", color=0x00ff00))
+                return
+        except Exception:
+            pass
         try:
             await asyncio.wait_for(ping_there(adr, message), timeout=8)
             return
@@ -89,7 +93,7 @@ async def base_ping(bot, client: HTTP_db.Client, adr, message: nextcord.Message 
         return
 
 
-class ping(commands.Cog):
+class Ping(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         datas = json.load(open(f'{dir}/setting.json', 'r'))["database_data"]
@@ -130,4 +134,4 @@ IPアドレスまたはドメインの形で指定してください。""")
 
 
 def setup(bot):
-    bot.add_cog(ping(bot))
+    bot.add_cog(Ping(bot))
