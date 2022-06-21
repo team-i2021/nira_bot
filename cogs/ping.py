@@ -74,7 +74,7 @@ async def base_ping(bot, client: HTTP_db.Client, adr, message: nextcord.Message 
             return
 
     elif adr != DISCORD:
-        if adr[8:] == "192.168." or adr == "127.0.0.1" or adr == "localhost" or adr == "0.0.0.0" or adr == "127.0.1" or adr == "127.1" or adr == "2130706433" or adr == "0x7F000001" or adr == "017700000001":
+        if adr[:8] == "192.168." or adr == "127.0.0.1" or adr == "localhost" or adr == "0.0.0.0" or adr == "127.0.1" or adr == "127.1" or adr == "2130706433" or adr == "0x7F000001" or adr == "017700000001":
             await message.edit(embed=nextcord.Embed(title="Ping", description=f"localhostおよびLAN内にはPingできません\n||多分...||", color=0x00ff00))
             return
         try:
