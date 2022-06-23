@@ -18,23 +18,9 @@ ROLE_ID = re.compile(r"<@&[0-9]+?>")
 # 特定のチャンネルにて特定のメッセージが送信された場合にロールをつけるそれ。
 # データ形式:HTTP_db
 
-# loggingの設定
 dir = sys.path[0]
 
 MESSAGE_ROLE_SETTINGS = {}
-
-
-class NoTokenLogFilter(logging.Filter):
-    def filter(self, record):
-        message = record.getMessage()
-        return 'token' not in message
-
-
-logger = logging.getLogger(__name__)
-logger.addFilter(NoTokenLogFilter())
-formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
-logging.basicConfig(
-    format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
 
 
 async def pullData(client: HTTP_db.Client):

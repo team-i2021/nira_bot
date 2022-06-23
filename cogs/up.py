@@ -14,17 +14,6 @@ from re import compile
 from util.n_fc import GUILD_IDS, py_admin
 from util import slash_tool, admin_check, database
 
-DIR = sys.path[0]
-class NoTokenLogFilter(logging.Filter):
-    def filter(self, record):
-        message = record.getMessage()
-        return 'token' not in message
-
-logger = logging.getLogger(__name__)
-logger.addFilter(NoTokenLogFilter())
-formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
-logging.basicConfig(format=formatter, filename=f'{DIR}/nira.log', level=logging.INFO)
-
 SET, DEL, STATUS = (0,1,2)
 ROLE_ID = compile(r"<@&[0-9]+?>")
 

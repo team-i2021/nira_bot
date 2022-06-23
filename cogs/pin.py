@@ -5,25 +5,13 @@ import os
 import sys
 from nextcord import Interaction, SlashOption, ChannelType
 import traceback
+import logging
 
 sys.path.append('../')
 from util import admin_check, n_fc, eh
 
 # ボトムアップ的な機能
 
-
-#loggingの設定
-import logging
-dir = sys.path[0]
-class NoTokenLogFilter(logging.Filter):
-    def filter(self, record):
-        message = record.getMessage()
-        return 'token' not in message
-
-logger = logging.getLogger(__name__)
-logger.addFilter(NoTokenLogFilter())
-formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
-logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
 
 async def MessagePin(bot: nextcord.ext.commands.bot.Bot):
     while True:

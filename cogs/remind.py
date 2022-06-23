@@ -4,6 +4,7 @@ import nextcord
 import os, sys, json, datetime
 from nextcord import Interaction, SlashOption, ChannelType
 import traceback
+import logging
 from re import compile
 sys.path.append('../')
 from util import admin_check, n_fc, eh, database
@@ -11,20 +12,6 @@ from util import admin_check, n_fc, eh, database
 # りまいんど
 
 TIME_CHECK = compile(r"[0-9]{1,2}:[0-9]{1,2}")
-
-#loggingの設定
-import logging
-dir = sys.path[0]
-class NoTokenLogFilter(logging.Filter):
-    def filter(self, record):
-        message = record.getMessage()
-        return 'token' not in message
-
-logger = logging.getLogger(__name__)
-logger.addFilter(NoTokenLogFilter())
-formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
-logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
-
 
 
 DBS = database.openSheet()

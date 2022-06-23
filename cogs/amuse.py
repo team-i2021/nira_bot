@@ -16,22 +16,6 @@ from util.wordle_data import words
 MESSAGE, SLASH = [0, 1]
 
 
-dir = sys.path[0]
-
-
-class NoTokenLogFilter(logging.Filter):
-    def filter(self, record):
-        message = record.getMessage()
-        return 'token' not in message
-
-
-logger = logging.getLogger(__name__)
-logger.addFilter(NoTokenLogFilter())
-formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
-logging.basicConfig(
-    format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
-
-
 class Amuse(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot

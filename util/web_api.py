@@ -4,6 +4,7 @@ import requests
 import sys
 import nextcord
 import os
+import logging
 
 tokens = {}
 
@@ -15,18 +16,6 @@ server_req_url = 'http://api.steampowered.com/ISteamApps/GetServersAtAddress/v1/
 image_4 = [".jpg", ".png", ".bmp"]
 image_5 = [".jpeg", ".jtif"]
 
-#loggingの設定
-import logging
-dir = sys.path[0]
-class NoTokenLogFilter(logging.Filter):
-    def filter(self, record):
-        message = record.getMessage()
-        return 'token' not in message
-
-logger = logging.getLogger(__name__)
-logger.addFilter(NoTokenLogFilter())
-formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
-logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
 
 def notify_line(message: nextcord.Message, token):
     channel = f"[{message.guild.name}]/[{message.channel.name}]"

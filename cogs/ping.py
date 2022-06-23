@@ -19,21 +19,7 @@ sys.path.append('../')
 
 DISCORD = 0xD13C06D
 
-# loggingの設定
 dir = sys.path[0]
-
-
-class NoTokenLogFilter(logging.Filter):
-    def filter(self, record):
-        message = record.getMessage()
-        return 'token' not in message
-
-
-logger = logging.getLogger(__name__)
-logger.addFilter(NoTokenLogFilter())
-formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
-logging.basicConfig(
-    format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
 
 
 async def ping_there(adr, message: nextcord.Message or Interaction):

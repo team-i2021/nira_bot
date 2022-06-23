@@ -96,22 +96,16 @@ bot.is_owner = is_owner
 print("BOTの設定完了")
 
 
-# loggingの設定
-
-
-class NoTokenLogFilter(logging.Filter):
-    def filter(self, record):
-        message = record.getMessage()
-        return 'token' not in message
-
 #DBS = database.openSheet()
 
-
-logger = logging.getLogger(__name__)
-logger.addFilter(NoTokenLogFilter())
-formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
+# loggingの設定
+FORMATTER = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
 logging.basicConfig(
-    format=formatter, filename=f'{HOME}/nira.log', level=logging.INFO)
+    format=FORMATTER,
+    filename=f'{sys.path[0]}/nira.log',
+    level=logging.INFO,
+)
+
 print("外部設定完了")
 
 

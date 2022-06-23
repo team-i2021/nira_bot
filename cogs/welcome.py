@@ -4,6 +4,7 @@ from nextcord.ext import commands
 import nextcord
 import os
 import sys
+import logging
 from nextcord import Interaction, SlashOption, ChannelType
 from cogs.debug import save
 
@@ -13,18 +14,6 @@ from util import admin_check, n_fc, eh
 # join message system
 # Copilotでちょっとだけ楽をした。
 
-#loggingの設定
-import logging
-dir = sys.path[0]
-class NoTokenLogFilter(logging.Filter):
-    def filter(self, record):
-        message = record.getMessage()
-        return 'token' not in message
-
-logger = logging.getLogger(__name__)
-logger.addFilter(NoTokenLogFilter())
-formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
-logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
 
 class welcome(commands.Cog):
     def __init__(self, bot: commands.Bot):

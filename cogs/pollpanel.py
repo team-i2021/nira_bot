@@ -12,27 +12,12 @@ import sys,os
 sys.path.append('../')
 from util import n_fc, mc_status
 import datetime
+import logging
 
 global PollViews
 PollViews = []
 
 # pollpanel
-
-#loggingの設定
-import logging
-dir = sys.path[0]
-
-
-
-class NoTokenLogFilter(logging.Filter):
-    def filter(self, record):
-        message = record.getMessage()
-        return 'token' not in message
-
-logger = logging.getLogger(__name__)
-logger.addFilter(NoTokenLogFilter())
-formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
-logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
 
 
 class PollPanelSlashInput(nextcord.ui.Modal):

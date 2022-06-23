@@ -11,6 +11,7 @@ import youtube_dl
 import youtube_dlc
 import json
 import sys
+import logging
 from util import admin_check, n_fc, eh, server_check
 
 import urllib.request
@@ -20,19 +21,7 @@ from cogs import tts
 
 # 音楽再生
 
-#loggingの設定
-import logging
 dir = sys.path[0]
-class NoTokenLogFilter(logging.Filter):
-    def filter(self, record):
-        message = record.getMessage()
-        return 'token' not in message
-
-logger = logging.getLogger(__name__)
-logger.addFilter(NoTokenLogFilter())
-formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
-logging.basicConfig(format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
-
 
 music_list = dict()
 music_f = dict()
