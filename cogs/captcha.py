@@ -1,13 +1,19 @@
+import asyncio
+import json
+import os
+import sys
+
 import nextcord
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
+
 from util import n_fc, database
-import os, sys, asyncio, json
 
 DBS = database.openSheet()
 DATABASE_KEY = "B6"
 
 CaptchaData = {}
+
 
 # reading
 
@@ -22,6 +28,7 @@ def readDatabase() -> None:
         CaptchaData = CaptchaDataTemp
     return
 
+
 # web captcha
 
 class CaptchaView(nextcord.ui.View):
@@ -34,7 +41,6 @@ class CaptchaView(nextcord.ui.View):
         return
 
 
-
 class CaptchaButton(nextcord.ui.View):
     def __init__(self, guild_id: int, user_id: int):
         super().__init__(timeout=None)
@@ -42,13 +48,12 @@ class CaptchaButton(nextcord.ui.View):
         self.add_item(nextcord.ui.Button(label="認証", url=url, style=nextcord.ButtonStyle.green))
 
 
-
 class CaptchaSetting(nextcord.ui.View):
     def __init__(self, author: int, role_id: int):
         super().__init__(timeout=None)
         self.author = author
         self.role_id = role_id
-    
+
     @nextcord.ui.button(label="設定を変更する", style=nextcord.ButtonStyle.danger)
     async def callback(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
         await interaction.response.defer()
@@ -61,8 +66,6 @@ class CaptchaSetting(nextcord.ui.View):
         else:
             await interaction.followup.send(embed=nextcord.Embed(title="Web認証 - エラー", description="コマンド送信者と同じ人がボタンを押すことができます。", color=0xff0000), ephemeral=True)
         return
-
-
 
 
 class Captcha(commands.Cog):
@@ -90,7 +93,6 @@ class Captcha(commands.Cog):
             await asyncio.sleep(1)
             await interaction.channel.send(embed=nextcord.Embed(title="Web認証", description="認証を行うには下のボタンを押してください。", view=CaptchaView()))
         return
-
 
     @commands.command(name="captcha", help="""\
 Web認証を設定します

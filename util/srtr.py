@@ -1,19 +1,18 @@
-# coding: utf-8
-import nextcord
-from os import getenv
-import re
+import copy
+import importlib
+import logging
+import pickle
 import random
-import jaconv
-from util import word_data, n_fc
-import pykakasi
+import re
 import sys
 import traceback
-import importlib
-import copy
-import pickle
-import logging
+from os import getenv
 
+import jaconv
+import nextcord
+import pykakasi
 
+from util import word_data, n_fc
 
 re_hiragana = re.compile(r'^[あ-ん]+$')
 re_katakana = re.compile(r'[\u30A1-\u30F4]+')
@@ -26,6 +25,7 @@ srtr_data = {}
 home_dir = sys.path[0]
 
 kks = pykakasi.kakasi()
+
 
 async def on_srtr(message):
     if message.guild.id not in srtr_data:

@@ -1,23 +1,23 @@
 import asyncio
-from nextcord.ext import commands
-import nextcord
-import traceback
+import logging
 import os
 import sys
-import logging
+import traceback
 from re import compile
-from nextcord import Interaction, SlashOption, ChannelType
 
-sys.path.append('../')
+import nextcord
+from nextcord import Interaction, SlashOption, ChannelType
+from nextcord.ext import commands
+
 from util import admin_check, n_fc, eh, database
 
 inviteUrlTemplate = compile(r'https://discord.gg/([0-9a-zA-Z]+)')
 
 # inviter
 
-
 DBS = database.openSheet()
 DATABASE_KEY = "B7"
+
 
 def readValue():
     data = database.readValue(DBS, DATABASE_KEY)
@@ -32,14 +32,12 @@ class Invite(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-
     @nextcord.slash_command(name="invite", description="Set alias for invite url.", guild_ids=n_fc.GUILD_IDS)
     async def invite_slash(
             self,
             interaction: Interaction
         ):
         pass
-
 
     @invite_slash.subcommand(name="set", description="招待リンクに名前を付けます。")
     async def set_invite_slash(
@@ -75,7 +73,6 @@ class Invite(commands.Cog):
         database.writeValue(DBS, DATABASE_KEY, InviteData)
         return
 
-
     @invite_slash.subcommand(name="del", description="招待リンクの名前を削除します。")
     async def del_invite_slash(
             self,
@@ -97,7 +94,7 @@ class Invite(commands.Cog):
                 InviteData[interaction.guild.id] = {i.url: [None, i.uses] for i in await interaction.guild.invites()}
             if InviteURL in InviteData[interaction.guild.id]:
                 InviteData[interaction.guild.id][InviteURL][0] = None
-                
+
                 await interaction.followup.send(embed=nextcord.Embed(title="InviteURL", description=f"招待リンク`{InviteURL}`の名前を削除しました。", color=0x00FF00), ephemeral=True)
             else:
                 await interaction.followup.send(embed=nextcord.Embed(title="エラー", description=f"招待リンク`{InviteURL}`が見つかりませんでした。", color=0xFF0000), ephemeral=True)
@@ -105,7 +102,6 @@ class Invite(commands.Cog):
             await interaction.followup.send(embed=nextcord.Embed(title="エラー", description=f"あなたは管理者ではありません。", color=0xFF0000), ephemeral=True)
         database.writeValue(DBS, DATABASE_KEY, InviteData)
         return
-
 
     @invite_slash.subcommand(name="list", description="招待リンクの一覧を表示します。")
     async def list_invite_slash(self, interaction:Interaction):
@@ -123,7 +119,6 @@ class Invite(commands.Cog):
         embed = nextcord.Embed(title="招待リスト", description=EmbedDescription, color=0x00FF00)
         await interaction.followup.send(embed=embed)
         return
-
 
     @commands.command(name="invite", help="""\
 招待リンク表示
@@ -156,7 +151,7 @@ class Invite(commands.Cog):
             embed = nextcord.Embed(title="招待リスト", description=EmbedDescription, color=0x00FF00)
             await ctx.reply(embed=embed)
             return
-        
+
         elif len(args) == 2:
             if args[1] == "set":
                 await ctx.reply(embed=nextcord.Embed(title="エラー", description="引数が足りません。\n`n!invite set [招待リンクまたは招待コード] [名前]`", color=0xFF0000))

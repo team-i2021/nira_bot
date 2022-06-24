@@ -1,5 +1,3 @@
-# coding: utf-8
-
 helpContents = {
     0: """\
 にらBOTへようこそ！

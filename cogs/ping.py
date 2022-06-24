@@ -1,20 +1,21 @@
-import logging
-from util import admin_check, n_fc, eh
 import asyncio
-from nextcord.ext import commands
-import nextcord
+import ipaddress
+import json
+import logging
+import os
+import platform
 import subprocess
+import sys
 import traceback
 from subprocess import PIPE
-import os
-import sys
-from nextcord import Interaction, SlashOption, ChannelType
-import json
-import HTTP_db
-import platform
-import ipaddress
 
-sys.path.append('../')
+import HTTP_db
+import nextcord
+from nextcord import Interaction, SlashOption, ChannelType
+from nextcord.ext import commands
+
+from util import admin_check, n_fc, eh
+
 # pingを送信するだけ
 
 DISCORD = 0xD13C06D

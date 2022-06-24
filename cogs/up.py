@@ -1,15 +1,18 @@
 import asyncio
-import math
-import random
-import time
-import nextcord
-from nextcord.ext import commands, tasks
-from nextcord import Interaction, SlashOption
-import os, sys, logging
-import gspread
 import json
+import logging
+import math
+import os
+import random
 import re
+import sys
+import time
 from re import compile
+
+import gspread
+import nextcord
+from nextcord import Interaction, SlashOption
+from nextcord.ext import commands, tasks
 
 from util.n_fc import GUILD_IDS, py_admin
 from util import slash_tool, admin_check, database
@@ -71,7 +74,6 @@ async def ErrorSend(interaction):
 class UpNotify(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-
 
     @commands.command(name="up", aliases=["アップ","あっぷ","dissoku"], help="""\
 DissokuのUp通知を行います
@@ -167,11 +169,9 @@ read - read UpperData from server to device```""")
             await ctx.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
             return
 
-
     @nextcord.slash_command(name="up", description="Dissoku通知", guild_ids=GUILD_IDS)
     async def up_slash(self, interaction: Interaction):
         pass
-
 
     @up_slash.subcommand(name="on", description="Dissoku通知を有効にします")
     async def up_slash_on(
@@ -190,7 +190,6 @@ read - read UpperData from server to device```""")
         else:
             await interaction.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
 
-
     @up_slash.subcommand(name="off", description="Dissoku通知を無効にします")
     async def up_slash_off(self, interaction: Interaction):
         if admin_check.admin_check(interaction.guild, interaction.user):
@@ -198,11 +197,9 @@ read - read UpperData from server to device```""")
         else:
             await interaction.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
 
-
     @up_slash.subcommand(name="status", description="Dissoku通知の状態を確認します")
     async def up_slash_status(self, interaction: Interaction):
         await UpNotifyConfig(self.bot, interaction, STATUS, None)
-
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
@@ -238,12 +235,10 @@ read - read UpperData from server to device```""")
             except BaseException as err:
                 logging.error(err)
 
-
     @tasks.loop(seconds=30)
     async def writeDatabaseLoop(self):
         writeDatabase()
         return
-
 
 
 def setup(bot):

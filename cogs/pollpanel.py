@@ -1,18 +1,18 @@
+import datetime
+import logging
+import os
+import pickle
+import re
+import sys
+from os import getenv
+
 import nextcord
 from nextcord import Interaction, message
 from nextcord.ext import commands
 from nextcord.utils import get
-from os import getenv
-import sys
-from util.admin_check import admin_check
-global task
-import re
-import pickle
-import sys,os
-sys.path.append('../')
+
 from util import n_fc, mc_status
-import datetime
-import logging
+from util.admin_check import admin_check
 
 global PollViews
 PollViews = []
@@ -55,7 +55,6 @@ class PollPanelSlashInput(nextcord.ui.Modal):
         )
         self.add_item(self.Polls)
 
-
     async def callback(self, interaction: Interaction) -> None:
         await interaction.response.defer()
 
@@ -88,7 +87,6 @@ class PollPanelSlashInput(nextcord.ui.Modal):
             return
 
 
-
 class PollPanelView(nextcord.ui.View):
     def __init__(self, args):
         super().__init__(timeout=None)
@@ -98,11 +96,10 @@ class PollPanelView(nextcord.ui.View):
         self.add_item(PollPanelEnd())
 
 
-
 class PollPanelButton(nextcord.ui.Button):
     def __init__(self, arg):
         super().__init__(label=arg, style=nextcord.ButtonStyle.green, custom_id=f"PolePanel:{arg}")
-    
+
     async def callback(self, interaction: Interaction):
         try:
             message = interaction.message
@@ -121,7 +118,7 @@ class PollPanelButton(nextcord.ui.Button):
                     choice[i.split(":")[0]] = [j for j in i.split(":")[1].split("/")]
                 else:
                     choice[i.split(":")[0]] = []
-            
+
             for i in choice.keys():
                 Pollers.extend(choice[i])
             Pollers = list(set(Pollers))
@@ -164,7 +161,6 @@ class PollPanelButton(nextcord.ui.Button):
             await interaction.response.send_message(f"ERR: `{err}`", ephemeral=True)
 
 
-
 class PollPanelEnd(nextcord.ui.Button):
     def __init__(self):
         super().__init__(label="締め切る", style=nextcord.ButtonStyle.red, custom_id="PolePanel:end")
@@ -177,11 +173,9 @@ class PollPanelEnd(nextcord.ui.Button):
             await interaction.response.send_message("誰だおめぇ...？\n（投票製作者のみ締め切ることが出来ます！）", ephemeral=True)
 
 
-
 class pollpanel(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-
 
     @nextcord.slash_command(name="pollpanel", description="投票パネルを設置します", guild_ids=n_fc.GUILD_IDS)
     async def rolepanel_slash(
@@ -191,7 +185,6 @@ class pollpanel(commands.Cog):
         modal = PollPanelSlashInput(self.bot)
         await interaction.response.send_modal(modal=modal)
         return
-
 
     @commands.command(name="pollpanel", aliases=["ポールパネル","pp","poll",], help="""\
 投票パネル機能

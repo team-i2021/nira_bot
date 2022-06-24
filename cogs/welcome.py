@@ -1,14 +1,14 @@
 import asyncio
-import traceback
-from nextcord.ext import commands
-import nextcord
+import logging
 import os
 import sys
-import logging
-from nextcord import Interaction, SlashOption, ChannelType
-from cogs.debug import save
+import traceback
 
-sys.path.append('../')
+import nextcord
+from nextcord import Interaction, SlashOption, ChannelType
+from nextcord.ext import commands
+
+from cogs.debug import save
 from util import admin_check, n_fc, eh
 
 # join message system
@@ -201,6 +201,7 @@ n!welcome leave off
         CHANNEL = member.guild.get_channel(n_fc.welcome_message_list[member.guild.id]["leave"][1])
         await CHANNEL.send(message)
         return
+
 
 def setup(bot):
     bot.add_cog(welcome(bot))

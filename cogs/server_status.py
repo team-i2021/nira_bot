@@ -1,19 +1,19 @@
-import re
-import traceback
-from util import admin_check, eh, n_fc, server_check
-import os
-import logging
-import importlib
 import asyncio
 import datetime
+import importlib
+import logging
+import os
 import pickle
+import re
 import sys
+import traceback
 
 import nextcord
 from nextcord import SlashOption, Interaction
 from nextcord.ext import commands
 
-sys.path.append('../')
+from util import admin_check, eh, n_fc, server_check
+
 # loggingの設定
 
 PREFIX = "n!"
@@ -21,7 +21,6 @@ PREFIX = "n!"
 home_dir = os.path.dirname(__file__)[:-4]
 
 ss_check_result = {}
-
 
 ss_commands = f"""・SS系コマンド一覧
 `{PREFIX}ss`: 登録されているサーバーのステータスを表示します。
@@ -54,6 +53,7 @@ async def ss_force(loop, message: nextcord.Message):
             logging.info(err, traceback.format_exc())
             await message.edit(content=f"err:{err}")
             await ss_force(loop, message)
+
 
 # async def ss_pin(self, ment_id, message):
 #    ss_check_result[message.guild.id] = {}

@@ -1,23 +1,22 @@
+import asyncio
+import datetime
+import importlib
+import listre
+import logging
+import os
+import pickle
+import random
+import re
+import sys
+
+import nextcord
+from nextcord.ext import commands
+
 import util.srtr as srtr
 from util import admin_check, n_fc, eh, web_api
-from nextcord.ext import commands
-import nextcord
-import datetime
-import pickle
-import re
-import random
-import asyncio
-import importlib
-import sys
-import listre
-import os
-import logging
 
 home_dir = os.path.dirname(__file__)[:-4]
 dir = sys.path[0]
-
-
-sys.path.append('../')
 
 image_root = "https://team-i2021.github.io/nira_bot/images"
 image_loc = f"{dir}/images"

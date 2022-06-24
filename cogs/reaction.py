@@ -1,15 +1,14 @@
-from util import admin_check, n_fc, eh, web_api, slash_tool
-from nextcord.ext import commands
-from nextcord import Interaction, SlashOption
-import nextcord
-import pickle
 import math
-
-import sys
 import os
-from cogs.debug import save
+import pickle
+import sys
 
-sys.path.append('../')
+import nextcord
+from nextcord import Interaction, SlashOption
+from nextcord.ext import commands
+
+from cogs.debug import save
+from util import admin_check, n_fc, eh, web_api, slash_tool
 
 DIR = sys.path[0]
 

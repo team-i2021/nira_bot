@@ -1,13 +1,12 @@
-from nextcord.ext import commands
+import importlib
+import sys
+
 import nextcord
 from nextcord import Interaction, SlashOption, ChannelType
+from nextcord.ext import commands
 
-import sys
-sys.path.append('../')
-from util import admin_check, n_fc, eh, slash_tool
-import importlib
 import util.help_command as hc
-
+from util import admin_check, n_fc, eh, slash_tool
 
 #インフォ系
 
@@ -15,7 +14,6 @@ CTX = 0
 SLASH = 1
 
 ManageServer, ManageUser, Amuse, ServerStatus, Embed, Reaction, VoiceClient, BotUtility, ChannelTopic = range(1,10)
-
 
 
 class HelpSelect(nextcord.ui.Select):
@@ -107,7 +105,7 @@ class HelpSelect(nextcord.ui.Select):
                 nextcord.SelectOption(label='ジャンル選択に戻る...', value=0),
                 nextcord.SelectOption(label='そのチャンネルでにらの反応を無効化する', description="nira-off", value=901),
             ]
-        
+
         super().__init__(placeholder='Please select help content.', min_values=1, max_values=1, options=options)
 
     async def callback(self, interaction: nextcord.Interaction):
@@ -148,7 +146,7 @@ class info_base():
             if ctx.user.id in n_fc.py_admin:
                 embed.add_field(name="ってかお前って...", value="開発者だよな...\n開発者ならヘルプなんか見なくても何でも出来て当然だよなっ！（非常食風）\n\n[メインレポジトリ](https://github.com/nattyan-tv/nira_bot) / [ウェブページレポジトリ](https://github.com/nattyan-tv/)")
             return ctx.response.send_message(embed=embed)
-    
+
     def help(self, ctx, command, type):
         if command == None:
             view = nextcord.ui.View(timeout=None)
@@ -179,10 +177,10 @@ class info_base():
                 elif type == SLASH:
                     return ctx.response.send_message(embed=embed)
 
+
 class info(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-
 
     @nextcord.slash_command(name="info", description="にらBOTの情報を表示します。", guild_ids=n_fc.GUILD_IDS)
     async def info_slash(self, interaction: Interaction):
@@ -195,7 +193,7 @@ class info(commands.Cog):
     async def info(self, ctx: commands.Context):
         await info_base.info(self, ctx, CTX)
         return
-    
+
     @nextcord.slash_command(name="help", description="にらBOT及び、コマンドのヘルプを表示します。", guild_ids=n_fc.GUILD_IDS)
     async def help_slash(
             self,
@@ -209,7 +207,7 @@ class info(commands.Cog):
         if command == "":
             command = None
         await info_base.help(self, interaction, command, SLASH)
-    
+
     @commands.command(name="help", help="""\
 にらBOT又はコマンドのヘルプを表示します。
 普通に`n!help`とだけすると、にらBOTのヘルプが表示されます。

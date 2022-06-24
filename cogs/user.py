@@ -1,10 +1,11 @@
-from nextcord.ext import commands
-from nextcord import Interaction, SlashOption
-import nextcord
-import re
+import os
 import pickle
+import re
+import sys
 
-import sys,os
+import nextcord
+from nextcord import Interaction, SlashOption
+from nextcord.ext import commands
 
 from cogs.debug import save
 from util import admin_check, n_fc, eh, slash_tool
@@ -14,6 +15,7 @@ SET, DEL, STATUS = (0, 1, 2)
 #ユーザー情報表示系
 
 home_dir = sys.path[0]
+
 
 class user(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -31,7 +33,7 @@ class user(commands.Cog):
         embed.add_field(name="アカウント製作日", value=f"```{member.created_at}```", inline=False)
         if type(member) is nextcord.Member:
             embed.add_field(name="サーバー参加日", value=f"```{member.joined_at}```", inline=False)
-        
+
         return embed
 
     @nextcord.user_command(name="ユーザー情報表示", guild_ids=n_fc.GUILD_IDS)
@@ -53,7 +55,7 @@ class user(commands.Cog):
             user = interaction.user
         await interaction.response.send_message(embed=self.UserInfoEmbed(user))
         return
-    
+
     @commands.command(name="d", help="""\
     ユーザーの情報を表示します。
     引数を指定せずに`n!d`とだけ指定するとあなた自身の情報を表示します。
@@ -74,7 +76,6 @@ class user(commands.Cog):
             except BaseException:
                 await ctx.message.reply(embed=nextcord.Embed(title="Error", description="ユーザーが存在しないか、データが取得できませんでした。", color=0xff0000))
                 return
-
 
     @nextcord.slash_command(name="rk", description="ロールキーパー機能の設定", guild_ids=n_fc.GUILD_IDS)
     async def rk_slash(
@@ -99,7 +100,6 @@ class user(commands.Cog):
         else:
             await interaction.response.send_message(embed=nextcord.Embed(title="Error", description="権限がありません。", color=0xff0000))
             return
-
 
     @commands.command(name="rk", help="""\
 ロールキーパー機能です。
@@ -139,7 +139,6 @@ class user(commands.Cog):
             return
         else:
             await ctx.reply("権限がありません。")
-
 
     async def ui_config(self, bot: commands.Bot, interaction: Interaction or commands.Context, type: int, guild_id: int, channel: nextcord.channel):
         if type == SET:
@@ -234,6 +233,7 @@ class user(commands.Cog):
         else:
             await ctx.message.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
             return
+
 
 def setup(bot):
     bot.add_cog(user(bot))

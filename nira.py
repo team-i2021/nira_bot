@@ -1,59 +1,56 @@
-# coding: utf-8
-
 # 沢山のインポート
+import asyncio
+import datetime
+import json
 import logging
 import os
-import sys
-import json
-import traceback
-import datetime
-import asyncio
-import re
+import pickle
 import pip
+import re
+import sys
+import traceback
+
+from util import n_fc
+# from util import database
+from cogs import debug as cogs_debug, server_status, rolepanel, pollpanel
 
 try:
     import nextcord
+    import websockets
     from nextcord.ext import commands
     from nextcord import Interaction
-    from util import n_fc
-    # from util import database
-    from cogs import debug as cogs_debug
-    from cogs import server_status
-    sys.setrecursionlimit(10000)  # エラー回避
-    import pickle
-    from cogs import rolepanel
-    from cogs import pollpanel
-    import websockets
-    print("モジュールインポート完了")
 except Exception as err:
-    try:
-        print(f"""モジュールインポート時のエラー:{err}
+    print(f"""モジュールインポート時のエラー: {err}
 勝手にモジュールのインストールと再インポートを行います。
 「勝手に」です。仮想環境とかいろいろやってる人からしたらはた迷惑な話ですよね...もう...
 
 それでもエラーが発生する場合はスクリプトが終了します。多分。""", file=sys.stderr)
+
+    try:
         pip.main(['install', '-r', f'{sys.path[0]}/requirements.txt'])
-        import nextcord
-        from nextcord.ext import commands
-        from nextcord import Interaction
-        from util import n_fc
-        # from util import database
-        from cogs import debug as cogs_debug
-        from cogs import server_status
-        sys.setrecursionlimit(10000)  # エラー回避
-        import pickle
-        from cogs import rolepanel
-        from cogs import pollpanel
-        import websockets
-        print("モジュールインポート完了")
     except Exception as err:
-        print(f"""モジュールインポート時のエラー:{err}
+        print(f"""モジュールインストール時のエラー: {err}
 スクリプトが終了します。
 
 --python traceback--
 {traceback.format_exc()}""", file=sys.stderr)
         os._exit(0)
 
+    try:
+        import nextcord
+        import websockets
+        from nextcord.ext import commands
+        from nextcord import Interaction
+    except Exception as err:
+        print(f"""モジュールインポート時のエラー: {err}
+スクリプトが終了します。
+
+--python traceback--
+{traceback.format_exc()}""", file=sys.stderr)
+        os._exit(0)
+
+sys.setrecursionlimit(10000)  # エラー回避
+print("モジュールインポート完了")
 
 # 設定読み込み
 if os.path.isfile(f'{sys.path[0]}/setting.json') == False:
@@ -63,7 +60,6 @@ if os.path.isfile(f'{sys.path[0]}/setting.json') == False:
 
 または、「setup.py」を実行して、画面の指示通りにしてください。""", file=sys.stderr)
     os._exit(0)
-
 
 HOME = os.path.dirname(os.path.abspath(__file__))
 SETTING = json.load(open(f'{sys.path[0]}/setting.json', 'r'))
@@ -77,7 +73,6 @@ DEBUG = False
 if len(sys.argv) > 1 and sys.argv[1] == "-d":
     DEBUG = True
     print(f"NIRA Bot Debug Mode\nThe following will be loaded... :{LOAD_COGS}")
-
 
 ##### BOTの設定 #####
 intents = nextcord.Intents.all()  # デフォルトのIntentsオブジェクトを生成
@@ -132,6 +127,7 @@ print("外部設定完了")
 #    logging.info("Websocket....")
 #    async with websockets.serve(ws, "0.0.0.0", int(port)):
 #        await asyncio.Future()
+
 
 @bot.event
 async def on_ready():

@@ -1,17 +1,18 @@
-from nextcord.ext import commands
-from nextcord import Interaction, SlashOption
-import nextcord
-import datetime
-import pickle
-import re
-import random
 import asyncio
-import time
+import datetime
 import math
-
+import pickle
+import random
+import re
 import sys
-from util import admin_check, n_fc, eh, slash_tool
+import time
+
+import nextcord
+from nextcord import Interaction, SlashOption
+from nextcord.ext import commands
+
 import util.srtr as srtr
+from util import admin_check, n_fc, eh, slash_tool
 
 #Bump通知
 
@@ -86,17 +87,17 @@ Disboardの通知設定を行います。
                     role = ctx.guild.get_role(int(args[2]))
                 except ValueError:
                     pass
-                
+
                 if role is None:
                     for i in ctx.guild.roles:
                         if i.name == args[2]:
                             role = i
                             break
-                
+
                 if role is None:
                     await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"指定したロール`{args[2]}`が見つかりませんでした。", color=0xff0000))
                     return
-                
+
                 await self.bump_config(ctx, SET, role)
         elif args[1] == "off":
             await self.bump_config(ctx, DEL, None)
@@ -165,6 +166,7 @@ Disboardの通知設定を行います。
             elif bump_rnd == 3:
                 await message.channel.send(messageContent, embed=nextcord.Embed(title="Bumpしましょう！", description=f"Bumpの時間ですよ！\n```/bump```", color=0x00ff00))
             return
+
 
 def setup(bot):
     bot.add_cog(bump(bot))

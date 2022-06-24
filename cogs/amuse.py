@@ -1,16 +1,18 @@
+import listre
 import logging
-from nextcord import Interaction, SlashOption
-from util.slash_tool import messages
-from nextcord.ext import commands
-import nextcord
 import random
 import re
-import listre
 import sys
 import urllib.parse
-from util.n_fc import GUILD_IDS
 
+import nextcord
+from nextcord import Interaction, SlashOption
+from nextcord.ext import commands
+
+from util.n_fc import GUILD_IDS
+from util.slash_tool import messages
 from util.wordle_data import words
+
 # 娯楽系
 
 MESSAGE, SLASH = [0, 1]

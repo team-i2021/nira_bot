@@ -1,13 +1,13 @@
 import asyncio
-from nextcord.ext import commands, tasks
-import nextcord
+import logging
 import os
 import sys
-from nextcord import Interaction, SlashOption, ChannelType
 import traceback
-import logging
 
-sys.path.append('../')
+import nextcord
+from nextcord import Interaction, SlashOption, ChannelType
+from nextcord.ext import commands, tasks
+
 from util import admin_check, n_fc, eh
 
 # ボトムアップ的な機能
@@ -84,11 +84,9 @@ offにするには、`n!pin off`と送信してください。
                 return
         else: await ctx.reply("あなたには権限がありません。"); return
 
-
     @nextcord.slash_command(name="pin", description="メッセージ下部ピン留め機能", guild_ids=n_fc.GUILD_IDS)
     async def pin_slash(self, interaction: Interaction):
         pass
-
 
     @pin_slash.subcommand(name="on", description="メッセージ下部ピン留め機能をONにする")
     async def on_slash(
@@ -111,7 +109,6 @@ offにするには、`n!pin off`と送信してください。
                 n_fc.pinMessage[interaction.guild.id][interaction.channel.id] = messageContent
             await interaction.followup.send("設定を変更しました。", ephemeral=True)
         else: await interaction.followup.send("あなたには管理者権限がありません。", ephemeral=True); return
-
 
     @pin_slash.subcommand(name="off", description="メッセージ下部ピン留め機能をOFFにする")
     async def off_slash(
@@ -139,7 +136,6 @@ offにするには、`n!pin off`と送信してください。
                 return
         else: await interaction.followup.send("あなたには管理者権限がありません。", ephemeral=True); return
 
-
     @tasks.loop(seconds=3)
     async def checkPin(self):
         await self.bot.wait_until_ready()
@@ -166,6 +162,7 @@ offにするには、`n!pin off`と送信してください。
 def setup(bot):
     bot.add_cog(bottomup(bot))
     bottomup.checkPin.start(bottomup(bot))
+
 
 def teardown(bot):
     logging.info("Pin teradown!")

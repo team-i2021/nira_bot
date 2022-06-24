@@ -1,26 +1,22 @@
+import asyncio
+import datetime
+import importlib
+import json
+import logging
+import random
+import re
+import subprocess
+import sys
+import traceback
+from os import getenv
+
 import nextcord
+import websockets
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
 from nextcord.utils import get
-from os import getenv
-import sys
-import asyncio
-import subprocess
-import websockets
-import traceback
-import importlib
-import json
-global task
-import re
-import logging
 
-
-import sys
-sys.path.append('../')
 from util import n_fc, mc_status, tts_convert, tts_dict
-import random
-import datetime
-
 
 # Text To Speech
 
@@ -79,11 +75,9 @@ class tts(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-
     @nextcord.slash_command(name="tts", description="テキストチャンネルの内容をVCで読み上げます", guild_ids=n_fc.GUILD_IDS)
     async def tts_slash(self, interaction: Interaction):
         pass
-
 
     @tts_slash.subcommand(name="join", description="BOTをVCに参加させます")
     async def join_slash(self, interaction: Interaction):
@@ -114,7 +108,6 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
             return
         return
 
-
     @tts_slash.subcommand(name="leave", description="BOTからVCを離脱させます")
     async def leave_slash(self, interaction: Interaction):
         if interaction.user.voice is None:
@@ -130,14 +123,12 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
             return
         return
 
-
     @tts_slash.subcommand(name="voice", description="読み上げの声の種類を変更します")
     async def voice_slash(self, interaction: Interaction):
         view = nextcord.ui.View(timeout=None)
         view.add_item(VoiceSelect())
         await interaction.response.send_message("下のプルダウンから声を選択してください。",view=view,ephemeral=True)
         return
-
 
     @tts_slash.subcommand(name="reload", description="Reload TTS modules.")
     async def reload_slash(self, interaction: Interaction):
@@ -148,7 +139,6 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
         else:
             await interaction.response.send_message(nextcord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000),ephemeral=True)
         return
-
 
     @commands.command(name='tts', aliases=("読み上げ","よみあげ"), help="""\
 VCに乱入して、代わりに読み上げてくれる機能。
@@ -303,7 +293,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
             return
         if message.content.startswith("n!"):
             return
-        
+
         try:
             if message.author.id not in speaker_author:
                 speaker_author[message.author.id] = 2
@@ -327,4 +317,3 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
 
 def setup(bot):
     bot.add_cog(tts(bot))
-

@@ -1,6 +1,7 @@
-import nextcord
 import sys
 import logging
+
+import nextcord
 
 
 class messages:

@@ -1,19 +1,18 @@
-import logging
-from util import admin_check, n_fc, eh
 import asyncio
-from nextcord.ext import commands
-import nextcord
+import json
+import logging
+import os
 import subprocess
+import sys
 import traceback
 from subprocess import PIPE
-import os
-import sys
-import json
-from nextcord import Interaction, SlashOption, ChannelType
+
 import deepl
+import nextcord
+from nextcord import Interaction, SlashOption, ChannelType
+from nextcord.ext import commands
 
-
-sys.path.append('../')
+from util import admin_check, n_fc, eh
 
 # Translate
 

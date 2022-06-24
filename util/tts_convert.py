@@ -1,9 +1,13 @@
-import re, sys, os
-from urlextract import URLExtract
-from util import tts_dict
 import alkana
+import os
+import re
+import sys
+from urlextract import URLExtract
+
+from util import tts_dict
 
 extractor = URLExtract()
+
 
 def convertE2K(text: str) -> str:
     temp_text = text
@@ -17,6 +21,7 @@ def convertE2K(text: str) -> str:
         temp_text = temp_text[word.end():]
     output += temp_text
     return output
+
 
 def convert(message: str) -> str:
     """TTS用に文章を構成し直す"""

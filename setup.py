@@ -1,4 +1,9 @@
-import pip, importlib, os, traceback, json
+import importlib
+import json
+import os
+import pip
+import traceback
+
 
 def main():
     print("モジュールのインストールを始めます...")
@@ -30,6 +35,7 @@ def main():
     print("設定ファイルを生成しました!")
     input("[nira.py]を実行することでBOTを起動できます！\nEnterキーで終了します...")
     return
+
 
 if __name__ == "__main__":
     main()

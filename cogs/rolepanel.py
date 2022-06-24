@@ -1,18 +1,18 @@
+import datetime
+import logging
+import os
+import pickle
+import re
+import sys
+from os import getenv
+
 import nextcord
 from nextcord import Interaction, SlashOption, Role
 from nextcord.ext import commands
 from nextcord.utils import get
-from os import getenv
-import sys
-from util.admin_check import admin_check
-global task
-import re
-import pickle
-import sys,os
-sys.path.append('../')
+
 from util import n_fc, mc_status
-import datetime
-import logging
+from util.admin_check import admin_check
 
 PersistentViews = []
 
@@ -88,8 +88,6 @@ class RolePanelSlashInput(nextcord.ui.Modal):
             return
 
 
-
-
 class RolePanelView(nextcord.ui.View):
     def __init__(self, args):
         super().__init__(timeout=None)
@@ -97,10 +95,11 @@ class RolePanelView(nextcord.ui.View):
         for i in args:
             self.add_item(RolePanelButton(i))
 
+
 class RolePanelButton(nextcord.ui.Button):
     def __init__(self, arg):
         super().__init__(label=arg[0], style=nextcord.ButtonStyle.green, custom_id=f"RolePanel:{arg[1]}")
-    
+
     async def callback(self, interaction: Interaction):
         try:
             role = interaction.guild.get_role(int(self.custom_id.split(':')[1]))
@@ -119,7 +118,7 @@ class RolePanelButton(nextcord.ui.Button):
 class rolepanel(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-    
+
     @nextcord.slash_command(name="rolepanel", description="ロールパネルを設置します", guild_ids=n_fc.GUILD_IDS)
     async def rolepanel_slash(
             self,
@@ -128,8 +127,6 @@ class rolepanel(commands.Cog):
         modal = RolePanelSlashInput(self.bot)
         await interaction.response.send_modal(modal=modal)
         return
-
-
 
     @commands.command(name="rolepanel", aliases=["ロールパネル","rp","ろーるぱねる","ろーぱね"], help="""\
 ロールパネル機能

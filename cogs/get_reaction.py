@@ -1,15 +1,14 @@
-from nextcord.ext import commands
-import nextcord
+import logging
+import os
 import pickle
 import requests
-import logging
-
 import sys
 
+import nextcord
+from nextcord.ext import commands
+
 from cogs import server_status
-sys.path.append('../')
 from util import admin_check, n_fc, eh
-import os
 
 home_dir = os.path.dirname(__file__)[:-4]
 

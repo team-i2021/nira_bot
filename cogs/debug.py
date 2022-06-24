@@ -1,34 +1,25 @@
-from nextcord import Interaction, SlashOption
-from nextcord.ext import commands
-import nextcord
-import os
+import asyncio
+import importlib
+import json
 import logging
+import os
 import pickle
+import re
 import shutil
 import subprocess
-from subprocess import PIPE
-import re
-import asyncio
-import json
-from util import slash_tool
-
-from cogs import normal_reaction as nr
-import importlib
-
 import sys
+import traceback
+import websockets
+from subprocess import PIPE
 
+import nextcord
+import requests
+from nextcord import Interaction, SlashOption
+from nextcord.ext import commands
 from nextcord.ext.commands.core import command
 
-sys.path.append('../')
-from util import admin_check, n_fc, eh, database
-
-
-
-import websockets
-
-import requests
-import traceback
-
+from cogs import normal_reaction as nr
+from util import admin_check, n_fc, eh, database, slash_tool
 
 home_dir = os.path.dirname(__file__)[:-4]
 
@@ -37,10 +28,12 @@ home_dir = os.path.dirname(__file__)[:-4]
 DBS = database.openSheet()
 DATABASE_KEY = "B2"
 
+
 def save():
     for i in range(len(n_fc.save_list)):
         with open(f'{home_dir}/{n_fc.save_list[i]}.nira', 'wb') as f:
             exec(f"pickle.dump(n_fc.{n_fc.save_list[i]}, f)")
+
 
 def load():
     func_error_count = 0
@@ -66,7 +59,6 @@ def load():
             func_error_count = 1
     if func_error_count > 0:
         logging.info("変数の読み込みに失敗しました。")
-
 
 
 async def base_cog(bot, ctx, command, name):
@@ -152,10 +144,10 @@ async def base_cog(bot, ctx, command, name):
             await ctx.reply("管理者権限が必要です。")
     return
 
+
 class debug(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-
 
     async def ws(self, websocket, path):
         async for message in websocket:
@@ -187,12 +179,10 @@ class debug(commands.Cog):
             except BaseException as err:
                 await websocket.send(f"An error has occured:{err}")
 
-
     async def ws_main(self, port):
         logging.info("Websocket....")
         async with websockets.serve(self.ws, "0.0.0.0", int(port)):
             await asyncio.Future()
-
 
     @commands.command()
     async def websocket(self, ctx: commands.Context):
@@ -240,7 +230,6 @@ class debug(commands.Cog):
             await ctx.message.reply(embed=embed)
             return
 
-
     @commands.command()
     async def exit(self, ctx: commands.Context):
         if ctx.message.author.id in n_fc.py_admin:
@@ -272,7 +261,6 @@ class debug(commands.Cog):
             embed = nextcord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000)
             await ctx.message.reply(embed=embed)
             return
-
 
     @commands.command()
     async def py(self, ctx: commands.Context):
@@ -323,7 +311,6 @@ class debug(commands.Cog):
         await ctx.message.add_reaction("\U0001F197")
         return
 
-
     @commands.command()
     async def sh(self, ctx: commands.Context):
         if ctx.message.author.id not in n_fc.py_admin:
@@ -355,7 +342,6 @@ class debug(commands.Cog):
                 rt_sh = "\n".join(sh_rt)
             await ctx.message.reply(f"```{rt_sh}```")
             return
-
 
     @commands.command()
     async def save(self, ctx: commands.Context):
@@ -414,7 +400,6 @@ class debug(commands.Cog):
         await base_cog(self.bot, ctx, command, name)
         return
 
-
     @commands.command()
     async def reaction(self, ctx: commands.Context):
         if ctx.author.id not in n_fc.py_admin:
@@ -433,7 +418,6 @@ class debug(commands.Cog):
             except BaseException as err:
                 await ctx.reply(f"```{err}```")
 
-
     @commands.command()
     async def debug(self, ctx: commands.Context):
         if ctx.author.id in n_fc.py_admin:
@@ -451,11 +435,9 @@ class debug(commands.Cog):
                     return
                 await message.edit(content=f"変数の読み込みが完了しました。\nAdmin:{n_fc.py_admin}")
 
-
     @commands.command()
     async def lb(self, ctx):
         return
-
 
     @commands.command(name="db")
     async def db(self, ctx: commands.Context):

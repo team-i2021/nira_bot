@@ -1,14 +1,15 @@
-# coding: utf-8
-#from cogs.server_status import ss_pin
-from util import n_fc
 import asyncio
-import util.web_api as web_api
-import a2s
 import datetime
-import sys
+import logging
 import math
 import re
-import logging
+import sys
+
+import a2s
+
+#from cogs.server_status import ss_pin
+from util import n_fc
+import util.web_api as web_api
 
 # 主にサーバーステータスを取得するコード
 

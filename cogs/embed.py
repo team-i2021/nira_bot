@@ -1,11 +1,11 @@
-from nextcord.ext import commands
-import nextcord
 import re
-from io import StringIO
-from nextcord import Interaction
-
 import sys
-sys.path.append('../')
+from io import StringIO
+
+import nextcord
+from nextcord import Interaction
+from nextcord.ext import commands
+
 from util import admin_check, n_fc, eh
 
 #embedを送信する機能
@@ -86,7 +86,7 @@ class EmbedMaker(nextcord.ui.Modal):
 class SendEmbed(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-    
+
     @nextcord.slash_command(name="embed", description="Embedを作成して送信します。", guild_ids=n_fc.GUILD_IDS)
     async def embed_slash(self, interaction: Interaction):
         modal = EmbedMaker()

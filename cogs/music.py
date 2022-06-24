@@ -1,23 +1,21 @@
-from nextcord.ext import commands
-import nextcord
-
 import asyncio
 import datetime
+import json
+import logging
+import re
 import sys
 import traceback
-import re
+import urllib.parse
+import urllib.request
+
+import nextcord
 import niconico_dl
 import youtube_dl
 import youtube_dlc
-import json
-import sys
-import logging
-from util import admin_check, n_fc, eh, server_check
-
-import urllib.request
-import urllib.parse
+from nextcord.ext import commands
 
 from cogs import tts
+from util import admin_check, n_fc, eh, server_check
 
 # 音楽再生
 
@@ -60,6 +58,7 @@ flat_list = {
 
 ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 
+
 def url_search(url):
     if re.search("nicovideo.jp",url) or re.search("nico.ms",url):
         return "nc"
@@ -67,6 +66,7 @@ def url_search(url):
         return "yt"
     else:
         return None
+
 
 #def get_redirect(src_url):
 #    with urllib.request.urlopen(src_url) as res:
@@ -80,6 +80,7 @@ def url_search(url):
 #async def get_sclink(url):
 #    track_url = urllib.parse.unquote(get_redirect(f"https://w.soundcloud.com/player/?url={url}")[37:])
 #    track_id = track_url[]
+
 
 def flat_playlist(url):
     if url_search(url) == "yt":
@@ -111,6 +112,7 @@ async def end_mes(message: nextcord.Message, close_obj: niconico_dl.NicoNicoVide
         return await message.channel.send("すべての曲の再生が終わりました！")
     except BaseException as err:
         logging.error(err)
+
 
 async def play_source(message: nextcord.Message, bot: nextcord.ext.commands.bot):
     try:
@@ -145,10 +147,11 @@ class YTDLSource(nextcord.PCMVolumeTransformer):
         filename = data['url'] if stream else ytdl.prepare_filename(data)
         return cls(nextcord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
+
 class music(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-    
+
     @commands.command(name="list", help="""\
     音楽のプレイリスをと表示します。
     音楽系のコマンドの詳細は[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)からご確認ください。""")
@@ -159,7 +162,7 @@ class music(commands.Cog):
         else:
             await ctx.reply(f"プレイリストの曲数:`{len(music_list[ctx.guild.id])}`曲\n\n(あとはここに曲の題名とかを...ふっふっふっ...(未完成))")
             return
-    
+
     @commands.command(name="music_debug", help="""\
     Show song list
     音楽系のコマンドの詳細は[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)からご確認ください。""")
@@ -174,7 +177,7 @@ class music(commands.Cog):
                     await ctx.reply(f"・Music play status\n```py\n{ctx.message.guild.voice_client.is_playing()}```")
             except KeyError:
                 await ctx.reply("KeyError.\n曲データは存在しません。")
-    
+
     @commands.command(name="join",help="""\
     あなたの入ってるVCににらBOTが乱入します！
     音楽系のコマンドの詳細は[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)からご確認ください。""")
@@ -198,7 +201,7 @@ class music(commands.Cog):
             await ctx.message.reply(embed=nextcord.Embed(title="エラー",description=f"```sh\n{sys.exc_info()}```",color=0xff0000))
             print(f"[VC接続時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
             return
-    
+
     @commands.command(name="play", help="""\
     VCににらBOTが入っている場合は音楽を再生することが出来ます。
     再生できるのは「YouTubeの動画またはプレイリスト」「ニコニコ動画の動画」のみです。
@@ -305,7 +308,7 @@ class music(commands.Cog):
             await ctx.reply(embed=eh.eh(err))
             logging.error(f"[楽曲再生時or再生中のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
             return
-    
+
     @commands.command(name="pause", help="""\
     現在再生中の音楽を一時停止します。
     音楽系のコマンドの詳細は[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)からご確認ください。""")
@@ -325,7 +328,7 @@ class music(commands.Cog):
                 await ctx.message.reply(embed=nextcord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
                 print(f"[楽曲中断時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
                 return
-    
+
     @commands.command(name="resume",help="""\
     一時停止している音楽を再開します。
     レジュメじゃないですレジュームです。
@@ -346,7 +349,7 @@ class music(commands.Cog):
                 await ctx.message.reply(embed=nextcord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
                 print(f"[楽曲中断時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
                 return
-    
+
     @commands.command(name="stop", help="""\
     音楽再生を全て止めます。
     音楽系のコマンドの詳細は[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)からご確認ください。""")
@@ -368,7 +371,7 @@ class music(commands.Cog):
                 await ctx.reply(embed=nextcord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
                 print(f"[楽曲停止時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
                 return
-    
+
     @commands.command(name="leave",help="""\
     音楽を再生してようがしてまいが、にらBOTをVCから蹴とばします。
     音楽系のコマンドの詳細は[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)からご確認ください。""")
@@ -415,7 +418,7 @@ class music(commands.Cog):
             await ctx.message.reply(embed=nextcord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
             print(f"[VC切断時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
             return
-    
+
     @commands.command(name="skip", help="""\
     現在の曲をスキップします。
     音楽系のコマンドの詳細は[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)からご確認ください。""")
@@ -439,7 +442,7 @@ class music(commands.Cog):
                 await ctx.message.reply(embed=nextcord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
                 print(f"[楽曲停止時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
                 return
-    
+
     @commands.command(name="pop", help="""\
     プレイリストの最後の曲を削除します。
     音楽系のコマンドの詳細は[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)からご確認ください。""")
@@ -463,7 +466,7 @@ class music(commands.Cog):
                 await ctx.message.reply(embed=nextcord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
                 print(f"[楽曲停止時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
                 return
-    
+
     @commands.Cog.listener()
     async def on_voice_state_update(self, member: nextcord.Member, before: nextcord.VoiceState, after: nextcord.VoiceState):
         print(f"MEMBER:{member}")
@@ -491,7 +494,7 @@ class music(commands.Cog):
             #logging.error(traceback.format_exc())
             #print(traceback.format_exc(),err)
             pass
-        
+
         if self.bot.user.id in after.channel.voice_states and after.channel.voice_states[self.bot.user.id].mute:
             try:
                 await member.edit(mute=False)
@@ -507,4 +510,3 @@ class music(commands.Cog):
 
 def setup(bot):
     bot.add_cog(music(bot))
-

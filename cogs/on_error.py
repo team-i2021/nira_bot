@@ -1,14 +1,16 @@
-from nextcord.ext import commands
-import nextcord
+import importlib
+import logging
+import os
 import re
 import sys
-import os
-from difflib import get_close_matches
-import nira_commands
-import importlib
 import traceback
+from difflib import get_close_matches
+
+import nextcord
+from nextcord.ext import commands
+
+import nira_commands
 from util import eh
-import logging
 
 
 #エラー時のイベント！
@@ -48,8 +50,8 @@ class error(commands.Cog):
             logging.error(f"エラー処理中のエラー\non_error：{traceback.format_exc()}\nハンドリング中のエラー：{err}")
             return
 
+
 def setup(bot):
     bot.add_cog(error(bot))
     importlib.reload(nira_commands)
     importlib.reload(eh)
-    

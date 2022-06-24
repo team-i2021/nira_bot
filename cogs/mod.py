@@ -1,23 +1,26 @@
-import logging
-from tkinter import E, W
-from nextcord.ext import commands
-import nextcord, datetime
-from nextcord import Interaction, SlashOption
-import sys
-sys.path.append('../')
-from util import admin_check, n_fc, eh
-from cogs.debug import save
 import asyncio
+import logging
+import datetime
+import sys
+
+import nextcord
+from nextcord import Interaction, SlashOption
+from nextcord.ext import commands
+from tkinter import E, W
+
+from cogs.debug import save
+from util import admin_check, n_fc, eh
 
 # 規定秒数以内に指定数メッセージを送信した人をミュートするモデレーター的な機能
 # n!mod
 # /mod
 
+reset_time = ""
+
 
 class counter:
     messageCounter = {}
 
-reset_time = ""
 
 async def counterReset():
     while True:
@@ -30,7 +33,6 @@ async def counterReset():
 class mod(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
@@ -55,7 +57,6 @@ class mod(commands.Cog):
             except BaseException as err:
                 await message.channel.send(f"{message.author.name}をミュートしようとしましたがエラーが発生しました。\n```\n{err}```")
                 return
-
 
     @commands.command(name="mod", help="""\
 一応、特定数異常のメッセージを20秒以内に送信した人がミュートされていくはずです。
@@ -106,11 +107,9 @@ class mod(commands.Cog):
                 await ctx.reply(embed=nextcord.Embed(title="荒らし対策", description=f"サーバーで機能は`有効`になっています。\nメッセージカウンター:`{counter}`\nミュート用ロール:<@&{role}>\n\n・機能の有効化\n`n!mod on [規定メッセージ数] [付与するロール]`\n\n・機能の無効化\n`n!mod off`", color=0x00ff00))
             return
 
-
     @nextcord.slash_command(name="mod", description="荒らし対策機能の設定を変更します。", guild_ids=n_fc.GUILD_IDS)
     async def mod_slash(self, interaction: Interaction):
         pass
-
 
     @mod_slash.subcommand(name="on", description="荒らし対策機能を有効にします。")
     async def on_slash(
@@ -143,7 +142,6 @@ class mod(commands.Cog):
             await interaction.response.send_message(embed=nextcord.Embed(title="荒らし対策",description="あなたは管理者ではありません。", color=0xff0000), ephemeral=True)
             return
 
-
     @mod_slash.subcommand(name="off", description="荒らし対策機能を無効にします。")
     async def off_slash(
         self,
@@ -166,7 +164,6 @@ class mod(commands.Cog):
             await interaction.response.send_message(embed=nextcord.Embed(title="荒らし対策",description="あなたは管理者ではありません。", color=0xff0000), ephemeral=True)
             return
 
-
     @mod_slash.subcommand(name="status", description="荒らし対策機能の状態を確認します。")
     async def status_slash(
         self,
@@ -177,6 +174,7 @@ class mod(commands.Cog):
         else:
             await interaction.response.send_message(embed=nextcord.Embed(title="荒らし対策",description=f"サーバーで機能は`有効`になっています。\nメッセージカウンター:`{n_fc.mod_list[interaction.guild.id]['counter']}`\nミュート用ロール:<@&{n_fc.mod_list[interaction.guild.id]['role']}>", color=0x00ff00), ephemeral=True)
         return
+
 
 def setup(bot):
     bot.loop.create_task(counterReset())

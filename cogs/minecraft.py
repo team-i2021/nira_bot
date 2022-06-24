@@ -1,15 +1,18 @@
-from util.admin_check import admin_check
+import asyncio
+import importlib
+import logging
+import os
+import sys
+import traceback
+
+import nextcord
+from nextcord import Interaction, SlashOption, ChannelType
+from nextcord.ext import commands
+
 import util.mc_status as mc_status
 from util import n_fc
+from util.admin_check import admin_check
 from util.slash_tool import messages
-import nextcord
-from nextcord.ext import commands
-from nextcord import Interaction, SlashOption, ChannelType
-import asyncio
-import sys,os
-import importlib
-import traceback
-import logging
 
 mcMessage = {
     "ja":{
@@ -19,6 +22,7 @@ mcMessage = {
         }
     }
 }
+
 
 class minecraft_base:
     async def server_add(bot, ctx, name, host, port: int, server_type):
@@ -35,7 +39,6 @@ class minecraft_base:
             return
         await messages.mreply(ctx, "", embed=nextcord.Embed(title="サーバーを追加しました。", description=f"Server name:`{name}`\nServer host:`{host}:{port}`\nServer type:`{server_type}`", color=0x00ff00),ephemeral=True)
         return
-
 
     async def server_delete(bot, ctx, select_id):
         if ctx.guild.id not in n_fc.mc_server_list:
@@ -61,11 +64,11 @@ class minecraft_base:
                 return
             await messages.mreply(ctx, f"```\nおきのどくですが{ctx.guild.name}のMinecraftサーバーのデータは全て削除されました！```")
             return
-        
+
         if n_fc.mc_server_list[ctx.guild.id]["value"] < select_id:
             await messages.mreply(ctx, f"ID`{select_id}`にサーバーは登録されていません。",ephemeral=True)
             return
-        
+
         if n_fc.mc_server_list[ctx.guild.id]["value"] == 1:
             try:
                 del n_fc.mc_server_list[ctx.guild.id]
@@ -86,7 +89,6 @@ class minecraft_base:
             return
         await messages.mreply(ctx, f"ID`{select_id}`のサーバーを削除しました。")
         return
-
 
     async def server_check(bot, ctx, serverid):
         # ID: None or String("all") or Int
@@ -195,7 +197,6 @@ class minecraft_base:
                 await messages.mreply(ctx, "Minecraft Server Status", embed=embed)
                 return
 
-
     async def server_list(bot, ctx):
         if ctx.guild.id not in n_fc.mc_server_list:
             await messages.mreply(ctx, f"{ctx.guild.name}にはMinecraftのサーバーは追加されていません。",ephemeral=True)
@@ -231,10 +232,10 @@ MinecraftのJava/BEサーバーのステータスを表示します
     @commands.cooldown(1, 10, type=commands.BucketType.user)
     async def mc(self, ctx: commands.Context):
         base_arg = ctx.message.content.split(" ", 1)
-        
+
         if len(base_arg) == 1:
             base_arg.append("status")
-        
+
         if base_arg[1][:3] == "add":
             if not admin_check(ctx.guild, ctx.author):
                 await ctx.reply("管理者権限がないため、コマンドを実行できません。")
@@ -287,7 +288,6 @@ MinecraftのJava/BEサーバーのステータスを表示します
     async def mc_slash(self, interaction: Interaction):
         pass
 
-
     @mc_slash.subcommand(name="add", description="Minecraftのサーバーを追加します。")
     async def add_slash(
         self,
@@ -324,7 +324,6 @@ MinecraftのJava/BEサーバーのステータスを表示します
             await minecraft_base.server_add(self.bot, interaction, server_name, address, port, server_type)
             return
 
-
     @mc_slash.subcommand(name="del", description="Minecraftのサーバーを削除します。")
     async def del_slash(
         self,
@@ -345,11 +344,9 @@ MinecraftのJava/BEサーバーのステータスを表示します
                 return
             await minecraft_base.server_delete(self.bot, interaction, server)
 
-
     @mc_slash.subcommand(name="list", description="Minecraftのサーバーのリストを表示します。")
     async def list_slash(self, interaction: Interaction):
         await minecraft_base.server_list(self.bot, interaction)
-
 
     @mc_slash.subcommand(name="status", description="Minecraftのサーバーのステータスを表示します。")
     async def status_slash(self, interaction: Interaction, server: str = SlashOption(name="server",description="サーバーIDを指定することもできます", required=False)):

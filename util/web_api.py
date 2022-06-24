@@ -1,10 +1,11 @@
-from lib2to3.pytree import Base
-from nextcord.embeds import Embed
+import logging
+import os
 import requests
 import sys
+from lib2to3.pytree import Base
+
 import nextcord
-import os
-import logging
+from nextcord.embeds import Embed
 
 tokens = {}
 
@@ -56,6 +57,7 @@ def notify_line(message: nextcord.Message, token):
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         print(f"大変申し訳ございません。エラーが発生しました。\n```{err}```\n```sh\n{sys.exc_info()}```\nfile:`{fname}`\nline:{exc_tb.tb_lineno}\n\n[サポートサーバー](https://nextcord.gg/awfFpCYTcP)")
+
 
 def line_token_check(token):
     headers = {'Authorization' : 'Bearer ' + token}

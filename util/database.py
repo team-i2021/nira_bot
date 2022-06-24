@@ -1,10 +1,13 @@
-import os, sys
 import json
+import os
+import sys
+
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
 jsonFile = f"{sys.path[0]}/util/gapi.json"
 SPREADSHEET_KEY = str(json.load(open(f'{sys.path[0]}/setting.json', 'r'))["database"])
+
 
 def openSheet() -> gspread.Worksheet:
     scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
@@ -25,4 +28,3 @@ def writeValue(data, cell, value) -> None:
 
 # https://qiita.com/164kondo/items/eec4d1d8fd7648217935
 # B2:テスト/B3:TTS/B4:Up通知/B5:Reminder/B6:Captcha/B7:InviteURLs
-

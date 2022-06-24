@@ -1,9 +1,12 @@
-import discord
 import asyncio
+import json
+import os
+import sys
+
+import discord
 import websockets
 from discord.ext import commands
 from discord.ext.commands import Bot
-import os, sys, json
 
 ADDRESS = "raspberrypi.local"
 SERVER_PORT = 45565
@@ -15,6 +18,7 @@ async def GetData(content):
     async with websockets.connect(uri) as websocket:
         await websocket.send(str(content))
         return await websocket.recv()
+
 
 HOME = os.path.dirname(__file__)
 SETTING = json.load(open(f'{sys.path[0]}/setting.json', 'r'))
@@ -28,6 +32,7 @@ intents.presences = True
 intents.members = True
 bot = commands.Bot(command_prefix=PREFIX, intents=intents, help_command=None)
 bot.remove_command("help")
+
 
 @bot.commands()
 async def lb(self, ctx: commands.Context):

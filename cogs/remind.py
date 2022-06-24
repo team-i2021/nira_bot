@@ -1,18 +1,21 @@
 import asyncio
-from nextcord.ext import commands, tasks
-import nextcord
-import os, sys, json, datetime
-from nextcord import Interaction, SlashOption, ChannelType
-import traceback
+import datetime
+import json
 import logging
+import os
+import sys
+import traceback
 from re import compile
-sys.path.append('../')
+
+import nextcord
+from nextcord import Interaction, SlashOption, ChannelType
+from nextcord.ext import commands, tasks
+
 from util import admin_check, n_fc, eh, database
 
 # りまいんど
 
 TIME_CHECK = compile(r"[0-9]{1,2}:[0-9]{1,2}")
-
 
 DBS = database.openSheet()
 DATABASE_KEY = "B5"
@@ -36,15 +39,12 @@ def writeDatabase() -> None:
     return
 
 
-
-
 class RemindMaker(nextcord.ui.Modal):
     def __init__(self):
         super().__init__(
             "リマインドメッセージ設定",
             timeout=None,
         )
-
 
         self.remind_time = nextcord.ui.TextInput(
             label="メッセージを送信する時間",
@@ -80,7 +80,7 @@ class RemindMaker(nextcord.ui.Modal):
         if int(time.split(":")[0]) > 23 or int(time.split(":")[1]) > 59:
             await interaction.followup.send("・エラー\n時間の入力が不正です。\n`/remind on`", ephemeral=True)
             return
-        
+
         time = ":".join([f"0{i}"[-2:] for i in time.split(":",1)])
 
         if interaction.channel.id not in RemindData:
@@ -96,11 +96,9 @@ class RemindMaker(nextcord.ui.Modal):
         return
 
 
-
 class Remind(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-
 
     @commands.command(name="remind", aliases=("Remind","りまいんど","めざまし","アラーム"), help="""\
 毎日指定時間にメッセージを送信する
@@ -147,7 +145,7 @@ n!remind on 8:25 おはようございます！
             if int(time.split(":")[0]) > 23 or int(time.split(":")[1]) > 59:
                 await ctx.reply("・エラー\n時間の入力が不正です。\n`n!remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`")
                 return
-            
+
             time = ":".join([f"0{i}"[-2:] for i in time.split(":",1)])
 
             if ctx.channel.id not in RemindData:
@@ -207,7 +205,7 @@ n!remind on 8:25 おはようございます！
                 embed.add_field(name=time, value=RemindData[ctx.channel.id][time], inline=False)
             await ctx.reply(embed=embed)
             return
-        
+
         elif args[1] == "debug":
             if ctx.author.id in n_fc.py_admin:
                 command = args[2]
@@ -244,11 +242,9 @@ read - read UpperData from server to device```""")
             await ctx.reply(embed=nextcord.Embed(title="使い方", description="`n!remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`\n`n!remind off [時間(hh:mm)]`\n`n!remind list`\n\n詳しくは`n!help remind`を参照してください。",color=0xff0000))
             return
 
-
     @nextcord.slash_command(name="remind", description="remind", guild_ids=n_fc.GUILD_IDS)
     async def remind_slash(self, interaction: Interaction):
         pass
-
 
     @remind_slash.subcommand(name="on", description="リマインドメッセージの設定")
     async def on_remind_slash(self, interaction: Interaction):
@@ -259,7 +255,6 @@ read - read UpperData from server to device```""")
         else:
             await interaction.response.send_text("管理者権限がありません。")
             return
-
 
     @remind_slash.subcommand(name="off", description="リマインドメッセージの削除")
     async def off_remind_slash(self, interaction: Interaction, time: str = SlashOption(name="time", description="リマインドの時間", required=True)):
@@ -275,7 +270,7 @@ read - read UpperData from server to device```""")
             if int(timeB.split(":")[0]) > 23 or int(timeB.split(":")[1]) > 59:
                 await interaction.followup.send("・エラー\n時間の入力が不正です。\n`/remind off time:[時間(hh:mm)]`", ephemeral=True)
                 return
-            
+
             timeB = ":".join([f"0{i}"[-2:] for i in timeB.split(":",1)])
 
             if interaction.channel.id not in RemindData:
@@ -296,7 +291,6 @@ read - read UpperData from server to device```""")
             await interaction.response.send_text("管理者権限がありません。")
             return
 
-
     @remind_slash.subcommand(name="list", description="リマインドメッセージ一覧")
     async def list_remind_slash(self, interaction: Interaction):
         await interaction.response.defer()
@@ -310,7 +304,6 @@ read - read UpperData from server to device```""")
             embed.add_field(name=time, value=RemindData[interaction.channel.id][time], inline=False)
         await interaction.followup.send(embed=embed)
         return
-
 
     @tasks.loop(minutes=1)
     async def sendReminds(self):
@@ -328,11 +321,11 @@ read - read UpperData from server to device```""")
                         logging.error(f"ERR:{err}\n{channel}")
 
 
-
 def setup(bot):
     bot.add_cog(Remind(bot))
     readDatabase()
     Remind.sendReminds.start(Remind(bot))
+
 
 def teardown(bot):
     logging.info("Pin teradown!")

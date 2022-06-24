@@ -1,7 +1,9 @@
-from nextcord.ext import commands
+import urllib.parse
+
 import nextcord
 from nextcord import Interaction
-import urllib.parse
+from nextcord.ext import commands
+
 from util.n_fc import GUILD_IDS
 
 
@@ -29,7 +31,7 @@ class CodeInsert(nextcord.ui.Modal):
 class Code(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-    
+
     @nextcord.slash_command(name="html", description="HTMLを入力してページを返します。", guild_ids=GUILD_IDS)
     async def html_slash(self, interaction: Interaction):
         modal = CodeInsert()
@@ -44,6 +46,7 @@ class Code(commands.Cog):
         embed = nextcord.Embed(title="Dynamic-page", description=f"ページは[こちら](https://nattyan-tv.github.io/dynamic-page/output.html#{urllib.parse.quote(html_code)})", color=0x00ff00)
         embed.set_footer(text="Powered by Dynamic-page\nhttps://github.com/nattyan-tv/dynamic-page")
         await ctx.reply(embed=embed)
+
 
 def setup(bot):
     bot.add_cog(Code(bot))
