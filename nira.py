@@ -10,44 +10,14 @@ import re
 import sys
 import traceback
 
+import nextcord
+import websockets
+from nextcord.ext import commands
+from nextcord import Interaction
+
 from util import n_fc
 # from util import database
 from cogs import debug as cogs_debug, server_status, rolepanel, pollpanel
-
-try:
-    import nextcord
-    import websockets
-    from nextcord.ext import commands
-    from nextcord import Interaction
-except Exception as err:
-    print(f"""モジュールインポート時のエラー: {err}
-勝手にモジュールのインストールと再インポートを行います。
-「勝手に」です。仮想環境とかいろいろやってる人からしたらはた迷惑な話ですよね...もう...
-
-それでもエラーが発生する場合はスクリプトが終了します。多分。""", file=sys.stderr)
-
-    try:
-        pip.main(['install', '-r', f'{sys.path[0]}/requirements.txt'])
-    except Exception as err:
-        print(f"""モジュールインストール時のエラー: {err}
-スクリプトが終了します。
-
---python traceback--
-{traceback.format_exc()}""", file=sys.stderr)
-        os._exit(0)
-
-    try:
-        import nextcord
-        import websockets
-        from nextcord.ext import commands
-        from nextcord import Interaction
-    except Exception as err:
-        print(f"""モジュールインポート時のエラー: {err}
-スクリプトが終了します。
-
---python traceback--
-{traceback.format_exc()}""", file=sys.stderr)
-        os._exit(0)
 
 sys.setrecursionlimit(10000)  # エラー回避
 print("モジュールインポート完了")
