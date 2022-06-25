@@ -210,7 +210,6 @@ class MessageRole(commands.Cog):
                 return
 
             role = None
-
             try:
                 role = ctx.guild.get_role(int(args[2]))
             except ValueError:
