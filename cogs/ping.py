@@ -42,6 +42,8 @@ async def ping_there(adr, message: nextcord.Message or Interaction):
         command = f"ping {adr} -n 3 -w 3"
     elif platform.system() == "Linux":
         command = f"ping {adr} -c 3 -W 3"
+    elif platform.system() == "Darwin":
+        command = f"ping {adr} -c 3 -t 3"
     else:
         print(
             f"Unsupported OS: {platform.system()}\nPing command may not work.")
