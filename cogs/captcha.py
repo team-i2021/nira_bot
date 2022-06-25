@@ -174,5 +174,5 @@ def setup(bot):
     bot.add_cog(Captcha(bot))
 
 
-def teradown(bot):
+def teardown(bot):
     database.writeValue(DBS, DATABASE_KEY, CaptchaData)

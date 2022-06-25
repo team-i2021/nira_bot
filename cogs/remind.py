@@ -328,5 +328,5 @@ def setup(bot):
 
 
 def teardown(bot):
-    logging.info("Pin teradown!")
+    logging.info("Pin teardown!")
     Remind.sendReminds.stop()

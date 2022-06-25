@@ -247,6 +247,6 @@ def setup(bot):
     UpNotify.writeDatabaseLoop.start(UpNotify(bot))
 
 
-def teradown(bot):
+def teardown(bot):
     UpNotify.writeDatabaseLoop.cancel()
     writeDatabase()
