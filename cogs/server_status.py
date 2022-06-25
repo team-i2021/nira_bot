@@ -11,7 +11,7 @@ import sys
 
 import nextcord
 from nextcord import SlashOption, Interaction
-from nextcord.ext import commands
+from nextcord.ext import commands, tasks
 
 sys.path.append('../')
 # loggingの設定
@@ -42,8 +42,7 @@ ss_commands = f"""・SS系コマンド一覧
 `{PREFIX}ss`: 登録されているサーバーのステータスを表示します。
 `{PREFIX}ss add [表示名] [アドレス],[ポート]`: サーバーを追加します。
 `{PREFIX}ss list`: 登録されているサーバーの一覧を表示します。
-`{PREFIX}ss auto on [*ユーザーID]`: SSAutoで、鯖落ちが起きたら通知します。ユーザーIDを指定すると、指定されたIDにメンションします。指定されなかった場合は、メッセージを送ったユーザーをメンションします。
-`{PREFIX}ss auto force [*チャンネルID] [*メッセージID]`: 10分毎にステータスを更新するAutoSSのメッセージを送信します。「このBOTが送信したメッセージ」のチャンネルID及びメッセージIDを指定すると、そのメッセージをAutoSSのメッセージに変更します。
+`{PREFIX}ss auto on`: 10分毎にステータスを更新するAutoSSのメッセージを送信します。
 `{PREFIX}ss auto off`: AutoSSを停止します。
 `{PREFIX}ss edit [サーバーID] [表示名] [アドレス],[ポート]`: 指定したサーバーIDの表示名やアドレスなどを修正します。事前に`{PREFIX}ss list`などで確認しておくことを推奨します。
 `{PREFIX}ss sort [サーバーID1] [サーバーID2]`: サーバーID1とサーバID2の場所を入れ替えます。
@@ -54,21 +53,23 @@ ss_commands = f"""・SS系コマンド一覧
 """
 
 
-async def ss_force(loop, message: nextcord.Message):
+async def ss_force(bot, message: nextcord.Message):
     await message.edit(content="Loading status...", view=None)
-    while True:
-        try:
-            embed = nextcord.Embed(
-                title="ServerStatus Checker", description=f"LastCheck:{datetime.datetime.now()}", color=0x00ff00)
-            for i in range(int(n_fc.steam_server_list[message.guild.id]["value"])):
-                await server_check.ss_pin_async(loop, embed, message.guild.id, i + 1)
-            await message.edit(f"AutoSS実行中\n止めるには`n!ss auto off`\n再試行するには`n!ss auto force {message.channel.id} {message.id}`又は`/reload`", embed=embed, view=server_status.Reload_SS_Auto())
-            logging.info("Status loaded.")
-            await asyncio.sleep(60*10)
-        except BaseException as err:
-            logging.info(err, traceback.format_exc())
-            await message.edit(content=f"err:{err}")
-            await ss_force(loop, message)
+    try:
+        embed = nextcord.Embed(
+            title="ServerStatus Checker", description=f"LastCheck:`{datetime.datetime.now()}`", color=0x00ff00)
+        for i in range(int(n_fc.steam_server_list[message.guild.id]["value"])):
+            await server_check.ss_pin_embed(embed, message.guild.id, i + 1)
+        embed.set_footer(text="pingは参考値です")
+        await message.edit(
+            f"AutoSS実行中\n止めるには`n!ss auto off`または`/ss off`\n止まったりした場合は、このメッセージを長押しして`アプリ`->`AutoSSのスタート`\nリロードするにはボタンか`/ss reload`",
+            embed=embed,
+            view=Reload_SS_Auto(bot, message)
+        )
+        logging.info("Status loaded.(Not scheduled)")
+    except BaseException as err:
+        logging.info(err, traceback.format_exc())
+        await message.edit(content=f"err:{err}")
 
 # async def ss_pin(self, ment_id, message):
 #    ss_check_result[message.guild.id] = {}
@@ -113,36 +114,36 @@ async def launch_ss(bot, channel_id, message_id):
     await ss_force(bot, messs)
 
 
-async def ss_loop_goes(self, ment_id, message):
-    ss_check_result[message.guild.id] = {}
-    await message.edit(content=f"実行されています。")
-    logging.info(f"{message.guild.name}にてAutoSSが有効になりました。")
-    while True:
-        await message.edit(content=f"現在チェックを行っています...\n最終チェック時刻：`{datetime.datetime.now()}`")
-        logging.info(f"{message.guild.name}でのAutoSSチェックを実行します。")
-        for i in map(str, range(1, int(n_fc.steam_server_list[message.guild.id]["value"])+1)):
-            if await server_check.server_check_loop(self.bot.loop, message.guild.id, i) == False:
-                # 鯖落ちしてかもるよ
-                await message.edit(content=f"チェック結果：失敗(1/3)\n最終チェック時刻：`{datetime.datetime.now()}`")
-                logging.error(f"{message.guild.name}でのAutoSSチェック結果：失敗（1/3回目）")
-                await asyncio.sleep(5)
-                if await server_check.server_check_loop(self.bot.loop, message.guild.id, i) == False:
-                    await message.edit(content=f"チェック結果：失敗(2/3)\n最終チェック時刻：`{datetime.datetime.now()}`")
-                    logging.error(
-                        f"{message.guild.name}でのAutoSSチェック結果：失敗（2/3回目）")
-                    await asyncio.sleep(5)
-                    if await server_check.server_check_loop(self.bot.loop, message.guild.id, i) == False:
-                        await message.edit(content=f"チェック結果：失敗(3/3)\n最終チェック時刻：`{datetime.datetime.now()}`")
-                        logging.error(
-                            f"{message.guild.name}でのAutoSSチェック結果：失敗（3/3回目）")
-                        await message.edit(content=f"チェック結果：失敗(メッセージを送信して終了します。)\n最終チェック時刻：`{datetime.datetime.now()}`")
-                        await message.channel.send(f"<@{ment_id}> - もしかして鯖落ちしてたりしません...？\n\nAutoSSが無効になりました。\n一応`n!ss`で確認してみましょう！")
-                        return False
-            # 正常だよ
-            logging.info(f"{message.guild.name}でのAutoSSチェック結果：成功")
-            await message.edit(content=f"最後のチェック結果：成功\n最終チェック時刻：`{datetime.datetime.now()}`")
-            await asyncio.sleep(5)
-        await asyncio.sleep(60*30)  # 60秒*30＝30分
+#async def ss_loop_goes(self, ment_id, message):
+#    ss_check_result[message.guild.id] = {}
+#    await message.edit(content=f"実行されています。")
+#    logging.info(f"{message.guild.name}にてAutoSSが有効になりました。")
+#    while True:
+#        await message.edit(content=f"現在チェックを行っています...\n最終チェック時刻：`{datetime.datetime.now()}`")
+#        logging.info(f"{message.guild.name}でのAutoSSチェックを実行します。")
+#        for i in map(str, range(1, int(n_fc.steam_server_list[message.guild.id]["value"])+1)):
+#            if await server_check.server_check_loop(self.bot.loop, message.guild.id, i) == False:
+#                # 鯖落ちしてかもるよ
+#                await message.edit(content=f"チェック結果：失敗(1/3)\n最終チェック時刻：`{datetime.datetime.now()}`")
+#                logging.error(f"{message.guild.name}でのAutoSSチェック結果：失敗（1/3回目）")
+#                await asyncio.sleep(5)
+#                if await server_check.server_check_loop(self.bot.loop, message.guild.id, i) == False:
+#                    await message.edit(content=f"チェック結果：失敗(2/3)\n最終チェック時刻：`{datetime.datetime.now()}`")
+#                    logging.error(
+#                        f"{message.guild.name}でのAutoSSチェック結果：失敗（2/3回目）")
+#                    await asyncio.sleep(5)
+#                    if await server_check.server_check_loop(self.bot.loop, message.guild.id, i) == False:
+#                        await message.edit(content=f"チェック結果：失敗(3/3)\n最終チェック時刻：`{datetime.datetime.now()}`")
+#                        logging.error(
+#                            f"{message.guild.name}でのAutoSSチェック結果：失敗（3/3回目）")
+#                        await message.edit(content=f"チェック結果：失敗(メッセージを送信して終了します。)\n最終チェック時刻：`{datetime.datetime.now()}`")
+#                        await message.channel.send(f"<@{ment_id}> - もしかして鯖落ちしてたりしません...？\n\nAutoSSが無効になりました。\n一応`n!ss`で確認してみましょう！")
+#                        return False
+#            # 正常だよ
+#            logging.info(f"{message.guild.name}でのAutoSSチェック結果：成功")
+#            await message.edit(content=f"最後のチェック結果：成功\n最終チェック時刻：`{datetime.datetime.now()}`")
+#            await asyncio.sleep(5)
+#        await asyncio.sleep(60*30)  # 60秒*30＝30分
 
 
 # コマンド内部
@@ -152,12 +153,15 @@ async def ss_base(self, ctx: commands.Context):
             await ctx.message.reply("サーバーは登録されていません。")
             return
         async with ctx.message.channel.typing():
-            embed = nextcord.Embed(title="Server Status Checker",
-                                   description=f"{ctx.message.author.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
+            embed = nextcord.Embed(
+                title="Server Status Checker",
+                description=f"{ctx.message.author.mention}\n:globe_with_meridians:Status\n==========",
+                color=0x00ff00
+            )
             for i in map(str, range(1, int(n_fc.steam_server_list[ctx.message.guild.id]["value"])+1)):
-                await server_check.server_check_async(self.bot.loop, embed, 0, ctx.message.guild.id, i)
+                await server_check.server_check(embed, 0, ctx.message.guild.id, i)
             await asyncio.sleep(1)
-            await ctx.message.reply(embed=embed, view=server_status.Recheck_SS_Embed())
+            await ctx.message.reply(embed=embed, view=Recheck_SS_Embed())
         return
     args = ctx.message.content.split(" ")
 
@@ -214,61 +218,34 @@ async def ss_base(self, ctx: commands.Context):
         if ctx.message.content == "n!ss auto":
             await ctx.reply(embed=nextcord.Embed(title="エラー", description="引数が足りません。\n`n!ss auto on/off`"))
             return
+
         elif ctx.message.content[10:12] == "on":
-            try:
-                if ctx.guild.id not in n_fc.steam_server_list:
-                    await ctx.reply("サーバーが登録されていません。")
-                    return
-                if len(ctx.message.content) <= 13:
-                    ment_id = ctx.message.author.id
-                else:
-                    ment_id = str(
-                        "".join(re.findall(r'[0-9]', ctx.message.content[13:])))
-                    if ment_id == "":
-                        await ctx.reply("ユーザーIDが不正です。\n`n!ss auto on [UserID]`")
-                        return
-                mes_ss = await ctx.channel.send(f"Starting process...")
-                if ctx.guild.id in n_fc.pid_ss:
-                    await mes_ss.edit(content=f"既に{ctx.guild.name}でタスクが実行されています。")
-                    return
-                n_fc.pid_ss[ctx.guild.id] = (self.bot.loop.create_task(
-                    ss_loop_goes(self, ment_id, mes_ss)), mes_ss)
-                return
-            except BaseException as err:
-                await ctx.reply(embed=eh.eh(err))
-                return
-        elif ctx.message.content[10:13] == "off":
-            if ctx.guild.id not in n_fc.pid_ss:
-                await ctx.reply("既に無効になっているか、コマンドが実行されていません。")
-                return
-            try:
-                if n_fc.pid_ss[ctx.guild.id][0].done() == False or ctx.guild.id in n_fc.pid_ss:
-                    n_fc.pid_ss[ctx.guild.id][0].cancel()
-                    del n_fc.pid_ss[ctx.guild.id]
-                    del n_fc.force_ss_list[ctx.guild.id]
-                    await ctx.reply("AutoSSを無効にしました。")
-                    return
-                else:
-                    await ctx.reply("既に無効になっているか、コマンドが実行されていません。")
-            except BaseException as err:
-                await ctx.reply(embed=eh.eh(err))
-                return
-        elif ctx.message.content[10:15] == "force":
-            if ctx.guild.id in n_fc.pid_ss:
-                await ctx.reply(f"既に{ctx.guild.name}で他のAutoSSタスクが実行されています。")
+            if ctx.guild.id in n_fc.force_ss_list:
+                await ctx.reply(f"既に`{ctx.guild.name}`でAutoSSタスクが実行されています。\n`n!ss auto off`で終了してください。")
                 return
             if ctx.guild.id not in n_fc.steam_server_list:
-                await ctx.reply("サーバーが登録されていません。")
+                await ctx.reply("`SteamDedicated`サーバーが登録されていません。")
                 return
             mes_ss = await ctx.channel.send(f"Check your set message!")
-            if ctx.guild.id in n_fc.pid_ss:
-                await mes_ss.edit(content=f"既に{ctx.guild.name}でタスクが実行されています。")
+            n_fc.force_ss_list[ctx.guild.id] = [ctx.channel.id, mes_ss.id]
+            asyncio.ensure_future(ss_force(self.bot, mes_ss))
+            return
+
+        elif ctx.message.content[10:13] == "off":
+            if ctx.guild.id not in n_fc.force_ss_list:
+                await ctx.reply("AutoSSは実行されていません。")
                 return
-            if len(ctx.message.content) <= 16:
-                n_fc.force_ss_list[ctx.guild.id] = [ctx.channel.id, mes_ss.id]
-                n_fc.pid_ss[ctx.guild.id] = (self.bot.loop.create_task(
-                    ss_force(asyncio.get_event_loop(), mes_ss)), mes_ss)
+            try:
+                if ctx.guild.id in n_fc.force_ss_list:
+                    del n_fc.force_ss_list[ctx.guild.id]
+                    await ctx.reply("AutoSSを無効にしました。\n再度有効にするには`n!ss auto on`にするか、変更したいメッセージを長押しまたは右クリックして`アプリ`->`AutoSSのスタート`を押してください。")
+                    return
+                else:
+                    await ctx.reply("AutoSSは実行されていません。")
+            except BaseException as err:
+                await ctx.reply(embed=eh.eh(err))
                 return
+
             else:
                 try:
                     messs = await get_mes(self.bot, ctx.message.content[16:].split(" ", 1)[0], ctx.message.content[16:].split(" ", 1)[1])
@@ -277,22 +254,18 @@ async def ss_base(self, ctx: commands.Context):
                     await ctx.reply("メッセージが見つかりませんでした。")
                     return
                 await messs.edit(content="現在変更をしています...")
-                n_fc.force_ss_list[ctx.guild.id] = [ctx.message.content[16:].split(
-                    " ", 1)[0], ctx.message.content[16:].split(" ", 1)[1]]
-                n_fc.pid_ss[ctx.guild.id] = (self.bot.loop.create_task(
-                    ss_force(asyncio.get_event_loop(), messs)), messs)
+                n_fc.force_ss_list[ctx.guild.id] = [
+                    int(ctx.message.content[16:].split(" ", 1)[0]),
+                    int(ctx.message.content[16:].split(" ", 1)[1])
+                ]
+                asyncio.ensure_future(ss_force(self.bot, messs))
                 return
         else:
-            if ctx.guild.id not in n_fc.pid_ss:
-                await ctx.reply("`n!ss auto [on/off]`\nAutoSSは無効になっています。")
+            if ctx.guild.id in n_fc.force_ss_list:
+                await ctx.reply("`n!ss auto [on/off]`\nAutoSSは有効になっています。")
                 return
-            try:
-                if n_fc.pid_ss[ctx.guild.id][0].done() == True:
-                    await ctx.reply("`n!ss auto [on/off]`\nAutoSSは無効になっています。")
-                else:
-                    await ctx.reply("`n!ss auto [on/off]`\nAutoSSは有効になっています。")
-            except BaseException as err:
-                await ctx.reply(embed=eh.eh(err))
+            else:
+                await ctx.reply("`n!ss auto [on/off]`\nAutoSSは無効になっています。")
                 return
         return
 
@@ -414,10 +387,13 @@ async def ss_base(self, ctx: commands.Context):
             await ctx.message.reply("サーバーは登録されていません。")
             return
         async with ctx.channel.typing():
-            embed = nextcord.Embed(title="Server Status Checker",
-                                   description=f"{ctx.message.author.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
+            embed = nextcord.Embed(
+                title="Server Status Checker",
+                description=f"{ctx.message.author.mention}\n:globe_with_meridians:Status\n==========",
+                color=0x00ff00
+            )
             for i in map(str, range(1, int(n_fc.steam_server_list[ctx.guild.id]["value"])+1)):
-                await server_check.server_check_async(self.bot.loop, embed, 1, ctx.guild.id, i)
+                await server_check.server_check(embed, 1, ctx.guild.id, i)
             await asyncio.sleep(1)
             await ctx.message.reply(embed=embed)
             return
@@ -431,57 +407,78 @@ async def ss_base(self, ctx: commands.Context):
             await ctx.message.reply("サーバーは登録されていません。")
             return
         async with ctx.channel.typing():
-            embed = nextcord.Embed(title="Server Status Checker",
-                                   description=f"{ctx.message.author.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
-            server_check.server_check(embed, 0, ctx.guild.id, args[1])
+            embed = nextcord.Embed(
+                title="Server Status Checker",
+                description=f"{ctx.message.author.mention}\n:globe_with_meridians:Status\n==========",
+                color=0x00ff00
+            )
+            await server_check.server_check(embed, 0, ctx.guild.id, args[1])
             await asyncio.sleep(1)
             await ctx.message.reply(embed=embed)
             return
 
 
+class Reload_SS_Auto(nextcord.ui.View):
+    def __init__(self, bot: commands.Bot, message: nextcord.Message):
+        super().__init__(timeout=None)
+        self.bot = bot
+        self.message = message
+
+    @nextcord.ui.button(label='再読み込み', style=nextcord.ButtonStyle.green)
+    async def reload(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        try:
+            asyncio.ensure_future(ss_force(self.bot, self.message))
+            await interaction.followup.send('Reloaded!', ephemeral=True)
+
+        except BaseException as err:
+            await interaction.followup.send(f'エラーが発生しました。\n`{err}`\n```sh\n{traceback.format_exc()}```', ephemeral=True)
+            logging.error(traceback.format_exc())
+
+
+class Recheck_SS_Embed(nextcord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @nextcord.ui.button(label='もう一度チェックする', style=nextcord.ButtonStyle.green)
+    async def recheck(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+        await interaction.response.defer()
+        try:
+            embed = nextcord.Embed(
+                title="Server Status Checker",
+                description=f":globe_with_meridians:Status\n==========",
+                color=0x00ff00
+            )
+            for i in map(str, range(1, int(n_fc.steam_server_list[interaction.guild.id]["value"])+1)):
+                await server_check.server_check(embed, 0, interaction.guild.id, i)
+            await interaction.followup.send(f'{interaction.user.mention} - Server Status', embed=embed, view=Recheck_SS_Embed())
+            logging.info("rechecked")
+
+        except BaseException as err:
+            await interaction.followup.send(f"エラーが発生しました。\n{err}", ephemeral=True)
+            logging.err(err)
+
+
 class server_status(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.check_status_pin_loop.start()
 
-    # AutoSS Force用のView
-
-    class Reload_SS_Auto(nextcord.ui.View):
-        def __init__(self):
-            super().__init__(timeout=None)
-
-        @nextcord.ui.button(label='再読み込み', style=nextcord.ButtonStyle.green)
-        async def reload(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
-            try:
-                status_message = n_fc.pid_ss[interaction.guild.id][1]
-                n_fc.pid_ss[interaction.guild.id][0].cancel()
-                n_fc.pid_ss[interaction.guild.id] = (asyncio.ensure_future(
-                    ss_force(asyncio.get_event_loop(), status_message)), status_message)
-                await interaction.response.send_message('Reloaded!', ephemeral=True)
-                logging.info("reloaded")
-
-            except BaseException as err:
-                await interaction.response.send_message(f'エラーが発生しました。\n{err}', ephemeral=True)
-                logging.error(err)
-
-    # SS再チェック用のView
-
-    class Recheck_SS_Embed(nextcord.ui.View):
-        def __init__(self):
-            super().__init__(timeout=None)
-
-        @nextcord.ui.button(label='もう一度チェックする', style=nextcord.ButtonStyle.green)
-        async def recheck(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
-            try:
-                embed = nextcord.Embed(
-                    title="Server Status Checker", description=f":globe_with_meridians:Status\n==========", color=0x00ff00)
-                for i in map(str, range(1, int(n_fc.steam_server_list[interaction.guild.id]["value"])+1)):
-                    await server_check.server_check_async(asyncio.get_event_loop(), embed, 0, interaction.guild.id, i)
-                await interaction.response.send_message('ServerCheck', embed=embed, view=server_status.Recheck_SS_Embed())
-                logging.info("rechecked")
-
-            except BaseException as err:
-                await interaction.response.send_message(f"エラーが発生しました。\n{err}", ephemeral=True)
-                logging.err(err)
+    @nextcord.message_command(name="AutoSSのスタート")
+    async def start_auto_ss(self, interaction: Interaction, message: nextcord.Message):
+        await interaction.response.defer(ephemeral=True)
+        try:
+            CHANNEL_ID = message.channel.id
+            MESSAGE_ID = message.id
+            n_fc.force_ss_list[message.guild.id] = [
+                CHANNEL_ID,
+                MESSAGE_ID
+            ]
+            asyncio.ensure_future(ss_force(self.bot, message))
+            await interaction.followup.send(f"指定されたメッセージでAutoSSをスタートしました。")
+        except Exception as err:
+            await interaction.followup.send(f"エラーが発生しました。\n```\n{err}```")
+        return
 
     @commands.command(name="ss", help="""\
 Steam非公式サーバーのステータスを表示します
@@ -710,101 +707,42 @@ Steam非公式サーバーのステータスを表示します
     async def auto_slash(self, interaction: Interaction):
         pass
 
-    @auto_slash.subcommand(name="on", description="鯖が落ちたと思われる際に通知する")
+    @auto_slash.subcommand(name="on", description="鯖のステータスをリアルタイム表示します")
     async def auto_on_slash(
-        self,
-        interaction: Interaction,
-        mention_user: nextcord.User = SlashOption(
-            name="mention_user",
-            description="メンションするユーザー",
-            required=True
-        )
-    ):
-        await interaction.response.defer()
-        try:
-            if interaction.guild.id not in n_fc.steam_server_list:
-                await interaction.followup.send("サーバーが登録されていません。", ephemeral=True)
-                return
-
-            ment_id = str(mention_user.id)
-            mes_ss = await interaction.followup.send(f"Starting process...")
-
-            if interaction.guild.id in n_fc.pid_ss:
-                await mes_ss.edit(content=f"既に{interaction.guild.name}でタスクが実行されています。")
-                return
-
-            n_fc.pid_ss[interaction.guild.id] = (self.bot.loop.create_task(
-                ss_loop_goes(self, ment_id, mes_ss)), mes_ss)
-            return
-        except BaseException as err:
-            await interaction.followup.send(embed=eh.eh(err), ephemeral=True)
-            return
-
-    @auto_slash.subcommand(name="off", description="鯖が落ちたと思われる際に通知しないようにする")
-    async def auto_off_slash(
         self,
         interaction: Interaction
     ):
         await interaction.response.defer()
-        if interaction.guild.id not in n_fc.pid_ss:
-            await interaction.followup.send("既に無効になっているか、コマンドが実行されていません。", ephemeral=True)
-            return
-        try:
-            if n_fc.pid_ss[interaction.guild.id][0].done() == False or interaction.guild.id in n_fc.pid_ss:
-                n_fc.pid_ss[interaction.guild.id][0].cancel()
-                del n_fc.pid_ss[interaction.guild.id]
-                del n_fc.force_ss_list[interaction.guild.id]
-                await interaction.followup.send("AutoSSを無効にしました。", ephemeral=True)
-                return
-            else:
-                await interaction.followup.send("既に無効になっているか、コマンドが実行されていません。", ephemeral=True)
-        except BaseException as err:
-            await interaction.followup.send(embed=eh.eh(err), ephemeral=True)
-            return
-
-    @auto_slash.subcommand(name="force", description="ずっと更新する鯖ステ表示を送信します")
-    async def auto_force_slash(
-        self,
-        interaction: Interaction,
-        channel_id: int = SlashOption(
-            name="channel_id",
-            description="（復元する場合のみ）チャンネルID",
-            required=False
-        ),
-        message_id: int = SlashOption(
-            name="message_id",
-            description="（復元する場合のみ）メッセージID",
-            required=False
-        )
-    ):
-        await interaction.response.defer()
-        if interaction.guild.id in n_fc.pid_ss:
+        if interaction.guild.id in n_fc.force_ss_list:
             await interaction.followup.send(f"既に{interaction.guild.name}で他のAutoSSタスクが実行されています。", ephemeral=True)
             return
         if interaction.guild.id not in n_fc.steam_server_list:
             await interaction.followup.send("サーバーが登録されていません。", ephemeral=True)
             return
-        mes_ss = await interaction.channel.send(f"Check your set message!")
-        if interaction.guild.id in n_fc.pid_ss:
-            await mes_ss.edit(content=f"既に{interaction.guild.name}でタスクが実行されています。", ephemeral=True)
-            return
-        if channel_id is not None and message_id is not None:
-            n_fc.force_ss_list[interaction.guild.id] = [
-                interaction.channel.id, mes_ss.id]
-            n_fc.pid_ss[interaction.guild.id] = (self.bot.loop.create_task(
-                ss_force(asyncio.get_event_loop(), mes_ss)), mes_ss)
-            return
-        else:
-            try:
-                messs = await get_mes(self.bot, channel_id, message_id)
-            except BaseException as err:
-                logging.error(err)
-                await interaction.followup.send("メッセージが見つかりませんでした。", ephemeral=True)
+        mes_ss = await interaction.channel.send(f"AutoSSの準備をしています...")
+        asyncio.ensure_future(ss_force(self.bot, mes_ss))
+        n_fc.force_ss_list[interaction.guild.id] = [
+            mes_ss.channel.id,
+            mes_ss.id
+        ]
+        await interaction.followup.send("AutoSSを開始しました。")
+
+    @auto_slash.subcommand(name="off", description="鯖のリアルタイムステータス表示をオフにします")
+    async def auto_off_slash(
+        self,
+        interaction: Interaction
+    ):
+        await interaction.response.defer()
+        try:
+            if interaction.guild.id not in n_fc.force_ss_list:
+                await interaction.followup.send("既に無効になっているか、コマンドが実行されていません。", ephemeral=True)
                 return
-            await messs.edit(content="現在変更をしています...")
-            n_fc.force_ss_list[interaction.guild.id] = [channel_id, message_id]
-            n_fc.pid_ss[interaction.guild.id] = (self.bot.loop.create_task(
-                ss_force(asyncio.get_event_loop(), messs)), messs)
+            else:
+                del n_fc.force_ss_list[interaction.guild.id]
+                await interaction.followup.send("AutoSSを無効にしました。", ephemeral=True)
+                return
+        except BaseException as err:
+            await interaction.followup.send(embed=eh.eh(err), ephemeral=True)
             return
 
     @ss_slash.subcommand(name="status", description="Steam非公式サーバーのステータスを表示します")
@@ -827,7 +765,7 @@ Steam非公式サーバーのステータスを表示します
                 embed = nextcord.Embed(
                     title="Server Status Checker", description=f"{interaction.user.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
                 for i in map(str, range(1, int(n_fc.steam_server_list[interaction.guild.id]["value"])+1)):
-                    await server_check.server_check_async(self.bot.loop, embed, 1, interaction.guild.id, i)
+                    await server_check.server_check(embed, 1, interaction.guild.id, i)
                 await interaction.followup.send(embed=embed)
                 return
 
@@ -849,15 +787,40 @@ Steam非公式サーバーのステータスを表示します
                 embed = nextcord.Embed(
                     title="Server Status Checker", description=f"{interaction.user.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
                 for i in map(str, range(1, int(n_fc.steam_server_list[interaction.guild.id]["value"])+1)):
-                    await server_check.server_check_async(self.bot.loop, embed, 0, interaction.guild.id, i)
-                await interaction.followup.send(embed=embed, view=server_status.Recheck_SS_Embed())
+                    await server_check.server_check(embed, 0, interaction.guild.id, i)
+                await interaction.followup.send(embed=embed, view=Recheck_SS_Embed())
                 return
 
         except BaseException as err:
             await interaction.followup.send(f"ステータス取得時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
+    @tasks.loop(minutes=5.0)
+    async def check_status_pin_loop(self):
+        for CHANNEL, MESSAGE in n_fc.force_ss_list.values():
+            message: nextcord.Message = await (await self.bot.fetch_channel(CHANNEL)).fetch_message(MESSAGE)
+            try:
+                embed = nextcord.Embed(
+                    title="ServerStatus Checker", description=f"LastCheck:`{datetime.datetime.now()}`", color=0x00ff00)
+                for i in range(int(n_fc.steam_server_list[message.guild.id]["value"])):
+                    await server_check.ss_pin_embed(embed, message.guild.id, i + 1)
+                embed.set_footer(text="pingは参考値です")
+                await message.edit(
+                    f"AutoSS実行中\n止めるには`n!ss auto off`または`/ss off`\n止まったりした場合は、このメッセージを長押しして`アプリ`->`AutoSSのスタート`\nリロードするにはボタンか`/ss reload`",
+                    embed=embed,
+                    view=Reload_SS_Auto(self.bot, message)
+                )
+                logging.info("Status loaded.(Scheduled)")
+            except BaseException as err:
+                logging.info(err, traceback.format_exc())
+                await message.edit(content=f"AutoSSのループ内でエラーが発生しました。\nボタン又は`/reload`コマンドでリロードしてください。\n```sh\n{traceback.format_exc()}```", embed=None)
+
 
 def setup(bot):
     bot.add_cog(server_status(bot))
-    # importlib.reload(server_check)
+    importlib.reload(server_check)
+    logging.info("Setup `server_status` cog.")
+
+
+def teardown(bot):
+    logging.info("Teardown `server_status` cog.")
