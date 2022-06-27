@@ -364,34 +364,46 @@ class debug(commands.Cog):
 
     @cog_slash.subcommand(name="list", description="List cogs.")
     async def list_cog_slash(self, interaction):
-        await interaction.response.send_message(f"```py\n{list(dict(self.bot.cogs).keys())}```",ephemeral=True)
+        if self.bot.is_owner(interaction.user):
+            await interaction.response.send_message(f"```py\n{list(dict(self.bot.cogs).keys())}```",ephemeral=True)
+        else:
+            raise Exception("Forbidden")
 
     @cog_slash.subcommand(name="load", description="Load cog.")
     async def load_cogs_slash(self, interaction: Interaction, cogname: str = SlashOption(name="cogname",description="Cog name.",required=True)):
-        await interaction.response.defer()
-        try:
-            self.bot.load_extension(f"cogs.{cogname}")
-            await interaction.followup.send(f"The cog `cogs.{cogname}` successfully loaded.", ephemeral=True)
-        except BaseException as err:
-            await interaction.followup.send(f"Failed to load cog `cogs.{cogname}`.\n```py\n{err}```", ephemeral=True)
+        if self.bot.is_owner(interaction.user):
+            await interaction.response.defer()
+            try:
+                self.bot.load_extension(f"cogs.{cogname}")
+                await interaction.followup.send(f"The cog `cogs.{cogname}` successfully loaded.", ephemeral=True)
+            except Exception as err:
+                await interaction.followup.send(f"Failed to load cog `cogs.{cogname}`.\n```py\n{err}```", ephemeral=True)
+        else:
+            raise Exception("Forbidden")
 
     @cog_slash.subcommand(name="reload", description="Reload cog.")
     async def reload_cogs_slash(self, interaction: Interaction, cogname: str = SlashOption(name="cogname",description="Cog name.",required=True)):
-        await interaction.response.defer()
-        try:
-            self.bot.reload_extension(f"cogs.{cogname}")
-            await interaction.followup.send(f"The cog `cogs.{cogname}` successfully reloaded.", ephemeral=True)
-        except BaseException as err:
-            await interaction.followup.send(f"Failed to reload cog `cogs.{cogname}`.\n```py\n{err}```", ephemeral=True)
+        if self.bot.is_owner(interaction.user):
+            await interaction.response.defer()
+            try:
+                self.bot.reload_extension(f"cogs.{cogname}")
+                await interaction.followup.send(f"The cog `cogs.{cogname}` successfully reloaded.", ephemeral=True)
+            except Exception as err:
+                await interaction.followup.send(f"Failed to reload cog `cogs.{cogname}`.\n```py\n{err}```", ephemeral=True)
+        else:
+            raise Exception("Forbidden")
 
     @cog_slash.subcommand(name="unload", description="Unload cog.")
     async def unload_cogs_slash(self, interaction: Interaction, cogname: str = SlashOption(name="cogname",description="Cog name.",required=True)):
-        await interaction.response.defer()
-        try:
-            self.bot.unload_extension(f"cogs.{cogname}")
-            await interaction.followup.send(f"The cog `cogs.{cogname}` successfully unloaded.", ephemeral=True)
-        except BaseException as err:
-            await interaction.followup.send(f"Failed to unload cog `cogs.{cogname}`.\n```py\n{err}```", ephemeral=True)
+        if self.bot.is_owner(interaction.user):
+            await interaction.response.defer()
+            try:
+                self.bot.unload_extension(f"cogs.{cogname}")
+                await interaction.followup.send(f"The cog `cogs.{cogname}` successfully unloaded.", ephemeral=True)
+            except BaseException as err:
+                await interaction.followup.send(f"Failed to unload cog `cogs.{cogname}`.\n```py\n{err}```", ephemeral=True)
+        else:
+            raise Exception("Forbidden")
 
     @commands.command(name="cog", help="Manage cogs.")
     async def cog(self, ctx: commands.Context):
