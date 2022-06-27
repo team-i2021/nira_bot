@@ -533,11 +533,12 @@ class debug(commands.Cog):
         except ValueError:
             pass
         try:
-            value = int(value)
-        except ValueError:
-            pass
+            eval(value)
+        except Exception as err:
+            await interaction.response.send_message(embed=nextcord.Embed(title="POST:/post", description=f"```\n{err}```", color=0xff0000))
+            return
         try:
-            await self.client.post(key, value)
+            await self.client.post(key, eval(value))
             await interaction.response.send_message(embed=nextcord.Embed(title="POST:/post", description=f"```\n{value}```", color=0x00ff00))
         except HTTP_db.HTTP_db_Exception as err:
             await interaction.response.send_message(embed=nextcord.Embed(title="POST:/post", description=f"```\n{err}```", color=0xFF0000))
