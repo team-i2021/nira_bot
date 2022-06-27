@@ -41,7 +41,7 @@ class MessageRole(commands.Cog):
         self.client = HTTP_db.Client(
             url=datas["address"],
             port=datas["port"],
-            intkey=True
+            password=open(f"{dir}/password").read()
         )
         asyncio.ensure_future(pullData(self.client))
 
@@ -102,6 +102,8 @@ class MessageRole(commands.Cog):
             return
         else:
             del MESSAGE_ROLE_SETTINGS[interaction.guild.id][interaction.channel.id]
+            if len(MESSAGE_ROLE_SETTINGS[interaction.guild.id]) == 0:
+                del MESSAGE_ROLE_SETTINGS[interaction.guild.id]
             await interaction.followup.send(embed=nextcord.Embed(title="メッセージロールの設定", description=f"チャンネル:<#{interaction.channel.id}>\nメッセージロールの設定を削除しました。", color=0x00ff00))
             await self.client.post("message_role", dict_list.dictToList(MESSAGE_ROLE_SETTINGS))
             return
@@ -196,7 +198,6 @@ class MessageRole(commands.Cog):
                 return
 
             role = None
-
             try:
                 role = ctx.guild.get_role(int(args[2]))
             except ValueError:
@@ -236,6 +237,8 @@ class MessageRole(commands.Cog):
                 return
 
             del MESSAGE_ROLE_SETTINGS[ctx.guild.id][ctx.channel.id]
+            if len(MESSAGE_ROLE_SETTINGS[ctx.guild.id]) == 0:
+                del MESSAGE_ROLE_SETTINGS[ctx.guild.id]
             await ctx.reply(embed=nextcord.Embed(title="メッセージロールの設定", description=f"チャンネル:<#{ctx.channel.id}>の設定を削除しました。", color=0x00ff00))
             await self.client.post("message_role", dict_list.dictToList(MESSAGE_ROLE_SETTINGS))
             return
@@ -255,7 +258,7 @@ class MessageRole(commands.Cog):
 
         elif command_type == "db":
             if ctx.author.id not in n_fc.py_admin:
-                await ctx.reply(embed=nextcord.Embed(title="Forbidden", description="このコマンドの使用には、BOTの最高操作権限が必要です。", color=0xff0000))
+                await ctx.reply(embed=nextcord.Embed(title="Forbidden", description="このコマンドの使用には、BOTのオーナー権限が必要です。", color=0xff0000))
                 return
             if len(args) != 1:
                 await ctx.reply(embed=nextcord.Embed(title="Bad Request", description=f"渡された引数が異常です。\n```sh\npull: pull from database\npush: push to database\nserver: check database's value\nclient: check current value```\nARGS:`{args}`", color=0xff0000))

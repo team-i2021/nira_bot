@@ -43,21 +43,24 @@ class TranslateModal(nextcord.ui.Modal):
     async def callback(self, interaction: nextcord.Interaction) -> None:
         await interaction.response.defer()
         try:
-            result = self.translator.translate_text(
-                self.translate_text.value,
-                source_lang=self.source_lang,
-                target_lang=self.target_lang)
-            if self.source_lang is None:
-                self.source_lang = "..."
-            embed = nextcord.Embed(
-                title="翻訳結果", description=result.text, color=0x00ff00)
-            embed.set_footer(
-                text=f"DeepL API ({self.source_lang} -> {self.target_lang})", icon_url="https://static.deepl.com/img/logo/deepl-logo-blue.svg")
-            await interaction.followup.send(embed=embed)
+            async with interaction.channel.typing():
+                result = self.translator.translate_text(
+                    self.translate_text.value,
+                    source_lang=self.source_lang,
+                    target_lang=self.target_lang)
+                if self.source_lang is None:
+                    self.source_lang = "..."
+                embed = nextcord.Embed(
+                    title="翻訳結果", description=result.text, color=0x00ff00)
+                embed.set_footer(
+                    text=f"DeepL Translate ([{self.source_lang}]->[{self.target_lang}])", icon_url=ICON_URL)
+                await interaction.followup.send(embed=embed)
+                return
         except deepl.DeepLException as err:
             await interaction.followup.send(embed=nextcord.Embed(title="エラー", description=f"DeepL APIエラー。\n```\n{err}```", color=0xFF0000))
         except Exception as err:
             await interaction.followup.send(embed=nextcord.Embed(title="エラー", description=f"エラー。\n```\n{err}```", color=0xFF0000))
+        return
 
 
 class Translate(commands.Cog):
@@ -135,21 +138,51 @@ class Translate(commands.Cog):
             elif args[1].lower() in EN:
                 lang = "EN-US"
             else:
-                await ctx.reply(embed=nextcord.Embed(title="エラー", description="言語設定がおかしいです。\n英語:`en`/日本語:`jp`\n`n!translate [ja/en] [text]`", color=0xFF0000))
+                await ctx.reply(embed=nextcord.Embed(title="エラー", description="言語設定がおかしいです。\n英語:`en`/日本語:`jp`\n`n!translate [ja/en] [text]`", color=0xff0000))
                 return
             try:
-                result = self.translator.translate_text(
-                    args[2], target_lang=lang)
-                embed = nextcord.Embed(
-                    title="翻訳結果", description=result.text, color=0x00ff00)
-                embed.set_footer(
-                    text="DeepL APi", icon_url="https://static.deepl.com/img/logo/deepl-logo-blue.svg")
-                await ctx.reply(embed=embed)
+                async with ctx.message.channel.typing():
+                    result = self.translator.translate_text(
+                        args[2], target_lang=lang)
+                    embed = nextcord.Embed(
+                        title="翻訳結果", description=result.text, color=0x00ff00)
+                    embed.set_footer(
+                        text="DeepL Translate", icon_url=ICON_URL)
+                    await ctx.reply(embed=embed)
+                    return
             except deepl.DeepLException as err:
                 await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"DeepL APIエラー。\n```\n{err}```", color=0xFF0000))
             except Exception as err:
                 await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"エラー。\n```\n{err}```", color=0xFF0000))
         return
+
+    @commands.Cog.listener()
+    async def on_message(self, message: nextcord.Message):
+        if message.author.id == self.bot.user.id:
+            return
+        if message.channel.topic is None:
+            return
+        if re.search(u"nira-tl-(ja|en)", message.channel.topic):
+            CONTENT = message.content
+            if CONTENT == "" or CONTENT is None:
+                CONTENT = message.embeds[0].description
+            if CONTENT == "" or CONTENT is None:
+                return
+            if re.search(u"nira-tl-(ja|en)", message.channel.topic).group() == "nira-tl-ja":
+                TARGET = "JA"
+            elif re.search(u"nira-tl-(ja|en)", message.channel.topic).group() == "nira-tl-en":
+                TARGET = "EN-US"
+            else:
+                return
+            result = self.translator.translate_text(
+                CONTENT,
+                target_lang=TARGET
+            )
+            embed = nextcord.Embed(
+                title="翻訳結果", description=result.text, color=0x00ff00)
+            embed.set_footer(
+                text=f"DeepL Translate ([...]->[{TARGET}])", icon_url=ICON_URL)
+            await message.reply(embed=embed)
 
 
 def setup(bot):

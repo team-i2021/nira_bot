@@ -21,4 +21,4 @@ urlextract==1.5.0
 # genshin==1.2.1
 # pyngrok==5.1.0
 deepl==1.8.0
-HTTP-db==1.1.1
+HTTP-db>=1.2
