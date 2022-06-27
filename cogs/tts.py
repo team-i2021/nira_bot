@@ -20,9 +20,9 @@ from util import n_fc, mc_status, tts_convert, tts_dict
 
 # Text To Speech
 
-dir = sys.path[0]
+SYSDIR = sys.path[0]
 
-SETTING = json.load(open(f'{dir}/setting.json', 'r'))
+SETTING = json.load(open(f'{SYSDIR}/setting.json', 'r'))
 keys = SETTING["voicevox"]
 
 Effective = True

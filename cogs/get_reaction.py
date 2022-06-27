@@ -10,8 +10,7 @@ from nextcord.ext import commands
 from cogs import server_status
 from util import admin_check, n_fc, eh
 
-home_dir = os.path.dirname(__file__)[:-4]
-
+SYSDIR = os.path[0]
 
 class get_reaction(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -25,11 +24,13 @@ class get_reaction(commands.Cog):
                 if admin_check.admin_check(react.message.guild, mem) or react.message.author.id in n_fc.py_admin:
                     if str(react.emoji) == "\U00002B55":
                         del n_fc.steam_server_list[react.message.guild.id]
-                        with open(f'{home_dir}/steam_server_list.nira', 'wb') as f:
+                        with open(f'{SYSDIR}/steam_server_list.nira', 'wb') as f:
                             pickle.dump(n_fc.steam_server_list, f)
-                        embed = nextcord.Embed(title="リスト削除", description=f"{mem.mention}\nリストは正常に削除されました。", color=0xffffff)
+                        embed = nextcord.Embed(
+                            title="リスト削除", description=f"{mem.mention}\nリストは正常に削除されました。", color=0xffffff)
                         if mem.id == 669178357371371522:
-                            embed = nextcord.Embed(title="リスト削除", description=f"{mem.mention}\ndic deleted.", color=0xffffff)
+                            embed = nextcord.Embed(
+                                title="リスト削除", description=f"{mem.mention}\ndic deleted.", color=0xffffff)
                         await react.message.channel.send(embed=embed)
                         await self.bot.http.delete_message(react.message.channel.id, react.message.id)
                         return
@@ -52,11 +53,13 @@ class get_reaction(commands.Cog):
                 if admin_check.admin_check(react.message.guild, mem) or react.message.author.id in n_fc.py_admin:
                     if str(react.emoji) == "\U00002B55":
                         del n_fc.ex_reaction_list[react.message.guild.id]
-                        with open(f'{home_dir}/ex_reaction_list.nira', 'wb') as f:
+                        with open(f'{SYSDIR}/ex_reaction_list.nira', 'wb') as f:
                             pickle.dump(n_fc.ex_reaction_list, f)
-                        embed = nextcord.Embed(title="リスト削除", description=f"{mem.mention}\nリストは正常に削除されました。", color=0xffffff)
+                        embed = nextcord.Embed(
+                            title="リスト削除", description=f"{mem.mention}\nリストは正常に削除されました。", color=0xffffff)
                         if mem.id == 669178357371371522:
-                            embed = nextcord.Embed(title="リスト削除", description=f"{mem.mention}\ndic deleted.", color=0xffffff)
+                            embed = nextcord.Embed(
+                                title="リスト削除", description=f"{mem.mention}\ndic deleted.", color=0xffffff)
                         await react.message.channel.send(embed=embed)
                         await self.bot.http.delete_message(react.message.channel.id, react.message.id)
                         return
@@ -73,7 +76,7 @@ class get_reaction(commands.Cog):
         except BaseException as err:
             await react.message.channel.send(embed=nextcord.Embed(title="エラー", description=f"{mem.mention}\n大変申し訳ございません。エラーが発生しました。\n```{err}```", color=0xff0000))
             return
-        #メッセ削除
+        # メッセ削除
         if mem.id != 892759276152573953 and react.message.author.id == 892759276152573953 and str(react.emoji) == '<:trash:908565976407236608>':
             await self.bot.http.delete_message(react.message.channel.id, react.message.id)
             return

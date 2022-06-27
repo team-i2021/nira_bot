@@ -19,7 +19,7 @@ from util import admin_check, n_fc, eh, server_check
 
 # 音楽再生
 
-dir = sys.path[0]
+SYSDIR = sys.path[0]
 
 music_list = dict()
 music_f = dict()
@@ -44,7 +44,7 @@ ytdl_format_options = {
     'no_warnings': True,
     'default_search': 'auto',
     'source_address': '0.0.0.0',
-    'cookiefile': f'{dir}/util/youtube-cookies.txt'
+    'cookiefile': f'{SYSDIR}/util/youtube-cookies.txt'
 }
 
 # ヨシ！

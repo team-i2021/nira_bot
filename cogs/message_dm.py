@@ -19,7 +19,7 @@ ROLE_ID = re.compile(r"<@&[0-9]+?>")
 # データ形式:HTTP_db
 
 # loggingの設定
-dir = sys.path[0]
+SYSDIR = sys.path[0]
 
 MESSAGE_DM_SETTINGS = {}
 
@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 logger.addFilter(NoTokenLogFilter())
 formatter = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
 logging.basicConfig(
-    format=formatter, filename=f'{dir}/nira.log', level=logging.INFO)
+    format=formatter, filename=f'{SYSDIR}/nira.log', level=logging.INFO)
 
 
 async def pullData(client: HTTP_db.Client):
@@ -49,11 +49,11 @@ async def pullData(client: HTTP_db.Client):
 class MessageDM(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        datas = json.load(open(f'{dir}/setting.json', 'r'))["database_data"]
+        datas = json.load(open(f'{SYSDIR}/setting.json', 'r'))["database_data"]
         self.client = HTTP_db.Client(
             url=datas["address"],
             port=datas["port"],
-            password=open(f"{dir}/password").read()
+            password=open(f"{SYSDIR}/password").read()
         )
         asyncio.ensure_future(pullData(self.client))
 

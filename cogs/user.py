@@ -14,7 +14,7 @@ SET, DEL, STATUS = (0, 1, 2)
 
 #ユーザー情報表示系
 
-home_dir = sys.path[0]
+
 
 
 class user(commands.Cog):

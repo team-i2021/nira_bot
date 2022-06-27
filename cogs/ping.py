@@ -20,7 +20,7 @@ from util import admin_check, n_fc, eh
 
 DISCORD = 0xD13C06D
 
-dir = sys.path[0]
+SYSDIR = sys.path[0]
 
 
 async def ping_there(adr, message: nextcord.Message or Interaction):
@@ -85,7 +85,7 @@ async def base_ping(bot, client: HTTP_db.Client, adr, message: nextcord.Message 
 class Ping(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        datas = json.load(open(f'{dir}/setting.json', 'r'))["database_data"]
+        datas = json.load(open(f'{SYSDIR}/setting.json', 'r'))["database_data"]
         self.client = HTTP_db.Client(
             url=datas["address"], port=datas["port"], intkey=True)
 

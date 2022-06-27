@@ -21,9 +21,9 @@ from nextcord.ext.commands.core import command
 from cogs import normal_reaction as nr
 from util import admin_check, n_fc, eh, database, slash_tool
 
-dir = sys.path[0]
+import HTTP_db
 
-home_dir = os.path.dirname(__file__)[:-4]
+SYSDIR = sys.path[0]
 
 # 管理者向けdebug
 
@@ -33,14 +33,14 @@ DATABASE_KEY = "B2"
 
 def save():
     for i in range(len(n_fc.save_list)):
-        with open(f'{home_dir}/{n_fc.save_list[i]}.nira', 'wb') as f:
+        with open(f'{SYSDIR}/{n_fc.save_list[i]}.nira', 'wb') as f:
             exec(f"pickle.dump(n_fc.{n_fc.save_list[i]}, f)")
 
 
 def load():
     func_error_count = 0
-    nira_f_num = len(os.listdir(home_dir))
-    system_list = os.listdir(home_dir)
+    nira_f_num = len(os.listdir(SYSDIR))
+    system_list = os.listdir(SYSDIR)
     logging.info((nira_f_num, system_list))
     for i in range(nira_f_num):
         logging.info(f"StartProcess:{system_list[i]}")
@@ -49,7 +49,7 @@ def load():
             continue
         try:
             cog_name = system_list[i][:-5]
-            with open(f'{home_dir}/{system_list[i]}', 'rb') as f:
+            with open(f'{SYSDIR}/{system_list[i]}', 'rb') as f:
                 exec(f"n_fc.{cog_name} = pickle.load(f)")
             logging.info(f"変数[{system_list[i]}]のファイル読み込みに成功しました。")
             if system_list[i] == "notify_token.nira":
@@ -161,11 +161,11 @@ async def base_cog(bot, ctx, command, name):
 class debug(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        datas = json.load(open(f'{dir}/setting.json', 'r'))["database_data"]
+        datas = json.load(open(f'{SYSDIR}/setting.json', 'r'))["database_data"]
         self.client = HTTP_db.Client(
             url=datas["address"],
             port=datas["port"],
-            password=open(f"{dir}/password").read()
+            password=open(f"{SYSDIR}/password").read()
         )
 
     async def ws(self, websocket, path):
@@ -408,12 +408,12 @@ class debug(commands.Cog):
     @cog_slash.subcommand(name="list", description="List cogs.")
     async def list_cog_slash(self, interaction):
         if self.bot.is_owner(interaction.user):
-            await interaction.response.send_message(f"```py\n{list(dict(self.bot.cogs).keys())}```",ephemeral=True)
+            await interaction.response.send_message(f"```py\n{list(dict(self.bot.cogs).keys())}```", ephemeral=True)
         else:
             raise Exception("Forbidden")
 
     @cog_slash.subcommand(name="load", description="Load cog.")
-    async def load_cogs_slash(self, interaction: Interaction, cogname: str = SlashOption(name="cogname",description="Cog name.",required=True)):
+    async def load_cogs_slash(self, interaction: Interaction, cogname: str = SlashOption(name="cogname", description="Cog name.", required=True)):
         if self.bot.is_owner(interaction.user):
             await interaction.response.defer()
             try:
@@ -425,7 +425,7 @@ class debug(commands.Cog):
             raise Exception("Forbidden")
 
     @cog_slash.subcommand(name="reload", description="Reload cog.")
-    async def reload_cogs_slash(self, interaction: Interaction, cogname: str = SlashOption(name="cogname",description="Cog name.",required=True)):
+    async def reload_cogs_slash(self, interaction: Interaction, cogname: str = SlashOption(name="cogname", description="Cog name.", required=True)):
         if self.bot.is_owner(interaction.user):
             await interaction.response.defer()
             try:
@@ -437,7 +437,7 @@ class debug(commands.Cog):
             raise Exception("Forbidden")
 
     @cog_slash.subcommand(name="unload", description="Unload cog.")
-    async def unload_cogs_slash(self, interaction: Interaction, cogname: str = SlashOption(name="cogname",description="Cog name.",required=True)):
+    async def unload_cogs_slash(self, interaction: Interaction, cogname: str = SlashOption(name="cogname", description="Cog name.", required=True)):
         if self.bot.is_owner(interaction.user):
             await interaction.response.defer()
             try:

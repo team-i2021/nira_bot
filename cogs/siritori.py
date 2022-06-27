@@ -8,7 +8,8 @@ from nextcord.ext import commands
 from util import eh, srtr
 from util.n_fc import GUILD_IDS, srtr_bool_list
 
-home_dir = os.path.dirname(__file__)[:-4]
+SYSDIR = os.path[0]
+
 # しりとり管理系
 
 
@@ -30,7 +31,7 @@ class siritori(commands.Cog):
 
             try:
                 srtr_bool_list[guild.id][channel.id] = 1
-                with open(f"{home_dir}/srtr_bool_list.nira", "wb") as f:
+                with open(f"{SYSDIR}/srtr_bool_list.nira", "wb") as f:
                     pickle.dump(srtr_bool_list, f)
             except BaseException as err:
                 return eh(err)
@@ -43,7 +44,7 @@ class siritori(commands.Cog):
 
             try:
                 del srtr_bool_list[guild.id][channel.id]
-                with open(f"{home_dir}/srtr_bool_list.nira", "wb") as f:
+                with open(f"{SYSDIR}/srtr_bool_list.nira", "wb") as f:
                     pickle.dump(srtr_bool_list, f)
             except BaseException as err:
                 return eh(err)
@@ -62,10 +63,12 @@ class siritori(commands.Cog):
     """)
     async def srtr_ctx(self, ctx: commands.Context):
         if ctx.message.content == "n!srtr start":
-            embed = self.srtr_control(True, ctx.message.guild, ctx.message.channel)
+            embed = self.srtr_control(
+                True, ctx.message.guild, ctx.message.channel)
 
         elif ctx.message.content == "n!srtr stop":
-            embed = self.srtr_control(False, ctx.message.guild, ctx.message.channel)
+            embed = self.srtr_control(
+                False, ctx.message.guild, ctx.message.channel)
 
         else:
             embed = nextcord.Embed(

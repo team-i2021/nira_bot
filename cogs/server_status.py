@@ -18,7 +18,7 @@ from util import admin_check, eh, n_fc, server_check
 
 PREFIX = "n!"
 
-home_dir = os.path.dirname(__file__)[:-4]
+SYSDIR = sys.path[0]
 
 ss_check_result = {}
 
@@ -99,7 +99,7 @@ async def launch_ss(bot, channel_id, message_id):
     await ss_force(bot, messs)
 
 
-#async def ss_loop_goes(self, ment_id, message):
+# async def ss_loop_goes(self, ment_id, message):
 #    ss_check_result[message.guild.id] = {}
 #    await message.edit(content=f"実行されています。")
 #    logging.info(f"{message.guild.name}にてAutoSSが有効になりました。")
@@ -170,7 +170,7 @@ async def ss_base(self, ctx: commands.Context):
                 n_fc.steam_server_list[ctx.guild.id]["value"] = str(
                     sset_point + 1)
                 await ctx.reply(f"サーバー名：{ad_name}\nサーバーアドレス: ({ad_ip},{ad_port})")
-                with open(f'{home_dir}/steam_server_list.nira', 'wb') as f:
+                with open(f'{SYSDIR}/steam_server_list.nira', 'wb') as f:
                     pickle.dump(n_fc.steam_server_list, f)
                 return
             except BaseException as err:
@@ -275,7 +275,7 @@ async def ss_base(self, ctx: commands.Context):
             n_fc.steam_server_list[ctx.guild.id][f"{s_id}_ad"] = (s_ip, s_port)
             n_fc.steam_server_list[ctx.guild.id][f"{s_id}_nm"] = s_nm
             await ctx.message.reply(f"サーバーナンバー：{s_id}\nサーバー名: {s_nm}\nサーバーアドレス: ({s_ip},{s_port})")
-            with open(f'{home_dir}/steam_server_list.nira', 'wb') as f:
+            with open(f'{SYSDIR}/steam_server_list.nira', 'wb') as f:
                 pickle.dump(n_fc.steam_server_list, f)
             return
         except BaseException as err:
@@ -360,7 +360,7 @@ async def ss_base(self, ctx: commands.Context):
                 return
             else:
                 del n_fc.steam_server_list[ctx.guild.id]
-                with open(f'{home_dir}/steam_server_list.nira', 'wb') as f:
+                with open(f'{SYSDIR}/steam_server_list.nira', 'wb') as f:
                     pickle.dump(n_fc.steam_server_list, f)
                 await del_re.edit(content=None, embed=nextcord.Embed(title="リスト削除", description=f"{ctx.author.mention}\nリストは正常に削除されました。", color=0xffffff))
                 return
@@ -511,7 +511,7 @@ Steam非公式サーバーのステータスを表示します
                 n_fc.steam_server_list[interaction.guild.id][f"{SSValue + 1}_nm"] = ServerName
                 n_fc.steam_server_list[interaction.guild.id]["value"] = str(
                     SSValue + 1)
-                with open(f'{home_dir}/steam_server_list.nira', 'wb') as f:
+                with open(f'{SYSDIR}/steam_server_list.nira', 'wb') as f:
                     pickle.dump(n_fc.steam_server_list, f)
                 await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description=f"サーバーの追加に成功しました。\サーバー名：`{ServerName}`\nサーバーアドレス: `{ServerAddress}:{ServerPort}`", color=0x00ff00), ephemeral=True)
                 return
@@ -550,7 +550,7 @@ Steam非公式サーバーのステータスを表示します
                         f"{ServerID + i}_ad"] = n_fc.steam_server_list[interaction.guild.id][f"{ServerID + i + 1}_ad"]
                 del n_fc.steam_server_list[interaction.guild.id][f"{ServerID}_nm"]
                 del n_fc.steam_server_list[interaction.guild.id][f"{ServerID}_ad"]
-                with open(f'{home_dir}/steam_server_list.nira', 'wb') as f:
+                with open(f'{SYSDIR}/steam_server_list.nira', 'wb') as f:
                     pickle.dump(n_fc.steam_server_list, f)
                 await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description=f"サーバーの削除に成功しました。", color=0x00ff00), ephemeral=True)
                 return

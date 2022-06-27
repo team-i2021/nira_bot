@@ -20,7 +20,7 @@ ROLE_ID = re.compile(r"<@&[0-9]+?>")
 # 特定のチャンネルにて特定のメッセージが送信された場合にロールをつけるそれ。
 # データ形式:HTTP_db
 
-dir = sys.path[0]
+SYSDIR = sys.path[0]
 
 MESSAGE_ROLE_SETTINGS = {}
 
@@ -37,11 +37,11 @@ async def pullData(client: HTTP_db.Client):
 class MessageRole(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        datas = json.load(open(f'{dir}/setting.json', 'r'))["database_data"]
+        datas = json.load(open(f'{SYSDIR}/setting.json', 'r'))["database_data"]
         self.client = HTTP_db.Client(
             url=datas["address"],
             port=datas["port"],
-            password=open(f"{dir}/password").read()
+            password=open(f"{SYSDIR}/password").read()
         )
         asyncio.ensure_future(pullData(self.client))
 

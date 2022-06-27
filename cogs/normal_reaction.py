@@ -15,11 +15,10 @@ from nextcord.ext import commands
 import util.srtr as srtr
 from util import admin_check, n_fc, eh, web_api
 
-home_dir = os.path.dirname(__file__)[:-4]
-dir = sys.path[0]
+SYSDIR = sys.path[0]
 
 image_root = "https://team-i2021.github.io/nira_bot/images"
-image_loc = f"{dir}/images"
+image_loc = f"{SYSDIR}/images"
 
 # 通常反応をまとめたもの。
 
@@ -290,11 +289,11 @@ class normal_reaction(commands.Cog):
         if message.guild.id not in n_fc.reaction_bool_list:
             n_fc.reaction_bool_list[message.guild.id] = {
                 "all": 1, message.channel.id: 1}
-            with open(f'{home_dir}/reaction_bool_list.nira', 'wb') as f:
+            with open(f'{SYSDIR}/reaction_bool_list.nira', 'wb') as f:
                 pickle.dump(n_fc.reaction_bool_list, f)
         if message.channel.id not in n_fc.reaction_bool_list[message.guild.id]:
             n_fc.reaction_bool_list[message.guild.id][message.channel.id] = 1
-            with open(f'{home_dir}/reaction_bool_list.nira', 'wb') as f:
+            with open(f'{SYSDIR}/reaction_bool_list.nira', 'wb') as f:
                 pickle.dump(n_fc.reaction_bool_list, f)
         #########################################
         # 通常反応

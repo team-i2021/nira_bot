@@ -2,10 +2,9 @@ import asyncio
 import json
 import logging
 import os
-import subprocess
+import re
 import sys
 import traceback
-from subprocess import PIPE
 
 import deepl
 import nextcord
@@ -16,7 +15,8 @@ from util import admin_check, n_fc, eh
 
 # Translate
 
-dir = sys.path[0]
+SYSDIR = sys.path[0]
+ICON_URL = "https://asset.watch.impress.co.jp/img/ktw/docs/1370/335/icon_l.png"
 
 JA = ["ja", "jp", "日本語", "にほんご", "ぬほんご", "日本"]
 EN = ["en", "eng", "英語", "えいご", "米", "英"]
@@ -66,7 +66,7 @@ class TranslateModal(nextcord.ui.Modal):
 class Translate(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        SETTING = json.load(open(f'{dir}/setting.json'))
+        SETTING = json.load(open(f'{SYSDIR}/setting.json'))
         if "translate" not in SETTING:
             self.TOKEN = None
         else:
