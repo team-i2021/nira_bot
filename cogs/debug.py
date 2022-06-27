@@ -511,6 +511,8 @@ class debug(commands.Cog):
 
     @db.subcommand(name="get", description="Method POST:/get")
     async def db_get(self, interaction: Interaction, key: str = SlashOption(name="key", description="key", required=True)):
+        if not self.bot.is_owner(interaction.user):
+            raise Exception("Forbidden")
         try:
             key = int(key)
         except ValueError:
@@ -523,6 +525,8 @@ class debug(commands.Cog):
 
     @db.subcommand(name="get_all", description="Method POST:/get_all")
     async def db_get_all(self, interaction: Interaction):
+        if not self.bot.is_owner(interaction.user):
+            raise Exception("Forbidden")
         try:
             value = await self.client.get_all()
             await interaction.response.send_message(embed=nextcord.Embed(title="POST:/get_all", description=f"```\n{value}```", color=0x00ff00))
@@ -531,6 +535,8 @@ class debug(commands.Cog):
 
     @db.subcommand(name="post", description="Method POST:/post")
     async def db_post(self, interaction: Interaction, key: str = SlashOption(name="key", description="key", required=True), value: str = SlashOption(name="value", description="value", required=True)):
+        if not self.bot.is_owner(interaction.user):
+            raise Exception("Forbidden")
         try:
             key = int(key)
         except ValueError:
@@ -547,6 +553,8 @@ class debug(commands.Cog):
 
     @db.subcommand(name="exists", description="Method POST:/exists")
     async def db_exists(self, interaction: Interaction, key: str = SlashOption(name="key", description="key", required=True)):
+        if not self.bot.is_owner(interaction.user):
+            raise Exception("Forbidden")
         try:
             key = int(key)
         except ValueError:
@@ -559,6 +567,8 @@ class debug(commands.Cog):
 
     @db.subcommand(name="delete", description="Method POST:/delete")
     async def db_delete(self, interaction: Interaction, key: str = SlashOption(name="key", description="key", required=True)):
+        if not self.bot.is_owner(interaction.user):
+            raise Exception("Forbidden")
         try:
             key = int(key)
         except ValueError:
@@ -571,6 +581,8 @@ class debug(commands.Cog):
 
     @db.subcommand(name="delete_all", description="Method POST:/delete_all")
     async def db_delete_all(self, interaction: Interaction):
+        if not self.bot.is_owner(interaction.user):
+            raise Exception("Forbidden")
         try:
             await self.client.delete_all()
             await interaction.response.send_message(embed=nextcord.Embed(title="POST:/delete_all", description="", color=0x00ff00))
@@ -579,6 +591,8 @@ class debug(commands.Cog):
 
     @db.subcommand(name="info", description="Method GET:/info")
     async def db_info(self, interaction: Interaction):
+        if not self.bot.is_owner(interaction.user):
+            raise Exception("Forbidden")
         try:
             value = await self.client.info()
             await interaction.response.send_message(embed=nextcord.Embed(title="GET:/info", description=f"{value}", color=0x00ff00))
@@ -587,6 +601,8 @@ class debug(commands.Cog):
 
     @db.subcommand(name="ping", description="Method GET:/ping")
     async def db_ping(self, interaction: Interaction):
+        if not self.bot.is_owner(interaction.user):
+            raise Exception("Forbidden")
         try:
             value = await self.client.ping()
             await interaction.response.send_message(embed=nextcord.Embed(title="GET:/ping", description=f"{round(float(value.ping) * 1000, 2)}ms", color=0x00ff00))
