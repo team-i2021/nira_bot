@@ -780,6 +780,32 @@ Steam非公式サーバーのステータスを表示します
             await interaction.followup.send(f"ステータス取得時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
+    @ss_slash.subcommand(name="reload", description="AutoSSを更新します。")
+    async def reload(self, interaction: Interaction):
+        if interaction.guild.id not in n_fc.force_ss_list:
+            await interaction.response.send_message(f"{interaction.guild.name}では、AutoSSは実行されていません。", ephemeral=True)
+            return
+        else:
+            message = await (await self.bot.fetch_channel(n_fc.force_ss_list[interaction.guild.id][0])).fetch_message(n_fc.force_ss_list[interaction.guild.id][1])
+            asyncio.ensure_future(ss_force(self.bot, message))
+            await interaction.response.send_message("リロードしました。", ephemeral=True)
+            return
+
+    @nextcord.message_command(name="AutoSSのスタート", guild_ids=n_fc.GUILD_IDS)
+    async def startAutoSS(self, interaction: Interaction, message: nextcord.Message):
+        await interaction.response.defer(ephemeral=True)
+        if message.author.id != self.bot.user.id:
+            await interaction.followup.send(f"{self.bot.user.name}が送信したメッセージを参照してください。", ephemeral=True)
+            return
+        asyncio.ensure_future(ss_force(self.bot, message))
+        n_fc.force_ss_list[interaction.guild.id] = [message.channel.id, message.id]
+        await message.edit(
+            f"AutoSS実行中\n止めるには`n!ss auto off`または`/ss off`\n止まったりした場合は、このメッセージを長押しして`アプリ`->`AutoSSのスタート`\nリロードするにはボタンか`/ss reload`",
+            embed=embed,
+            view=Reload_SS_Auto(self.bot, message)
+        )
+        await interaction.followup.send("指定したメッセージをご確認ください。", ephemeral=True)
+
     @tasks.loop(minutes=5.0)
     async def check_status_pin_loop(self):
         for CHANNEL, MESSAGE in n_fc.force_ss_list.values():

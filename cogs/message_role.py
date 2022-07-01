@@ -38,11 +38,7 @@ class MessageRole(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         datas = json.load(open(f'{SYSDIR}/setting.json', 'r'))["database_data"]
-        self.client = HTTP_db.Client(
-            url=datas["address"],
-            port=datas["port"],
-            password=open(f"{SYSDIR}/password").read()
-        )
+        self.client: HTTP_db.Client = database.openClient()
         asyncio.ensure_future(pullData(self.client))
 
     @nextcord.slash_command(name="mesrole", description="Message role command", guild_ids=n_fc.GUILD_IDS)

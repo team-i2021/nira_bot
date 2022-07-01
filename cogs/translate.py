@@ -21,6 +21,7 @@ ICON_URL = "https://asset.watch.impress.co.jp/img/ktw/docs/1370/335/icon_l.png"
 JA = ["ja", "jp", "日本語", "にほんご", "ぬほんご", "日本"]
 EN = ["en", "eng", "英語", "えいご", "米", "英"]
 
+TRANS_COMP = re.compile('[a-zA-Z0-9.,_;:()!?-]+')
 
 class TranslateModal(nextcord.ui.Modal):
     def __init__(self, translator: deepl.Translator, source_lang: str or None, target_lang: str):
@@ -116,6 +117,22 @@ class Translate(commands.Cog):
             )
             return
         await interaction.response.send_modal(TranslateModal(self.translator, source_lang, target_lang))
+
+    @nextcord.message_command(name="Translation", guild_ids=n_fc.GUILD_IDS)
+    async def translation_message_command(self, interaction: Interaction, message: nextcord.Message):
+        await interaction.response.defer()
+        eng_cont = TRANS_COMP.findall(message.content)
+        sLang, tLang = ("EN", "JA")
+        if (len(eng_cont)/len(message.content)) <= 0.6:
+            sLang, tLang = ("JA", "EN-US")
+        result = self.translator.translate_text(
+            message.content, target_lang=tLang, source_lang=sLang)
+        embed = nextcord.Embed(
+            title="翻訳結果", description=result.text, color=0x00ff00)
+        embed.set_footer(
+            text="DeepL Translate", icon_url=ICON_URL)
+        await interaction.followup.send(embed=embed)
+        return
 
     @commands.command(name="translate", alias=["tr", "翻訳"], help="""\
 翻訳

@@ -175,19 +175,6 @@ COMMANDS: {[i.name for i in list(bot.commands)]}
 #     return
 
 
-@bot.slash_command(description="AutoSSを更新します。")
-async def reload(interaction: Interaction):
-    if interaction.guild.id not in n_fc.pid_ss:
-        await interaction.response.send_message(f"{interaction.guild.name}では、AutoSSは実行されていません。", ephemeral=True)
-        return
-    else:
-        status_message = n_fc.pid_ss[interaction.guild.id][1]
-        n_fc.pid_ss[interaction.guild.id][0].cancel()
-        n_fc.pid_ss[interaction.guild.id] = (asyncio.ensure_future(
-            server_status.ss_force(bot.loop, status_message)), status_message)
-        await interaction.response.send_message("リロードしました。", ephemeral=True)
-        return
-
 
 # 変数読み込み
 func_error_count = 0

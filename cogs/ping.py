@@ -14,7 +14,7 @@ import nextcord
 from nextcord import Interaction, SlashOption, ChannelType
 from nextcord.ext import commands
 
-from util import admin_check, n_fc, eh
+from util import admin_check, n_fc, eh, database
 
 # pingを送信するだけ
 
@@ -86,8 +86,7 @@ class Ping(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         datas = json.load(open(f'{SYSDIR}/setting.json', 'r'))["database_data"]
-        self.client = HTTP_db.Client(
-            url=datas["address"], port=datas["port"], intkey=True)
+        self.client = database.openClient()
 
     @nextcord.slash_command(name="ping", description="Discordサーバー又は、指定サーバーとのレイテンシを計測します。", guild_ids=n_fc.GUILD_IDS)
     async def ping_slash(

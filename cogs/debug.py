@@ -162,11 +162,7 @@ class debug(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         datas = json.load(open(f'{SYSDIR}/setting.json', 'r'))["database_data"]
-        self.client = HTTP_db.Client(
-            url=datas["address"],
-            port=datas["port"],
-            password=open(f"{SYSDIR}/password").read()
-        )
+        self.client: HTTP_db.Client = database.openClient()
 
     async def ws(self, websocket, path):
         async for message in websocket:
@@ -496,13 +492,13 @@ class debug(commands.Cog):
     async def lb(self, ctx):
         return
 
-    @nextcord.slash_command(name="db", description="database")
+    @nextcord.slash_command(name="db", description="database", guild_ids=n_fc.GUILD_IDS)
     async def db(self, interaction: Interaction):
         pass
 
     @db.subcommand(name="get", description="Method POST:/get")
     async def db_get(self, interaction: Interaction, key: str = SlashOption(name="key", description="key", required=True)):
-        if not self.bot.is_owner(interaction.user):
+        if not (await self.bot.is_owner(interaction.user)):
             raise Exception("Forbidden")
         try:
             key = int(key)
@@ -516,7 +512,7 @@ class debug(commands.Cog):
 
     @db.subcommand(name="get_all", description="Method POST:/get_all")
     async def db_get_all(self, interaction: Interaction):
-        if not self.bot.is_owner(interaction.user):
+        if not (await self.bot.is_owner(interaction.user)):
             raise Exception("Forbidden")
         try:
             value = await self.client.get_all()
@@ -526,7 +522,7 @@ class debug(commands.Cog):
 
     @db.subcommand(name="post", description="Method POST:/post")
     async def db_post(self, interaction: Interaction, key: str = SlashOption(name="key", description="key", required=True), value: str = SlashOption(name="value", description="value", required=True)):
-        if not self.bot.is_owner(interaction.user):
+        if not (await self.bot.is_owner(interaction.user)):
             raise Exception("Forbidden")
         try:
             key = int(key)
@@ -545,7 +541,7 @@ class debug(commands.Cog):
 
     @db.subcommand(name="exists", description="Method POST:/exists")
     async def db_exists(self, interaction: Interaction, key: str = SlashOption(name="key", description="key", required=True)):
-        if not self.bot.is_owner(interaction.user):
+        if not (await self.bot.is_owner(interaction.user)):
             raise Exception("Forbidden")
         try:
             key = int(key)
@@ -559,7 +555,7 @@ class debug(commands.Cog):
 
     @db.subcommand(name="delete", description="Method POST:/delete")
     async def db_delete(self, interaction: Interaction, key: str = SlashOption(name="key", description="key", required=True)):
-        if not self.bot.is_owner(interaction.user):
+        if not (await self.bot.is_owner(interaction.user)):
             raise Exception("Forbidden")
         try:
             key = int(key)
@@ -573,7 +569,7 @@ class debug(commands.Cog):
 
     @db.subcommand(name="delete_all", description="Method POST:/delete_all")
     async def db_delete_all(self, interaction: Interaction):
-        if not self.bot.is_owner(interaction.user):
+        if not (await self.bot.is_owner(interaction.user)):
             raise Exception("Forbidden")
         try:
             await self.client.delete_all()
@@ -583,7 +579,7 @@ class debug(commands.Cog):
 
     @db.subcommand(name="info", description="Method GET:/info")
     async def db_info(self, interaction: Interaction):
-        if not self.bot.is_owner(interaction.user):
+        if not (await self.bot.is_owner(interaction.user)):
             raise Exception("Forbidden")
         try:
             value = await self.client.info()
@@ -593,7 +589,7 @@ class debug(commands.Cog):
 
     @db.subcommand(name="ping", description="Method GET:/ping")
     async def db_ping(self, interaction: Interaction):
-        if not self.bot.is_owner(interaction.user):
+        if not (await self.bot.is_owner(interaction.user)):
             raise Exception("Forbidden")
         try:
             value = await self.client.ping()
