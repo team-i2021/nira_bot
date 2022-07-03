@@ -31,7 +31,31 @@ async def MessagePin(bot: nextcord.ext.commands.bot.Bot):
             pass
 
 
-class bottomup(commands.Cog):
+class BottomModal(nextcord.ui.Modal):
+    def __init__(self):
+        super().__init__(
+            "下部ピン留め",
+            timeout=None,
+        )
+
+        self.mes = nextcord.ui.TextInput(
+            label="ピン留めしたい文章",
+            style=nextcord.TextInputStyle.paragraph,
+            placeholder="このチャンネルでたくさん話したらずんだ餅にするよ！",
+            required=True,
+        )
+        self.add_item(self.mes)
+
+    async def callback(self, interaction: nextcord.Interaction) -> None:
+        if interaction.guild.id not in n_fc.pinMessage:
+            n_fc.pinMessage[interaction.guild.id] = {interaction.channel.id: self.mes.value}
+        else:
+            n_fc.pinMessage[interaction.guild.id][interaction.channel.id] = self.mes.value
+        await interaction.response.send_message(f"ピン留めを保存しました。", embed=nextcord.Embed(title="ピン留め", description=self.mes.value), ephemeral=True)
+
+
+
+class Bottomup(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
@@ -40,14 +64,13 @@ class bottomup(commands.Cog):
 
 `n!pin on [メッセージ内容...(複数行可)]`
 
-他の誰かがメッセージを送った場合、どんどんどんどんその特定ののメッセージを送ると言うような感じの機能です。
+他の誰かがメッセージを送った場合、どんどんどんどんその特定のメッセージを送ると言うような感じの機能です。
 Webhookは使いたくない精神なので、ニラBOTが直々に送ってあげます。感謝しなさい。
 
 offにするには、`n!pin off`と送信してください。
 
 前に送ったピンメッセージが削除されずに送信されて、残っている場合は、にらBOTに適切な権限が与えられているか確認してみてください。
-もしくは、周期内にめちゃくちゃメッセージを送信された場合はメッセージが削除されないです。仕様です。許してヒヤシンス。
-""")
+もしくは、周期内にめちゃくちゃメッセージを送信された場合はメッセージが削除されないです。仕様です。許してヒヤシンス。""")
     async def pin(self, ctx: commands.Context):
         if ctx.author.id != 669178357371371522:
             return
@@ -84,6 +107,14 @@ offにするには、`n!pin off`と送信してください。
                 return
         else: await ctx.reply("あなたには権限がありません。"); return
 
+    @nextcord.message_command(name="下部ピン留めする", guild_ids=n_fc.GUILD_IDS)
+    async def pin_message_command(self, interaction: Interaction, message: nextcord.Message):
+        if interaction.guild.id not in n_fc.pinMessage:
+            n_fc.pinMessage[interaction.guild.id] = {interaction.channel.id: message.content}
+        else:
+            n_fc.pinMessage[interaction.guild.id][interaction.channel.id] = message.content
+        await interaction.response.send_message(f"ピン留めを保存しました。", embed=nextcord.Embed(title="ピン留め", description=message.content), ephemeral=True)
+
     @nextcord.slash_command(name="pin", description="メッセージ下部ピン留め機能", guild_ids=n_fc.GUILD_IDS)
     async def pin_slash(self, interaction: Interaction):
         pass
@@ -101,14 +132,9 @@ offにするには、`n!pin off`と送信してください。
         if interaction.user.id != 669178357371371522:
             await interaction.response.send_message("This command could used by admin.", ephemeral=True)
             return
-        await interaction.response.defer()
         if admin_check.admin_check(interaction.guild, interaction.author):
-            if interaction.guild.id not in n_fc.pinMessage:
-                n_fc.pinMessage[interaction.guild.id] = {interaction.channel.id: messageContent}
-            else:
-                n_fc.pinMessage[interaction.guild.id][interaction.channel.id] = messageContent
-            await interaction.followup.send("設定を変更しました。", ephemeral=True)
-        else: await interaction.followup.send("あなたには管理者権限がありません。", ephemeral=True); return
+            await interaction.response.send_modal(BottomModal)
+        else: await interaction.response.send_message("あなたには管理者権限がありません。", ephemeral=True); return
 
     @pin_slash.subcommand(name="off", description="メッセージ下部ピン留め機能をOFFにする")
     async def off_slash(
@@ -145,14 +171,14 @@ offにするには、`n!pin off`と送信してください。
                 try:
                     if CHANNEL.last_message.content == n_fc.pinMessage[i][j] and CHANNEL.last_message.author.id == self.bot.user.id:
                         continue
-                except BaseException as err:
+                except Exception as err:
                     continue
                 messages = await CHANNEL.history(limit=10).flatten()
                 for message in messages:
                     if message.content == n_fc.pinMessage[i][j] and message.author.id == self.bot.user.id:
                         try:
                             await message.delete()
-                        except BaseException as err:
+                        except Exception as err:
                             continue
                 await CHANNEL.send(n_fc.pinMessage[i][j])
 
@@ -160,10 +186,10 @@ offにするには、`n!pin off`と送信してください。
 
 
 def setup(bot):
-    bot.add_cog(bottomup(bot))
-    bottomup.checkPin.start(bottomup(bot))
+    bot.add_cog(Bottomup(bot))
+    Bottomup.checkPin.start(Bottomup(bot))
 
 
 def teardown(bot):
     logging.info("Pin teardown!")
-    bottomup.checkPin.stop()
+    Bottomup.checkPin.stop()

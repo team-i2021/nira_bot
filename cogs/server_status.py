@@ -449,7 +449,7 @@ class server_status(commands.Cog):
         self.bot = bot
         self.check_status_pin_loop.start()
 
-    @nextcord.message_command(name="AutoSSのスタート")
+    @nextcord.message_command(name="AutoSSのスタート", guild_ids=n_fc.GUILD_IDS)
     async def start_auto_ss(self, interaction: Interaction, message: nextcord.Message):
         await interaction.response.defer(ephemeral=True)
         try:
