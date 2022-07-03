@@ -16,25 +16,9 @@ from util import admin_check, eh, n_fc, server_check
 
 # loggingの設定
 
-PREFIX = "n!"
-
 SYSDIR = sys.path[0]
 
 ss_check_result = {}
-
-ss_commands = f"""・SS系コマンド一覧
-`{PREFIX}ss`: 登録されているサーバーのステータスを表示します。
-`{PREFIX}ss add [表示名] [アドレス],[ポート]`: サーバーを追加します。
-`{PREFIX}ss list`: 登録されているサーバーの一覧を表示します。
-`{PREFIX}ss auto on`: 10分毎にステータスを更新するAutoSSのメッセージを送信します。
-`{PREFIX}ss auto off`: AutoSSを停止します。
-`{PREFIX}ss edit [サーバーID] [表示名] [アドレス],[ポート]`: 指定したサーバーIDの表示名やアドレスなどを修正します。事前に`{PREFIX}ss list`などで確認しておくことを推奨します。
-`{PREFIX}ss sort [サーバーID1] [サーバーID2]`: サーバーID1とサーバID2の場所を入れ替えます。
-`{PREFIX}ss del [サーバーID]`: 指定したサーバーIDの情報を削除します。
-`{PREFIX}ss del all`: 登録されているサーバーをすべて削除します。
-`{PREFIX}ss all`: 登録されているサーバーのステータスをより詳細に表示します。あまりにサーバー数があると、メッセージ数規定に引っかかって送れない場合があります。
-`{PREFIX}ss [サーバーID]`: 指定したサーバーIDのステータスのみを表示します。
-"""
 
 
 async def ss_force(bot, message: nextcord.Message):
@@ -46,7 +30,7 @@ async def ss_force(bot, message: nextcord.Message):
             await server_check.ss_pin_embed(embed, message.guild.id, i + 1)
         embed.set_footer(text="pingは参考値です")
         await message.edit(
-            f"AutoSS実行中\n止めるには`n!ss auto off`または`/ss off`\n止まったりした場合は、このメッセージを長押しして`アプリ`->`AutoSSのスタート`\nリロードするにはボタンか`/ss reload`",
+            f"AutoSS実行中\n止めるには`{bot.command_prefix}ss auto off`または`/ss off`\n止まったりした場合は、このメッセージを長押しして`アプリ`->`AutoSSのスタート`\nリロードするにはボタンか`/ss reload`",
             embed=embed,
             view=Reload_SS_Auto(bot, message)
         )
@@ -77,7 +61,7 @@ async def ss_force(bot, message: nextcord.Message):
 #                        await message.edit(content=f"チェック結果：失敗(3/3)\n最終チェック時刻：`{datetime.datetime.now()}`")
 #                        logging.error(f"{message.guild.name}でのAutoSSチェック結果：失敗（3/3回目）")
 #                        await message.edit(content=f"チェック結果：失敗(メッセージを送信して終了します。)\n最終チェック時刻：`{datetime.datetime.now()}`")
-#                        await message.channel.send(f"<@{ment_id}> - もしかして鯖落ちしてたりしません...？\n\nAutoSSが無効になりました。\n一応`n!ss`で確認してみましょう！")
+#                        await message.channel.send(f"<@{ment_id}> - もしかして鯖落ちしてたりしません...？\n\nAutoSSが無効になりました。\n一応`{self.bot.command_prefix}ss`で確認してみましょう！")
 #                        del n_fc.pid_ss[message.guild.id]
 #                        return False
 #            # 正常だよ
@@ -122,7 +106,7 @@ async def launch_ss(bot, channel_id, message_id):
 #                        logging.error(
 #                            f"{message.guild.name}でのAutoSSチェック結果：失敗（3/3回目）")
 #                        await message.edit(content=f"チェック結果：失敗(メッセージを送信して終了します。)\n最終チェック時刻：`{datetime.datetime.now()}`")
-#                        await message.channel.send(f"<@{ment_id}> - もしかして鯖落ちしてたりしません...？\n\nAutoSSが無効になりました。\n一応`n!ss`で確認してみましょう！")
+#                        await message.channel.send(f"<@{ment_id}> - もしかして鯖落ちしてたりしません...？\n\nAutoSSが無効になりました。\n一応`{self.bot.command_prefix}ss`で確認してみましょう！")
 #                        return False
 #            # 正常だよ
 #            logging.info(f"{message.guild.name}でのAutoSSチェック結果：成功")
@@ -133,7 +117,7 @@ async def launch_ss(bot, channel_id, message_id):
 
 # コマンド内部
 async def ss_base(self, ctx: commands.Context):
-    if ctx.message.content == f"{PREFIX}ss":
+    if ctx.message.content == f"{self.bot.command_prefix}ss":
         if ctx.message.guild.id not in n_fc.steam_server_list:
             await ctx.message.reply("サーバーは登録されていません。")
             return
@@ -152,7 +136,7 @@ async def ss_base(self, ctx: commands.Context):
 
     if args[1] == "add":
         if len(args) == 1:
-            await ctx.message.reply("構文が異なります。\n```n!ss add [表示名] [IPアドレス],[ポート番号]```")
+            await ctx.message.reply(f"構文が異なります。\n```{self.bot.command_prefix}ss add [表示名] [IPアドレス],[ポート番号]```")
             return
         else:
             try:
@@ -200,13 +184,13 @@ async def ss_base(self, ctx: commands.Context):
         if admin_check.admin_check(ctx.guild, ctx.message.author) == False:
             await ctx.message.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
             return
-        if ctx.message.content == "n!ss auto":
-            await ctx.reply(embed=nextcord.Embed(title="エラー", description="引数が足りません。\n`n!ss auto on/off`"))
+        if ctx.message.content == f"{self.bot.command_prefix}ss auto":
+            await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"引数が足りません。\n`{self.bot.command_prefix}ss auto on/off`"))
             return
 
         elif ctx.message.content[10:12] == "on":
             if ctx.guild.id in n_fc.force_ss_list:
-                await ctx.reply(f"既に`{ctx.guild.name}`でAutoSSタスクが実行されています。\n`n!ss auto off`で終了してください。")
+                await ctx.reply(f"既に`{ctx.guild.name}`でAutoSSタスクが実行されています。\n`{self.bot.command_prefix}ss auto off`で終了してください。")
                 return
             if ctx.guild.id not in n_fc.steam_server_list:
                 await ctx.reply("`SteamDedicated`サーバーが登録されていません。")
@@ -223,7 +207,7 @@ async def ss_base(self, ctx: commands.Context):
             try:
                 if ctx.guild.id in n_fc.force_ss_list:
                     del n_fc.force_ss_list[ctx.guild.id]
-                    await ctx.reply("AutoSSを無効にしました。\n再度有効にするには`n!ss auto on`にするか、変更したいメッセージを長押しまたは右クリックして`アプリ`->`AutoSSのスタート`を押してください。")
+                    await ctx.reply(f"AutoSSを無効にしました。\n再度有効にするには`{self.bot.command_prefix}ss auto on`にするか、変更したいメッセージを長押しまたは右クリックして`アプリ`->`AutoSSのスタート`を押してください。")
                     return
                 else:
                     await ctx.reply("AutoSSは実行されていません。")
@@ -247,16 +231,16 @@ async def ss_base(self, ctx: commands.Context):
                 return
         else:
             if ctx.guild.id in n_fc.force_ss_list:
-                await ctx.reply("`n!ss auto [on/off]`\nAutoSSは有効になっています。")
+                await ctx.reply(f"`{self.bot.command_prefix}ss auto [on/off]`\nAutoSSは有効になっています。")
                 return
             else:
-                await ctx.reply("`n!ss auto [on/off]`\nAutoSSは無効になっています。")
+                await ctx.reply(f"`{self.bot.command_prefix}ss auto [on/off]`\nAutoSSは無効になっています。")
                 return
         return
 
     elif args[1] == "edit":
-        if ctx.message.content == "n!ss edit":
-            await ctx.message.reply("構文が異なります。\n```n!ss edit [サーバーナンバー] [名前] [IPアドレス],[ポート番号]```")
+        if ctx.message.content == f"{self.bot.command_prefix}ss edit":
+            await ctx.message.reply(f"構文が異なります。\n```{self.bot.command_prefix}ss edit [サーバーナンバー] [名前] [IPアドレス],[ポート番号]```")
             return
         if ctx.guild.id not in n_fc.steam_server_list:
             await ctx.message.reply("サーバーは登録されていません。")
@@ -269,7 +253,7 @@ async def ss_base(self, ctx: commands.Context):
         s_ip = str(re.sub("[^0-9a-zA-Z._-]", "", s_adre[0]))
         b_value = int(n_fc.steam_server_list[ctx.guild.id]["value"])
         if b_value < s_id:
-            await ctx.message.reply("そのサーバーナンバーのサーバーは登録されていません！\n`n!ss list`で確認してみてください。")
+            await ctx.message.reply(f"そのサーバーナンバーのサーバーは登録されていません！\n`{self.bot.command_prefix}ss list`で確認してみてください。")
             return
         try:
             n_fc.steam_server_list[ctx.guild.id][f"{s_id}_ad"] = (s_ip, s_port)
@@ -284,7 +268,7 @@ async def ss_base(self, ctx: commands.Context):
 
     elif args[1] == "sort":
         if len(args) != 4:
-            await ctx.reply(f"引数が足りないか多いです。\n`{PREFIX}ss sort [サーバーID1] [サーバーID2]`")
+            await ctx.reply(f"引数が足りないか多いです。\n`{self.bot.command_prefix}ss sort [サーバーID1] [サーバーID2]`")
             return
         try:
             args[2] = int(args[2])
@@ -311,7 +295,7 @@ async def ss_base(self, ctx: commands.Context):
         if ctx.guild.id not in n_fc.steam_server_list:
             await ctx.message.reply("サーバーは登録されていません。")
             return
-        if ctx.message.content != "n!ss del all":
+        if ctx.message.content != f"{self.bot.command_prefix}ss del all":
             try:
                 del_num = int(ctx.message.content[9:])
             except BaseException as err:
@@ -319,7 +303,7 @@ async def ss_base(self, ctx: commands.Context):
                 return
             if admin_check.admin_check(ctx.guild, ctx.message.author):
                 if del_num > int(n_fc.steam_server_list[ctx.guild.id]["value"]):
-                    await ctx.message.reply(embed=nextcord.Embed(title="エラー", description="そのサーバーは登録されていません！\n`n!ss list`で確認してみてください！", color=0xff0000))
+                    await ctx.message.reply(embed=nextcord.Embed(title="エラー", description=f"そのサーバーは登録されていません！\n`{self.bot.command_prefix}ss list`で確認してみてください！", color=0xff0000))
                     return
                 if del_num <= 0:
                     await ctx.message.reply(embed=nextcord.Embed(title="エラー", description="リストで0以下のナンバーは振り当てられていません。", color=0xff0000))
@@ -384,7 +368,21 @@ async def ss_base(self, ctx: commands.Context):
             return
 
     elif len(args) > 2:
-        await ctx.reply(f"引数とか何かがおかしいです。\n\n{ss_commands}")
+        await ctx.reply(f"""\
+引数とか何かがおかしいです。
+
+・SS系コマンド一覧
+`{self.bot.command_prefix}ss`: 登録されているサーバーのステータスを表示します。
+`{self.bot.command_prefix}ss add [表示名] [アドレス],[ポート]`: サーバーを追加します。
+`{self.bot.command_prefix}ss list`: 登録されているサーバーの一覧を表示します。
+`{self.bot.command_prefix}ss auto on`: 10分毎にステータスを更新するAutoSSのメッセージを送信します。
+`{self.bot.command_prefix}ss auto off`: AutoSSを停止します。
+`{self.bot.command_prefix}ss edit [サーバーID] [表示名] [アドレス],[ポート]`: 指定したサーバーIDの表示名やアドレスなどを修正します。事前に`{self.bot.command_prefix}ss list`などで確認しておくことを推奨します。
+`{self.bot.command_prefix}ss sort [サーバーID1] [サーバーID2]`: サーバーID1とサーバID2の場所を入れ替えます。
+`{self.bot.command_prefix}ss del [サーバーID]`: 指定したサーバーIDの情報を削除します。
+`{self.bot.command_prefix}ss del all`: 登録されているサーバーをすべて削除します。
+`{self.bot.command_prefix}ss all`: 登録されているサーバーのステータスをより詳細に表示します。あまりにサーバー数があると、メッセージ数規定に引っかかって送れない場合があります。
+`{self.bot.command_prefix}ss [サーバーID]`: 指定したサーバーIDのステータスのみを表示します。""")
         return
 
     else:
@@ -453,6 +451,9 @@ class server_status(commands.Cog):
     async def start_auto_ss(self, interaction: Interaction, message: nextcord.Message):
         await interaction.response.defer(ephemeral=True)
         try:
+            if message.author.id != self.bot.user.id:
+                await interaction.followup.send(f"`{self.bot.user.name}@{self.bot.user.discriminator}`が送信したメッセージを参照してください。", ephemeral=True)
+                return
             CHANNEL_ID = message.channel.id
             MESSAGE_ID = message.id
             n_fc.force_ss_list[message.guild.id] = [
@@ -791,21 +792,6 @@ Steam非公式サーバーのステータスを表示します
             await interaction.response.send_message("リロードしました。", ephemeral=True)
             return
 
-    @nextcord.message_command(name="AutoSSのスタート", guild_ids=n_fc.GUILD_IDS)
-    async def startAutoSS(self, interaction: Interaction, message: nextcord.Message):
-        await interaction.response.defer(ephemeral=True)
-        if message.author.id != self.bot.user.id:
-            await interaction.followup.send(f"{self.bot.user.name}が送信したメッセージを参照してください。", ephemeral=True)
-            return
-        asyncio.ensure_future(ss_force(self.bot, message))
-        n_fc.force_ss_list[interaction.guild.id] = [message.channel.id, message.id]
-        await message.edit(
-            f"AutoSS実行中\n止めるには`n!ss auto off`または`/ss off`\n止まったりした場合は、このメッセージを長押しして`アプリ`->`AutoSSのスタート`\nリロードするにはボタンか`/ss reload`",
-            embed=embed,
-            view=Reload_SS_Auto(self.bot, message)
-        )
-        await interaction.followup.send("指定したメッセージをご確認ください。", ephemeral=True)
-
     @tasks.loop(minutes=5.0)
     async def check_status_pin_loop(self):
         for CHANNEL, MESSAGE in n_fc.force_ss_list.values():
@@ -817,7 +803,7 @@ Steam非公式サーバーのステータスを表示します
                     await server_check.ss_pin_embed(embed, message.guild.id, i + 1)
                 embed.set_footer(text="pingは参考値です")
                 await message.edit(
-                    f"AutoSS実行中\n止めるには`n!ss auto off`または`/ss off`\n止まったりした場合は、このメッセージを長押しして`アプリ`->`AutoSSのスタート`\nリロードするにはボタンか`/ss reload`",
+                    f"AutoSS実行中\n止めるには`{self.bot.command_prefix}ss auto off`または`/ss off`\n止まったりした場合は、このメッセージを長押しして`アプリ`->`AutoSSのスタート`\nリロードするにはボタンか`/ss reload`",
                     embed=embed,
                     view=Reload_SS_Auto(self.bot, message)
                 )
