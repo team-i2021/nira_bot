@@ -1,6 +1,7 @@
 import importlib
 import os
 import pickle
+import sys
 
 import nextcord
 from nextcord.ext import commands
@@ -8,12 +9,14 @@ from nextcord.ext import commands
 from util import eh, srtr
 from util.n_fc import GUILD_IDS, srtr_bool_list
 
-SYSDIR = os.path[0]
+SYSDIR = sys.path[0]
+START = ["start", "on", "play", "スタート", "はじめ"]
+STOP = ["stop", "off", "end", "exit", "ストップ", "おわり"]
 
 # しりとり管理系
 
 
-class siritori(commands.Cog):
+class Siritori(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
@@ -60,20 +63,31 @@ class siritori(commands.Cog):
     `n!srtr stop`: チャンネルのしりとりゲームを終了します
 
 
-    """)
+    """, aliases=["しりとり", "siritori"])
     async def srtr_ctx(self, ctx: commands.Context):
-        if ctx.message.content == "n!srtr start":
+        if len(ctx.message.content.split(" ", 1)) == 1:
+            embed = nextcord.Embed(
+                title="しりとり",
+                description=f"`{self.bot.command_prefix}srtr start`でそのチャンネルでしりとり（風対話）を実行し、`{self.bot.command_prefix}srtr stop`でしりとりを停止します。",
+                color=0x00ff00
+            )
+            await ctx.reply(embed=embed)
+            return
+
+        control_arg = ctx.message.content.split(" ", 1)[1]
+
+        if control_arg in START:
             embed = self.srtr_control(
                 True, ctx.message.guild, ctx.message.channel)
 
-        elif ctx.message.content == "n!srtr stop":
+        elif control_arg in STOP:
             embed = self.srtr_control(
                 False, ctx.message.guild, ctx.message.channel)
 
         else:
             embed = nextcord.Embed(
                 title="しりとり",
-                description="`n!srtr start`でそのチャンネルでしりとり（風対話）を実行し、`n!srtr stop`でしりとりを停止します。",
+                description=f"`{self.bot.command_prefix}srtr start`でそのチャンネルでしりとり（風対話）を実行し、`{self.bot.command_prefix}srtr stop`でしりとりを停止します。",
                 color=0x00ff00
             )
 
@@ -93,4 +107,4 @@ class siritori(commands.Cog):
 
 def setup(bot):
     importlib.reload(srtr)
-    bot.add_cog(siritori(bot))
+    bot.add_cog(Siritori(bot))
