@@ -23,8 +23,10 @@ class CodeInsert(nextcord.ui.Modal):
         self.add_item(self.code)
 
     async def callback(self, interaction: nextcord.Interaction) -> None:
-        embed = nextcord.Embed(title="Dynamic-page", description=f"ページは[こちら](https://nattyan-tv.github.io/dynamic-page/output.html#{urllib.parse.quote(self.code.value)})", color=0x00ff00)
-        embed.set_footer(text="Powered by Dynamic-page\nhttps://github.com/nattyan-tv/dynamic-page")
+        embed = nextcord.Embed(
+            title="Dynamic-page", description=f"ページは[こちら](https://nattyan-tv.github.io/dynamic-page/output.html#{urllib.parse.quote(self.code.value)})", color=0x00ff00)
+        embed.set_footer(
+            text="Powered by Dynamic-page\nhttps://github.com/nattyan-tv/dynamic-page")
         await interaction.send(embed=embed)
 
 
@@ -39,12 +41,14 @@ class Code(commands.Cog):
 
     @commands.command()
     async def html(self, ctx: commands.Context):
-        if len(ctx.message.content.split(" ",1)) == 1:
-            await ctx.reply("引数が足りません。\n`n!html [HTMLコード]`")
+        if len(ctx.message.content.split(" ", 1)) == 1:
+            await ctx.reply(f"引数が足りません。\n`{self.bot.command_prefix}html [HTMLコード]`")
             return
-        html_code = ctx.message.content.split(" ",1)[1]
-        embed = nextcord.Embed(title="Dynamic-page", description=f"ページは[こちら](https://nattyan-tv.github.io/dynamic-page/output.html#{urllib.parse.quote(html_code)})", color=0x00ff00)
-        embed.set_footer(text="Powered by Dynamic-page\nhttps://github.com/nattyan-tv/dynamic-page")
+        html_code = ctx.message.content.split(" ", 1)[1]
+        embed = nextcord.Embed(
+            title="Dynamic-page", description=f"ページは[こちら](https://nattyan-tv.github.io/dynamic-page/output.html#{urllib.parse.quote(html_code)})", color=0x00ff00)
+        embed.set_footer(
+            text="Powered by Dynamic-page\nhttps://github.com/nattyan-tv/dynamic-page")
         await ctx.reply(embed=embed)
 
 

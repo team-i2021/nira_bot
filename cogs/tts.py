@@ -60,7 +60,8 @@ class VoiceSelect(nextcord.ui.Select):
             nextcord.SelectOption(label='九州そら/ささやき', value=19)
         ]
 
-        super().__init__(placeholder='Please select voice type.', min_values=1, max_values=1, options=options)
+        super().__init__(placeholder='Please select voice type.',
+                         min_values=1, max_values=1, options=options)
 
     async def callback(self, interaction: nextcord.Interaction):
         speaker_author[interaction.user.id] = self.values[0]
@@ -85,25 +86,25 @@ class tts(commands.Cog):
             await interaction.response.send_message(embed=nextcord.Embed(title="エラー", description="管理者にお伝えください。\n`VOICEVOX API Key doesn't exist.`\nVOICEVOX WebAPIのキーが存在しません。\n`setting.json`の`voicevox`欄にAPIキーを入力してから、`cogs/tts.py`をリロードしてください。", color=0xff0000))
             return
         if interaction.user.voice is None:
-            await interaction.response.send_message(embed=nextcord.Embed(title="TTSエラー",description="先にVCに接続してください。",color=0xff0000), ephemeral=True)
+            await interaction.response.send_message(embed=nextcord.Embed(title="TTSエラー", description="先にVCに接続してください。", color=0xff0000), ephemeral=True)
             return
         else:
             if not interaction.guild.voice_client is None:
-                await interaction.response.send_message(embed=nextcord.Embed(title="TTSエラー",description="既にVCに入っています。\n音楽再生から切り替える場合は、`n!leave`->`n!tts join`の順に入力してください。",color=0xff0000), ephemeral=True)
+                await interaction.response.send_message(embed=nextcord.Embed(title="TTSエラー", description=f"既にVCに入っています。\n音楽再生から切り替える場合は、`n!leave`->`{self.bot.command_prefix}tts join`の順に入力してください。", color=0xff0000), ephemeral=True)
                 return
             await interaction.user.voice.channel.connect()
             tts_channel[interaction.guild.id] = interaction.channel.id
-            await interaction.response.send_message("接続しました" ,embed=nextcord.Embed(title="TTS",description="""\
+            await interaction.response.send_message("接続しました", embed=nextcord.Embed(title="TTS", description="""\
 TTSの読み上げ音声には、VOICEVOXが使われています。  
 [各キャラクターについて](https://voicevox.hiroshiba.jp/)  
 キャラクターボイス: `VOICEVOX: 四国めたん`/`VOICEVOX: ずんだもん`/`VOICEVOX: 春日部つむぎ`/`雨晴はう`/`VOICEVOX: 波音リツ`/`VOICEVOX: 玄野武宏`/`VOICEVOX: 白上虎太郎`/`VOICEVOX: 青山龍星`/`VOICEVOX: 冥鳴ひまり`/`VOICEVOX: 九州そら`
 
-また、音声生成には[WEB版VOICEVOX](https://voicevox.su-shiki.com/)のAPIを使用させていただいております。""",color=0x00ff00))
+また、音声生成には[WEB版VOICEVOX](https://voicevox.su-shiki.com/)のAPIを使用させていただいております。""", color=0x00ff00))
             interaction.guild.voice_client.play(
                 nextcord.PCMVolumeTransformer(nextcord.FFmpegPCMAudio(
                     f"https://api.su-shiki.com/v2/voicevox/audio/?text=接続しました&key={keys[random.randint(0,len(keys)-1)]}&speaker=2"
                 ),
-                volume=0.5)
+                    volume=0.5)
             )
             return
         return
@@ -111,15 +112,15 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
     @tts_slash.subcommand(name="leave", description="BOTからVCを離脱させます")
     async def leave_slash(self, interaction: Interaction):
         if interaction.user.voice is None:
-            await interaction.response.send_message(embed=nextcord.Embed(title="TTSエラー",description="先にボイスチャンネルに接続してください。",color=0xff0000), ephemeral=True)
+            await interaction.response.send_message(embed=nextcord.Embed(title="TTSエラー", description="先にボイスチャンネルに接続してください。", color=0xff0000), ephemeral=True)
             return
         else:
             if interaction.guild.voice_client is None:
-                await interaction.response.send_message(embed=nextcord.Embed(title="TTSエラー",description="そもそも入ってないっす...(´・ω・｀)",color=0xff0000), ephemeral=True)
+                await interaction.response.send_message(embed=nextcord.Embed(title="TTSエラー", description="そもそも入ってないっす...(´・ω・｀)", color=0xff0000), ephemeral=True)
                 return
             await interaction.guild.voice_client.disconnect()
             del tts_channel[interaction.guild.id]
-            await interaction.response.send_message(embed=nextcord.Embed(title="TTS",description="あっ...ばいばーい...",color=0x00ff00))
+            await interaction.response.send_message(embed=nextcord.Embed(title="TTS", description="あっ...ばいばーい...", color=0x00ff00))
             return
         return
 
@@ -127,7 +128,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
     async def voice_slash(self, interaction: Interaction):
         view = nextcord.ui.View(timeout=None)
         view.add_item(VoiceSelect())
-        await interaction.response.send_message("下のプルダウンから声を選択してください。",view=view,ephemeral=True)
+        await interaction.response.send_message("下のプルダウンから声を選択してください。", view=view, ephemeral=True)
         return
 
     @tts_slash.subcommand(name="reload", description="Reload TTS modules.")
@@ -135,12 +136,12 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
         if interaction.user.id in n_fc.py_admin:
             importlib.reload(tts_convert)
             importlib.reload(tts_dict)
-            await interaction.response.send_message(nextcord.Embed(title="Reloaded.", description="TTS modules were reloaded.", color=0x00ff00),ephemeral=True)
+            await interaction.response.send_message(nextcord.Embed(title="Reloaded.", description="TTS modules were reloaded.", color=0x00ff00), ephemeral=True)
         else:
-            await interaction.response.send_message(nextcord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000),ephemeral=True)
+            await interaction.response.send_message(nextcord.Embed(title="Error", description=f"You don't have the required permissio{self.bot.command_prefix}", color=0xff0000), ephemeral=True)
         return
 
-    @commands.command(name='tts', aliases=("読み上げ","よみあげ"), help="""\
+    @commands.command(name='tts', aliases=("読み上げ", "よみあげ"), help="""\
 VCに乱入して、代わりに読み上げてくれる機能。
 
 `n!tts join`で、今あなたが入っているVCチャンネルににらが乱入します。
@@ -157,77 +158,81 @@ API制限などが来た場合はご了承ください。許せ。""")
         if not Effective:
             await ctx.reply(embed=nextcord.Embed(title="エラー", description="管理者にお伝えください。\n`VOICEVOX API Key doesn't exist.`\nVOICEVOX WebAPIのキーが存在しません。\n`setting.json`の`voicevox`欄にAPIキーを入力してから、`cogs/tts.py`をリロードしてください。", color=0xff0000))
             return
-        args = ctx.message.content.split(" ",2)
+        args = ctx.message.content.split(" ", 2)
         if len(args) != 2:
-            await ctx.reply("・読み上げ機能\nエラー：書き方が間違っています。\n\n`n!tts join`: 参加\n`n!tts leave`: 退出")
+            await ctx.reply(f"・読み上げ機能\nエラー：書き方が間違っています。\n\n`n!tts join`: 参加\n`{self.bot.command_prefix}tts leave`: 退出")
             return
 
         if args[1] == "join":
             try:
                 if ctx.author.voice is None:
-                    await ctx.reply(embed=nextcord.Embed(title="TTSエラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
+                    await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description="先にボイスチャンネルに接続してください。", color=0xff0000))
                     return
                 else:
                     if not ctx.message.guild.voice_client is None:
-                        await ctx.reply(embed=nextcord.Embed(title="TTSエラー",description="既にVCに入っています。\n音楽再生から切り替える場合は、`n!leave`->`n!tts join`の順に入力してください。",color=0xff0000))
+                        await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description=f"既にVCに入っています。\n音楽再生から切り替える場合は、`n!leave`->`{self.bot.command_prefix}tts join`の順に入力してください。", color=0xff0000))
                         return
                     await ctx.author.voice.channel.connect()
                     tts_channel[ctx.guild.id] = ctx.channel.id
-                    await ctx.reply("接続しました" ,embed=nextcord.Embed(title="TTS",description="""\
+                    await ctx.reply("接続しました", embed=nextcord.Embed(title="TTS", description="""\
 TTSの読み上げ音声には、VOICEVOXが使われています。  
 [各キャラクターについて](https://voicevox.hiroshiba.jp/)  
 キャラクターボイス: `VOICEVOX: 四国めたん`/`VOICEVOX: ずんだもん`/`VOICEVOX: 春日部つむぎ`/`雨晴はう`/`VOICEVOX: 波音リツ`/`VOICEVOX: 玄野武宏`/`VOICEVOX: 白上虎太郎`/`VOICEVOX: 青山龍星`/`VOICEVOX: 冥鳴ひまり`/`VOICEVOX: 九州そら`
 
-また、音声生成には[WEB版VOICEVOX](https://voicevox.su-shiki.com/)のAPIを使用させていただいております。""",color=0x00ff00))
+また、音声生成には[WEB版VOICEVOX](https://voicevox.su-shiki.com/)のAPIを使用させていただいております。""", color=0x00ff00))
                     ctx.guild.voice_client.play(
                         nextcord.PCMVolumeTransformer(nextcord.FFmpegPCMAudio(
                             f"https://api.su-shiki.com/v2/voicevox/audio/?text=接続しました&key={keys[random.randint(0,len(keys)-1)]}&speaker=2"
                         ),
-                        volume=0.5)
+                            volume=0.5)
                     )
                     print(f"{datetime.datetime.now()} - {ctx.guild.name}でTTSに接続")
                     return
             except BaseException as err:
-                await ctx.reply(embed=nextcord.Embed(title="TTSエラー",description=f"```{err}```\n```sh\n{sys.exc_info()}```",color=0xff0000))
-                print(f"[TTS接続時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
+                await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description=f"```{err}```\n```sh\n{sys.exc_info()}```", color=0xff0000))
+                print(
+                    f"[TTS接続時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
                 return
 
         elif args[1] == "leave":
             try:
                 if ctx.author.voice is None:
-                    await ctx.reply(embed=nextcord.Embed(title="TTSエラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
+                    await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description="先にボイスチャンネルに接続してください。", color=0xff0000))
                     return
                 else:
                     if ctx.message.guild.voice_client is None:
-                        await ctx.reply(embed=nextcord.Embed(title="TTSエラー",description="そもそも入ってないっす...(´・ω・｀)",color=0xff0000))
+                        await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description="そもそも入ってないっす...(´・ω・｀)", color=0xff0000))
                         return
                     await ctx.message.guild.voice_client.disconnect()
                     del tts_channel[ctx.guild.id]
-                    await ctx.reply(embed=nextcord.Embed(title="TTS",description="あっ...ばいばーい...",color=0x00ff00))
+                    await ctx.reply(embed=nextcord.Embed(title="TTS", description="あっ...ばいばーい...", color=0x00ff00))
                     print(f"{datetime.datetime.now()} - {ctx.guild.name}でTTSから切断")
                     return
             except BaseException as err:
-                await ctx.reply(embed=nextcord.Embed(title="TTSエラー",description=f"```{err}```\n```sh\n{sys.exc_info()}```",color=0xff0000))
-                print(f"[TTS切断時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
+                await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description=f"```{err}```\n```sh\n{sys.exc_info()}```", color=0xff0000))
+                print(
+                    f"[TTS切断時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
                 return
 
         elif args[1] == "voice":
             try:
                 if ctx.author.voice is None:
-                    await ctx.reply(embed=nextcord.Embed(title="TTSエラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
+                    await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description="先にボイスチャンネルに接続してください。", color=0xff0000))
                     return
                 else:
                     if ctx.message.guild.voice_client is None:
-                        await ctx.reply(embed=nextcord.Embed(title="TTSエラー",description="僕...入ってないっす...(´・ω・｀)",color=0xff0000))
+                        await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description="僕...入ってないっす...(´・ω・｀)", color=0xff0000))
                         return
                     view = nextcord.ui.View(timeout=None)
                     view.add_item(VoiceSelect())
                     await ctx.reply("下のプルダウンから声を選択してください。", view=view)
-                    print(f"{datetime.datetime.now()} - {ctx.guild.name} voice change")
+                    print(
+                        f"{datetime.datetime.now()} - {ctx.guild.name} voice change")
                     return
             except BaseException as err:
-                await ctx.reply(embed=nextcord.Embed(title="TTSエラー",description=f"```{err}```\n```sh\n{sys.exc_info()}```",color=0xff0000))
-                print(f"[TTS voice change時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
+                await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description=f"```{err}```\n```sh\n{sys.exc_info()}```", color=0xff0000))
+                print(
+                    f"[TTS voice change時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
                 return
 
         elif args[1] == "reload" and ctx.author.id in n_fc.py_admin:
@@ -236,11 +241,11 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
             await ctx.reply("Reloaded.")
 
         elif args[1] == "reload" and ctx.author.id not in n_fc.py_admin:
-            await ctx.reply("・読み上げ機能\nエラー：書き方が間違っています。\n\n`n!tts join`: 参加\n`n!tts leave`: 退出\n`n!tts voice`: 声選択")
+            await ctx.reply(f"・読み上げ機能\nエラー：書き方が間違っています。\n\n`n!tts join`: 参加\n`n!tts leave`: 退出\n`{self.bot.command_prefix}tts voice`: 声選択")
             return
 
         else:
-            await ctx.reply("・読み上げ機能\nエラー：書き方が間違っています。\n\n`n!tts join`: 参加\n`n!tts leave`: 退出\n`n!tts voice`: 声選択")
+            await ctx.reply(f"・読み上げ機能\nエラー：書き方が間違っています。\n\n`n!tts join`: 参加\n`n!tts leave`: 退出\n`{self.bot.command_prefix}tts voice`: 声選択")
             return
 
     @nextcord.message_command(name="メッセージを読み上げる", guild_ids=n_fc.GUILD_IDS)
@@ -248,15 +253,15 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
         await interaction.response.defer(ephemeral=True)
         try:
             if interaction.user.voice is None:
-                await interaction.followup.send(embed=nextcord.Embed(title="TTSエラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
+                await interaction.followup.send(embed=nextcord.Embed(title="TTSエラー", description="先にボイスチャンネルに接続してください。", color=0xff0000))
                 return
             else:
                 if interaction.guild.voice_client is None:
-                    await interaction.followup.send(embed=nextcord.Embed(title="TTSエラー",description="にらBOTがボイスチャンネルに接続されていません。",color=0xff0000))
+                    await interaction.followup.send(embed=nextcord.Embed(title="TTSエラー", description="にらBOTがボイスチャンネルに接続されていません。", color=0xff0000))
                     return
 
                 if message.content == "" or message.content is None:
-                    await interaction.followup.send(embed=nextcord.Embed(title="TTSエラー",description="メッセージが空です。",color=0xff0000))
+                    await interaction.followup.send(embed=nextcord.Embed(title="TTSエラー", description="メッセージが空です。", color=0xff0000))
                     return
                 if interaction.user.id not in speaker_author:
                     speaker_author[interaction.user.id] = 2
@@ -266,17 +271,18 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                             await asyncio.sleep(0.1)
                         else:
                             break
-                await interaction.followup.send(embed=nextcord.Embed(title="TTS",description=f"```\n{message.content}```\nを読み上げます...",color=0x00ff00))
+                await interaction.followup.send(embed=nextcord.Embed(title="TTS", description=f"```\n{message.content}```\nを読み上げます...", color=0x00ff00))
                 interaction.guild.voice_client.play(
                     nextcord.PCMVolumeTransformer(nextcord.FFmpegPCMAudio(
                         f"https://api.su-shiki.com/v2/voicevox/audio/?text={tts_convert.convert(message.content)}&key={keys[random.randint(0,len(keys)-1)]}&speaker={speaker_author[interaction.user.id]}"
                     ),
-                    volume=0.5)
+                        volume=0.5)
                 )
                 return
         except BaseException as err:
-            await interaction.followup.send(embed=nextcord.Embed(title="TTSエラー",description=f"```{err}```\n```sh\n{sys.exc_info()}```",color=0xff0000))
-            print(f"[TTS読み上げ時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
+            await interaction.followup.send(embed=nextcord.Embed(title="TTSエラー", description=f"```{err}```\n```sh\n{sys.exc_info()}```", color=0xff0000))
+            print(
+                f"[TTS読み上げ時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
             return
 
     @commands.Cog.listener()
@@ -291,7 +297,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
             return
         if message.channel.id != tts_channel[message.guild.id]:
             return
-        if message.content.startswith("n!"):
+        if message.content.startswith(f"{self.bot.command_prefix}"):
             return
 
         try:
@@ -307,11 +313,12 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                 nextcord.PCMVolumeTransformer(nextcord.FFmpegPCMAudio(
                     f"https://api.su-shiki.com/v2/voicevox/audio/?text={tts_convert.convert(message.content)}&key={keys[random.randint(0,len(keys)-1)]}&speaker={speaker_author[message.author.id]}"
                 ),
-                volume=0.5)
+                    volume=0.5)
             )
         except BaseException as err:
-            await message.channel.send(embed=nextcord.Embed(title="TTSエラー",description=f"```{err}```\n```sh\n{sys.exc_info()}```",color=0xff0000))
-            print(f"[TTS送信時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
+            await message.channel.send(embed=nextcord.Embed(title="TTSエラー", description=f"```{err}```\n```sh\n{sys.exc_info()}```", color=0xff0000))
+            print(
+                f"[TTS送信時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
             return
 
 

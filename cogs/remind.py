@@ -35,7 +35,7 @@ def readDatabase() -> None:
 
 
 def writeDatabase() -> None:
-    DBS.update_acell(DATABASE_KEY,json.dumps(RemindData))
+    DBS.update_acell(DATABASE_KEY, json.dumps(RemindData))
     return
 
 
@@ -81,7 +81,7 @@ class RemindMaker(nextcord.ui.Modal):
             await interaction.followup.send("・エラー\n時間の入力が不正です。\n`/remind on`", ephemeral=True)
             return
 
-        time = ":".join([f"0{i}"[-2:] for i in time.split(":",1)])
+        time = ":".join([f"0{i}"[-2:] for i in time.split(":", 1)])
 
         if interaction.channel.id not in RemindData:
             RemindData[interaction.channel.id] = {}
@@ -92,7 +92,7 @@ class RemindMaker(nextcord.ui.Modal):
 
         RemindData[interaction.channel.id][time] = self.remind_content.value
         writeDatabase()
-        await interaction.followup.send(embed=nextcord.Embed(title="設定完了", description=f"毎日`{time}`に <#{interaction.channel.id}> にリマインドメッセージを送信します。",color=0x00ff00))
+        await interaction.followup.send(embed=nextcord.Embed(title="設定完了", description=f"毎日`{time}`に <#{interaction.channel.id}> にリマインドメッセージを送信します。", color=0x00ff00))
         return
 
 
@@ -100,7 +100,7 @@ class Remind(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.command(name="remind", aliases=("Remind","りまいんど","めざまし","アラーム"), help="""\
+    @commands.command(name="remind", aliases=("Remind", "りまいんど", "めざまし", "アラーム"), help="""\
 毎日指定時間にメッセージを送信する
 毎日（平日だろうが休日だろうが、雨の日だろうが落ち込んだ日だろうが）指定時間になったら、チャンネルに特定のメッセージを送信します。
 
@@ -121,71 +121,71 @@ n!remind on 8:25 おはようございます！
     async def remind(self, ctx: commands.Context):
         args = ctx.message.content.split(" ", 3)
         if len(args) < 2:
-            await ctx.reply(embed=nextcord.Embed(title="使い方", description="`n!remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`\n`n!remind off [時間(hh:mm)]`\n`n!remind list`\n\n詳しくは`n!help remind`を参照してください。",color=0xff0000))
+            await ctx.reply(embed=nextcord.Embed(title="使い方", description=f"`{self.bot.command_prefix}remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`\n`n!remind off [時間(hh:mm)]`\n`n!remind list`\n\n詳しくは`{self.bot.command_prefix}help remind`を参照してください。", color=0xff0000))
             return
         if args[1] == "on":
             if not admin_check.admin_check(ctx.guild, ctx.author):
-                await ctx.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。",color=0xff0000))
+                await ctx.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
                 return
 
             if len(args) != 4:
-                await ctx.reply("・エラー\n引数が足りません。\n`n!remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`")
+                await ctx.reply(f"・エラー\n引数が足りません。\n`{self.bot.command_prefix}remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`")
                 return
 
             if len(args[2]) > 5 or len(args[2]) < 3:
-                await ctx.reply("・エラー\n時間の入力が不正です。\n`n!remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`")
+                await ctx.reply(f"・エラー\n時間の入力が不正です。\n`{self.bot.command_prefix}remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`")
                 return
 
             time = TIME_CHECK.fullmatch(args[2])
             if time is None:
-                await ctx.reply("・エラー\n時間の入力が不正です。\n`n!remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`")
+                await ctx.reply(f"・エラー\n時間の入力が不正です。\n`{self.bot.command_prefix}remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`")
                 return
 
             time = time.group()
             if int(time.split(":")[0]) > 23 or int(time.split(":")[1]) > 59:
-                await ctx.reply("・エラー\n時間の入力が不正です。\n`n!remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`")
+                await ctx.reply(f"・エラー\n時間の入力が不正です。\n`{self.bot.command_prefix}remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`")
                 return
 
-            time = ":".join([f"0{i}"[-2:] for i in time.split(":",1)])
+            time = ":".join([f"0{i}"[-2:] for i in time.split(":", 1)])
 
             if ctx.channel.id not in RemindData:
                 RemindData[ctx.channel.id] = {}
 
             if time in RemindData[ctx.channel.id]:
-                await ctx.reply("・エラー\n指定時間には既にメッセージが設定されています。\n一度オフにしてから再度指定しなおしてください。\n`n!remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`")
+                await ctx.reply(f"・エラー\n指定時間には既にメッセージが設定されています。\n一度オフにしてから再度指定しなおしてください。\n`{self.bot.command_prefix}remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`")
                 return
 
             RemindData[ctx.channel.id][time] = args[3]
             writeDatabase()
-            await ctx.reply(embed=nextcord.Embed(title="設定完了", description=f"毎日`{time}`に <#{ctx.channel.id}> にリマインドメッセージを送信します。",color=0x00ff00))
+            await ctx.reply(embed=nextcord.Embed(title="設定完了", description=f"毎日`{time}`に <#{ctx.channel.id}> にリマインドメッセージを送信します。", color=0x00ff00))
             return
 
         elif args[1] == "off":
             if not admin_check.admin_check(ctx.guild, ctx.author):
-                await ctx.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。",color=0xff0000))
+                await ctx.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
                 return
 
             if len(args) != 3:
-                await ctx.reply("・エラー\n引数が足りません。\n`n!remind off [時間(hh:mm)]`")
+                await ctx.reply(f"・エラー\n引数が足りません。\n`{self.bot.command_prefix}remind off [時間(hh:mm)]`")
                 return
 
             time = TIME_CHECK.fullmatch(args[2])
             if time is None:
-                await ctx.reply("・エラー\n時間の入力が不正です。\n`n!remind off [時間(hh:mm)]`")
+                await ctx.reply(f"・エラー\n時間の入力が不正です。\n`{self.bot.command_prefix}remind off [時間(hh:mm)]`")
                 return
 
             time = time.group()
             if int(time.split(":")[0]) > 23 or int(time.split(":")[1]) > 59:
-                await ctx.reply("・エラー\n時間の入力が不正です。\n`n!remind off [時間(hh:mm)]`")
+                await ctx.reply(f"・エラー\n時間の入力が不正です。\n`{self.bot.command_prefix}remind off [時間(hh:mm)]`")
                 return
-            time = ":".join([f"0{i}"[-2:] for i in time.split(":",1)])
+            time = ":".join([f"0{i}"[-2:] for i in time.split(":", 1)])
 
             if ctx.channel.id not in RemindData:
-                await ctx.reply(f"・エラー\nこのチャンネル`{ctx.channel.name}`で設定されているリマインドメッセージはありません。\n`n!remind off [時間(hh:mm)]`")
+                await ctx.reply(f"・エラー\nこのチャンネル`{ctx.channel.name}`で設定されているリマインドメッセージはありません。\n`{self.bot.command_prefix}remind off [時間(hh:mm)]`")
                 return
 
             if time not in RemindData[ctx.channel.id]:
-                await ctx.reply(f"・エラー\nこのチャンネル`{ctx.channel.name}`で`{time}`に送信されるリマインドメッセージはありません。\n`n!remind off [時間(hh:mm)]`")
+                await ctx.reply(f"・エラー\nこのチャンネル`{ctx.channel.name}`で`{time}`に送信されるリマインドメッセージはありません。\n`{self.bot.command_prefix}remind off [時間(hh:mm)]`")
                 return
 
             del RemindData[ctx.channel.id][time]
@@ -197,12 +197,14 @@ n!remind on 8:25 おはようございます！
 
         elif args[1] == "list":
             if ctx.channel.id not in RemindData:
-                await ctx.reply(f"・エラー\nこのチャンネル`{ctx.channel.name}`で設定されているリマインドメッセージはありません。\n`n!remind list`")
+                await ctx.reply(f"・エラー\nこのチャンネル`{ctx.channel.name}`で設定されているリマインドメッセージはありません。\n`{self.bot.command_prefix}remind list`")
                 return
 
-            embed = nextcord.Embed(title="リマインドメッセージ一覧", description=f"<#{ctx.channel.id}>", color=0x00ff00)
+            embed = nextcord.Embed(
+                title="リマインドメッセージ一覧", description=f"<#{ctx.channel.id}>", color=0x00ff00)
             for time in RemindData[ctx.channel.id]:
-                embed.add_field(name=time, value=RemindData[ctx.channel.id][time], inline=False)
+                embed.add_field(
+                    name=time, value=RemindData[ctx.channel.id][time], inline=False)
             await ctx.reply(embed=embed)
             return
 
@@ -239,7 +241,7 @@ read - read UpperData from server to device```""")
                 await ctx.reply("管理者権限がありません。")
                 return
         else:
-            await ctx.reply(embed=nextcord.Embed(title="使い方", description="`n!remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`\n`n!remind off [時間(hh:mm)]`\n`n!remind list`\n\n詳しくは`n!help remind`を参照してください。",color=0xff0000))
+            await ctx.reply(embed=nextcord.Embed(title="使い方", description=f"`{self.bot.command_prefix}remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`\n`n!remind off [時間(hh:mm)]`\n`n!remind list`\n\n詳しくは`{self.bot.command_prefix}help remind`を参照してください。", color=0xff0000))
             return
 
     @nextcord.slash_command(name="remind", description="remind", guild_ids=n_fc.GUILD_IDS)
@@ -271,7 +273,7 @@ read - read UpperData from server to device```""")
                 await interaction.followup.send("・エラー\n時間の入力が不正です。\n`/remind off time:[時間(hh:mm)]`", ephemeral=True)
                 return
 
-            timeB = ":".join([f"0{i}"[-2:] for i in timeB.split(":",1)])
+            timeB = ":".join([f"0{i}"[-2:] for i in timeB.split(":", 1)])
 
             if interaction.channel.id not in RemindData:
                 await interaction.followup.send(f"・エラー\nこのチャンネル`{interaction.channel.name}`で設定されているリマインドメッセージはありません。\n`/remind off time:[時間(hh:mm)]`", ephemeral=True)
@@ -299,9 +301,11 @@ read - read UpperData from server to device```""")
             await interaction.followup.send(f"・エラー\nこのチャンネル`{interaction.channel.name}`で設定されているリマインドメッセージはありません。\n`/remind list`")
             return
 
-        embed = nextcord.Embed(title="リマインドメッセージ一覧", description=f"<#{interaction.channel.id}>", color=0x00ff00)
+        embed = nextcord.Embed(
+            title="リマインドメッセージ一覧", description=f"<#{interaction.channel.id}>", color=0x00ff00)
         for time in RemindData[interaction.channel.id]:
-            embed.add_field(name=time, value=RemindData[interaction.channel.id][time], inline=False)
+            embed.add_field(
+                name=time, value=RemindData[interaction.channel.id][time], inline=False)
         await interaction.followup.send(embed=embed)
         return
 
@@ -314,7 +318,8 @@ read - read UpperData from server to device```""")
             for time in messages.keys():
                 if time == now_time:
                     try:
-                        message = RemindData[channel][time].replace("%date%", dt.strftime("%m/%d"))
+                        message = RemindData[channel][time].replace(
+                            "%date%", dt.strftime("%m/%d"))
                         Ch = await self.bot.fetch_channel(int(channel))
                         await Ch.send(message)
                     except BaseException as err:
@@ -328,5 +333,5 @@ def setup(bot):
 
 
 def teardown(bot):
-    logging.info("Pin teardown!")
+    logging.info(f"Pin teardown")
     Remind.sendReminds.stop()

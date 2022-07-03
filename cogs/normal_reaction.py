@@ -258,7 +258,7 @@ class normal_reaction(commands.Cog):
         # 自分自身(BOT)には反応しない
         if message.author.bot:
             return
-        if message.content[:2] == "n!" or message.content[-1:] == ".":
+        if message.content.startswith(f"{self.bot.command_prefix}") or message.content[-1:] == ".":
             return
         # if message.author.id in n_fc.py_admin and message.guild.id == 885410991234490408 and message.content[-1:] != ";" and message.content[:7] != "http://" and message.content[:8] != "https://":
         #     await self.bot.http.delete_message(message.channel.id, message.id)

@@ -1,6 +1,6 @@
 import datetime
 import logging
-from util import admin_check, n_fc, eh, dict_list
+from util import admin_check, n_fc, eh, dict_list, database
 import asyncio
 from nextcord.ext import commands
 import nextcord
@@ -49,7 +49,6 @@ async def pullData(client: HTTP_db.Client):
 class MessageDM(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        datas = json.load(open(f'{SYSDIR}/setting.json', 'r'))["database_data"]
         self.client: HTTP_db.Client = database.openClient()
         asyncio.ensure_future(pullData(self.client))
 
@@ -179,14 +178,14 @@ class MessageDM(commands.Cog):
 
         global MESSAGE_DM_SETTINGS
         if command_type not in ["set", "del", "list", "db"]:
-            await ctx.reply(embed=nextcord.Embed(title="Error", description="コマンドが正しくありません。\n個所:第1引数(command_type)\n第1引数は`set`か`del`か`list`のみが許容されます。\n`n!help mesdm`", color=0xff0000))
+            await ctx.reply(embed=nextcord.Embed(title="Error", description=f"コマンドが正しくありません。\n個所:第1引数(command_type)\n第1引数は`set`か`del`か`list`のみが許容されます。\n`{self.bot.command_prefix}help mesdm`", color=0xff0000))
             return
         if command_type == "set":
             if not admin_check.admin_check(ctx.guild, ctx.author):
                 await ctx.reply(embed=nextcord.Embed(title="Error", description="あなたは管理者ではありません。", color=0xff0000))
                 return
             if len(args) != 2:
-                await ctx.reply(embed=nextcord.Embed(title="Error", description="コマンドが正しくありません。\n引数の数が不正です。\n`n!mesdm set [判定メッセージ] [送信するDMのメッセージ]`", color=0xff0000))
+                await ctx.reply(embed=nextcord.Embed(title="Error", description=f"コマンドが正しくありません。\n引数の数が不正です。\n`{self.bot.command_prefix}mesdm set [判定メッセージ] [送信するDMのメッセージ]`", color=0xff0000))
                 return
 
             if ctx.guild.id not in MESSAGE_DM_SETTINGS:

@@ -11,7 +11,7 @@ class not_ready(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
         return
-        if message.content[:2] == "n!":
+        if message.content.startswith(f"{self.bot.command_prefix}"):
             await message.reply("現在起動準備中です。")
 
 

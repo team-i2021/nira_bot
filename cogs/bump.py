@@ -14,9 +14,9 @@ from nextcord.ext import commands
 import util.srtr as srtr
 from util import admin_check, n_fc, eh, slash_tool
 
-#Bump通知
+# Bump通知
 
-SET, DEL, STATUS = [0,1,2]
+SET, DEL, STATUS = [0, 1, 2]
 
 
 class bump(commands.Cog):
@@ -24,11 +24,11 @@ class bump(commands.Cog):
         self.bot = bot
 
     def bump_config(
-            self,
-            interaction: Interaction or commands.Context,
-            action: int,
-            item
-        ):
+        self,
+        interaction: Interaction or commands.Context,
+        action: int,
+        item
+    ):
         user = None
         if type(interaction) == Interaction:
             user = interaction.user
@@ -61,7 +61,7 @@ class bump(commands.Cog):
             else:
                 return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="エラー", description=f"管理者権限がありません。", color=0xff0000))
         else:
-            return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="Bump設定", description="`n!bump`:Bump通知の設定の状態表示\n`n!bump on`:サーバーでのBump通知の設定を有効にします。\n`n!bump off`:サーバーでのBump通知の設定を無効にします。", color=0x00ff00))
+            return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="Bump設定", description=f"`n!bump`:Bump通知の設定の状態表示\n`n!bump on`:サーバーでのBump通知の設定を有効にします。\n`{self.bot.command_prefix}bump off`:サーバーでのBump通知の設定を無効にします。", color=0x00ff00))
 
     @commands.command(name="bump", help="""\
 Disboardの通知設定を行います。
@@ -75,7 +75,7 @@ Disboardの通知設定を行います。
 `n!bump on @Bumper`
 `n!bump off`""")
     async def bump(self, ctx: commands.Context):
-        args = ctx.message.content.split(" ",3)
+        args = ctx.message.content.split(" ", 3)
         if len(args) == 1:
             await self.bump_config(ctx, STATUS, None)
         elif args[1] == "on":
@@ -110,30 +110,30 @@ Disboardの通知設定を行います。
 
     @bump_slash.subcommand(name="set", description="bumpの通知をします")
     async def set_slash(
-            self,
-            interaction: Interaction,
-            role: nextcord.Role = SlashOption(
-                name="role",
-                description="bump通知をする際にメンションしてほしい場合は指定します",
-                required=False
-            )
-        ):
+        self,
+        interaction: Interaction,
+        role: nextcord.Role = SlashOption(
+            name="role",
+            description="bump通知をする際にメンションしてほしい場合は指定します",
+            required=False
+        )
+    ):
         await self.bump_config(interaction, SET, role)
         return
 
     @bump_slash.subcommand(name="del", description="bumpの通知設定を削除します")
     async def del_slash(
-            self,
-            interaction: Interaction
-        ):
+        self,
+        interaction: Interaction
+    ):
         await self.bump_config(interaction, DEL, None)
         return
 
     @bump_slash.subcommand(name="status", description="bump通知の設定状況を確認します")
     async def status_slash(
-            self,
-            interaction: Interaction
-        ):
+        self,
+        interaction: Interaction
+    ):
         await self.bump_config(interaction, STATUS, None)
         return
 
@@ -153,7 +153,7 @@ Disboardの通知設定を行います。
             print("bump set.")
             await message.channel.send(embed=nextcord.Embed(title="Bump通知設定", description=f"<t:{math.floor(time.time())+7200}:f>、<t:{math.floor(time.time())+7200}:R>に通知します。", color=0x00ff00))
             await asyncio.sleep(7200)
-            bump_rnd = random.randint(1,3)
+            bump_rnd = random.randint(1, 3)
             messageContent = ""
             if n_fc.bump_list[message.guild.id] is None:
                 messageContent = "にらBOT Bump通知"

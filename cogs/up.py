@@ -17,7 +17,7 @@ from nextcord.ext import commands, tasks
 from util.n_fc import GUILD_IDS, py_admin
 from util import slash_tool, admin_check, database
 
-SET, DEL, STATUS = (0,1,2)
+SET, DEL, STATUS = (0, 1, 2)
 ROLE_ID = compile(r"<@&[0-9]+?>")
 
 DBS = database.openSheet()
@@ -38,7 +38,7 @@ def readDatabase() -> None:
 
 
 def writeDatabase() -> None:
-    DBS.update_acell(DATABASE_KEY,json.dumps(UpperData))
+    DBS.update_acell(DATABASE_KEY, json.dumps(UpperData))
     return
 
 
@@ -68,14 +68,14 @@ def UpNotifyConfig(bot: commands.Bot, interaction, config_type: int, value: int 
 
 
 async def ErrorSend(interaction):
-    return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="エラー", description="コマンドの引数が異なります。\n`n!up [on/off] [*メンションするロール]`", color=0xff0000))
+    return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="エラー", description=f"コマンドの引数が異なります。\n`n!up [on/off] [*メンションするロール]`", color=0xff0000))
 
 
 class UpNotify(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.command(name="up", aliases=["アップ","あっぷ","dissoku"], help="""\
+    @commands.command(name="up", aliases=["アップ", "あっぷ", "dissoku"], help="""\
 DissokuのUp通知を行います
 
 もうそのまんまです。
@@ -175,14 +175,14 @@ read - read UpperData from server to device```""")
 
     @up_slash.subcommand(name="on", description="Dissoku通知を有効にします")
     async def up_slash_on(
-            self, 
-            interaction: Interaction,
-            role: nextcord.Role = SlashOption(
-                name="role",
-                description="メンションするロールです",
-                required=False
-            )
-        ):
+        self,
+        interaction: Interaction,
+        role: nextcord.Role = SlashOption(
+            name="role",
+            description="メンションするロールです",
+            required=False
+        )
+    ):
         if admin_check.admin_check(interaction.guild, interaction.user):
             if not role is None:
                 role = role.id
@@ -219,7 +219,7 @@ read - read UpperData from server to device```""")
                 print("up set.")
                 await message.channel.send(embed=nextcord.Embed(title="Up通知設定", description=f"<t:{math.floor(time.time())+3600}:f>、<t:{math.floor(time.time())+3600}:R>に通知します。", color=0x00ff00))
                 await asyncio.sleep(3600)
-                up_rnd = random.randint(1,3)
+                up_rnd = random.randint(1, 3)
                 messageContent = ""
                 if UpperData[message.guild.id] is None:
                     messageContent = "にらBOT Up通知"

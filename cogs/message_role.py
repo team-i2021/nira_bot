@@ -13,7 +13,7 @@ import nextcord
 from nextcord import Interaction, SlashOption, ChannelType
 from nextcord.ext import commands
 
-from util import admin_check, n_fc, eh, dict_list
+from util import admin_check, n_fc, eh, dict_list, database
 
 ROLE_ID = re.compile(r"<@&[0-9]+?>")
 
@@ -37,7 +37,6 @@ async def pullData(client: HTTP_db.Client):
 class MessageRole(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        datas = json.load(open(f'{SYSDIR}/setting.json', 'r'))["database_data"]
         self.client: HTTP_db.Client = database.openClient()
         asyncio.ensure_future(pullData(self.client))
 
@@ -180,17 +179,17 @@ class MessageRole(commands.Cog):
         # regex: str, action_type: str, role: str or int
         global MESSAGE_ROLE_SETTINGS
         if command_type not in ["set", "del", "list", "db"]:
-            await ctx.reply(embed=nextcord.Embed(title="Error", description="コマンドが正しくありません。\n個所:第1引数(command_type)\n第1引数は`set`か`del`か`list`のみが許容されます。\n`n!help mesrole`", color=0xff0000))
+            await ctx.reply(embed=nextcord.Embed(title="Error", description=f"コマンドが正しくありません。\n個所:第1引数(command_type)\n第1引数は`set`か`del`か`list`のみが許容されます。\n`{self.bot.command_prefix}help mesrole`", color=0xff0000))
             return
         if command_type == "set":
             if not admin_check.admin_check(ctx.guild, ctx.author):
                 await ctx.reply(embed=nextcord.Embed(title="Error", description="あなたは管理者ではありません。", color=0xff0000))
                 return
             if len(args) != 3:
-                await ctx.reply(embed=nextcord.Embed(title="Error", description="コマンドが正しくありません。\n引数の数が不正です。\n`n!mesrole set [判定メッセージ] [add/remove] [ロール]`", color=0xff0000))
+                await ctx.reply(embed=nextcord.Embed(title="Error", description=f"コマンドが正しくありません。\n引数の数が不正です。\n`{self.bot.command_prefix}mesrole set [判定メッセージ] [add/remove] [ロール]`", color=0xff0000))
                 return
             if args[1] not in ["add", "remove"]:
-                await ctx.reply(embed=nextcord.Embed(title="Error", description="コマンドが正しくありません。\n個所:第3引数(動作タイプ)\n第2引数は`add`か`remove`のみが許容されます。\n`n!mesrole set [判定メッセージ] [add/remove] [ロール]`", color=0xff0000))
+                await ctx.reply(embed=nextcord.Embed(title="Error", description=f"コマンドが正しくありません。\n個所:第3引数(動作タイプ)\n第2引数は`add`か`remove`のみが許容されます。\n`{self.bot.command_prefix}mesrole set [判定メッセージ] [add/remove] [ロール]`", color=0xff0000))
                 return
 
             role = None

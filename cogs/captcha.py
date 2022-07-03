@@ -45,7 +45,8 @@ class CaptchaButton(nextcord.ui.View):
     def __init__(self, guild_id: int, user_id: int):
         super().__init__(timeout=None)
         url = f"https://nira.f5.si/captcha.html?guild_id={guild_id}&user_id={user_id}"
-        self.add_item(nextcord.ui.Button(label="認証", url=url, style=nextcord.ButtonStyle.green))
+        self.add_item(nextcord.ui.Button(label="認証", url=url,
+                      style=nextcord.ButtonStyle.green))
 
 
 class CaptchaSetting(nextcord.ui.View):
@@ -74,14 +75,14 @@ class Captcha(commands.Cog):
 
     @nextcord.slash_command(name="captcha", description="Web認証を設定します。", guild_ids=n_fc.GUILD_IDS)
     async def captcha_slash(
-            self,
-            interaction: Interaction,
-            role: nextcord.Role = SlashOption(
-                name="role",
-                description="認証成功時に付与するロールです。",
-                required=True
-            )
-        ):
+        self,
+        interaction: Interaction,
+        role: nextcord.Role = SlashOption(
+            name="role",
+            description="認証成功時に付与するロールです。",
+            required=True
+        )
+    ):
         await interaction.response.defer()
         if interaction.guild.id in CaptchaData:
             await interaction.followup.send(embed=nextcord.Embed(title="このサーバーには既に認証が設定されています。", description=f"このサーバーには <#&{CaptchaData[interaction.guild.id]}> に認証が設定されています。\n新しく認証を作成すると、前の認証は <@&{role.id}> に上書きされます。\n設定してもよろしいですか？\nよろしければ下のボタンを押してください。", color=0x00ff00), view=CaptchaSetting(interaction.author.id, role.id), ephemeral=True)
@@ -111,10 +112,10 @@ reCapthaなんで、強いとは思うんですけど、それよりバグが心
 ボタンを押すことで認証ページに飛んで、Captchaが成功すると指定したロールが付与されます。
 """)
     async def captcha(self, ctx: commands.Context):
-        args = ctx.message.content.split(" ",1)
+        args = ctx.message.content.split(" ", 1)
 
         if len(args) == 1:
-            await ctx.reply(embed=nextcord.Embed(title="Web認証", description="Web認証を行うボタンを送信します。\n`n!captcha [付与したいロールID又は名前]`", color=0x00ff00))
+            await ctx.reply(embed=nextcord.Embed(title="Web認証", description=f"Web認証を行うボタンを送信します。\n`{self.bot.command_prefix}captcha [付与したいロールID又は名前]`", color=0x00ff00))
             return
 
         role_id = None
@@ -129,7 +130,7 @@ reCapthaなんで、強いとは思うんですけど、それよりバグが心
                     break
 
         if role_id == None:
-            await ctx.reply(embed=nextcord.Embed(title="Web認証 - エラー", description=f"指定したロール`{args[1]}`が見つかりませんでした。\n`n!captcha [付与したいロールID又は名前]`", color=0xff0000))
+            await ctx.reply(embed=nextcord.Embed(title="Web認証 - エラー", description=f"指定したロール`{args[1]}`が見つかりませんでした。\n`{self.bot.command_prefix}captcha [付与したいロールID又は名前]`", color=0xff0000))
             return
 
         if ctx.guild.id in CaptchaData:
@@ -142,11 +143,11 @@ reCapthaなんで、強いとは思うんですけど、それよりバグが心
             try:
                 msg = await self.bot.wait_for('message', check=check, timeout=10)
             except asyncio.TimeoutError:
-                await action.edit(content="時間切れです。\n再度やり直してください。",embed=None)
+                await action.edit(content="時間切れです。\n再度やり直してください。", embed=None)
                 return
 
             if msg.content == "n":
-                await action.edit(content="設定をキャンセルしました。",embed=None)
+                await action.edit(content="設定をキャンセルしました。", embed=None)
                 return
             elif msg.content == "y":
                 CaptchaData[ctx.guild.id] = role_id

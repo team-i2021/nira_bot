@@ -8,7 +8,7 @@ from nextcord.ext import commands
 
 from util import admin_check, n_fc, eh
 
-#embedを送信する機能
+# embedを送信する機能
 
 
 class EmbedMaker(nextcord.ui.Modal):
@@ -78,7 +78,8 @@ class EmbedMaker(nextcord.ui.Modal):
 ・本文
 {self.embed_description.value}
 """)
-            files.append(nextcord.File(text, filename="embed.txt", description="入力した内容"))
+            files.append(nextcord.File(
+                text, filename="embed.txt", description="入力した内容"))
 
         await interaction.send(embed=embed, files=files, ephemeral=ephemeral)
 
@@ -111,16 +112,19 @@ Embedのタイトルになるところです。
 Embedの本文です。
 """)
     async def embed(self, ctx: commands.Context):
-        if ctx.message.content == "n!embed":
-            embed = nextcord.Embed(title="Error", description="構文が間違っています。\n```n!embed [color(000000～ffffff)] [title]\n[description]```", color=0xff0000)
+        if ctx.message.content == f"{self.bot.command_prefix}embed":
+            embed = nextcord.Embed(
+                title="Error", description=f"構文が間違っています。\n```{self.bot.command_prefix}embed [color(000000～ffffff)] [title]\n[description]```", color=0xff0000)
             await ctx.message.reply(embed=embed)
             return
         try:
             mes_ch = ctx.message.content.splitlines()
-            emb_clr = int("".join(re.findall(r'[0-9a-f]', str(mes_ch[0].split(" ", 3)[1]))), 16)
+            emb_clr = int(
+                "".join(re.findall(r'[0-9a-f]', str(mes_ch[0].split(" ", 3)[1]))), 16)
             emb_title = str(mes_ch[0].split(" ", 3)[2])
             emb_desc = "\n".join(mes_ch[1:])
-            embed = nextcord.Embed(title=emb_title, description=emb_desc, color=emb_clr)
+            embed = nextcord.Embed(
+                title=emb_title, description=emb_desc, color=emb_clr)
             await ctx.send(embed=embed)
             return
         except BaseException as err:

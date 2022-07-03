@@ -15,10 +15,10 @@ from util.admin_check import admin_check
 from util.slash_tool import messages
 
 mcMessage = {
-    "ja":{
+    "ja": {
         "forbidden": "申し訳ございませんが、このコマンドは現在管理者のみ使用可能です。",
-        "add":{
-            "invalid_args":"引数の数が**少ない**又は**多い**です。\n`n!mc add [名前] [アドレス] [ポート番号] [java/be]`",
+        "add": {
+            "invalid_args": f"引数の数が**少ない**又は**多い**です。\n`n!mc add [名前] [アドレス] [ポート番号] [java/be]`",
         }
     }
 }
@@ -29,15 +29,16 @@ class minecraft_base:
         addition_data = [name, f"{host}:{port}", server_type]
         try:
             if ctx.guild.id not in n_fc.mc_server_list:
-                n_fc.mc_server_list[ctx.guild.id] = {"value": 1, 1: addition_data}
+                n_fc.mc_server_list[ctx.guild.id] = {
+                    "value": 1, 1: addition_data}
             else:
                 value = n_fc.mc_server_list[ctx.guild.id]["value"] + 1
                 n_fc.mc_server_list[ctx.guild.id][value] = addition_data
                 n_fc.mc_server_list[ctx.guild.id]["value"] = value
         except BaseException:
-            await messages.mreply(ctx, f"サーバー追加時にエラーが発生しました。", embed=nextcord.Embed(title="An error has occurred...", description=f"```sh\n{traceback.format_exc()}```", color=0xff0000),ephemeral=True)
+            await messages.mreply(ctx, f"サーバー追加時にエラーが発生しました。", embed=nextcord.Embed(title="An error has occurred...", description=f"```sh\n{traceback.format_exc()}```", color=0xff0000), ephemeral=True)
             return
-        await messages.mreply(ctx, "", embed=nextcord.Embed(title="サーバーを追加しました。", description=f"Server name:`{name}`\nServer host:`{host}:{port}`\nServer type:`{server_type}`", color=0x00ff00),ephemeral=True)
+        await messages.mreply(ctx, "", embed=nextcord.Embed(title="サーバーを追加しました。", description=f"Server name:`{name}`\nServer host:`{host}:{port}`\nServer type:`{server_type}`", color=0x00ff00), ephemeral=True)
         return
 
     async def server_delete(bot, ctx, select_id):
@@ -66,7 +67,7 @@ class minecraft_base:
             return
 
         if n_fc.mc_server_list[ctx.guild.id]["value"] < select_id:
-            await messages.mreply(ctx, f"ID`{select_id}`にサーバーは登録されていません。",ephemeral=True)
+            await messages.mreply(ctx, f"ID`{select_id}`にサーバーは登録されていません。", ephemeral=True)
             return
 
         if n_fc.mc_server_list[ctx.guild.id]["value"] == 1:
@@ -75,7 +76,7 @@ class minecraft_base:
             except BaseException:
                 await messages.mreply(ctx, f"サーバー削除時にエラーが発生しました。", embed=nextcord.Embed(title="An error has occurred...", description=f"```sh\n{traceback.format_exc()}```", color=0xff0000), ephemeral=True)
                 return
-            await messages.mreply(ctx, f"サーバーを削除しました。",ephemeral=True)
+            await messages.mreply(ctx, f"サーバーを削除しました。", ephemeral=True)
             return
 
         try:
@@ -99,7 +100,8 @@ class minecraft_base:
             else:
                 await messages.mreply(ctx, f"{ctx.guild.name}にはMinecraftのサーバーは追加されていません。")
                 return
-        embed = nextcord.Embed(title="Minecraftサーバーチェッカー", description=f"`{ctx.guild.name}`のサーバーリスト", color=0x00ff00)
+        embed = nextcord.Embed(title="Minecraftサーバーチェッカー",
+                               description=f"`{ctx.guild.name}`のサーバーリスト", color=0x00ff00)
         if serverid == "status":
             for i in range(n_fc.mc_server_list[ctx.guild.id]["value"]):
                 try:
@@ -108,22 +110,28 @@ class minecraft_base:
                         ping = int(status.latency)
                         players = status.players.online
                         if players != 0:
-                            embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",value=f":white_check_mark: Online\n`{status.description}`\nPing:`{ping}ms`\nPlayers:`{players}人`\n```{[i['name'] for i in status.raw['players']['sample']]}```\n\n\n",inline=False)
+                            embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",
+                                            value=f":white_check_mark: Online\n`{status.description}`\nPing:`{ping}ms`\nPlayers:`{players}人`\n```{[i['name'] for i in status.raw['players']['sample']]}```\n\n\n", inline=False)
                         else:
-                            embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",value=f":white_check_mark: Online\n`{status.description}`\nPing:`{ping}ms`\nPlayers:`{players}人`\n\n\n",inline=False)
+                            embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",
+                                            value=f":white_check_mark: Online\n`{status.description}`\nPing:`{ping}ms`\nPlayers:`{players}人`\n\n\n", inline=False)
                     elif n_fc.mc_server_list[ctx.guild.id][i+1][2] == "be":
                         status = await asyncio.wait_for(mc_status.minecraft_status.bedrock_unsync(bot.loop, n_fc.mc_server_list[ctx.guild.id][i+1][1]), timeout=3)
                         if mc_status.minecraft_status.error_check(status):
-                            embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",value=f":ng: Offline\n\n\n",inline=False)
+                            embed.add_field(
+                                name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})", value=f":ng: Offline\n\n\n", inline=False)
                         else:
                             ping = int(status.latency*1000)
                             players = status.players_online
                             if ping == 0:
-                                embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",value=f":white_check_mark: Online\n`{status.motd}`\nPlayers:`{players}/{status.players_max}人`\nGameMode:`{status.gamemode}`\n\n\n",inline=False)
+                                embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",
+                                                value=f":white_check_mark: Online\n`{status.motd}`\nPlayers:`{players}/{status.players_max}人`\nGameMode:`{status.gamemode}`\n\n\n", inline=False)
                             else:
-                                embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",value=f":white_check_mark: Online\n`{status.motd}`\nPing:`{ping}ms`\nPlayers:`{players}/{status.players_max}人`\nGameMode:`{status.gamemode}`\n\n\n",inline=False)
+                                embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",
+                                                value=f":white_check_mark: Online\n`{status.motd}`\nPing:`{ping}ms`\nPlayers:`{players}/{status.players_max}人`\nGameMode:`{status.gamemode}`\n\n\n", inline=False)
                 except BaseException:
-                    embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",value=f":ng: Offline\n\n\n",inline=False)
+                    embed.add_field(
+                        name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})", value=f":ng: Offline\n\n\n", inline=False)
                 embed.set_footer(text=f"Pingは参考値にしてください。")
             if type(ctx) == nextcord.Interaction:
                 await ctx.followup.send("Minecraft Server Status", embed=embed)
@@ -136,15 +144,19 @@ class minecraft_base:
                 try:
                     if n_fc.mc_server_list[ctx.guild.id][i+1][2] == "java":
                         status = await asyncio.wait_for(mc_status.minecraft_status.java_unsync(bot.loop, n_fc.mc_server_list[ctx.guild.id][i+1][1]), timeout=3)
-                        embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",value=f":white_check_mark: Online\n```py\n{vars(status)}```\n\n\n",inline=False)
+                        embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",
+                                        value=f":white_check_mark: Online\n```py\n{vars(status)}```\n\n\n", inline=False)
                     elif n_fc.mc_server_list[ctx.guild.id][i+1][2] == "be":
                         status = await asyncio.wait_for(mc_status.minecraft_status.bedrock_unsync(bot.loop, n_fc.mc_server_list[ctx.guild.id][i+1][1]), timeout=3)
                         if mc_status.minecraft_status.error_check(status):
-                            embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",value=f":ng: Offline\n```py\n{status}```\n\n\n",inline=False)
+                            embed.add_field(
+                                name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})", value=f":ng: Offline\n```py\n{status}```\n\n\n", inline=False)
                         else:
-                            embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",value=f":white_check_mark: Online\n```py\n{vars(status)}```\n\n\n",inline=False)
+                            embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",
+                                            value=f":white_check_mark: Online\n```py\n{vars(status)}```\n\n\n", inline=False)
                 except BaseException as err:
-                    embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",value=f":ng: Offline\n```py\n{err}\n\n{traceback.format_exc()}```\n\n\n",inline=False)
+                    embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`({n_fc.mc_server_list[ctx.guild.id][i+1][2]})",
+                                    value=f":ng: Offline\n```py\n{err}\n\n{traceback.format_exc()}```\n\n\n", inline=False)
                 embed.set_footer(text=f"Detail mode")
             if type(ctx) == nextcord.Interaction:
                 await ctx.followup.send("Minecraft Server Status", embed=embed)
@@ -173,22 +185,28 @@ class minecraft_base:
                     ping = int(status.latency)
                     players = status.players.online
                     if players != 0:
-                        embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][serverid][0]}`({n_fc.mc_server_list[ctx.guild.id][serverid][2]})",value=f":white_check_mark: Online\n`{status.description}`\nPing:`{ping}ms`\nPlayers:`{players}人`\n```{[i['name'] for i in status.raw['players']['sample']]}```\n\n\n",inline=False)
+                        embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][serverid][0]}`({n_fc.mc_server_list[ctx.guild.id][serverid][2]})",
+                                        value=f":white_check_mark: Online\n`{status.description}`\nPing:`{ping}ms`\nPlayers:`{players}人`\n```{[i['name'] for i in status.raw['players']['sample']]}```\n\n\n", inline=False)
                     else:
-                        embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][serverid][0]}`({n_fc.mc_server_list[ctx.guild.id][serverid][2]})",value=f":white_check_mark: Online\n`{status.description}`\nPing:`{ping}ms`\nPlayers:`{players}人`\n\n\n",inline=False)
+                        embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][serverid][0]}`({n_fc.mc_server_list[ctx.guild.id][serverid][2]})",
+                                        value=f":white_check_mark: Online\n`{status.description}`\nPing:`{ping}ms`\nPlayers:`{players}人`\n\n\n", inline=False)
                 elif n_fc.mc_server_list[ctx.guild.id][serverid][2] == "be":
                     status = await asyncio.wait_for(mc_status.minecraft_status.bedrock_unsync(bot.loop, n_fc.mc_server_list[ctx.guild.id][serverid][1]), timeout=3)
                     if mc_status.minecraft_status.error_check(status):
-                        embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][serverid][0]}`({n_fc.mc_server_list[ctx.guild.id][serverid][2]})",value=f":ng: Offline\n\n\n",inline=False)
+                        embed.add_field(
+                            name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][serverid][0]}`({n_fc.mc_server_list[ctx.guild.id][serverid][2]})", value=f":ng: Offline\n\n\n", inline=False)
                     else:
                         ping = int(status.latency*1000)
                         players = status.players_online
                         if ping == 0:
-                            embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][serverid][0]}`({n_fc.mc_server_list[ctx.guild.id][serverid][2]})",value=f":white_check_mark: Online\n`{status.motd}`\nPlayers:`{players}/{status.players_max}人`\nGameMode:`{status.gamemode}`\n\n\n",inline=False)
+                            embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][serverid][0]}`({n_fc.mc_server_list[ctx.guild.id][serverid][2]})",
+                                            value=f":white_check_mark: Online\n`{status.motd}`\nPlayers:`{players}/{status.players_max}人`\nGameMode:`{status.gamemode}`\n\n\n", inline=False)
                         else:
-                            embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][serverid][0]}`({n_fc.mc_server_list[ctx.guild.id][serverid][2]})",value=f":white_check_mark: Online\n`{status.motd}`\nPing:`{ping}ms`\nPlayers:`{players}/{status.players_max}人`\nGameMode:`{status.gamemode}`\n\n\n",inline=False)
+                            embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][serverid][0]}`({n_fc.mc_server_list[ctx.guild.id][serverid][2]})",
+                                            value=f":white_check_mark: Online\n`{status.motd}`\nPing:`{ping}ms`\nPlayers:`{players}/{status.players_max}人`\nGameMode:`{status.gamemode}`\n\n\n", inline=False)
             except BaseException:
-                embed.add_field(name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][serverid][0]}`({n_fc.mc_server_list[ctx.guild.id][serverid][2]})",value=f":ng: Offline\n\n\n",inline=False)
+                embed.add_field(
+                    name=f"サーバー名:`{n_fc.mc_server_list[ctx.guild.id][serverid][0]}`({n_fc.mc_server_list[ctx.guild.id][serverid][2]})", value=f":ng: Offline\n\n\n", inline=False)
             embed.set_footer(text=f"Pingは参考値にしてください。")
             if type(ctx) == nextcord.Interaction:
                 await ctx.followup.send("Minecraft Server Status", embed=embed)
@@ -199,7 +217,7 @@ class minecraft_base:
 
     async def server_list(bot, ctx):
         if ctx.guild.id not in n_fc.mc_server_list:
-            await messages.mreply(ctx, f"{ctx.guild.name}にはMinecraftのサーバーは追加されていません。",ephemeral=True)
+            await messages.mreply(ctx, f"{ctx.guild.name}にはMinecraftのサーバーは追加されていません。", ephemeral=True)
             return
 
         try:
@@ -208,15 +226,18 @@ class minecraft_base:
                 user = await bot.fetch_user(ctx.user.id)
             else:
                 user = await bot.fetch_user(ctx.author.id)
-            embed = nextcord.Embed(title="Minecraft サーバーリスト", description=f"{ctx.guild.name}のリスト", color=0x00ff00)
+            embed = nextcord.Embed(
+                title="Minecraft サーバーリスト", description=f"{ctx.guild.name}のリスト", color=0x00ff00)
             for i in range(value):
-                embed.add_field(name=f"ID:`{i+1}`", value=f"名前:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`\n{n_fc.mc_server_list[ctx.guild.id][i+1][2]}Edition サーバー\nアドレス:`{n_fc.mc_server_list[ctx.guild.id][i+1][1]}`")
+                embed.add_field(
+                    name=f"ID:`{i+1}`", value=f"名前:`{n_fc.mc_server_list[ctx.guild.id][i+1][0]}`\n{n_fc.mc_server_list[ctx.guild.id][i+1][2]}Edition サーバー\nアドレス:`{n_fc.mc_server_list[ctx.guild.id][i+1][1]}`")
             await user.send(embed=embed)
             return
 
         except BaseException:
-            logging.error(f"An error has occured during the execution of the function `n!mc list`/`/mc list`\n{traceback.format_exc()}")
-            await messages.mreply(ctx, f"サーバー列挙/送信時にエラーが発生しました。", embed=nextcord.Embed(title="An error has occurred...", description=f"```sh\n{traceback.format_exc()}```", color=0xff0000),ephemeral=True)
+            logging.error(
+                f"An error has occured during the execution of the function `{bot.command_prefix}mc list`/`/mc list`\n{traceback.format_exc()}")
+            await messages.mreply(ctx, f"サーバー列挙/送信時にエラーが発生しました。", embed=nextcord.Embed(title="An error has occurred...", description=f"```sh\n{traceback.format_exc()}```", color=0xff0000), ephemeral=True)
             return
 
 
@@ -224,7 +245,7 @@ class minecraft(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.command(name="mc",help="""\
+    @commands.command(name="mc", help="""\
 MinecraftのJava/BEサーバーのステータスを表示します
 このコマンドは、**user毎**で**10秒**のクールダウンがあります。
 このコマンドのヘルプは別ページにあります。
@@ -250,7 +271,7 @@ MinecraftのJava/BEサーバーのステータスを表示します
                 await ctx.reply(f"ポートは数値でなければなりません。\n```sh\n{err}```")
                 return
             if args[3] != "java" and args[3] != "be" and args[3] != "j" and args[3] != "b":
-                await messages.mreply(ctx, "サーバータイプは「java」または「be」と入力してください。\n`n!mc add [名前] [アドレス] [ポート番号] [java/be]")
+                await messages.mreply(ctx, f"サーバータイプは「java」または「be」と入力してください。\n`{self.bot.command_prefix}mc add [名前] [アドレス] [ポート番号] [java/be]")
             if args[3] == "j":
                 args[3] = "java"
             elif args[3] == "b":
@@ -262,7 +283,7 @@ MinecraftのJava/BEサーバーのステータスを表示します
                 await ctx.reply("管理者権限がないため、コマンドを実行できません。")
                 return
             if base_arg[1] == "del":
-                await ctx.reply("このコマンドには引数指定が必要です。\n`n!mc del [サーバーID又は「del」]`")
+                await ctx.reply(f"このコマンドには引数指定が必要です。\n`{self.bot.command_prefix}mc del [サーバーID又は「del」]`")
                 return
             arg = base_arg[1][4:]
             if arg != "all":
@@ -291,7 +312,7 @@ MinecraftのJava/BEサーバーのステータスを表示します
     @mc_slash.subcommand(name="add", description="Minecraftのサーバーを追加します。")
     async def add_slash(
         self,
-        interaction = Interaction,
+        interaction=Interaction,
         server_name: str = SlashOption(
             name="server_name",
             description="サーバーの名前です。",
@@ -308,12 +329,12 @@ MinecraftのJava/BEサーバーのステータスを表示します
             required=True,
         ),
         server_type: str = SlashOption(
-            name = "server_type",
-            description = "サーバーのタイプです。「java」または「be」と入力してください。",
+            name="server_type",
+            description="サーバーのタイプです。「java」または「be」と入力してください。",
             required=True,
-            choices={"Java版":"java","BE版":"be"},
+            choices={"Java版": "java", "BE版": "be"},
         ),
-        ):
+    ):
         if admin_check(interaction.guild, interaction.user):
             if server_type != "java" and server_type != "be" and server_type != "j" and server_type != "b":
                 await messages.mreply(interaction, "サーバータイプは「java」または「be」と入力してください", ephemeral=True)
@@ -349,7 +370,7 @@ MinecraftのJava/BEサーバーのステータスを表示します
         await minecraft_base.server_list(self.bot, interaction)
 
     @mc_slash.subcommand(name="status", description="Minecraftのサーバーのステータスを表示します。")
-    async def status_slash(self, interaction: Interaction, server: str = SlashOption(name="server",description="サーバーIDを指定することもできます", required=False)):
+    async def status_slash(self, interaction: Interaction, server: str = SlashOption(name="server", description="サーバーIDを指定することもできます", required=False)):
         await interaction.response.defer()
         if server == "" or server is None:
             server = "status"

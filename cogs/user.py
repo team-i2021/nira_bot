@@ -12,9 +12,7 @@ from util import admin_check, n_fc, eh, slash_tool
 
 SET, DEL, STATUS = (0, 1, 2)
 
-#ユーザー情報表示系
-
-
+# ユーザー情報表示系
 
 
 class user(commands.Cog):
@@ -23,16 +21,20 @@ class user(commands.Cog):
 
     def UserInfoEmbed(self, member: nextcord.Member or nextcord.User):
         if member.bot:
-            embed = nextcord.Embed(title="User Info", description=f"名前：`{member.name}` __[BOT]__\nID：`{member.id}`", color=0x00ff00)
+            embed = nextcord.Embed(
+                title="User Info", description=f"名前：`{member.name}` __[BOT]__\nID：`{member.id}`", color=0x00ff00)
         else:
-            embed = nextcord.Embed(title="User Info", description=f"名前：`{member.name}`\nID：`{member.id}`", color=0x00ff00)
+            embed = nextcord.Embed(
+                title="User Info", description=f"名前：`{member.name}`\nID：`{member.id}`", color=0x00ff00)
         if member.banner is not None:
             embed.set_image(url=member.banner.url)
         if member.avatar is not None:
             embed.set_thumbnail(url=member.avatar.url)
-        embed.add_field(name="アカウント製作日", value=f"```{member.created_at}```", inline=False)
+        embed.add_field(name="アカウント製作日",
+                        value=f"```{member.created_at}```", inline=False)
         if type(member) is nextcord.Member:
-            embed.add_field(name="サーバー参加日", value=f"```{member.joined_at}```", inline=False)
+            embed.add_field(
+                name="サーバー参加日", value=f"```{member.joined_at}```", inline=False)
 
         return embed
 
@@ -43,14 +45,14 @@ class user(commands.Cog):
 
     @nextcord.slash_command(name="user", description="ユーザー情報表示", guild_ids=n_fc.GUILD_IDS)
     async def user_slash(
-            self,
-            interaction: Interaction,
-            user: nextcord.User = SlashOption(
-                name = "user",
-                description = "情報を表示するユーザー",
-                required=False
-            )
-        ):
+        self,
+        interaction: Interaction,
+        user: nextcord.User = SlashOption(
+            name="user",
+            description="情報を表示するユーザー",
+            required=False
+        )
+    ):
         if user is None:
             user = interaction.user
         await interaction.response.send_message(embed=self.UserInfoEmbed(user))
@@ -63,12 +65,13 @@ class user(commands.Cog):
     ユーザーIDの指定方法は...多分調べれば出てきます。
     **メンションでも指定できますが、いざこざとかにつながるかもしれないのでしないほうが得策です。**""")
     async def d(self, ctx: commands.Context):
-        if ctx.message.content == "n!d":
+        if ctx.message.content == f"{self.bot.command_prefix}d":
             user = await self.bot.fetch_user(ctx.author.id)
             await ctx.message.reply(embed=self.UserInfoEmbed(user))
             return
         else:
-            user_id = int("".join(re.findall(r'[0-9]', ctx.message.content[4:])))
+            user_id = int(
+                "".join(re.findall(r'[0-9]', ctx.message.content[4:])))
             try:
                 user = await self.bot.fetch_user(user_id)
                 await ctx.message.reply(embed=self.UserInfoEmbed(user))
@@ -79,22 +82,22 @@ class user(commands.Cog):
 
     @nextcord.slash_command(name="rk", description="ロールキーパー機能の設定", guild_ids=n_fc.GUILD_IDS)
     async def rk_slash(
-            self,
-            interaction: Interaction,
-            SettingValue: int = SlashOption(
-                name = "setting_value",
-                description = "設定値",
-                required=True,
-                choices={"有効にする":1, "無効にする":0}
-            )
-        ):
+        self,
+        interaction: Interaction,
+        SettingValue: int = SlashOption(
+            name="setting_value",
+            description="設定値",
+            required=True,
+            choices={"有効にする": 1, "無効にする": 0}
+        )
+    ):
         if admin_check.admin_check(interaction.guild, interaction.user):
             if interaction.guild.id in n_fc.role_keeper:
                 n_fc.role_keeper[interaction.guild.id]["rk"] = SettingValue
                 await interaction.response.send_message(embed=nextcord.Embed(title="Role Keeper", description="設定を変更しました。", color=0x00ff00))
                 return
             else:
-                n_fc.role_keeper[interaction.guild.id] = {"rk":SettingValue}
+                n_fc.role_keeper[interaction.guild.id] = {"rk": SettingValue}
                 await interaction.response.send_message(embed=nextcord.Embed(title="Role Keeper", description="設定を変更しました。", color=0x00ff00))
                 return
         else:
@@ -107,28 +110,30 @@ class user(commands.Cog):
 `n!rk [on/off]`でロールキーパー機能の設定が可能です。ただ、ロールキーパー機能を有効にするには`n!ui`の、ユーザー情報表示を有効にしないと有効になりません。""")
     async def rk(self, ctx: commands.Context):
         if admin_check.admin_check(ctx.message.guild, ctx.message.author) or ctx.message.author.id in n_fc.py_admin:
-            if ctx.message.content == "n!rk":
-                embed = nextcord.Embed(title="ロールキーパー", description="`n!rk [on/off]`", color=0x00ff00)
+            if ctx.message.content == f"{self.bot.command_prefix}rk":
+                embed = nextcord.Embed(
+                    title="ロールキーパー", description=f"`{self.bot.command_prefix}rk [on/off]`", color=0x00ff00)
                 if ctx.guild.id not in n_fc.role_keeper:
-                    n_fc.role_keeper[ctx.guild.id] = {"rk":0}
+                    n_fc.role_keeper[ctx.guild.id] = {"rk": 0}
                     save()
                 if n_fc.role_keeper[ctx.guild.id]["rk"] == 0:
                     role_bool = "無効"
                 else:
                     role_bool = "有効"
-                embed.add_field(name="ロールキーパーの状態", value=f"ロールキーパーは現在{role_bool}です")
+                embed.add_field(name="ロールキーパーの状態",
+                                value=f"ロールキーパーは現在{role_bool}です")
                 await ctx.reply(embed=embed)
                 return
-            if ctx.message.content[5:] in n_fc.on_ali:
+            if ctx.message.content.split(" ", 1)[1] in n_fc.on_ali:
                 # ロールキーパーオンにしやがれ
                 if ctx.guild.id not in n_fc.role_keeper:
-                    n_fc.role_keeper[ctx.guild.id] = {"rk":1}
+                    n_fc.role_keeper[ctx.guild.id] = {"rk": 1}
                 else:
                     n_fc.role_keeper[ctx.guild.id]["rk"] = 1
-            elif ctx.message.content[5:] in n_fc.off_ali:
+            elif ctx.message.content.split(" ", 1)[1] in n_fc.off_ali:
                 # ロールキーパーオフにしやがれ
                 if ctx.guild.id not in n_fc.role_keeper:
-                    n_fc.role_keeper[ctx.guild.id] = {"rk":0}
+                    n_fc.role_keeper[ctx.guild.id] = {"rk": 0}
                 else:
                     n_fc.role_keeper[ctx.guild.id]["rk"] = 0
             else:
@@ -147,23 +152,23 @@ class user(commands.Cog):
                 save()
                 CHANNEL = await bot.fetch_channel(n_fc.welcome_id_list[guild_id])
                 await CHANNEL.send("このチャンネルが、ユーザー情報表示チャンネルとして指定されました。")
-                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定",description=f"<#{channel.id}>に指定されました。", color=0x00ff00),ephemeral=True)
+                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"<#{channel.id}>に指定されました。", color=0x00ff00), ephemeral=True)
             except BaseException as err:
-                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定",description=f"エラーが発生しました。\n```\n{err}```", color=0xff000),ephemeral=True)
+                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"エラーが発生しました。\n```\n{err}```", color=0xff000), ephemeral=True)
         elif type == DEL:
             try:
                 if guild_id not in n_fc.welcome_id_list:
-                    await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定",description=f"このサーバーには登録されていません。", color=0xff0000), ephemeral=True)
+                    await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"このサーバーには登録されていません。", color=0xff0000), ephemeral=True)
                     return
                 del n_fc.welcome_id_list[guild_id]
-                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定",description=f"設定を削除しました。", color=0x00ff00),ephemeral=True)
+                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"設定を削除しました。", color=0x00ff00), ephemeral=True)
             except BaseException as err:
-                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定",description=f"エラーが発生しました。\n```\n{err}```", color=0xff000),ephemeral=True)
+                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"エラーが発生しました。\n```\n{err}```", color=0xff000), ephemeral=True)
         elif type == STATUS:
             if guild_id not in n_fc.welcome_id_list:
-                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定",description=f"サーバーで設定は`無効`です", color=0x00ff00),ephemeral=True)
+                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"サーバーで設定は`無効`です", color=0x00ff00), ephemeral=True)
             else:
-                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定",description=f"サーバーで設定は`有効`です\n設定チャンネル: <#{n_fc.welcome_id_list[guild_id]}>", color=0x00ff00),ephemeral=True)
+                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"サーバーで設定は`有効`です\n設定チャンネル: <#{n_fc.welcome_id_list[guild_id]}>", color=0x00ff00), ephemeral=True)
 
     @nextcord.slash_command(name="ui", description="サーバー加入/離脱した場合にそのユーザーの情報を表示します", guild_ids=n_fc.GUILD_IDS)
     async def ui_slash(self, interaction):
@@ -171,14 +176,14 @@ class user(commands.Cog):
 
     @ui_slash.subcommand(name="set", description="ユーザー表示チャンネルをセットします")
     async def set_slash(
-            self,
-            interaction: Interaction,
-            channel: nextcord.abc.GuildChannel = SlashOption(
-                name="channel",
-                description="メッセージを送信するチャンネルです",
-                required=True
-            )
-        ):
+        self,
+        interaction: Interaction,
+        channel: nextcord.abc.GuildChannel = SlashOption(
+            name="channel",
+            description="メッセージを送信するチャンネルです",
+            required=True
+        )
+    ):
         if admin_check.admin_check(interaction.guild, interaction.user):
             await self.ui_config(self.bot, interaction, SET, interaction.guild.id, channel)
         else:
@@ -187,9 +192,9 @@ class user(commands.Cog):
 
     @ui_slash.subcommand(name="del", description="ユーザー表示チャンネル設定を削除します")
     async def del_slash(
-            self,
-            interaction: Interaction
-        ):
+        self,
+        interaction: Interaction
+    ):
         if admin_check.admin_check(interaction.guild, interaction.user):
             await self.ui_config(self.bot, interaction, DEL, interaction.guild.id, None)
         else:
@@ -198,9 +203,9 @@ class user(commands.Cog):
 
     @ui_slash.subcommand(name="status", description="ユーザー表示チャンネル設定を確認します")
     async def status_slash(
-            self,
-            interaction: Interaction
-        ):
+        self,
+        interaction: Interaction
+    ):
         if admin_check.admin_check(interaction.guild, interaction.user):
             await self.ui_config(self.bot, interaction, STATUS, interaction.guild.id, None)
         else:
@@ -224,7 +229,7 @@ class user(commands.Cog):
                 channel = await self.bot.fetch_channel(set_id)
                 await self.ui_config(self.bot, ctx, SET, ctx.guild.id, channel)
                 return
-            elif  mes_arg[1] == "del":
+            elif mes_arg[1] == "del":
                 await self.ui_config(self.bot, ctx, DEL, ctx.guild.id, None)
                 return
             else:

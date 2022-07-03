@@ -70,9 +70,9 @@ class PollPanelSlashInput(nextcord.ui.Modal):
 
         embed_content = ""
         if int("".join(re.findall(r'[0-1]', self.PollType.value))) == 0:
-            embed_content =  "`一人一票`\n" + ":なし\n".join(values) + ":なし"
+            embed_content = "`一人一票`\n" + ":なし\n".join(values) + ":なし"
         else:
-            embed_content =  "`一人何票でも`\n" + ":なし\n".join(values) + ":なし"
+            embed_content = "`一人何票でも`\n" + ":なし\n".join(values) + ":なし"
 
         self.bot.add_view(PollPanelView(values))
         PollViews.append(values)
@@ -81,7 +81,7 @@ class PollPanelSlashInput(nextcord.ui.Modal):
         with open(f'{sys.path[0]}/PollViews.nira', 'wb') as f:
             pickle.dump(PollViews, f)
         try:
-            await interaction.followup.send(f"作成者:{interaction.user.mention}",embed=nextcord.Embed(title=f"{self.EmbedTitle.value}", description=embed_content, color=0x00ff00), view=PollPanelView(values))
+            await interaction.followup.send(f"作成者:{interaction.user.mention}", embed=nextcord.Embed(title=f"{self.EmbedTitle.value}", description=embed_content, color=0x00ff00), view=PollPanelView(values))
         except BaseException as err:
             await interaction.followup.send(f"エラー: `{err}`")
             return
@@ -98,7 +98,8 @@ class PollPanelView(nextcord.ui.View):
 
 class PollPanelButton(nextcord.ui.Button):
     def __init__(self, arg):
-        super().__init__(label=arg, style=nextcord.ButtonStyle.green, custom_id=f"PolePanel:{arg}")
+        super().__init__(label=arg, style=nextcord.ButtonStyle.green,
+                         custom_id=f"PolePanel:{arg}")
 
     async def callback(self, interaction: Interaction):
         try:
@@ -115,7 +116,8 @@ class PollPanelButton(nextcord.ui.Button):
             Pollers = []
             for i in content.splitlines()[1:]:
                 if i.split(":")[1] != "なし":
-                    choice[i.split(":")[0]] = [j for j in i.split(":")[1].split("/")]
+                    choice[i.split(":")[0]] = [
+                        j for j in i.split(":")[1].split("/")]
                 else:
                     choice[i.split(":")[0]] = []
 
@@ -179,14 +181,14 @@ class pollpanel(commands.Cog):
 
     @nextcord.slash_command(name="pollpanel", description="投票パネルを設置します", guild_ids=n_fc.GUILD_IDS)
     async def rolepanel_slash(
-            self,
-            interaction: Interaction
-        ):
+        self,
+        interaction: Interaction
+    ):
         modal = PollPanelSlashInput(self.bot)
         await interaction.response.send_modal(modal=modal)
         return
 
-    @commands.command(name="pollpanel", aliases=["ポールパネル","pp","poll",], help="""\
+    @commands.command(name="pollpanel", aliases=["ポールパネル", "pp", "poll", ], help="""\
 投票パネル機能
 
 ボタンを押すことで投票できるパネルを作成します。
@@ -202,7 +204,7 @@ n!pollpanel [on/off] [メッセージ内容]
 
 選択肢は最大で24個まで指定できます。""")
     async def pollpanel(self, ctx: commands.Context):
-        if ctx.message.content == "n!pollpanel debug":
+        if ctx.message.content == f"{self.bot.command_prefix}pollpanel debug":
             await ctx.message.add_reaction('🐛')
             if ctx.author.id in n_fc.py_admin:
                 await ctx.send(f"{ctx.message.author.mention}", embed=nextcord.Embed(title="Views", description=PollViews, color=0x00ff00))
@@ -211,7 +213,7 @@ n!pollpanel [on/off] [メッセージ内容]
                 await ctx.send(f"{ctx.message.author.mention}", embed=nextcord.Embed(title="ERR", description="あなたは管理者ではありません。", color=0xff0000))
                 return
         if len(ctx.message.content.splitlines()) < 2:
-            await ctx.send("投票パネル機能を使用するにはメッセージ内容と選択肢を指定してください。\n```\nn!pollpanel [on/off] [メッセージ内容]\n[選択肢1]\n[選択肢2]...```")
+            await ctx.send(f"投票パネル機能を使用するにはメッセージ内容と選択肢を指定してください。\n```\n{self.bot.command_prefix}pollpanel [on/off] [メッセージ内容]\n[選択肢1]\n[選択肢2]...```")
             return
         elif len(ctx.message.content.splitlines()) > 25:
             await ctx.send("投票パネル機能は最大で24個まで選択肢を指定できます。")
@@ -219,12 +221,12 @@ n!pollpanel [on/off] [メッセージ内容]
         args = ctx.message.content.splitlines()[0].split(" ", 2)
 
         if len(args) == 2:
-            if args[1] not in ["on","off"]:
+            if args[1] not in ["on", "off"]:
                 await ctx.send("引数が異常です。")
                 return
             content = "にらBOT 投票パネル"
         elif len(args) == 3:
-            if args[1] not in ["on","off"]:
+            if args[1] not in ["on", "off"]:
                 await ctx.send("引数が異常です。")
                 return
             content = args[2]
@@ -234,10 +236,10 @@ n!pollpanel [on/off] [メッセージ内容]
         ViewArgs = ctx.message.content.splitlines()[1:]
         embed_content = ""
         if args[1] == "on":
-            embed_content =  "`一人一票`\n" + ":なし\n".join(ViewArgs) + ":なし"
+            embed_content = "`一人一票`\n" + ":なし\n".join(ViewArgs) + ":なし"
             poll_type = True
         else:
-            embed_content =  "`一人何票でも`\n" + ":なし\n".join(ViewArgs) + ":なし"
+            embed_content = "`一人何票でも`\n" + ":なし\n".join(ViewArgs) + ":なし"
             poll_type = False
 
         self.bot.add_view(PollPanelView(ViewArgs))
@@ -245,7 +247,7 @@ n!pollpanel [on/off] [メッセージ内容]
         with open(f'{sys.path[0]}/PollViews.nira', 'wb') as f:
             pickle.dump(PollViews, f)
         try:
-            await ctx.send(f"作成者:{ctx.author.mention}",embed=nextcord.Embed(title=f"{content}", description=embed_content, color=0x00ff00), view=PollPanelView(ViewArgs))
+            await ctx.send(f"作成者:{ctx.author.mention}", embed=nextcord.Embed(title=f"{content}", description=embed_content, color=0x00ff00), view=PollPanelView(ViewArgs))
         except BaseException as err:
             await ctx.send(f"エラー: `{err}`")
             return

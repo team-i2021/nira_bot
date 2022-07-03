@@ -98,11 +98,13 @@ class RolePanelView(nextcord.ui.View):
 
 class RolePanelButton(nextcord.ui.Button):
     def __init__(self, arg):
-        super().__init__(label=arg[0], style=nextcord.ButtonStyle.green, custom_id=f"RolePanel:{arg[1]}")
+        super().__init__(
+            label=arg[0], style=nextcord.ButtonStyle.green, custom_id=f"RolePanel:{arg[1]}")
 
     async def callback(self, interaction: Interaction):
         try:
-            role = interaction.guild.get_role(int(self.custom_id.split(':')[1]))
+            role = interaction.guild.get_role(
+                int(self.custom_id.split(':')[1]))
             for i in interaction.user.roles:
                 if i == role:
                     await interaction.user.remove_roles(role)
@@ -121,14 +123,14 @@ class rolepanel(commands.Cog):
 
     @nextcord.slash_command(name="rolepanel", description="ロールパネルを設置します", guild_ids=n_fc.GUILD_IDS)
     async def rolepanel_slash(
-            self,
-            interaction: Interaction
-        ):
+        self,
+        interaction: Interaction
+    ):
         modal = RolePanelSlashInput(self.bot)
         await interaction.response.send_modal(modal=modal)
         return
 
-    @commands.command(name="rolepanel", aliases=["ロールパネル","rp","ろーるぱねる","ろーぱね"], help="""\
+    @commands.command(name="rolepanel", aliases=["ロールパネル", "rp", "ろーるぱねる", "ろーぱね"], help="""\
 ロールパネル機能
 
 ボタンを押すことでロールを付与/削除するメッセージを送信します。
@@ -141,7 +143,7 @@ n!rolepanel [メッセージ内容]
 ロールは最大で25個まで指定できます。
 ただ、重複してのロール指定はできません。""")
     async def rolepanel(self, ctx: commands.Context):
-        if ctx.message.content == "n!rolepanel debug":
+        if ctx.message.content == f"{self.bot.command_prefix}rolepanel debug":
             await ctx.message.add_reaction('🐛')
             if ctx.author.id in n_fc.py_admin:
                 await ctx.send(f"{ctx.message.author.mention}", embed=nextcord.Embed(title="Views", description=PersistentViews, color=0x00ff00))

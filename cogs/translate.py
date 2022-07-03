@@ -23,6 +23,7 @@ EN = ["en", "eng", "英語", "えいご", "米", "英"]
 
 TRANS_COMP = re.compile('[a-zA-Z0-9.,_;:()!?-]+')
 
+
 class TranslateModal(nextcord.ui.Modal):
     def __init__(self, translator: deepl.Translator, source_lang: str or None, target_lang: str):
         super().__init__(
@@ -146,16 +147,16 @@ class Translate(commands.Cog):
             return
         args = ctx.message.content.split(" ", 2)
         if len(args) == 1:
-            await ctx.reply(embed=nextcord.Embed(title="エラー", description="翻訳先を指定してください\n`n!translate [ja/en] [text]`", color=0xFF0000))
+            await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"翻訳先を指定してください\n`{self.bot.command_prefix}translate [ja/en] [text]`", color=0xFF0000))
         elif len(args) == 2:
-            await ctx.reply(embed=nextcord.Embed(title="エラー", description="引数が足りません。\n`n!translate [ja/en] [text]`", color=0xFF0000))
+            await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"引数が足りません。\n`{self.bot.command_prefix}translate [ja/en] [text]`", color=0xFF0000))
         else:
             if args[1].lower() in JA:
                 lang = "JA"
             elif args[1].lower() in EN:
                 lang = "EN-US"
             else:
-                await ctx.reply(embed=nextcord.Embed(title="エラー", description="言語設定がおかしいです。\n英語:`en`/日本語:`jp`\n`n!translate [ja/en] [text]`", color=0xff0000))
+                await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"言語設定がおかしいです。\n英語:`en`/日本語:`jp`\n`{self.bot.command_prefix}translate [ja/en] [text]`", color=0xff0000))
                 return
             try:
                 async with ctx.message.channel.typing():

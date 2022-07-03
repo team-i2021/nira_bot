@@ -36,8 +36,8 @@ class Amuse(commands.Cog):
 ダイスの最小値
 デフォルト:1""")
     async def dice_ctx(self, ctx: commands.context):
-        if ctx.message.content == "n!dice":
-            await ctx.reply(embed=nextcord.Embed(title="エラー", description="サイコロだよ！\n`n!dice [最大値] [最小値]`", color=0xff0000))
+        if ctx.message.content == f"{self.bot.command_prefix}dice":
+            await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"サイコロだよ！\n`{self.bot.command_prefix}dice [最大値] [最小値]`", color=0xff0000))
             return
         args = ctx.message.content.split(" ", 2)
         max_count, min_count = (0, 0)
@@ -131,8 +131,8 @@ class Amuse(commands.Cog):
         await interaction.followup.send(embed=embed)
 
     def jankenEmbed(self, content, type):
-        if type == MESSAGE and content == "n!janken":
-            return nextcord.Embed(title="Error", description="じゃんけんっていのは、「グー」「チョキ」「パー」のどれかを出して遊ぶゲームだよ。\n[ルール解説](https://ja.wikipedia.org/wiki/%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93#:~:text=%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93%E3%81%AF2%E4%BA%BA%E4%BB%A5%E4%B8%8A,%E3%81%A8%E6%95%97%E8%80%85%E3%82%92%E6%B1%BA%E5%AE%9A%E3%81%99%E3%82%8B%E3%80%82)\n```n!janken [グー/チョキ/パー]```", color=0xff0000)
+        if type == MESSAGE and content == f"{self.bot.command_prefix}janken":
+            return nextcord.Embed(title="Error", description=f"じゃんけんっていのは、「グー」「チョキ」「パー」のどれかを出して遊ぶゲームだよ。\n[ルール解説](https://ja.wikipedia.org/wiki/%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93#:~:text=%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93%E3%81%AF2%E4%BA%BA%E4%BB%A5%E4%B8%8A,%E3%81%A8%E6%95%97%E8%80%85%E3%82%92%E6%B1%BA%E5%AE%9A%E3%81%99%E3%82%8B%E3%80%82)\n```{self.bot.command_prefix}janken [グー/チョキ/パー]```", color=0xff0000)
         mes_te = ""
         try:
             if type == MESSAGE:
@@ -140,11 +140,11 @@ class Amuse(commands.Cog):
             elif type == SLASH:
                 mes_te = content
         except BaseException as err:
-            return nextcord.Embed(title="Error", description=f"な、なんかエラー出たけど！？\n```n!janken [グー/チョキ/パー]```\n{err}", color=0xff0000)
+            return nextcord.Embed(title="Error", description=f"な、なんかエラー出たけど！？\n```{self.bot.command_prefix}janken [グー/チョキ/パー]```\n{err}", color=0xff0000)
         if mes_te != "グー" and mes_te != "ぐー" and mes_te != "チョキ" and mes_te != "ちょき" and mes_te != "パー" and mes_te != "ぱー":
-            return nextcord.Embed(title="Error", description="じゃんけんっていのは、「グー」「チョキ」「パー」のどれかを出して遊ぶゲームだよ。\n[ルール解説](https://ja.wikipedia.org/wiki/%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93#:~:text=%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93%E3%81%AF2%E4%BA%BA%E4%BB%A5%E4%B8%8A,%E3%81%A8%E6%95%97%E8%80%85%E3%82%92%E6%B1%BA%E5%AE%9A%E3%81%99%E3%82%8B%E3%80%82)\n```n!janken [グー/チョキ/パー]```", color=0xff0000)
+            return nextcord.Embed(title="Error", description=f"じゃんけんっていのは、「グー」「チョキ」「パー」のどれかを出して遊ぶゲームだよ。\n[ルール解説](https://ja.wikipedia.org/wiki/%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93#:~:text=%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93%E3%81%AF2%E4%BA%BA%E4%BB%A5%E4%B8%8A,%E3%81%A8%E6%95%97%E8%80%85%E3%82%92%E6%B1%BA%E5%AE%9A%E3%81%99%E3%82%8B%E3%80%82)\n```{self.bot.command_prefix}janken [グー/チョキ/パー]```", color=0xff0000)
         embed = nextcord.Embed(
-            title="にらにらじゃんけん", description="```n!janken [グー/チョキ/パー]```", color=0x00ff00)
+            title="にらにらじゃんけん", description=f"```{self.bot.command_prefix}janken [グー/チョキ/パー]```", color=0x00ff00)
         if mes_te == "グー" or mes_te == "ぐー":
             mes_te = "```グー```"
             embed.add_field(name="あなた", value=mes_te, inline=False)

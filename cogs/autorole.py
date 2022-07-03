@@ -56,7 +56,7 @@ class autorole(commands.Cog):
             if type == SLASH:
                 usage = "`/autorole on [ロール]` / `/autorole off` / `/autorole status`"
             else:
-                usage = "`n!autorole on [ロール名/ロールID/メンション]` / `n!autorole off`"
+                usage = f"`n!autorole on [ロール名/ロールID/メンション]` / `{self.bot.command_prefix}autorole off`"
 
             return (None, nextcord.Embed(title="自動ロール", description=f"{msg}\n{usage}", color=0x00ff00))
 
@@ -95,7 +95,8 @@ class autorole(commands.Cog):
                 msg = ("自動ロール\nエラー：ロールは１つのみ指定できます。", None)
 
             elif ctx.message.role_mentions:
-                msg = self.autorole_message(MESSAGE, ON, ctx.author, ctx.guild, ctx.message.role_mentions[0])
+                msg = self.autorole_message(
+                    MESSAGE, ON, ctx.author, ctx.guild, ctx.message.role_mentions[0])
 
             else:
                 role = None
@@ -114,17 +115,20 @@ class autorole(commands.Cog):
                 if role is None:
                     msg = ("自動ロール\nエラー：指定したロールが見つかりません。", None)
                 else:
-                    msg = self.autorole_message(MESSAGE, ON, ctx.author, ctx.guild, role)
+                    msg = self.autorole_message(
+                        MESSAGE, ON, ctx.author, ctx.guild, role)
 
         else:
-            msg = (None, nextcord.Embed(title="自動ロール", description="コマンドの使用方法が不正です。\n`n!autorole on [ロール名又はロールID]`/`n!autorole off`", color=0x00ff00))
+            msg = (None, nextcord.Embed(
+                title="自動ロール", description=f"コマンドの使用方法が不正です。\n`n!autorole on [ロール名又はロールID]`/`{self.bot.command_prefix}autorole off`", color=0x00ff00))
 
         await messages.mreply(ctx, msg[0], embed=msg[1])
         return
 
     @autorole.subcommand(name="off", description="自動ロールを無効にします")
     async def autorole_off(self, interaction: Interaction):
-        msg = self.autorole_message(SLASH, OFF, interaction.user, interaction.guild)
+        msg = self.autorole_message(
+            SLASH, OFF, interaction.user, interaction.guild)
         await messages.mreply(interaction, msg[0], embed=msg[1], ephemeral=True)
         return
 
@@ -138,13 +142,15 @@ class autorole(commands.Cog):
                 required=True
             )
     ):
-        msg = self.autorole_message(SLASH, ON, interaction.user, interaction.guild, role)
+        msg = self.autorole_message(
+            SLASH, ON, interaction.user, interaction.guild, role)
         await messages.mreply(interaction, msg[0], embed=msg[1], ephemeral=True)
         return
 
     @autorole.subcommand(name="status", description="自動ロールの設定状態を確認します")
     async def autorole_status(self, interaction: Interaction):
-        msg = self.autorole_message(SLASH, STATUS, interaction.user, interaction.guild)
+        msg = self.autorole_message(
+            SLASH, STATUS, interaction.user, interaction.guild)
         await messages.mreply(interaction, msg[0], embed=msg[1], ephemeral=True)
         return
 

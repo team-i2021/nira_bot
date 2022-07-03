@@ -54,7 +54,7 @@ async def server_check(embed, type, g_id, n):
     except BaseException:
         embed.add_field(
             name=f"サーバーは{n}にはセットされていません。",
-            value="`n!ss list`でサーバーリストを確認してみましょう！",
+            value=f"`n!ss list`でサーバーリストを確認してみましょう！",
             inline=False
         )
         return
