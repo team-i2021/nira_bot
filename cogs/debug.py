@@ -69,7 +69,7 @@ async def base_cog(bot, ctx, command, name):
     else:
         type = 1
     if ctx.author.id in n_fc.py_admin:
-        if type == 0 and command == None and name == None or type == 1 and ctx.message.content == "n!cog":
+        if type == 0 and command == None and name == None or type == 1 and ctx.message.content == f"{bot.command_prefix}cog":
             embed = nextcord.Embed(
                 title="cogs", description="`extension`", color=0x00ff00)
             embed.add_field(
@@ -95,19 +95,20 @@ async def base_cog(bot, ctx, command, name):
             embed.add_field(name="user", value="ユーザー情報表示系コマンド。\n`d`/`ui`")
             embed.add_field(
                 name="Cog function", value="cog系のコマンドです。`[Cog name]`には「`cog.`」を抜いたCogの名前だけを入力してください。", inline=False)
-            embed.add_field(name="`/cog`/`n!cog`", value="cogの情報を表示します。")
             embed.add_field(
-                name="`/cog reload [Cog name]`/`n!cog reload [Cog name]`", value="指定したCogをリロードします。")
+                name=f"`/cog`/`{bot.command_prefix}cog`", value="cogの情報を表示します。")
             embed.add_field(
-                name="`/cog load [Cog name]`/`n!cog load [Cog name]`", value="指定したCogをロードします。")
+                name=f"`/cog reload [Cog name]`/`{bot.command_prefix}cog reload [Cog name]`", value="指定したCogをリロードします。")
             embed.add_field(
-                name="`/cog unload [Cog name]`/`n!cog unload [Cog name]`", value="指定したCogをアンロードします。")
+                name=f"`/cog load [Cog name]`/`{bot.command_prefix}cog load [Cog name]`", value="指定したCogをロードします。")
+            embed.add_field(
+                name=f"`/cog unload [Cog name]`/`{bot.command_prefix}cog unload [Cog name]`", value="指定したCogをアンロードします。")
             if type == 0:
                 await ctx.respond(embed=embed)
             else:
                 await ctx.reply(embed=embed)
             return
-        elif type == 0 and command == "reload" and name != None or ctx.message.content[:12] == "n!cog reload":
+        elif type == 0 and command == "reload" and name != None or ctx.message.content[:12] == f"{bot.command_prefix}cog reload":
             if type == 0:
                 try:
                     bot.reload_extension(f"cogs.{name}")
@@ -120,7 +121,7 @@ async def base_cog(bot, ctx, command, name):
                     await ctx.reply(f"リロードしました。")
                 except BaseException as err:
                     await ctx.reply(f"リロードできませんでした。\n```{err}```")
-        elif type == 0 and command == "load" and name != None or ctx.message.content[:10] == "n!cog load":
+        elif type == 0 and command == "load" and name != None or ctx.message.content[:10] == f"{bot.command_prefix}cog load":
             if type == 0:
                 try:
                     bot.reload_extension(f"cogs.{name}")
@@ -133,7 +134,7 @@ async def base_cog(bot, ctx, command, name):
                     await ctx.reply(f"ロードしました。")
                 except BaseException as err:
                     await ctx.reply(f"ロードできませんでした。\n```{err}```")
-        elif type == 0 and command == "unload" and name != None or ctx.message.content[:12] == "n!cog unload":
+        elif type == 0 and command == "unload" and name != None or ctx.message.content[:12] == f"{bot.command_prefix}cog unload":
             if type == 0:
                 try:
                     bot.unload_extension(f"cogs.{name}")
@@ -146,7 +147,7 @@ async def base_cog(bot, ctx, command, name):
                     await ctx.reply(f"アンロードしました。")
                 except BaseException as err:
                     await ctx.reply(f"アンロードできませんでした。\n```{err}```")
-        elif type == 0 and command == "list" or ctx.message.content == "n!cog list":
+        elif type == 0 and command == "list" or ctx.message.content == f"{bot.command_prefix}cog list":
             await ctx.reply(list(dict(bot.cogs).keys()))
         elif type == 0 and command == None or type == 0 and name == None:
             await ctx.respond("コマンドの引数が異常です。")
@@ -212,7 +213,7 @@ class debug(commands.Cog):
                 logging.info(traceback.format_exc())
             await ctx.message.add_reaction("\U00002705")
         else:
-            await ctx.message.reply(embed=nextcord.Embed(title="Error", description="You don't have the required permission!", color=0xff0000))
+            await ctx.message.reply(embed=nextcord.Embed(title="Error", description=f"You don't have the required permission.", color=0xff0000))
 
     @commands.command()
     async def restart(self, ctx: commands.Context):
@@ -232,7 +233,8 @@ class debug(commands.Cog):
             try:
                 save()
                 await restart_code.edit(content="```\nnira@nira-bot $ sudo restart nira-bot\nAre you sure want to restart nira-bot?[y/n]\ny\nRestarting nira-bot now...```")
-                logging.info("-----[n!restart]コマンドが実行されたため、再起動します。-----")
+                logging.info(
+                    f"-----[{self.bot.command_prefix}restart]コマンドが実行されたため、再起動します。-----")
                 subprocess.run(
                     f'sudo systemctl restart nira',
                     stdout=PIPE,
@@ -243,11 +245,11 @@ class debug(commands.Cog):
                 return
             except BaseException as err:
                 await ctx.message.reply(f"An error has occurred during restart operation.\n```\n{err}```")
-                await self.bot.change_presence(activity=nextcord.Game(name="n!help", type=1), status=nextcord.Status.idle)
+                await self.bot.change_presence(activity=nextcord.Game(name=f"{self.bot.command_prefix}help", type=1), status=nextcord.Status.idle)
                 return
         else:
             embed = nextcord.Embed(
-                title="Error", description="You don't have the required permission!", color=0xff0000)
+                title="Error", description=f"You don't have the required permission.", color=0xff0000)
             await ctx.message.reply(embed=embed)
             return
 
@@ -270,7 +272,8 @@ class debug(commands.Cog):
             try:
                 save()
                 await exit_code.edit(content="```\nnira@nira-bot $ sudo shutdown nira-bot\nAre you sure want to shutdown nira-bot?[y/n]\ny\nShutdowning nira-bot now...```")
-                logging.info("-----[n!exit]コマンドが実行されたため、終了します。-----")
+                logging.info(
+                    f"-----[{self.bot.command_prefix}exit]コマンドが実行されたため、終了します。-----")
                 await self.bot.close()
                 subprocess.run(
                     f'sudo systemctl stop nira',
@@ -282,11 +285,11 @@ class debug(commands.Cog):
                 return
             except BaseException as err:
                 await ctx.message.reply(f"An error has occurred during shutdown operation.\n```\n{err}```")
-                await self.bot.change_presence(activity=nextcord.Game(name="n!help", type=1), status=nextcord.Status.idle)
+                await self.bot.change_presence(activity=nextcord.Game(name=f"{self.bot.command_prefix}help", type=1), status=nextcord.Status.idle)
                 return
         else:
             embed = nextcord.Embed(
-                title="Error", description="You don't have the required permission!", color=0xff0000)
+                title="Error", description=f"You don't have the required permission.", color=0xff0000)
             await ctx.message.reply(embed=embed)
             return
 
@@ -294,24 +297,24 @@ class debug(commands.Cog):
     async def py(self, ctx: commands.Context):
         if ctx.message.author.id not in n_fc.py_admin:
             embed = nextcord.Embed(
-                title="Error", description="You don't have the required permission!", color=0xff0000)
+                title="Error", description=f"You don't have the required permission.", color=0xff0000)
             await ctx.message.reply(embed=embed)
             await ctx.message.add_reaction("\U0000274C")
             return
-        if ctx.message.content == "n!py":
+        if ctx.message.content == f"{self.bot.command_prefix}py":
             embed = nextcord.Embed(
                 title="Error", description="The command has no enough arguments!", color=0xff0000)
             await ctx.message.reply(embed=embed)
             await ctx.message.add_reaction("\U0000274C")
             return
-        if ctx.message.content[:10] == "n!py await":
+        if ctx.message.content.startswith(f"{self.bot.command_prefix}py await"):
             if ctx.message.author.id not in n_fc.py_admin:
                 embed = nextcord.Embed(
-                    title="Error", description="You don't have the required permission!", color=0xff0000)
+                    title="Error", description=f"You don't have the required permission.", color=0xff0000)
                 await ctx.message.repcly(embed=embed)
                 await ctx.message.add_reaction("\U0000274C")
                 return
-            if ctx.message.content == "n!py await":
+            if ctx.message.content == f"{self.bot.command_prefix}py await":
                 embed = nextcord.Embed(
                     title="Error", description="The command has no enough arguments!", color=0xff0000)
                 await ctx.message.reply(embed=embed)
@@ -349,12 +352,12 @@ class debug(commands.Cog):
     async def sh(self, ctx: commands.Context):
         if ctx.message.author.id not in n_fc.py_admin:
             embed = nextcord.Embed(
-                title="Error", description="You don't have the required permission!", color=0xff0000)
+                title="Error", description=f"You don't have the required permission.", color=0xff0000)
             await ctx.message.reply(embed=embed)
             await ctx.message.add_reaction("\U0000274C")
             return
         else:
-            if ctx.message.content == "n!sh":
+            if ctx.message.content == f"{self.bot.command_prefix}sh":
                 embed = nextcord.Embed(
                     title="Error", description="The command has no enough arguments!", color=0xff0000)
                 await ctx.message.reply(embed=embed)
@@ -393,7 +396,7 @@ class debug(commands.Cog):
             return
         else:
             embed = nextcord.Embed(
-                title="Error", description="You don't have the required permission!", color=0xff0000)
+                title="Error", description=f"You don't have the required permission.", color=0xff0000)
             await ctx.message.reply(embed=embed)
             return
 
@@ -455,14 +458,14 @@ class debug(commands.Cog):
     async def reaction(self, ctx: commands.Context):
         if ctx.author.id not in n_fc.py_admin:
             embed = nextcord.Embed(
-                title="Error", description="You don't have the required permission!", color=0xff0000)
+                title="Error", description=f"You don't have the required permission.", color=0xff0000)
             await ctx.message.reply(embed=embed)
             return
         else:
-            if ctx.message.content == "n!reaction":
+            if ctx.message.content == f"{self.bot.command_prefix}reaction":
                 await ctx.reply("引数「ReplyID」が足りません。")
                 return
-            if ctx.message.content == "n!reaction reload":
+            if ctx.message.content == f"{self.bot.command_prefix}reaction reload":
                 importlib.reload(nr)
                 await ctx.reply("End")
             try:
@@ -473,7 +476,7 @@ class debug(commands.Cog):
     @commands.command()
     async def debug(self, ctx: commands.Context):
         if ctx.author.id in n_fc.py_admin:
-            if ctx.message.content == "n!debug reload":
+            if ctx.message.content == f"{self.bot.command_prefix}debug reload":
                 message = await ctx.reply("変数の再ロードをしています...")
                 try:
                     save()
@@ -500,102 +503,94 @@ class debug(commands.Cog):
     async def db_get(self, interaction: Interaction, key: str = SlashOption(name="key", description="key", required=True)):
         if not (await self.bot.is_owner(interaction.user)):
             raise Exception("Forbidden")
+        await interaction.response.defer()
         try:
-            key = int(key)
-        except ValueError:
-            pass
-        try:
+            key = eval(key)
             value = await self.client.get(key)
-            await interaction.response.send_message(embed=nextcord.Embed(title="POST:/get", description=f"```\n{value}```", color=0x00ff00))
-        except HTTP_db.HTTP_db_Exception as err:
-            await interaction.response.send_message(embed=nextcord.Embed(title="POST:/get", description=f"```\n{err}```", color=0xFF0000))
+            await interaction.followup.send(embed=nextcord.Embed(title="POST:/get", description=f"```\n{value}```", color=0x00ff00))
+        except Exception:
+            await interaction.followup.send(embed=nextcord.Embed(title="POST:/get", description=f"```\n{traceback.format_exc()}```", color=0xFF0000))
 
     @db.subcommand(name="get_all", description="Method POST:/get_all")
     async def db_get_all(self, interaction: Interaction):
         if not (await self.bot.is_owner(interaction.user)):
             raise Exception("Forbidden")
+        await interaction.response.defer()
         try:
             value = await self.client.get_all()
-            await interaction.response.send_message(embed=nextcord.Embed(title="POST:/get_all", description=f"```\n{value}```", color=0x00ff00))
-        except HTTP_db.HTTP_db_Exception as err:
-            await interaction.response.send_message(embed=nextcord.Embed(title="POST:/get_all", description=f"```\n{err}```", color=0xFF0000))
+            await interaction.followup.send(embed=nextcord.Embed(title="POST:/get_all", description=f"```\n{value}```", color=0x00ff00))
+        except Exception:
+            await interaction.followup.send(embed=nextcord.Embed(title="POST:/get_all", description=f"```\n{traceback.format_exc()}```", color=0xFF0000))
 
     @db.subcommand(name="post", description="Method POST:/post")
     async def db_post(self, interaction: Interaction, key: str = SlashOption(name="key", description="key", required=True), value: str = SlashOption(name="value", description="value", required=True)):
         if not (await self.bot.is_owner(interaction.user)):
             raise Exception("Forbidden")
+        await interaction.response.defer()
         try:
-            key = int(key)
-        except ValueError:
-            pass
-        try:
-            eval(value)
-        except Exception as err:
-            await interaction.response.send_message(embed=nextcord.Embed(title="POST:/post", description=f"```\n{err}```", color=0xff0000))
-            return
-        try:
-            await self.client.post(key, eval(value))
-            await interaction.response.send_message(embed=nextcord.Embed(title="POST:/post", description=f"```\n{value}```", color=0x00ff00))
-        except HTTP_db.HTTP_db_Exception as err:
-            await interaction.response.send_message(embed=nextcord.Embed(title="POST:/post", description=f"```\n{err}```", color=0xFF0000))
+            key = eval(key)
+            value = eval(value)
+            await self.client.post(key, value)
+            await interaction.followup.send(embed=nextcord.Embed(title="POST:/post", description=f"```\n{value}```", color=0x00ff00))
+        except Exception:
+            await interaction.followup.send(embed=nextcord.Embed(title="POST:/post", description=f"```\n{traceback.format_exc()}```", color=0xFF0000))
 
     @db.subcommand(name="exists", description="Method POST:/exists")
     async def db_exists(self, interaction: Interaction, key: str = SlashOption(name="key", description="key", required=True)):
         if not (await self.bot.is_owner(interaction.user)):
             raise Exception("Forbidden")
+        await interaction.response.defer()
         try:
-            key = int(key)
-        except ValueError:
-            pass
-        try:
+            key = eval(key)
             value = await self.client.exists(key)
-            await interaction.response.send_message(embed=nextcord.Embed(title="POST:/exists", description=f"```\n{value}```", color=0x00ff00))
-        except HTTP_db.HTTP_db_Exception as err:
-            await interaction.response.send_message(embed=nextcord.Embed(title="POST:/exists", description=f"```\n{err}```", color=0xFF0000))
+            await interaction.followup.send(embed=nextcord.Embed(title="POST:/exists", description=f"```\n{value}```", color=0x00ff00))
+        except Exception:
+            await interaction.followup.send(embed=nextcord.Embed(title="POST:/exists", description=f"```\n{traceback.format_exc()}```", color=0xFF0000))
 
     @db.subcommand(name="delete", description="Method POST:/delete")
     async def db_delete(self, interaction: Interaction, key: str = SlashOption(name="key", description="key", required=True)):
         if not (await self.bot.is_owner(interaction.user)):
             raise Exception("Forbidden")
+        await interaction.response.defer()
         try:
-            key = int(key)
-        except ValueError:
-            pass
-        try:
+            key = eval(key)
             await self.client.delete(key)
-            await interaction.response.send_message(embed=nextcord.Embed(title="POST:/delete", description=f"```\n{key}```", color=0x00ff00))
-        except HTTP_db.HTTP_db_Exception as err:
-            await interaction.response.send_message(embed=nextcord.Embed(title="POST:/delete", description=f"```\n{err}```", color=0xFF0000))
+            await interaction.followup.send(embed=nextcord.Embed(title="POST:/delete", description=f"```\n{key}```", color=0x00ff00))
+        except Exception:
+            await interaction.followup.send(embed=nextcord.Embed(title="POST:/delete", description=f"```\n{traceback.format_exc()}```", color=0xFF0000))
 
     @db.subcommand(name="delete_all", description="Method POST:/delete_all")
     async def db_delete_all(self, interaction: Interaction):
         if not (await self.bot.is_owner(interaction.user)):
             raise Exception("Forbidden")
+        await interaction.response.defer()
         try:
             await self.client.delete_all()
-            await interaction.response.send_message(embed=nextcord.Embed(title="POST:/delete_all", description="", color=0x00ff00))
-        except HTTP_db.HTTP_db_Exception as err:
-            await interaction.response.send_message(embed=nextcord.Embed(title="POST:/delete_all", description=f"```\n{err}```", color=0xFF0000))
+            await interaction.followup.send(embed=nextcord.Embed(title="POST:/delete_all", description="", color=0x00ff00))
+        except Exception:
+            await interaction.followup.send(embed=nextcord.Embed(title="POST:/delete_all", description=f"```\n{traceback.format_exc()}```", color=0xFF0000))
 
     @db.subcommand(name="info", description="Method GET:/info")
     async def db_info(self, interaction: Interaction):
         if not (await self.bot.is_owner(interaction.user)):
             raise Exception("Forbidden")
+        await interaction.response.defer()
         try:
             value = await self.client.info()
-            await interaction.response.send_message(embed=nextcord.Embed(title="GET:/info", description=f"{value}", color=0x00ff00))
-        except HTTP_db.HTTP_db_Exception as err:
-            await interaction.response.send_message(embed=nextcord.Embed(title="GET:/info", description=f"```\n{err}```", color=0xFF0000))
+            await interaction.followup.send(embed=nextcord.Embed(title="GET:/info", description=f"{value}", color=0x00ff00))
+        except Exception:
+            await interaction.followup.send(embed=nextcord.Embed(title="GET:/info", description=f"```\n{traceback.format_exc()}```", color=0xFF0000))
 
     @db.subcommand(name="ping", description="Method GET:/ping")
     async def db_ping(self, interaction: Interaction):
         if not (await self.bot.is_owner(interaction.user)):
             raise Exception("Forbidden")
+        await interaction.response.defer()
         try:
             value = await self.client.ping()
-            await interaction.response.send_message(embed=nextcord.Embed(title="GET:/ping", description=f"{round(float(value.ping) * 1000, 2)}ms", color=0x00ff00))
-        except HTTP_db.HTTP_db_Exception as err:
-            await interaction.response.send_message(embed=nextcord.Embed(title="GET:/ping", description=f"```\n{err}```", color=0xFF0000))
+            await interaction.followup.send(embed=nextcord.Embed(title="GET:/ping", description=f"{round(float(value.ping) * 1000, 2)}ms", color=0x00ff00))
+        except Exception:
+            await interaction.followup.send(embed=nextcord.Embed(title="GET:/ping", description=f"```\n{traceback.format_exc()}```", color=0xFF0000))
 
 
 def setup(bot):
