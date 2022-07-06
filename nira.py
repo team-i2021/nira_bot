@@ -213,9 +213,9 @@ for i in range(cogs_num):
             continue
         bot.load_extension(f"cogs.{cogs_list[i][:-3]}")
     except Exception as err:
-        print([f"Cog読み込み失敗:{cogs_list[i]}", err,
-              traceback.format_exc()], file=sys.stderr)
-        logging.error(err, traceback.format_exc())
+        print("Cog読み込み失敗:", cogs_list[i], file=sys.stderr)
+        traceback.print_exc()
+        logging.error(f"Cog読み込み失敗: {cogs_list[i]}", exc_info=True)
         continue
 print("Cogの読み込み終了")
 
