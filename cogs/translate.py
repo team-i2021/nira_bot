@@ -8,8 +8,10 @@ import traceback
 
 import deepl
 import nextcord
+import pycld2
 from nextcord import Interaction, SlashOption, ChannelType
 from nextcord.ext import commands
+
 
 from util import admin_check, n_fc, eh
 
@@ -23,6 +25,12 @@ EN = ["en", "eng", "英語", "えいご", "米", "英"]
 
 TRANS_COMP = re.compile('[a-zA-Z0-9.,_;:()!?-]+')
 
+def languageCheck(text: str) -> str:
+    isReliable, textBytesFound, details = pycld2.detect(text)
+    if "ja" == details[0][1]:
+        return "JA"
+    else:
+        return "EN"
 
 class TranslateModal(nextcord.ui.Modal):
     def __init__(self, translator: deepl.Translator, source_lang: str or None, target_lang: str):
@@ -119,13 +127,18 @@ class Translate(commands.Cog):
             return
         await interaction.response.send_modal(TranslateModal(self.translator, source_lang, target_lang))
 
-    @nextcord.message_command(name="Translation", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.message_command(name="メッセージ翻訳", guild_ids=n_fc.GUILD_IDS)
     async def translation_message_command(self, interaction: Interaction, message: nextcord.Message):
         await interaction.response.defer()
-        eng_cont = TRANS_COMP.findall(message.content)
-        sLang, tLang = ("EN", "JA")
-        if (len(eng_cont)/len(message.content)) <= 0.6:
-            sLang, tLang = ("JA", "EN-US")
+        if self.TOKEN is None:
+            await interaction.followup.send(
+                embed=nextcord.Embed(
+                    title="エラー", description="管理者にお伝えください。\n`DeepL API Key doesn't exist.`\nDeepL APIのキーが存在しません。\n`setting.json`の`translate`欄にAPIキーを入力してから、`cogs/translate.py`をリロードしてください。", color=0xff0000)
+            )
+            return
+        sLang = languageCheck(message.content)
+        if sLang == "EN": sLang, tLang = ("EN", "JA")
+        else: sLang, tLang = ("JA", "EN-US")
         result = self.translator.translate_text(
             message.content, target_lang=tLang, source_lang=sLang)
         embed = nextcord.Embed(
@@ -137,7 +150,9 @@ class Translate(commands.Cog):
 
     @commands.command(name="translate", alias=["tr", "翻訳"], help="""\
 翻訳
-`n!translate [ja/en] [text]`""")
+`n!translate [ja/en] [text]`
+
+Powered by DeepL Translate API""")
     async def command_translate(self, ctx: commands.Context):
         if self.TOKEN is None:
             await ctx.reply(
@@ -180,27 +195,32 @@ class Translate(commands.Cog):
             return
         if message.channel.topic is None:
             return
-        if re.search(u"nira-tl-(ja|en)", message.channel.topic):
+        if re.search(u"nira-tl-(ja|en|auto)", message.channel.topic):
             CONTENT = message.content
             if CONTENT == "" or CONTENT is None:
                 CONTENT = message.embeds[0].description
             if CONTENT == "" or CONTENT is None:
                 return
-            if re.search(u"nira-tl-(ja|en)", message.channel.topic).group() == "nira-tl-ja":
+            if re.search(u"nira-tl-(ja|en|auto)", message.channel.topic).group() == "nira-tl-ja":
                 TARGET = "JA"
-            elif re.search(u"nira-tl-(ja|en)", message.channel.topic).group() == "nira-tl-en":
+            elif re.search(u"nira-tl-(ja|en|auto)", message.channel.topic).group() == "nira-tl-en":
                 TARGET = "EN-US"
+            elif re.search(u"nira-tl-(ja|en|auto)", message.channel.topic).group() == "nira-tl-auto":
+                sLang = languageCheck(message.content)
+                TARGET = "JA"
+                if sLang == "JA": TARGET = "EN-US"
             else:
                 return
-            result = self.translator.translate_text(
-                CONTENT,
-                target_lang=TARGET
-            )
-            embed = nextcord.Embed(
-                title="翻訳結果", description=result.text, color=0x00ff00)
-            embed.set_footer(
-                text=f"DeepL Translate ([...]->[{TARGET}])", icon_url=ICON_URL)
-            await message.reply(embed=embed)
+            async with message.channel.typing():
+                result = self.translator.translate_text(
+                    CONTENT,
+                    target_lang=TARGET
+                )
+                embed = nextcord.Embed(
+                    title="翻訳結果", description=result.text, color=0x00ff00)
+                embed.set_footer(
+                    text=f"DeepL Translate ([...]->[{TARGET}])", icon_url=ICON_URL)
+                await message.reply(embed=embed)
 
 
 def setup(bot):

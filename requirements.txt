@@ -22,3 +22,4 @@ urlextract==1.5.0
 # pyngrok==5.1.0
 deepl==1.8.0
 HTTP-db>=1.2
+git+http://github.com/abosamoor/pycld2.git
