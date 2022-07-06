@@ -11,30 +11,20 @@ import nextcord
 from nextcord.ext import commands
 
 from cogs.debug import save
-from util import admin_check, n_fc, eh, database
+from util import admin_check, n_fc, eh, database, dict_list
+
+import HTTP_db
 
 # ユーザー参加時の挙動
-
-DBS = database.openSheet()
-DATABASE_KEY = "B7"
-
-
-def readValue():
-    data = database.readValue(DBS, DATABASE_KEY)
-    tmp = {}
-    for key, value in data.items():
-        tmp[int(key)] = value
-    data = tmp
-    return data
 
 
 class user_join(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.client: HTTP_db.Client = database.openClient()
 
     @commands.Cog.listener()
-    async def on_member_join(self, member):
-
+    async def on_member_join(self, member: nextcord.Member):
         try:
             channel = await self.bot.fetch_channel(n_fc.welcome_id_list[member.guild.id])
             if member.guild.id not in n_fc.role_keeper:
@@ -42,17 +32,23 @@ class user_join(commands.Cog):
                 for i in range(len(member.guild.members)):
                     if member.guild.members[i].id != member.id:
                         n_fc.role_keeper[member.guild.id][member.guild.members[i].id] = [
-                            j.id for j in member.guild.members[i].roles if j.name != "@everyone"]
+                            j.id for j in member.guild.members[i].roles if j.id != member.guild.id]
         except BaseException as err:
             logging.error(err)
 
         try:
             if member.id not in n_fc.role_keeper[member.guild.id]:
                 embed = nextcord.Embed(
-                    title="こんにちは！", description=f"名前： `{member.name}`\nID: `{member.id}`", color=0x00ff00)
+                    title="こんにちは！",
+                    description=f"名前： `{member.name}`\nID: `{member.id}`",
+                    color=0x00ff00
+                )
             else:
                 embed = nextcord.Embed(
-                    title="あれ、また会った？", description=f"名前： `{member.name}`\nID: `{member.id}`", color=0x00ff00)
+                    title="あれ、また会った？",
+                    description=f"名前： `{member.name}`\nID: `{member.id}`",
+                    color=0x00ff00
+                )
 
             if member.avatar is not None:
                 embed.set_thumbnail(url=member.avatar.url)
@@ -64,7 +60,7 @@ class user_join(commands.Cog):
             logging.error(err)
 
         try:
-            InviteData = readValue()
+            InviteData = dict_list.listToDict(await self.client.get("invite_data"))
             if member.guild.id not in InviteData:
                 InviteData[member.guild.id] = {i.url: [None, i.uses] for i in await member.guild.invites()}
             else:
@@ -74,14 +70,14 @@ class user_join(commands.Cog):
                         if i.url == key:
                             if i.uses != value[1]:
                                 invitedUrl = i
+                                InviteData[member.guild.id][invitedUrl.url][1] = invitedUrl.uses
                                 break
-                InviteData[member.guild.id][invitedUrl.url][1] += 1
                 invitedFrom = f"[{InviteData[member.guild.id][invitedUrl.url][0]}]({invitedUrl.url})"
                 if InviteData[member.guild.id][invitedUrl.url][0] is None:
                     invitedFrom = f"[{invitedUrl.url}]({invitedUrl.url})"
                 embed.add_field(
                     name="招待リンク", value=f"{invitedFrom}から招待を受けました！", inline=False)
-            database.writeValue(DBS, DATABASE_KEY, InviteData)
+            await self.client.post("invite_data", dict_list.dictToList(InviteData))
         except BaseException as err:
             logging.error(f"{err}\n{traceback.format_exc()}")
 
@@ -98,13 +94,11 @@ class user_join(commands.Cog):
         if n_fc.role_keeper[member.guild.id]["rk"] == 1:
 
             try:
-
                 if member.id not in n_fc.role_keeper[member.guild.id]:
                     n_fc.role_keeper[member.guild.id][member.id] = [
                         i.id for i in member.roles if i.name != "@everyone"]
 
                 else:
-                    role_text = ""
                     for i in range(len(n_fc.role_keeper[member.guild.id][member.id])):
                         role = member.guild.get_role(
                             n_fc.role_keeper[member.guild.id][member.id][i])
@@ -122,7 +116,11 @@ class user_join(commands.Cog):
         return
 
     @commands.Cog.listener()
-    async def on_member_remove(self, member):
+    async def on_member_remove(self, member: nextcord.Member):
+        leave_time = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
+        join_time = member.joined_at
+        time_diff: datetime.timedelta = leave_time - join_time
+        time_diff = time_diff.total_seconds()
         user_id = member.id
         try:
             user = await self.bot.fetch_user(user_id)
@@ -140,16 +138,12 @@ class user_join(commands.Cog):
             role_text = ""
             role_ids = []
             for i in range(len(member.roles)):
-                if member.roles[i].name == "@everyone":
-                    role_text = role_text + f" {member.roles[i].name} "
+                if member.roles[i].id == member.guild.id:
+                    pass
                 else:
                     role_text = role_text + f" <@&{member.roles[i].id}> "
                     role_ids.append(member.roles[i].id)
             embed.add_field(name="付与されていたロール", value=f"{role_text}")
-            leave_time = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
-            join_time = member.joined_at
-            time_diff: datetime.timedelta = leave_time - join_time
-            time_diff = time_diff.total_seconds()
             if time_diff <= 100:
                 embed.add_field(
                     name="即抜けRTA記録", value=f"`{round(time_diff, 4)}`秒")
