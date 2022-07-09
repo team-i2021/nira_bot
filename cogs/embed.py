@@ -88,6 +88,20 @@ class SendEmbed(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
+    @nextcord.message_command(name="Embedコンテンツの取得", guild_ids=n_fc.GUILD_IDS)
+    async def embed_message_command(self, interaction: Interaction, message: nextcord.Message):
+        await interaction.response.defer(ephemeral=True)
+        if len(message.embeds) == 0:
+            await interaction.followup.send(embed=nextcord.Embed(title="エラー", description="指定されたメッセージにはEmbedがついていません。", color=0xff0000))
+            return
+        content = ""
+        for i in message.embeds:
+            content += i.description + "\n\n"
+            for j in i.fields:
+                content += j.value + "\n"
+            content += "\n"
+        await interaction.followup.send(content)
+
     @nextcord.slash_command(name="embed", description="Embedを作成して送信します。", guild_ids=n_fc.GUILD_IDS)
     async def embed_slash(self, interaction: Interaction):
         modal = EmbedMaker()
