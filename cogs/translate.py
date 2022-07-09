@@ -32,6 +32,14 @@ def languageCheck(text: str) -> str:
     else:
         return "EN"
 
+def contentCheck(message: nextcord.Message) -> bool:
+    if message.content == "" or message.content is None:
+        return False
+    elif message.author.bot:
+        return False
+    else:
+        return True
+
 class TranslateModal(nextcord.ui.Modal):
     def __init__(self, translator: deepl.Translator, source_lang: str or None, target_lang: str):
         super().__init__(
@@ -136,6 +144,16 @@ class Translate(commands.Cog):
                     title="エラー", description="管理者にお伝えください。\n`DeepL API Key doesn't exist.`\nDeepL APIのキーが存在しません。\n`setting.json`の`translate`欄にAPIキーを入力してから、`cogs/translate.py`をリロードしてください。", color=0xff0000)
             )
             return
+        if not contentCheck(message):
+            await interaction.followup.send(
+                embed=nextcord.Embed(
+                    title="エラー",
+                    description="指定されたメッセージには本文がありません。\nEmbedの場合は先に「Embedコンテンツの取得」から、メッセージを取得してください。",
+                    color=0xff0000
+                )
+            )
+            return
+
         sLang = languageCheck(message.content)
         if sLang == "EN": sLang, tLang = ("EN", "JA")
         else: sLang, tLang = ("JA", "EN-US")
@@ -191,6 +209,8 @@ Powered by DeepL Translate API""")
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
+        if not contentCheck(message):
+            return
         if message.author.id == self.bot.user.id:
             return
         if message.channel.topic is None:
