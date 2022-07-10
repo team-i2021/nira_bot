@@ -452,7 +452,14 @@ class server_status(commands.Cog):
         await interaction.response.defer(ephemeral=True)
         try:
             if message.author.id != self.bot.user.id:
-                await interaction.followup.send(f"`{self.bot.user.name}@{self.bot.user.discriminator}`が送信したメッセージを参照してください。", ephemeral=True)
+                await interaction.response.send_message(
+                    embed=nextcord.Embed(
+                        title="エラー",
+                        description=f"{self.bot.user.mention}が送信したメッセージにのみこのコマンドを使用できます。",
+                        color=0xff0000
+                    ),
+                    ephemeral=True
+                )
                 return
             CHANNEL_ID = message.channel.id
             MESSAGE_ID = message.id
