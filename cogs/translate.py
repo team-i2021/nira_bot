@@ -20,45 +20,64 @@ from util import admin_check, n_fc, eh
 # Translate
 
 SYSDIR = sys.path[0]
-DEEPL_ICON = "https://nira.f5.si/images/deepl_translate.png"
-GOOGLE_ICON = "https://nira.f5.si/images/google_translate.png"
 
 JA = ["ja", "jp", "日本語", "にほんご", "ぬほんご", "日本"]
 EN = ["en", "eng", "英語", "えいご", "米", "英"]
 
-TRANS_COMP = re.compile('[a-zA-Z0-9.,_;:()!?-]+')
-
-DEEPL, GOOGLE = [0, 1]
+PROVIDER = {
+    "DEEPL": {
+        "NAME": "DeepL Translate",
+        "ICON": "https://nira.f5.si/images/deepl_translate.png",
+        "ACTIVE": True,
+        "COLOR": 0x0f2b46,
+        "ID": 0
+    },
+    "GOOGLE": {
+        "NAME": "Google Translate",
+        "ICON": "https://nira.f5.si/images/google_translate.png",
+        "ACTIVE": True,
+        "COLOR": 0x5390f5,
+        "ID": 1
+    }
+}
 
 
 def deepl_translate(deepl_tr: deepl.Translator, content, source_lang, target_lang):
-    if source_lang is None:
-        return deepl_tr.translate_text(content, target_lang=target_lang)
+    if PROVIDER["DEEPL"]["ACTIVE"]:
+        if source_lang is None:
+            return deepl_tr.translate_text(content, target_lang=target_lang)
+        else:
+            return deepl_tr.translate_text(content, source_lang=source_lang, target_lang=target_lang)
     else:
-        return deepl_tr.translate_text(content, source_lang=source_lang, target_lang=target_lang)
+        raise Exception("DeepL Translatie isn't active.")
 
 
 def google_translate(google_tr: Translator, content, source_lang, target_lang):
-    if source_lang is None:
-        return google_tr.translate(content, dest=target_lang)
+    if PROVIDER["GOOGLE"]["ACTIVE"]:
+        if source_lang is None:
+            return google_tr.translate(content, dest=target_lang)
+        else:
+            return google_tr.translate(content, src=source_lang, dest=target_lang)
     else:
-        return google_tr.translate(content, src=source_lang, dest=target_lang)
+        raise Exception("Google Translate isn't active.")
 
 
 def make_embed(provider: int, translated_content: str, source: str, target: str) -> nextcord.Embed:
-    if provider == DEEPL:
-        color = 0x0f2b46
-        text = "DeepL Translate"
-        url = DEEPL_ICON
+    if provider == PROVIDER["DEEPL"]["ID"]:
+        color = PROVIDER["DEEPL"]["COLOR"]
+        text = PROVIDER["DEEPL"]["NAME"]
+        url = PROVIDER["DEEPL"]["ICON"]
+    elif provider == PROVIDER["GOOGLE"]["ID"]:
+        color = PROVIDER["GOOGLE"]["COLOR"]
+        text = PROVIDER["DEEPL"]["NAME"]
+        url = PROVIDER["GOOGLE"]["ID"]
     else:
-        color = 0x5390f5
-        text = "Google Translate"
-        url = GOOGLE_ICON
+        raise ValueError(f"Unknown provider id: {provider}")
     return nextcord.Embed(title="翻訳結果", description=translated_content, color=color).set_footer(text=f"{text} ([{source}]->[{target}])", icon_url=url)
 
 
 async def translation(bot: commands.Bot, deepl_tr: deepl.Translator, google_tr: Translator, content: str, source_lang: str, target_lang: str) -> tuple:
-    translate = DEEPL
+    translate = PROVIDER["DEEPL"]["ID"]
     try:
         if deepl_tr is not None:
             result = await bot.loop.run_in_executor(
@@ -72,7 +91,7 @@ async def translation(bot: commands.Bot, deepl_tr: deepl.Translator, google_tr: 
         else:
             raise Exception("DeepL API Key doesn't exist.")
     except Exception:
-        translate = GOOGLE
+        translate = PROVIDER["DEEPL"]["GOOGLE"]
         if target_lang in ["EN-US", "EN-GB"]:
             target_lang = "en"
         if source_lang is not None:
@@ -111,6 +130,43 @@ def contentCheck(message: nextcord.Message) -> bool:
         return False
     else:
         return True
+
+
+class ProviderSwitch(nextcord.ui.View):
+    def __init__(self, message: nextcord.Message):
+        super().__init__(timeout=None)
+        self.add_item(ProviderSwitchDeepL(message))
+        self.add_item(ProviderSwitchGoogle(message))
+
+
+class ProviderSwitchDeepL(nextcord.ui.Button):
+    def __init__(self, message: nextcord.Message):
+        super().__init__(label="DeepL Translate", style=nextcord.ButtonStyle.grey)
+        self.message = message
+
+    async def callback(self, interaction: Interaction):
+        if interaction.user.id in n_fc.py_admin:
+            PROVIDER["DEEPL"]["ACTIVE"] = not PROVIDER["DEEPL"]["ACTIVE"]
+            await interaction.response.send_message(f"DeepL Translate is now `{(lambda x: 'enabled' if x else 'disabled')(PROVIDER['DEEPL']['ACTIVE'])}`.", ephemeral=True)
+            await self.message.delete()
+            return
+        else:
+            await interaction.response.send_message("You can't switch providers.(`Foribidden`)", ephemeral=True)
+
+
+class ProviderSwitchGoogle(nextcord.ui.Button):
+    def __init__(self, message: nextcord.Message):
+        super().__init__(label="Google Translate", style=nextcord.ButtonStyle.grey)
+        self.message = message
+
+    async def callback(self, interaction: Interaction):
+        if interaction.user.id in n_fc.py_admin:
+            PROVIDER['GOOGLE']['ACTIVE'] = not PROVIDER['GOOGLE']['ACTIVE']
+            await interaction.response.send_message(f"Google Translate is now `{(lambda x: 'enabled' if x else 'disabled')(PROVIDER['GOOGLE']['ACTIVE'])}`.", ephemeral=True)
+            await self.message.delete()
+            return
+        else:
+            await interaction.response.send_message("You can't switch providers.(`Foribidden`)", ephemeral=True)
 
 
 class TranslateModal(nextcord.ui.Modal):
@@ -153,6 +209,7 @@ class Translate(commands.Cog):
         SETTING = json.load(open(f'{SYSDIR}/setting.json'))
         if "translate" not in SETTING:
             self.deepl_tr = None
+            PROVIDER['DEEPL']['ACTIVE'] = False
             print(
                 "[Extension: Translate]\nDeepL API Key doesn't exist.\nWe use google Tranlate.")
         else:
@@ -219,16 +276,41 @@ class Translate(commands.Cog):
         await interaction.followup.send(embed=make_embed(result[1], result[0], sLang, tLang))
         return
 
-    @commands.command(name="translate", alias=["tr", "翻訳"], help="""\
+    @commands.command(name="translate", alias=["tr", "翻訳", "ほんやくこんにゃく", "ほんやく"], help="""\
 翻訳
-`n!translate [ja/en] [text]`
+メッセージを翻訳します。
 
-Powered by DeepL Translate API""")
+コンテキストコマンド:`n!translate [ja/en] [text]`
+スラッシュコマンド:`/translate`
+
+・チャンネルトピックについて
+`nira-tl-en`: チャンネルに来たメッセージを英語に翻訳します。
+`nira-tl-ja`: チャンネルに来たメッセージを日本語に翻訳します。
+`nira-tl-auto`: チャンネルに来たメッセージが、日本語であれば英語に、英語であれば日本語に翻訳します。
+
+・翻訳提供
+`n!translate`と送信すると、メッセージの下部で使用できる翻訳プロバイダが表示されます。
+
+Powered by DeepL Translate/Google Translate.""")
     async def command_translate(self, ctx: commands.Context):
         args = ctx.message.content.split(" ", 2)
         if len(args) == 1:
-            await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"翻訳先を指定してください\n`{self.bot.command_prefix}translate [ja/en] [text]`\n\nまた、現在`DeepL Translate`を使用した翻訳は使用できません。", color=0xFF0000))
+            await ctx.reply(
+                embed=nextcord.Embed(
+                    title="エラー",
+                    description=f"翻訳先を指定してください\n`{self.bot.command_prefix}translate [ja/en] [text]`",
+                    color=0xFF0000
+                ).set_footer(
+                    text=f"{(lambda x, y: 'No Provider!' if x and y else '')(not PROVIDER['DEEPL']['ACTIVE'], not PROVIDER['GOOGLE']['ACTIVE'])}{(lambda x: 'DeepL Translate' if x else '')(PROVIDER['DEEPL']['ACTIVE'])}{(lambda x, y: '/' if x and y else '')(PROVIDER['DEEPL']['ACTIVE'], PROVIDER['GOOGLE']['ACTIVE'])}{(lambda x: 'Google Translate' if x else '')(PROVIDER['GOOGLE']['ACTIVE'])}"
+                )
+            )
         elif len(args) == 2:
+            if args[1] == "provider":
+                if ctx.author.id not in n_fc.py_admin:
+                    raise Exception("Forbidden")
+                message = await ctx.send("Please wait...")
+                await message.edit(content="", embed=nextcord.Embed(title="Provider Switch", description=f"DeepL Translate: `{(lambda x: 'Enable' if x else 'Disable')(PROVIDER['DEEPL']['ACTIVE'])}`\nGoogle Translate: `{(lambda x: 'Enable' if x else 'Disable')(PROVIDER['GOOGLE']['ACTIVE'])}`", color=0x00ff00), view=ProviderSwitch(message=message))
+                return
             await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"引数が足りません。\n`{self.bot.command_prefix}translate [ja/en] [text]`", color=0xFF0000))
         else:
             if args[1].lower() in JA:
