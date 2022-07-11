@@ -161,7 +161,7 @@ offにするには、`n!pin off`と送信してください。
             await interaction.followup.send("あなたには管理者権限がありません。", ephemeral=True)
             return
 
-    @tasks.loop(seconds=2)
+    @tasks.loop(seconds=3)
     async def checkPin(self):
         await self.bot.wait_until_ready()
         for i in n_fc.pinMessage.keys():
