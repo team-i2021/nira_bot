@@ -70,7 +70,7 @@ def make_embed(provider: int, translated_content: str, source: str, target: str)
     elif provider == PROVIDER["GOOGLE"]["ID"]:
         color = PROVIDER["GOOGLE"]["COLOR"]
         text = PROVIDER["DEEPL"]["NAME"]
-        url = PROVIDER["GOOGLE"]["ID"]
+        url = PROVIDER["GOOGLE"]["ICON"]
     else:
         raise ValueError(f"Unknown provider id: {provider}")
     return nextcord.Embed(title="翻訳結果", description=translated_content, color=color).set_footer(text=f"{text} ([{source}]->[{target}])", icon_url=url)
@@ -91,7 +91,7 @@ async def translation(bot: commands.Bot, deepl_tr: deepl.Translator, google_tr: 
         else:
             raise Exception("DeepL API Key doesn't exist.")
     except Exception:
-        translate = PROVIDER["DEEPL"]["GOOGLE"]
+        translate = PROVIDER["GOOGLE"]["ID"]
         if target_lang in ["EN-US", "EN-GB"]:
             target_lang = "en"
         if source_lang is not None:
