@@ -1,5 +1,6 @@
 import importlib
 import sys
+import traceback
 
 import nextcord
 from nextcord import Interaction, SlashOption, ChannelType
@@ -13,187 +14,463 @@ from util import admin_check, n_fc, eh, slash_tool
 CTX = 0
 SLASH = 1
 
-ManageServer, ManageUser, Amuse, ServerStatus, Embed, Reaction, VoiceClient, BotUtility, ChannelTopic, MessageCommand, MemberCommand = range(
-    1, 12)
+ManageServer, ManageUser, Amuse, ServerStatus, General, Reaction, VoiceClient, BotUtility, ChannelTopic, MessageCommand, MemberCommand = [
+    f"G-{i}" for i in range(1, 12)]
 
 
 class HelpSelect(nextcord.ui.Select):
-    def __init__(self, prefix, opt=0):
+    def __init__(self, prefix, opt):
         self.prefix = prefix
-        if opt == 0:
+        if opt == "0":
             options = [
                 nextcord.SelectOption(label='サーバー管理/便利', value=ManageServer),
                 nextcord.SelectOption(label='ユーザー', value=ManageUser),
                 nextcord.SelectOption(label='娯楽', value=Amuse),
                 nextcord.SelectOption(label='サーバーステータス', value=ServerStatus),
-                nextcord.SelectOption(label='Embed', value=Embed),
+                nextcord.SelectOption(label='汎用コマンド', value=General),
                 nextcord.SelectOption(label='にらの反応系', value=Reaction),
                 nextcord.SelectOption(label='VC系', value=VoiceClient),
-                nextcord.SelectOption(label='にらBOT全般', value=BotUtility),
+                nextcord.SelectOption(label='にらBOT関係', value=BotUtility),
                 nextcord.SelectOption(label='チャンネルトピック', value=ChannelTopic),
+                nextcord.SelectOption(label='メッセージコマンド', value=MessageCommand),
+                nextcord.SelectOption(label='メンバーコマンド', value=MemberCommand),
             ]
-        elif opt == ManageServer or int(str(opt)[0]) == ManageServer:
+        elif opt == ManageServer:
             options = [
-                nextcord.SelectOption(label='ジャンル選択に戻る...', value=0),
-                nextcord.SelectOption(label='加入/離脱者情報表示',
-                                      description=f"{prefix}ui", value=101),
                 nextcord.SelectOption(
-                    label='ウェルカムメッセージ送信', description=f"{prefix}welcome", value=102),
+                    label='ジャンル選択に戻る...',
+                    value="0"
+                ),
                 nextcord.SelectOption(
-                    label='サーバー加入時 自動ロール付与', description=f"{prefix}autorole", value=103),
+                    label='加入/離脱者情報表示',
+                    description=f"{prefix}ui",
+                    value="1-1"
+                ),
                 nextcord.SelectOption(
-                    label='ボタンでロールを付与するパネル', description=f"{prefix}rolepanel", value=104),
+                    label='ウェルカムメッセージ送信',
+                    description=f"{prefix}welcome",
+                    value="1-2"
+                ),
                 nextcord.SelectOption(
-                    label='荒らし対策機能(未完成)', description=f"{prefix}mod", value=105),
+                    label='サーバー加入時 自動ロール付与',
+                    description=f"{prefix}autorole",
+                    value="1-3"),
                 nextcord.SelectOption(
-                    label='メッセージ下部ピン止め機能(未完成)', description=f"{prefix}pin", value=106),
+                    label='ボタンでロールを付与するパネル',
+                    description=f"{prefix}rolepanel",
+                    value="1-4",
+                ),
                 nextcord.SelectOption(
-                    label='サーバーを抜けてもロールを保持する', description=f"{prefix}rk", value=107),
+                    label='荒らし対策機能(未完成)',
+                    description=f"{prefix}mod",
+                    value="1-5"
+                ),
                 nextcord.SelectOption(
-                    label='Bump通知機能', description=f"{prefix}bump", value=108),
+                    label='メッセージ下部ピン止め機能(未完成)',
+                    description=f"{prefix}pin",
+                    value="1-6"
+                ),
                 nextcord.SelectOption(
-                    label='ボタンで投票するパネル', description=f"{prefix}pollpanel", value=109),
+                    label='サーバーを抜けてもロールを保持する',
+                    description=f"{prefix}rk",
+                    value="1-7",
+                ),
                 nextcord.SelectOption(
-                    label='Dissoku Up通知機能', description=f"{prefix}up", value=110),
+                    label='Bump通知機能',
+                    description=f"{prefix}bump",
+                    value="1-8",
+                ),
+                nextcord.SelectOption(
+                    label='ボタンで投票するパネル',
+                    description=f"{prefix}pollpanel",
+                    value="1-9",
+                ),
+                nextcord.SelectOption(
+                    label='Dissoku Up通知機能',
+                    description=f"{prefix}up",
+                    value="1-10"
+                ),
+                nextcord.SelectOption(
+                    label='メッセージDM機能',
+                    description=f"{prefix}mesdm",
+                    value="1-11"
+                ),
+                nextcord.SelectOption(
+                    label='メッセージロール機能',
+                    description=f"{prefix}mesrole",
+                    value="1-12"
+                ),
+                nextcord.SelectOption(
+                    label='下部ピン留め機能',
+                    description=f"{prefix}pin",
+                    value="1-13"
+                ),
+                nextcord.SelectOption(
+                    label='リマインド機能',
+                    description=f"{prefix}remind",
+                    value="1-14"
+                ),
             ]
-        elif opt == ManageUser or int(str(opt)[0]) == ManageUser:
+        elif opt == ManageUser:
             options = [
-                nextcord.SelectOption(label='ジャンル選択に戻る...', value=0),
                 nextcord.SelectOption(
-                    label='ユーザー情報表示', description=f"{prefix}d", value=201),
+                    label='ジャンル選択に戻る...',
+                    value="0"
+                ),
                 nextcord.SelectOption(
-                    label='管理者権限の有無をチェック', description=f"{prefix}admin", value=202),
+                    label='ユーザー情報表示',
+                    description=f"{prefix}d",
+                    value="2-1",
+                ),
+                nextcord.SelectOption(
+                    label='管理者権限の有無をチェック',
+                    description=f"{prefix}admin",
+                    value="2-2",
+                ),
+                nextcord.SelectOption(
+                    label='Invite機能',
+                    description=f"{prefix}invite",
+                    value="2-3",
+                ),
             ]
-        elif opt == Amuse or int(str(opt)[0]) == Amuse:
+        elif opt == Amuse:
             options = [
-                nextcord.SelectOption(label='ジャンル選択に戻る...', value=0),
                 nextcord.SelectOption(
-                    label='サイコロ', description=f"{prefix}dice", value=301),
+                    label='ジャンル選択に戻る...',
+                    value="0"
+                ),
                 nextcord.SelectOption(
-                    label='じゃんけん', description=f"{prefix}janken", value=302),
+                    label='サイコロ',
+                    description=f"{prefix}dice",
+                    value="3-1",
+                ),
                 nextcord.SelectOption(
-                    label='占い', description=f"{prefix}uranai", value=303),
+                    label='じゃんけん',
+                    description=f"{prefix}janken",
+                    value="3-2",
+                ),
                 nextcord.SelectOption(
-                    label='Wordle風ゲーム', description=f"{prefix}wordle", value=304),
+                    label='占い',
+                    description=f"{prefix}uranai",
+                    value="3-3",
+                ),
                 nextcord.SelectOption(
-                    label='しりとり風ゲーム', description=f"{prefix}srtr", value=305),
+                    label='Wordle風ゲーム',
+                    description=f"{prefix}wordle",
+                    value="3-4",
+                ),
+                nextcord.SelectOption(
+                    label='しりとり風ゲーム',
+                    description=f"{prefix}srtr",
+                    value="3-5",
+                ),
             ]
-        elif opt == ServerStatus or int(str(opt)[0]) == ServerStatus:
+        elif opt == ServerStatus:
             options = [
-                nextcord.SelectOption(label='ジャンル選択に戻る...', value=0),
                 nextcord.SelectOption(
-                    label='Steam非公式サーバー ステータスチェック', description=f"{prefix}ss", value=401),
+                    label='ジャンル選択に戻る...',
+                    value="0"
+                ),
                 nextcord.SelectOption(
-                    label='Minecraftサーバー ステータスチェック(未完成)', description=f"{prefix}mc", value=402),
+                    label='Steam非公式サーバー ステータスチェック',
+                    description=f"{prefix}ss",
+                    value="4-1",
+                ),
+                nextcord.SelectOption(
+                    label='Minecraftサーバー ステータスチェック',
+                    description=f"{prefix}mc",
+                    value="4-2",
+                ),
             ]
-        elif opt == Embed or int(str(opt)[0]) == Embed:
+        elif opt == General:
             options = [
-                nextcord.SelectOption(label='ジャンル選択に戻る...', value=0),
-                nextcord.SelectOption(label='Embedを送信する',
-                                      description=f"{prefix}embed", value=501),
+                nextcord.SelectOption(
+                    label='ジャンル選択に戻る...',
+                    value="0"
+                ),
+                nextcord.SelectOption(
+                    label='Embedを送信する',
+                    description=f"{prefix}embed",
+                    value="5-1",
+                ),
+                nextcord.SelectOption(
+                    label='メッセージを翻訳する',
+                    description=f"{prefix}translate",
+                    value="5-2",
+                ),
             ]
-        elif opt == Reaction or int(str(opt)[0]) == Reaction:
+        elif opt == Reaction:
             options = [
-                nextcord.SelectOption(label='ジャンル選択に戻る...', value=0),
                 nextcord.SelectOption(
-                    label='にらのコマンド/Bump以外の全反応設定', description=f"{prefix}ar", value=601),
+                    label='ジャンル選択に戻る...',
+                    value="0"
+                ),
                 nextcord.SelectOption(
-                    label='自分で反応を追加するオートリプライ機能', description=f"{prefix}er", value=602),
+                    label='にらのコマンド/Bump以外の全反応設定',
+                    description=f"{prefix}ar",
+                    value="6-1",
+                ),
                 nextcord.SelectOption(
-                    label='特定の言葉に反応する便乗機能', description=f"{prefix}nr", value=603),
+                    label='自分で反応を追加するオートリプライ機能',
+                    description=f"{prefix}er",
+                    value="6-2",
+                ),
                 nextcord.SelectOption(
-                    label='特定のチャンネルのメッセージをLINEに送る', description=f"{prefix}line", value=604),
+                    label='特定の言葉に反応する便乗機能',
+                    description=f"{prefix}nr",
+                    value="6-3",
+                ),
+                nextcord.SelectOption(
+                    label='特定のチャンネルのメッセージをLINEに送る',
+                    description=f"{prefix}line",
+                    value="6-4",
+                ),
             ]
-        elif opt == VoiceClient or int(str(opt)[0]) == VoiceClient:
+        elif opt == VoiceClient:
             options = [
-                nextcord.SelectOption(label='ジャンル選択に戻る...', value=0),
                 nextcord.SelectOption(
-                    label='VCにBOTを参加させる', description=f"{prefix}join", value=701),
+                    label='ジャンル選択に戻る...',
+                    value="0"
+                ),
                 nextcord.SelectOption(
-                    label='VCからBOTを離脱させる', description=f"{prefix}leave", value=702),
+                    label='VCにBOTを参加させる',
+                    description=f"{prefix}join",
+                    value="7-1",
+                ),
                 nextcord.SelectOption(
-                    label='読み上げ機能', description=f"{prefix}tts", value=703),
+                    label='VCからBOTを離脱させる',
+                    description=f"{prefix}leave",
+                    value="7-2",
+                ),
                 nextcord.SelectOption(
-                    label='音楽を再生する', description=f"{prefix}play", value=704),
-                nextcord.SelectOption(label='音楽再生を全部止める',
-                                      description=f"{prefix}stop", value=705),
+                    label='読み上げ機能',
+                    description=f"{prefix}tts",
+                    value="7-3",
+                ),
                 nextcord.SelectOption(
-                    label='音楽再生を一時停止する', description=f"{prefix}pause", value=706),
+                    label='音楽を再生する',
+                    description=f"{prefix}play",
+                    value="7-4",
+                ),
                 nextcord.SelectOption(
-                    label='音楽再生を再開する', description=f"{prefix}resume", value=707),
+                    label='音楽再生を全部止める',
+                    description=f"{prefix}stop",
+                    value="7-5",
+                ),
                 nextcord.SelectOption(
-                    label='曲のリスト表示', description=f"{prefix}list", value=708),
+                    label='音楽再生を一時停止する',
+                    description=f"{prefix}pause",
+                    value="7-6",
+                ),
                 nextcord.SelectOption(
-                    label='リストの一番後ろを消す', description=f"{prefix}pop", value=709),
+                    label='音楽再生を再開する',
+                    description=f"{prefix}resume",
+                    value="7-7",
+                ),
+                nextcord.SelectOption(
+                    label='曲のリスト表示',
+                    description=f"{prefix}list",
+                    value="7-8",
+                ),
+                nextcord.SelectOption(
+                    label='リストの一番後ろを消す',
+                    description=f"{prefix}pop",
+                    value="7-9",
+                ),
             ]
-        elif opt == BotUtility or int(str(opt)[0]) == BotUtility:
+        elif opt == BotUtility:
             options = [
-                nextcord.SelectOption(label='ジャンル選択に戻る...', value=0),
                 nextcord.SelectOption(
-                    label='サーバーとのレイテンシを測る', description=f"{prefix}ping", value=801),
+                    label='ジャンル選択に戻る...',
+                    value="0"
+                ),
                 nextcord.SelectOption(
-                    label='Webページ作成', description=f"{prefix}html", value=802),
-                nextcord.SelectOption(label='にらBOTの情報表示',
-                                      description=f"{prefix}info", value=803),
+                    label='サーバーとのレイテンシを測る',
+                    description=f"{prefix}ping",
+                    value="8-1"
+                ),
                 nextcord.SelectOption(
-                    label='ヘルプ表示', description=f"{prefix}help", value=804),
+                    label='Webページ作成',
+                    description=f"{prefix}html",
+                    value="8-2"
+                ),
+                nextcord.SelectOption(
+                    label='にらBOTの情報表示',
+                    description=f"{prefix}info",
+                    value="8-3"
+                ),
+                nextcord.SelectOption(
+                    label='ヘルプ表示',
+                    description=f"{prefix}help",
+                    value="8-4"
+                ),
             ]
-        elif opt == ChannelTopic or int(str(opt)[0]) == ChannelTopic:
+        elif opt == ChannelTopic:
             options = [
-                nextcord.SelectOption(label='ジャンル選択に戻る...', value=0),
                 nextcord.SelectOption(
-                    label='そのチャンネルでにらの反応を無効化する', description="nira-off", value=901),
+                    label='ジャンル選択に戻る...',
+                    value="0"
+                ),
+                nextcord.SelectOption(
+                    label='チャンネルでにらの反応を無効化する',
+                    description="nira-off",
+                    value="9-1"
+                ),
+                nextcord.SelectOption(
+                    label='チャンネルメッセージを自動翻訳する',
+                    description="nira-tl-(en|ja|auto)",
+                    value="9-2"
+                ),
+            ]
+        elif opt == MessageCommand:
+            options = [
+                nextcord.SelectOption(
+                    label='ジャンル選択に戻る...',
+                    value="0"
+                ),
+                nextcord.SelectOption(
+                    label='Embed取得',
+                    value="10-1"
+                ),
+                nextcord.SelectOption(
+                    label='メッセージ翻訳',
+                    value="10-2"
+                ),
+                nextcord.SelectOption(
+                    label='メッセージ読み上げ',
+                    value="10-3"
+                ),
+                nextcord.SelectOption(
+                    label='ロールパネル編集',
+                    value="10-4"
+                ),
+                nextcord.SelectOption(
+                    label='下部ピン留めする',
+                    value="10-5"
+                ),
+            ]
+        elif opt == MemberCommand:
+            options = [
+                nextcord.SelectOption(
+                    label='ジャンル選択に戻る...',
+                    value="0"
+                ),
+                nextcord.SelectOption(
+                    label='ユーザー情報表示',
+                    value="11-1"
+                ),
+                nextcord.SelectOption(
+                    label='管理者権限チェック',
+                    value="11-2"
+                ),
             ]
 
-        super().__init__(placeholder='Please select help content.',
-                         min_values=1, max_values=1, options=options)
+        super().__init__(
+            placeholder='Please select help content.',
+            min_values=1,
+            max_values=1,
+            options=options
+        )
 
     async def callback(self, interaction: nextcord.Interaction):
         try:
-            view, value, option = nextcord.ui.View(timeout=None), int(
-                str(self.values[0])), int(str(self.values[0])[0])
-            view.add_item(HelpSelect(self.prefix, option))
-            if value != 0:
-                embed = nextcord.Embed(title=hc.helpContents[value].splitlines()[
-                                       0], description="\n".join(hc.helpContents[value].splitlines()[1:]), color=0x00ff00)
+            value = self.values[0]
+            view = nextcord.ui.View(timeout=None)
+            view.add_item(
+                HelpSelect(
+                    prefix=self.prefix,
+                    opt=(
+                        lambda x: f"0" if x[0] == "0" else f"G-{x[1]}"
+                    )(
+                        value.split("-", 1)
+                    )
+                )
+            )
+            if value != "0":
+                embed = nextcord.Embed(
+                    title=hc.helpContents[
+                        (
+                            lambda x: int(
+                                value.split("-", 1)[0]
+                            ) if x != "G" else "G"
+                        )(
+                            value.split("-", 1)[0]
+                        )
+                    ][
+                        int(value.split("-", 1)[1])
+                    ].splitlines()[0],
+                    description="\n".join(
+                        hc.helpContents[
+                            (
+                                lambda x: int(
+                                    value.split("-", 1)[0]
+                                ) if x != "G" else "G"
+                            )(
+                                value.split("-", 1)[0]
+                            )
+                        ][
+                            int(value.split("-", 1)[1])
+                        ].splitlines()[1:]),
+                    color=0x00ff00
+                )
             else:
                 embed = nextcord.Embed(
-                    title="にらBOT HELP", description=f"```{self.prefix}help```\nもうまったく更新してないヘルプページは[こちら](https://nira.f5.si/help.html)（非推奨）\n\n下のプルダウンからコマンド種類を選択してください。", color=0x00ff00)
+                    title="にらBOT HELP",
+                    description=f"```{self.prefix}help```\nもうまったく更新してないヘルプページは[こちら](https://nira.f5.si/help.html)（非推奨）\n\n下のプルダウンからコマンド種類を選択してください。",
+                    color=0x00ff00
+                )
             await interaction.message.edit(embed=embed, view=view)
             return
-        except BaseException as err:
-            await interaction.response.send_message(f"エラーが発生しました。\n```\n{err}```\nvalue: `{self.values[0]}`/`{int(str(self.values[0])[0])}`/`{option}`", ephemeral=True)
+        except Exception:
+            await interaction.response.send_message(f"エラーが発生しました。\n```\n{traceback.format_exc()}```", ephemeral=True)
             return
 
 
 class info_base():
     def info(self, ctx, type):
         embed = nextcord.Embed(
-            title="にらBOTについて", description="**地味に**有能なDiscordBOT。\n主に5種類の機能があります。", color=0x00ff00)
-        embed.set_author(name="製作者: なつ\n(Twitter: @nattyan_tv/GitHub: @nattyan-tv)", url="https://twitter.com/nattyan_tv",
-                         icon_url="https://pbs.twimg.com/profile_images/1498660479920603136/X-qtNrnL_400x400.jpg")
+            title="にらBOTについて",
+            description="**地味に**有能なDiscordBOT。\n主に5種類の機能があります。",
+            color=0x00ff00
+        )
+        embed.set_author(
+            name="製作者: なつ\n(Twitter: @nattyan_tv/GitHub: @nattyan-tv)",
+            url="https://twitter.com/nattyan_tv",
+            icon_url="https://nira.f5.si/nattyantv.jpg"
+        )
         embed.add_field(
-            name="・娯楽系", value="じゃんけん、しりとりで遊べたり、サイコロを振ることが出来たり、占いをすることが出来ます。", inline=False)
-
+            name="・娯楽系",
+            value="じゃんけん、しりとりで遊べたり、サイコロを振ることが出来たり、占いをすることが出来ます。"
+        )
         embed.add_field(
-            name="・音楽系", value="VCでYouTubeやniconicoの音楽を流すことが出来ます。", inline=False)
-
-        embed.add_field(name="・反応系", value="""\
+            name="・音楽系",
+            value="VCでYouTubeやniconicoの音楽を流すことが出来ます。"
+        )
+        embed.add_field(
+            name="・反応系",
+            value="""\
 「にら」に反応します。あとは、指定したトリガーが送信されたときに指定したメッセージを送信することが出来ます。
-あとは、Discordで送信されたメッセージをLINEに送信することが出来ます（多分）。""", inline=False)
-
-        embed.add_field(name="・ユーザー情報系", value="""\
+あとは、Discordで送信されたメッセージをLINEに送信することが出来ます（多分）。"""
+        )
+        embed.add_field(
+            name="・ユーザー情報系",
+            value="""\
 Discordサーバーに誰かが入った際に、そのユーザーの名前やアイコン、アカウントの作成日を指定したチャンネルに送信することが出来ます（荒らし対策）。
-また、ロールキーパー（一度抜けてから再度入った際に以前のロールを再付与する機能）もあります。""", inline=False)
-
-        embed.add_field(name="・サーバーステータス系", value="""\
+また、ロールキーパー（一度抜けてから再度入った際に以前のロールを再付与する機能）もあります。"""
+        )
+        embed.add_field(
+            name="・サーバーステータス系",
+            value="""\
 SteamDedicatedサーバーゲームのステータスを表示することが出来ます。
 サーバーステータスとは、「今サーバーがオンラインか」「今何人いるか」「今誰が、どれだけの時間いるか」というような情報です。
 例えば、ARKとか7DaysToDieとかなんか色々...[対応ゲーム一覧](https://developer.valvesoftware.com/wiki/Dedicated_Servers_List)
-また、Minecraftのサーバーステータス表示にもそのうち対応させる予定です。（1000年以内に）""", inline=False)
-
+また、Minecraftのサーバーステータス表示にもそのうち対応させる予定です。（1000年以内に）"""
+        )
         embed.add_field(
-            name="困ったり暇だったら...", value="[ここ](https://discord.gg/awfFpCYTcP)から謎な雑談鯖に入れるよ！", inline=False)
+            name="困ったり暇だったら...",
+            value="[ここ](https://discord.gg/awfFpCYTcP)から謎な雑談鯖に入れるよ！",
+            inline=False
+        )
 
         if type == CTX:
             if ctx.author.id in n_fc.py_admin:
@@ -229,7 +506,7 @@ Latency: `{round(self.bot.latency*1000, 2)}ms`
     def help(self, ctx, command, type):
         if command == None:
             view = nextcord.ui.View(timeout=None)
-            view.add_item(HelpSelect(self.bot.command_prefix, 0))
+            view.add_item(HelpSelect("/", "0"))
             embed = nextcord.Embed(
                 title="にらBOT HELP", description="```/help```\nもうまったく更新してないヘルプページは[こちら](https://nira.f5.si/help.html)（非推奨）\n\n下のプルダウンからコマンド種類を選択してください。", color=0x00ff00)
             if type == CTX:
@@ -241,6 +518,7 @@ Latency: `{round(self.bot.latency*1000, 2)}ms`
                 return ctx.reply(f"そのコマンド`{command}`は存在しないようです。")
             elif type == SLASH:
                 return ctx.response.send_message(f"そのコマンド`{command}`は存在しないようです。")
+
         embed = nextcord.Embed(
             title=f"`{self.bot.command_prefix}{command}`", description="コマンドヘルプ", color=0x00ff00)
         for i in range(len(list(self.bot.commands))):
@@ -256,28 +534,28 @@ Latency: `{round(self.bot.latency*1000, 2)}ms`
                                 0], value="\n".join(list(self.bot.commands)[i].help.splitlines()[1:]))
                 embed.set_footer(text="nira-bot Powered by NattyanTV")
                 if type == CTX:
-                    return ctx.reply(embed=embed)
+                    return ctx.reply(embed=embed, view=nextcord.ui.View(timeout=None).add_item(HelpSelect(self.bot.command_prefix, "0")))
                 elif type == SLASH:
-                    return ctx.response.send_message(embed=embed)
+                    return ctx.response.send_message(embed=embed, view=nextcord.ui.View(timeout=None).add_item(HelpSelect("/", "0")))
 
 
 class info(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @nextcord.slash_command(name="info", description="にらBOTの情報を表示します。", guild_ids=n_fc.GUILD_IDS)
+    @ nextcord.slash_command(name="info", description="にらBOTの情報を表示します。", guild_ids=n_fc.GUILD_IDS)
     async def info_slash(self, interaction: Interaction):
         await info_base.info(self, interaction, SLASH)
         return
 
-    @commands.command(name="info", help="""\
+    @ commands.command(name="info", help="""\
 にらBOTの情報を表示します。
 どのようなコマンドがあるかを大雑把に説明したり、Discordサポートサーバー、GitHubレポジトリへのリンクがあります。""")
     async def info(self, ctx: commands.Context):
         await info_base.info(self, ctx, CTX)
         return
 
-    @nextcord.slash_command(name="help", description="にらBOT及び、コマンドのヘルプを表示します。", guild_ids=n_fc.GUILD_IDS)
+    @ nextcord.slash_command(name="help", description="にらBOT及び、コマンドのヘルプを表示します。", guild_ids=n_fc.GUILD_IDS)
     async def help_slash(
         self,
         interaction: Interaction,
@@ -291,7 +569,7 @@ class info(commands.Cog):
             command = None
         await info_base.help(self, interaction, command, SLASH)
 
-    @commands.command(name="help", help="""\
+    @ commands.command(name="help", help="""\
 にらBOT又はコマンドのヘルプを表示します。
 普通に`n!help`とだけすると、にらBOTのヘルプが表示されます。
 `n!help`の後にヘルプを見たいコマンドを入れると、そのコマンドのヘルプを表示できます。
@@ -303,7 +581,7 @@ class info(commands.Cog):
         command = ctx.message.content.split(" ", 1)
         if len(command) == 1:
             view = nextcord.ui.View(timeout=None)
-            view.add_item(HelpSelect(0))
+            view.add_item(HelpSelect(prefix=self.bot.command_prefix, opt="0"))
             embed = nextcord.Embed(
                 title="にらBOT HELP", description=f"```{self.bot.command_prefix}help```\nもうまったく更新してないヘルプページは[こちら](https://nira.f5.si/help.html)（非推奨）\n\n下のプルダウンからコマンド種類を選択してください。", color=0x00ff00)
             await ctx.send(embed=embed, view=view)
