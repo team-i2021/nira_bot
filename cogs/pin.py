@@ -72,8 +72,6 @@ offにするには、`n!pin off`と送信してください。
 前に送ったピンメッセージが削除されずに送信されて、残っている場合は、にらBOTに適切な権限が与えられているか確認してみてください。
 もしくは、周期内にめちゃくちゃメッセージを送信された場合はメッセージが削除されないです。仕様です。許してヒヤシンス。""")
     async def pin(self, ctx: commands.Context):
-        if ctx.author.id != 669178357371371522:
-            return
         if admin_check.admin_check(ctx.guild, ctx.author):
             args = ctx.message.content.split(" ", 2)
             if len(args) == 1:
@@ -132,9 +130,6 @@ offにするには、`n!pin off`と送信してください。
             required=True,
         ),
     ):
-        if interaction.user.id != 669178357371371522:
-            await interaction.response.send_message("This command could used by admin.", ephemeral=True)
-            return
         if admin_check.admin_check(interaction.guild, interaction.author):
             await interaction.response.send_modal(BottomModal)
         else:
@@ -146,9 +141,6 @@ offにするには、`n!pin off`と送信してください。
         self,
         interaction: Interaction,
     ):
-        if interaction.user.id != 669178357371371522:
-            await interaction.response.send_message("This command could used by admin.", ephemeral=True)
-            return
         await interaction.response.defer()
         if admin_check.admin_check(interaction.guild, interaction.author):
             try:
@@ -169,7 +161,7 @@ offにするには、`n!pin off`と送信してください。
             await interaction.followup.send("あなたには管理者権限がありません。", ephemeral=True)
             return
 
-    @tasks.loop(seconds=3)
+    @tasks.loop(seconds=2)
     async def checkPin(self):
         await self.bot.wait_until_ready()
         for i in n_fc.pinMessage.keys():
