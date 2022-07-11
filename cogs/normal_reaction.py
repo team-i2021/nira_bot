@@ -279,7 +279,7 @@ class normal_reaction(commands.Cog):
         # 追加反応
         if message.guild.id in n_fc.ex_reaction_list:
             if n_fc.ex_reaction_list[message.guild.id]["value"] != 0:
-                for i in range(n_fc.ex_reaction_list[message.guild.id]["value"]):
+                for i in range(int(n_fc.ex_reaction_list[message.guild.id]["value"])):
                     if re.search(rf'{n_fc.ex_reaction_list[message.guild.id][f"{i+1}_tr"]}', message.content):
                         sended_mes = await message.reply(n_fc.ex_reaction_list[message.guild.id][f"{i+1}_re"])
                         return
