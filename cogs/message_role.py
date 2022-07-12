@@ -27,6 +27,8 @@ MESSAGE_ROLE_SETTINGS = {}
 
 async def pullData(client: HTTP_db.Client):
     global MESSAGE_ROLE_SETTINGS
+    if not await client.exists("message_role"):
+        await client.post("message_role", [])
     try:
         MESSAGE_ROLE_SETTINGS = dict_list.listToDict(await client.get("message_role"))
     except Exception:

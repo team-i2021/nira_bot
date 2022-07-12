@@ -39,6 +39,8 @@ logging.basicConfig(
 
 async def pullData(client: HTTP_db.Client):
     global MESSAGE_DM_SETTINGS
+    if not await client.exists("message_dm"):
+        await client.post("message_dm", [])
     try:
         MESSAGE_DM_SETTINGS = dict_list.listToDict(await client.get("message_dm"))
     except Exception:
