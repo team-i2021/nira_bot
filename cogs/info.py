@@ -431,7 +431,7 @@ class info_base():
     def info(self, ctx, type):
         embed = nextcord.Embed(
             title="にらBOTについて",
-            description="**地味に**有能なDiscordBOT。\n主に5種類の機能があります。",
+            description="にらBOTです。[ニラ](https://ja.m.wikipedia.org/wiki/ニラ)（韮、韭、Allium tuberosum）は、ネギ属に属する多年草。緑黄色野菜で...って...あれ？違う？",
             color=0x00ff00
         )
         embed.set_author(
@@ -440,39 +440,38 @@ class info_base():
             icon_url="https://nira.f5.si/nattyantv.jpg"
         )
         embed.add_field(
-            name="・娯楽系",
-            value="じゃんけん、しりとりで遊べたり、サイコロを振ることが出来たり、占いをすることが出来ます。"
-        )
-        embed.add_field(
-            name="・音楽系",
-            value="VCでYouTubeやniconicoの音楽を流すことが出来ます。"
-        )
-        embed.add_field(
-            name="・反応系",
-            value="""\
-「にら」に反応します。あとは、指定したトリガーが送信されたときに指定したメッセージを送信することが出来ます。
-あとは、Discordで送信されたメッセージをLINEに送信することが出来ます（多分）。"""
-        )
-        embed.add_field(
-            name="・ユーザー情報系",
-            value="""\
-Discordサーバーに誰かが入った際に、そのユーザーの名前やアイコン、アカウントの作成日を指定したチャンネルに送信することが出来ます（荒らし対策）。
-また、ロールキーパー（一度抜けてから再度入った際に以前のロールを再付与する機能）もあります。"""
-        )
-        embed.add_field(
-            name="・サーバーステータス系",
-            value="""\
-SteamDedicatedサーバーゲームのステータスを表示することが出来ます。
-サーバーステータスとは、「今サーバーがオンラインか」「今何人いるか」「今誰が、どれだけの時間いるか」というような情報です。
-例えば、ARKとか7DaysToDieとかなんか色々...[対応ゲーム一覧](https://developer.valvesoftware.com/wiki/Dedicated_Servers_List)
-また、Minecraftのサーバーステータス表示にもそのうち対応させる予定です。（1000年以内に）"""
-        )
-        embed.add_field(
-            name="困ったり暇だったら...",
-            value="[ここ](https://discord.gg/awfFpCYTcP)から謎な雑談鯖に入れるよ！",
-            inline=False
-        )
+            name="沢山の機能",
+            value=f"""\
+サーバー管理にうってつけな機能から、便利な機能、暇なときに遊べる機能から、ARKやMinecraftのサーバーのステータスをチェックする機能まで...!
+すべてのコマンドは`{self.bot.command_prefix}help`または`/help`とヘルプコマンドを打って確認してみてください!
+さぁ、足りない部分は他のBOTが補ってくれるとは思うけど、にらBOTで完結することはにらBOTで完結させましょう!
 
+ユーザーフレンドリーなんで、ほしい機能とかあったり、ただただ暇だったらサポートサーバー入って、どんどん言ってね!"""
+        )
+        embed.add_field(
+            name="リンク集",
+            value=f"""\
+- BOT招待リンク
+[https://nira.f5.si/invite](https://nira.f5.si/invite)
+
+- サポートサーバー
+[https://discord.gg/awfFpCYTcP](https://discord.gg/awfFpCYTcP)
+
+- NIRA Net
+[https://nira.f5.si](https://nira.f5.si)
+
+- (一応)ホームページ
+[https://sites.google.com/view/nira-bot](https://sites.google.com/view/nira-bot)"""
+        )
+        embed.add_field(
+            name="GitHubレポジトリ",
+            value="""\
+- NIRA Bot
+[https://github.com/team-i2021/nira_bot](https://github.com/team-i2021/nira_bot)
+
+- NIRA Net
+[https://github.com/team-i2021/nira_net](https://github.com/team-i2021/nira_net)"""
+        )
         if type == CTX:
             if ctx.author.id in n_fc.py_admin:
                 embed = nextcord.Embed(title="About nira-bot", description=f"""\
