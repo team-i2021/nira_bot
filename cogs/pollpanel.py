@@ -5,6 +5,7 @@ import pickle
 import re
 import sys
 from os import getenv
+import traceback
 
 import nextcord
 from nextcord import Interaction, message
@@ -18,6 +19,7 @@ global PollViews
 PollViews = []
 
 # pollpanel
+# version2
 
 
 class PollPanelSlashInput(nextcord.ui.Modal):
@@ -70,9 +72,10 @@ class PollPanelSlashInput(nextcord.ui.Modal):
 
         embed_content = ""
         if int("".join(re.findall(r'[0-1]', self.PollType.value))) == 0:
-            embed_content = "`一人一票`\n" + ":なし\n".join(values) + ":なし"
+            embed_content = "`一人一票`\n" + ":`0`票:なし\n".join(values) + ":`0`票:なし"
         else:
-            embed_content = "`一人何票でも`\n" + ":なし\n".join(values) + ":なし"
+            embed_content = "`一人何票でも`\n" + \
+                ":`0`票:なし\n".join(values) + ":`0`票:なし"
 
         self.bot.add_view(PollPanelView(values))
         PollViews.append(values)
@@ -82,8 +85,8 @@ class PollPanelSlashInput(nextcord.ui.Modal):
             pickle.dump(PollViews, f)
         try:
             await interaction.followup.send(f"作成者:{interaction.user.mention}", embed=nextcord.Embed(title=f"{self.EmbedTitle.value}", description=embed_content, color=0x00ff00), view=PollPanelView(values))
-        except BaseException as err:
-            await interaction.followup.send(f"エラー: `{err}`")
+        except Exception:
+            await interaction.followup.send(f"エラー: ```\n{traceback.format_exc()}```")
             return
 
 
@@ -98,8 +101,11 @@ class PollPanelView(nextcord.ui.View):
 
 class PollPanelButton(nextcord.ui.Button):
     def __init__(self, arg):
-        super().__init__(label=arg, style=nextcord.ButtonStyle.green,
-                         custom_id=f"PolePanel:{arg}")
+        super().__init__(
+            label=arg,
+            style=nextcord.ButtonStyle.green,
+            custom_id=f"PolePanel:{arg}"
+        )
 
     async def callback(self, interaction: Interaction):
         try:
@@ -115,11 +121,11 @@ class PollPanelButton(nextcord.ui.Button):
             choice = {}
             Pollers = []
             for i in content.splitlines()[1:]:
-                if i.split(":")[1] != "なし":
-                    choice[i.split(":")[0]] = [
-                        j for j in i.split(":")[1].split("/")]
+                if i.split(":", 2)[2] != "なし":
+                    choice[i.split(":", 2)[0]] = [
+                        j for j in i.split(":", 2)[2].split("/")]
                 else:
-                    choice[i.split(":")[0]] = []
+                    choice[i.split(":", 2)[0]] = []
 
             for i in choice.keys():
                 Pollers.extend(choice[i])
@@ -154,9 +160,9 @@ class PollPanelButton(nextcord.ui.Button):
             returnText = f"{content.splitlines()[0]}\n"
             for i in choice.keys():
                 if choice[i] == []:
-                    returnText += f"{i}:なし\n"
+                    returnText += f"{i}:`0`票:なし\n"
                 else:
-                    returnText += f"{i}:{'/'.join(choice[i])}\n"
+                    returnText += f"{i}:`{len(choice[i])}`票:{'/'.join(choice[i])}\n"
             await interaction.message.edit(embed=nextcord.Embed(title=message.embeds[0].title, description=returnText, color=0x00ff00))
 
         except BaseException as err:
@@ -236,10 +242,12 @@ n!pollpanel [on/off] [メッセージ内容]
         ViewArgs = ctx.message.content.splitlines()[1:]
         embed_content = ""
         if args[1] == "on":
-            embed_content = "`一人一票`\n" + ":なし\n".join(ViewArgs) + ":なし"
+            embed_content = "`一人一票`\n" + \
+                ":`0`票:なし\n".join(ViewArgs) + ":`0`票:なし"
             poll_type = True
         else:
-            embed_content = "`一人何票でも`\n" + ":なし\n".join(ViewArgs) + ":なし"
+            embed_content = "`一人何票でも`\n" + \
+                ":`0`票:なし\n".join(ViewArgs) + ":`0`票:なし"
             poll_type = False
 
         self.bot.add_view(PollPanelView(ViewArgs))
