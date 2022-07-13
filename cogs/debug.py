@@ -406,14 +406,14 @@ class debug(commands.Cog):
 
     @cog_slash.subcommand(name="list", description="List cogs.")
     async def list_cog_slash(self, interaction):
-        if self.bot.is_owner(interaction.user):
+        if await self.bot.is_owner(interaction.user):
             await interaction.response.send_message(f"```py\n{list(dict(self.bot.cogs).keys())}```", ephemeral=True)
         else:
             raise Exception("Forbidden")
 
     @cog_slash.subcommand(name="load", description="Load cog.")
     async def load_cogs_slash(self, interaction: Interaction, cogname: str = SlashOption(name="cogname", description="Cog name.", required=True)):
-        if self.bot.is_owner(interaction.user):
+        if await self.bot.is_owner(interaction.user):
             await interaction.response.defer()
             try:
                 self.bot.load_extension(f"cogs.{cogname}")
@@ -425,7 +425,7 @@ class debug(commands.Cog):
 
     @cog_slash.subcommand(name="reload", description="Reload cog.")
     async def reload_cogs_slash(self, interaction: Interaction, cogname: str = SlashOption(name="cogname", description="Cog name.", required=True)):
-        if self.bot.is_owner(interaction.user):
+        if await self.bot.is_owner(interaction.user):
             await interaction.response.defer()
             try:
                 self.bot.reload_extension(f"cogs.{cogname}")
@@ -437,7 +437,7 @@ class debug(commands.Cog):
 
     @cog_slash.subcommand(name="unload", description="Unload cog.")
     async def unload_cogs_slash(self, interaction: Interaction, cogname: str = SlashOption(name="cogname", description="Cog name.", required=True)):
-        if self.bot.is_owner(interaction.user):
+        if await self.bot.is_owner(interaction.user):
             await interaction.response.defer()
             try:
                 self.bot.unload_extension(f"cogs.{cogname}")
