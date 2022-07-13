@@ -446,7 +446,8 @@ class info_base():
 すべてのコマンドは`{self.bot.command_prefix}help`または`/help`とヘルプコマンドを打って確認してみてください!
 さぁ、足りない部分は他のBOTが補ってくれるとは思うけど、にらBOTで完結することはにらBOTで完結させましょう!
 
-ユーザーフレンドリーなんで、ほしい機能とかあったり、ただただ暇だったらサポートサーバー入って、どんどん言ってね!"""
+ユーザーフレンドリーなんで、ほしい機能とかあったり、ただただ暇だったらサポートサーバー入って、どんどん言ってね!""",
+            inline=False
         )
         embed.add_field(
             name="リンク集",
@@ -461,7 +462,8 @@ class info_base():
 [https://nira.f5.si](https://nira.f5.si)
 
 - (一応)ホームページ
-[https://sites.google.com/view/nira-bot](https://sites.google.com/view/nira-bot)"""
+[https://sites.google.com/view/nira-bot](https://sites.google.com/view/nira-bot)""",
+            inline=False
         )
         embed.add_field(
             name="GitHubレポジトリ",
@@ -470,7 +472,8 @@ class info_base():
 [https://github.com/team-i2021/nira_bot](https://github.com/team-i2021/nira_bot)
 
 - NIRA Net
-[https://github.com/team-i2021/nira_net](https://github.com/team-i2021/nira_net)"""
+[https://github.com/team-i2021/nira_net](https://github.com/team-i2021/nira_net)""",
+            inline=False
         )
         if type == CTX:
             if ctx.author.id in n_fc.py_admin:
