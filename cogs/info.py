@@ -381,7 +381,7 @@ class HelpSelect(nextcord.ui.Select):
                 HelpSelect(
                     prefix=self.prefix,
                     opt=(
-                        lambda x: f"0" if x[0] == "0" else f"G-{x[1]}"
+                        lambda x: f"0" if x[0] == "0" else f"G-{x[1]}" if x[0] == "G" else f"G-{x[0]}"
                     )(
                         value.split("-", 1)
                     )
