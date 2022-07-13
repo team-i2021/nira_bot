@@ -59,26 +59,91 @@ class user(commands.Cog):
         return
 
     @commands.command(name="d", help="""\
-    ユーザーの情報を表示します。
-    引数を指定せずに`n!d`とだけ指定するとあなた自身の情報を表示します。
-    `n!d [ユーザーID]`という風に指定すると、そのユーザーの情報を表示することが出来ます。
-    ユーザーIDの指定方法は...多分調べれば出てきます。
-    **メンションでも指定できますが、いざこざとかにつながるかもしれないのでしないほうが得策です。**""")
+ユーザーの情報を表示します。
+引数を指定せずに`n!d`とだけ指定するとあなた自身の情報を表示します。
+`n!d [ユーザーID]`という風に指定すると、そのユーザーの情報を表示することが出来ます。
+ユーザーIDの指定方法は...多分調べれば出てきます。
+**メンションでも指定できますが、いざこざとかにつながるかもしれないのでしないほうが得策です。**""")
     async def d(self, ctx: commands.Context):
-        if ctx.message.content == f"{self.bot.command_prefix}d":
+        arg = ctx.message.content.split(" ", 1)
+        if len(arg) == 1:
             user = await self.bot.fetch_user(ctx.author.id)
-            await ctx.message.reply(embed=self.UserInfoEmbed(user))
+            await ctx.reply(embed=self.UserInfoEmbed(user))
             return
         else:
-            user_id = int(
-                "".join(re.findall(r'[0-9]', ctx.message.content[4:])))
+            check_id = int(
+                "".join(re.findall(r'[0-9]', arg[1])))
             try:
-                user = await self.bot.fetch_user(user_id)
-                await ctx.message.reply(embed=self.UserInfoEmbed(user))
+                user = await self.bot.fetch_user(check_id)
+                await ctx.reply(embed=self.UserInfoEmbed(user))
                 return
-            except BaseException:
-                await ctx.message.reply(embed=nextcord.Embed(title="Error", description="ユーザーが存在しないか、データが取得できませんでした。", color=0xff0000))
-                return
+            except Exception:
+                try:
+                    channel = await self.bot.fetch_channel(check_id)
+                    if type(channel) == nextcord.channel.TextChannel:
+                        embed = nextcord.Embed(
+                            title="TextChannel Info",
+                            description=f"名前:`{channel.name}`\nID:`{channel.id}`\nカテゴリ:`{channel.category}`\n{(lambda x: '__NSFW__' if x else '')(channel.is_nsfw())}\n",
+                            color=0x00ff00
+                        )
+                        (
+                            lambda x: embed.add_field(
+                                name="チャンネルトピック",
+                                value=f"```\n{x}```"
+                            ) if x is not None else None
+                        )(
+                            channel.topic
+                        )
+                    elif type(channel) == nextcord.channel.VoiceChannel:
+                        embed = nextcord.Embed(
+                            title="VoiceChannel Info",
+                            description=f"名前:`{channel.name}`\nID:`{channel.id}`\nカテゴリ:`{channel.category}`\nビットレート:`{channel.bitrate/1000}`kbps\n人数:`{len(channel.voice_states.keys())}/{channel.user_limit}`人",
+                            color=0x00ff00
+                        )
+                    elif type(channel) == nextcord.channel.StageChannel:
+                        embed = nextcord.Embed(
+                            title="StageChannel Info",
+                            description=f"名前:`{channel.name}`\nID:`{channel.id}`\nカテゴリ:`{channel.category}`\nビットレート:`{channel.bitrate/1000}`kbps\n人数:`{len(channel.voice_states.keys())}/{channel.user_limit}`人",
+                            color=0x00ff00
+                        )
+                        (
+                            lambda x: embed.add_field(
+                                name="チャンネルトピック",
+                                value=f"```\n{x}```"
+                            ) if x is not None else None
+                        )(
+                            channel.topic
+                        )
+                    elif type(channel) == nextcord.channel.CategoryChannel:
+                        embed = nextcord.Embed(
+                            title="CategoryChannel Info",
+                            description=f"名前:`{channel.name}`\nID:`{channel.id}`\nテキストチャンネル数:`{len(channel.text_channels)}`\nボイスチャンネル数:`{len(channel.voice_channels)}`\nステージチャンネル数:`{len(channel.stage_channels)}`",
+                            color=0x00ff00
+                        )
+                    await ctx.reply(embed=embed)
+                    return
+                except Exception:
+                    try:
+                        # Forbidden.....?????
+                        guild = await self.bot.fetch_guild(check_id)
+                        embed = nextcord.Embed(
+                            title="Guild Info",
+                            description=f"名前:`{guild.name}`\nID:`{guild.id}`\n人数:`{len(guild.members)}`人(そのうちのBOT数:`{len(guild.bots)}`)\nオーナー:{guild.owner.mention}",
+                            color=0x00ff00
+                        )
+                        (
+                            lambda x: embed.add_field(
+                                name="説明文",
+                                value=f"```\n{x}```"
+                            ) if x is not None else None
+                        )(
+                            guild.description
+                        )
+                        await ctx.reply(embed=embed)
+                        return
+                    except Exception:
+                        await ctx.reply(embed=nextcord.Embed(title="Error", description="ユーザー、チャンネル、またはサーバーのデータが取得できませんでした。", color=0xff0000))
+                        return
 
     @nextcord.slash_command(name="rk", description="ロールキーパー機能の設定", guild_ids=n_fc.GUILD_IDS)
     async def rk_slash(
