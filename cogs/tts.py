@@ -287,15 +287,15 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
-        if message.guild.voice_client is None:
+        if message.author.bot:
             return
         if message.content is None or message.content == "":
-            return
-        if message.author.bot:
             return
         if message.guild.id not in tts_channel:
             return
         if message.channel.id != tts_channel[message.guild.id]:
+            return
+        if getattr(message.guild, 'voice_client', None) is None:
             return
         if message.content.startswith(f"{self.bot.command_prefix}"):
             return
