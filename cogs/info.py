@@ -476,34 +476,8 @@ class info_base():
             inline=False
         )
         if type == CTX:
-            if ctx.author.id in n_fc.py_admin:
-                embed = nextcord.Embed(title="About nira-bot", description=f"""\
-You are Bot administrator!
-
-- Cogs
-```
-{list(dict(self.bot.cogs).keys())}```
-
-Guilds: `{len(self.bot.guilds)}`
-Users: `{len(self.bot.users)}`
-VoiceClients: `{len(self.bot.voice_clients)}`
-Latency: `{round(self.bot.latency*1000, 2)}ms`
-""", color=0x7777ff)
             return ctx.reply(embed=embed)
         elif type == SLASH:
-            if ctx.user.id in n_fc.py_admin:
-                embed = nextcord.Embed(title="About nira-bot", description=f"""\
-You are Bot administrator!
-
-- Cogs
-```
-{list(dict(self.bot.cogs).keys())}```
-
-Guilds: `{len(self.bot.guilds)}`
-Users: `{len(self.bot.users)}`
-VoiceClients: `{len(self.bot.voice_clients)}`
-Latency: `{round(self.bot.latency*1000, 2)}ms`
-""", color=0x7777ff)
             return ctx.response.send_message(embed=embed)
 
     def help(self, ctx, command, type):

@@ -4,11 +4,13 @@ import json
 import logging
 import os
 import pickle
+import platform
 import re
 import shutil
 import subprocess
 import sys
 import traceback
+import psutil
 import websockets
 from subprocess import PIPE
 
@@ -474,9 +476,9 @@ class debug(commands.Cog):
                 await ctx.reply(f"```{err}```")
 
     @commands.command()
-    async def debug(self, ctx: commands.Context):
-        if ctx.author.id in n_fc.py_admin:
-            if ctx.message.content == f"{self.bot.command_prefix}debug reload":
+    async def debug(self, ctx: commands.Context, action: str):
+        if await self.bot.is_owner(ctx.author):
+            if action == "reload":
                 message = await ctx.reply("変数の再ロードをしています...")
                 try:
                     save()
@@ -486,10 +488,35 @@ class debug(commands.Cog):
                         open(f'{sys.path[0]}/setting.json', 'r'))
                     n_fc.py_admin = SETTING["py_admin"]
                     n_fc.GUILD_IDS = SETTING["guild_ids"]
-                except BaseException as err:
+                except Exception as err:
                     await message.edit(content=f"エラーが発生しました。{err}")
                     return
                 await message.edit(content=f"変数の読み込みが完了しました。\nAdmin:{n_fc.py_admin}")
+            elif action == "info":
+                os = platform.system()
+                try:
+                    ping = f"{round((await self.client.ping()).ping * 1000, 2)}ms"
+                except Exception:
+                    ping = "Connection Error"
+                embed = nextcord.Embed(
+                    title="Debug info",
+                    description=os,
+                    color=0x363636
+                )
+                embed.add_field(
+                    name="CPU", value=f"{psutil.cpu_percent(None)}%")
+                embed.add_field(
+                    name="RAM", value=f"{psutil.virtual_memory().percent}%")
+                embed.add_field(name="Ping(Discord)",
+                                value=f"{round(self.bot.latency * 1000, 2)}ms")
+                embed.add_field(name="Ping(HTTP_db)", value=ping)
+                embed.add_field(name="Guilds", value=f"{len(self.bot.guilds)}")
+                embed.add_field(name="Users", value=f"{len(self.bot.users)}")
+                embed.add_field(name="VoiceClients",
+                                value=f"{len(self.bot.voice_clients)}")
+                embed.add_field(
+                    name="Cogs", value=f"```\n{list(dict(self.bot.cogs).keys())}```", inline=False)
+                await ctx.reply(embed=embed)
 
     @commands.command()
     async def lb(self, ctx):
