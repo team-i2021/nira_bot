@@ -4,6 +4,7 @@ import os
 import pickle
 import re
 import sys
+import traceback
 from os import getenv
 
 import nextcord
@@ -69,10 +70,10 @@ class RolePanelSlashInput(nextcord.ui.Modal):
                         role_id = roles[j].id
                         break
                 if role_id == None:
-                    await interaction.followup.send(f"{values[i]}という名前のロールは存在しません")
+                    await interaction.followup.send(f"`{values[i]}`という名前のロールは存在しません")
                     return
             if role_id == None:
-                await interaction.followup.send(f"{values[i]}という名前のロールは存在しません")
+                await interaction.followup.send(f"`{values[i]}`という名前のロールは存在しません")
                 return
             embed_content += f"{i+1}: <@&{role_id}>\n"
             ViewArgs.append([i+1, role_id])
@@ -85,8 +86,8 @@ class RolePanelSlashInput(nextcord.ui.Modal):
             self.EmbedTitle.value = "にらBOTロールパネル"
         try:
             await interaction.followup.send(embed=nextcord.Embed(title=self.EmbedTitle.value, description=embed_content, color=0x00ff00), view=RolePanelView(ViewArgs))
-        except BaseException as err:
-            await interaction.followup.send(f"エラー: `{err}`")
+        except Exception:
+            await interaction.followup.send(f"申し訳ございません。エラーが発生しました。\n```\n{traceback.format_exc()}```")
             return
 
 
@@ -182,7 +183,7 @@ class RolePanelButton(nextcord.ui.Button):
             await interaction.response.send_message(f"ロール付与/剥奪時のエラー: {err}", ephemeral=True)
 
 
-class rolepanel(commands.Cog):
+class Rolepanel(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
@@ -267,7 +268,7 @@ n!rolepanel [メッセージ内容]
     async def rolepanel(self, ctx: commands.Context):
         if ctx.message.content == f"{self.bot.command_prefix}rolepanel debug":
             await ctx.message.add_reaction('🐛')
-            if ctx.author.id in n_fc.py_admin:
+            if await self.bot.is_owner(ctx.author):
                 await ctx.send(f"{ctx.message.author.mention}", embed=nextcord.Embed(title="Views", description=PersistentViews, color=0x00ff00))
                 return
             else:
@@ -295,7 +296,7 @@ n!rolepanel [メッセージ内容]
                 continue
             role_id = None
             try:
-                role_id = int(ctx.message.content.splitlines()[i])
+                role_id = int(re.search(r"[0-9]+", ctx.message.content.splitlines()[i]).group())
             except ValueError:
                 roles = ctx.guild.roles
                 for j in range(len(roles)):
@@ -316,8 +317,8 @@ n!rolepanel [メッセージ内容]
             pickle.dump(PersistentViews, f)
         try:
             await ctx.send(embed=nextcord.Embed(title=f"{content}", description=embed_content, color=0x00ff00), view=RolePanelView(ViewArgs))
-        except BaseException as err:
-            await ctx.send(f"エラー: `{err}`")
+        except Exception:
+            await ctx.send(f"申し訳ございません。エラーが発生しました。\n```\n{traceback.format_exc()}```")
             return
 
 
@@ -329,4 +330,4 @@ def setup(bot):
         with open(f'{sys.path[0]}/PersistentViews.nira', 'rb') as f:
             global PersistentViews
             PersistentViews = pickle.load(f)
-    bot.add_cog(rolepanel(bot))
+    bot.add_cog(Rolepanel(bot))
