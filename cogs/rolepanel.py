@@ -82,10 +82,11 @@ class RolePanelSlashInput(nextcord.ui.Modal):
         PersistentViews.append(ViewArgs)
         with open(f'{sys.path[0]}/PersistentViews.nira', 'wb') as f:
             pickle.dump(PersistentViews, f)
-        if self.EmbedTitle.value == "" or self.EmbedTitle.value is None:
-            self.EmbedTitle.value = "にらBOTロールパネル"
+        embed_title = self.EmbedTitle.value
+        if embed_title == "" or embed_title is None:
+            embed_title = "にらBOTロールパネル"
         try:
-            await interaction.followup.send(embed=nextcord.Embed(title=self.EmbedTitle.value, description=embed_content, color=0x00ff00), view=RolePanelView(ViewArgs))
+            await interaction.followup.send(embed=nextcord.Embed(title=embed_title, description=embed_content, color=0x00ff00), view=RolePanelView(ViewArgs))
         except Exception:
             await interaction.followup.send(f"申し訳ございません。エラーが発生しました。\n```\n{traceback.format_exc()}```")
             return
