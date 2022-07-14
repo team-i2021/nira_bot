@@ -2,7 +2,6 @@ import logging
 import os
 import requests
 import sys
-from lib2to3.pytree import Base
 
 import nextcord
 from nextcord.embeds import Embed
