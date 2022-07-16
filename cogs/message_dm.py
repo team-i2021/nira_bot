@@ -37,6 +37,7 @@ logging.basicConfig(
     format=formatter, filename=f'{SYSDIR}/nira.log', level=logging.INFO)
 
 
+
 async def pullData(client: HTTP_db.Client):
     global MESSAGE_DM_SETTINGS
     if not await client.exists("message_dm"):
@@ -76,15 +77,14 @@ class MessageDM(commands.Cog):
         if interaction.guild.id not in MESSAGE_DM_SETTINGS:
             MESSAGE_DM_SETTINGS[interaction.guild.id] = {
                 interaction.channel.id: [
-                    regex,
-                    dm_message
+                    [regex, dm_message]
                 ]
             }
         else:
-            MESSAGE_DM_SETTINGS[interaction.guild.id][interaction.channel.id] = [
+            MESSAGE_DM_SETTINGS[interaction.guild.id][interaction.channel.id].append([
                 regex,
                 dm_message
-            ]
+            ])
 
         await interaction.followup.send(
             embed=nextcord.Embed(
@@ -97,7 +97,7 @@ class MessageDM(commands.Cog):
         return
 
     @slash_message_dm.subcommand(name="del", description="チャンネルのメッセージDMの設定を削除します")
-    async def slash_message_dm_del(self, interaction: Interaction):
+    async def slash_message_dm_del(self, interaction: Interaction, regex: str = SlashOption(description="判定メッセージです", required=True)):
         await interaction.response.defer(ephemeral=True)
         if not admin_check.admin_check(interaction.guild, interaction.user):
             await interaction.followup.send(embed=nextcord.Embed(title="Error", description="あなたは管理者ではありません。", color=0xff0000))
@@ -110,10 +110,21 @@ class MessageDM(commands.Cog):
             await interaction.followup.send(embed=nextcord.Embed(title="メッセージDMの設定", description="このチャンネルにはメッセージDMの設定がありません。", color=0xff0000))
             return
         else:
-            del MESSAGE_DM_SETTINGS[interaction.guild.id][interaction.channel.id]
+            if regex not in [i[0] for i in MESSAGE_DM_SETTINGS[interaction.guild.id][interaction.channel.id]]:
+                await interaction.followup.send(embed=nextcord.Embed(title="Error", description=f"このチャンネルには`{regex}`という判定メッセージは存在しません。", color=0xff0000))
+                return
+
+            for i in range(len(MESSAGE_DM_SETTINGS[interaction.guild.id][interaction.channel.id])):
+                if MESSAGE_DM_SETTINGS[interaction.guild.id][interaction.channel.id][i][0] == regex:
+                    del MESSAGE_DM_SETTINGS[interaction.guild.id][interaction.channel.id][i]
+
+            if len(MESSAGE_DM_SETTINGS[interaction.guild.id]) == 0:
+                del MESSAGE_DM_SETTINGS[interaction.guild.id][interaction.channel.id]
+
             if len(MESSAGE_DM_SETTINGS[interaction.guild.id]) == 0:
                 del MESSAGE_DM_SETTINGS[interaction.guild.id]
-            await interaction.followup.send(embed=nextcord.Embed(title="メッセージDMの設定", description=f"チャンネル:<#{interaction.channel.id}>\nメッセージDMの設定を削除しました。", color=0x00ff00))
+
+            await interaction.followup.send(embed=nextcord.Embed(title="メッセージDMの設定", description=f"チャンネル:<#{interaction.channel.id}>\n`{regex}`の設定を削除しました。", color=0x00ff00))
             await self.client.post("message_dm", dict_list.dictToList(MESSAGE_DM_SETTINGS))
             return
 
@@ -127,9 +138,12 @@ class MessageDM(commands.Cog):
             embed = nextcord.Embed(
                 title="メッセージDMの設定", description=interaction.guild.name, color=0x00ff00)
             for channel_id, channel_setting in MESSAGE_DM_SETTINGS[interaction.guild.id].items():
+                content = ""
+                for settings in channel_setting:
+                    content += f"判定メッセージ:`{settings[0]}`\n・メッセージ内容```\n{(lambda x: x if len(x) <= 100 else f'{x[:100]}...')(settings[1])}```"
                 embed.add_field(
                     name=(await self.bot.fetch_channel(channel_id)).name,
-                    value=f"判定メッセージ:`{channel_setting[0]}`\n・メッセージ内容```\n{(lambda x: x if len(x) <= 1000 else f'{x[:1000]}...')(channel_setting[1])}```",
+                    value=content,
                     inline=False
                 )
             await interaction.followup.send(embed=embed)
@@ -140,13 +154,16 @@ class MessageDM(commands.Cog):
             return
         if message.guild is None:
             return
-
         if message.guild.id not in MESSAGE_DM_SETTINGS:
             return
         if message.channel.id not in MESSAGE_DM_SETTINGS[message.guild.id]:
             return
-        if re.search(MESSAGE_DM_SETTINGS[message.guild.id][message.channel.id][0], message.content) is not None:
-            await message.author.send(MESSAGE_DM_SETTINGS[message.guild.id][message.channel.id][1])
+        SEND = False
+        for regex, content in MESSAGE_DM_SETTINGS[message.guild.id][message.channel.id]:
+            if re.search(regex, message.content) is not None:
+                await message.author.send(content)
+                SEND = True
+        if SEND:
             await message.add_reaction("\U0001F4E8")
 
     @commands.command(name="mesdm", help="""\
@@ -193,15 +210,13 @@ class MessageDM(commands.Cog):
             if ctx.guild.id not in MESSAGE_DM_SETTINGS:
                 MESSAGE_DM_SETTINGS[ctx.guild.id] = {
                     ctx.channel.id: [
-                        args[0],
-                        args[1]
+                        [args[0], args[1]]
                     ]
                 }
             else:
-                MESSAGE_DM_SETTINGS[ctx.guild.id][ctx.channel.id] = [
-                    args[0],
-                    args[1]
-                ]
+                MESSAGE_DM_SETTINGS[ctx.guild.id][ctx.channel.id].append(
+                    [args[0], args[1]]
+                )
 
             await ctx.reply(embed=nextcord.Embed(title="メッセージDMの設定", description=f"チャンネル:<#{ctx.channel.id}>\n判定メッセージ:`{args[0]}`\n・メッセージ内容```\n{(lambda x: x if len(x) <= 1000 else f'{x[:1000]}...')(args[1])}```", color=0x00ff00))
             await self.client.post("message_dm", dict_list.dictToList(MESSAGE_DM_SETTINGS))
@@ -215,14 +230,30 @@ class MessageDM(commands.Cog):
             if ctx.guild.id not in MESSAGE_DM_SETTINGS:
                 await ctx.reply(embed=nextcord.Embed(title="Error", description="このサーバーには設定がありません。", color=0xff0000))
                 return
+
             elif ctx.channel.id not in MESSAGE_DM_SETTINGS[ctx.guild.id]:
                 await ctx.reply(embed=nextcord.Embed(title="Error", description="このチャンネルには設定がありません。", color=0xff0000))
                 return
 
-            del MESSAGE_DM_SETTINGS[ctx.guild.id][ctx.channel.id]
+            if len(args) != 1:
+                await ctx.reply(embed=nextcord.Embed(title="Error", description=f"コマンドが正しくありません。\n引数の数が不正です。\n`{self.bot.command_prefix}mesdm del [削除する判定メッセージ]`", color=0xff0000))
+                return
+
+            if args[0] not in [i[0] for i in MESSAGE_DM_SETTINGS[ctx.guild.id][ctx.channel.id]]:
+                await ctx.reply(embed=nextcord.Embed(title="Error", description=f"このチャンネルには`{args[0]}`という判定メッセージは存在しません。", color=0xff0000))
+                return
+
+            for i in range(len(MESSAGE_DM_SETTINGS[ctx.guild.id][ctx.channel.id])):
+                if MESSAGE_DM_SETTINGS[ctx.guild.id][ctx.channel.id][i][0] == args[0]:
+                    del MESSAGE_DM_SETTINGS[ctx.guild.id][ctx.channel.id][i]
+
+            if len(MESSAGE_DM_SETTINGS[ctx.guild.id]) == 0:
+                del MESSAGE_DM_SETTINGS[ctx.guild.id][ctx.channel.id]
+
             if len(MESSAGE_DM_SETTINGS[ctx.guild.id]) == 0:
                 del MESSAGE_DM_SETTINGS[ctx.guild.id]
-            await ctx.reply(embed=nextcord.Embed(title="メッセージDMの設定", description=f"チャンネル:<#{ctx.channel.id}>の設定を削除しました。", color=0x00ff00))
+
+            await ctx.reply(embed=nextcord.Embed(title="メッセージDMの設定", description=f"チャンネル:<#{ctx.channel.id}>での`{args[0]}`を削除しました。", color=0x00ff00))
             await self.client.post("message_dm", dict_list.dictToList(MESSAGE_DM_SETTINGS))
             return
 
@@ -232,17 +263,24 @@ class MessageDM(commands.Cog):
                 return
             else:
                 embed = nextcord.Embed(
-                    title="メッセージDMの設定", description=ctx.guild.name, color=0x00ff00)
+                    title="メッセージDMの設定",
+                    description=ctx.guild.name,
+                    color=0x00ff00
+                )
                 for channel_id, channel_setting in MESSAGE_DM_SETTINGS[ctx.guild.id].items():
+                    content = ""
+                    for settings in channel_setting:
+                        content += f"判定メッセージ:`{settings[0]}`\n・メッセージ内容```\n{(lambda x: x if len(x) <= 100 else f'{x[:100]}...')(settings[1])}```\n"
+
                     embed.add_field(
                         name=(await self.bot.fetch_channel(channel_id)).name,
-                        value=f"判定メッセージ:`{channel_setting[0]}`\n・メッセージ内容```\n{(lambda x: x if len(x) <= 1000 else f'{x[:1000]}...')(channel_setting[1])}```"
+                        value=content
                     )
                 await ctx.reply(embed=embed)
                 return
 
         elif command_type == "db":
-            if ctx.author.id not in n_fc.py_admin:
+            if not await self.bot.is_owner(ctx.author):
                 await ctx.reply(embed=nextcord.Embed(title="Forbidden", description="このコマンドの使用には、BOTのオーナー権限が必要です。", color=0xff0000))
                 return
             if len(args) != 1:
