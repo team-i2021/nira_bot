@@ -30,7 +30,7 @@ async def ss_force(bot, message: nextcord.Message):
             await server_check.ss_pin_embed(embed, message.guild.id, i + 1)
         embed.set_footer(text="pingは参考値です")
         await message.edit(
-            f"AutoSS実行中\n止めるには`{bot.command_prefix}ss auto off`または`/ss off`\n止まったりした場合は、このメッセージを長押しして`アプリ`->`AutoSSのスタート`\nリロードするにはボタンか`/ss reload`",
+            f"AutoSS実行中\n止めるには`{bot.command_prefix}ss auto off`または`/ss off`\nリロードするには下の`再読み込み`ボタンか`/ss reload`\n止まった場合は一度オフにしてから再度オンにしてください",
             embed=embed,
             view=Reload_SS_Auto(bot, message)
         )
@@ -207,7 +207,7 @@ async def ss_base(self, ctx: commands.Context):
             try:
                 if ctx.guild.id in n_fc.force_ss_list:
                     del n_fc.force_ss_list[ctx.guild.id]
-                    await ctx.reply(f"AutoSSを無効にしました。\n再度有効にするには`{self.bot.command_prefix}ss auto on`にするか、変更したいメッセージを長押しまたは右クリックして`アプリ`->`AutoSSのスタート`を押してください。")
+                    await ctx.reply(f"AutoSSを無効にしました。\n再度有効にするには`{self.bot.command_prefix}ss auto on`または`/ss auto on`を使用してください。")
                     return
                 else:
                     await ctx.reply("AutoSSは実行されていません。")
@@ -425,7 +425,7 @@ class Recheck_SS_Embed(nextcord.ui.View):
 
     @nextcord.ui.button(label='もう一度チェックする', style=nextcord.ButtonStyle.green)
     async def recheck(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
-        await interaction.response.defer()
+        await interaction.response.defer(with_message=True)
         try:
             embed = nextcord.Embed(
                 title="Server Status Checker",
@@ -437,9 +437,9 @@ class Recheck_SS_Embed(nextcord.ui.View):
             await interaction.followup.send(f'{interaction.user.mention} - Server Status', embed=embed, view=Recheck_SS_Embed())
             logging.info("rechecked")
 
-        except BaseException as err:
-            await interaction.followup.send(f"エラーが発生しました。\n{err}", ephemeral=True)
-            logging.err(err)
+        except Exception:
+            await interaction.followup.send(f"エラーが発生しました。\n```\n{traceback.format_exc()}```")
+            logging.err(traceback.format_exc())
 
 
 class server_status(commands.Cog):
@@ -705,7 +705,7 @@ Steam非公式サーバーのステータスを表示します
         self,
         interaction: Interaction
     ):
-        await interaction.response.defer()
+        await interaction.response.defer(ephemeral=True)
         if interaction.guild.id in n_fc.force_ss_list:
             await interaction.followup.send(f"既に{interaction.guild.name}で他のAutoSSタスクが実行されています。", ephemeral=True)
             return
@@ -725,7 +725,7 @@ Steam非公式サーバーのステータスを表示します
         self,
         interaction: Interaction
     ):
-        await interaction.response.defer()
+        await interaction.response.defer(ephemeral=True)
         try:
             if interaction.guild.id not in n_fc.force_ss_list:
                 await interaction.followup.send("既に無効になっているか、コマンドが実行されていません。", ephemeral=True)
@@ -810,14 +810,14 @@ Steam非公式サーバーのステータスを表示します
                     await server_check.ss_pin_embed(embed, message.guild.id, i + 1)
                 embed.set_footer(text="pingは参考値です")
                 await message.edit(
-                    f"AutoSS実行中\n止めるには`{self.bot.command_prefix}ss auto off`または`/ss off`\n止まったりした場合は、このメッセージを長押しして`アプリ`->`AutoSSのスタート`\nリロードするにはボタンか`/ss reload`",
+                    f"AutoSS実行中\n止めるには`{self.bot.command_prefix}ss auto off`または`/ss off`\nリロードするには下の`再読み込み`ボタンか`/ss reload`\n止まった場合は一度オフにしてから再度オンにしてください",
                     embed=embed,
                     view=Reload_SS_Auto(self.bot, message)
                 )
                 logging.info("Status loaded.(Scheduled)")
             except BaseException as err:
                 logging.info(err, traceback.format_exc())
-                await message.edit(content=f"AutoSSのループ内でエラーが発生しました。\nボタン又は`/reload`コマンドでリロードしてください。\n```sh\n{traceback.format_exc()}```", embed=None)
+                await message.edit(content=f"AutoSSのループ内でエラーが発生しました。\n`再読み込み`ボタン又は`/ss reload`コマンドでリロードしてください。\n```sh\n{traceback.format_exc()}```", embed=None)
 
 
 def setup(bot):
