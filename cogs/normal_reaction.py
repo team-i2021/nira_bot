@@ -75,6 +75,7 @@ reaction_list = [
     r'bsod|BSOD|ブルスク|ブルースクリーン|ブラックスクリーン',
     r'黒棺|くろひつぎ|藍染隊長|クロヒツギ|あいぜんそうすけ',
     r'昼ごはん|ひるごはん|昼ご飯|ひるご飯',
+    r'140円'
 ]
 
 # 0:メッセージ反応,1:添付ファイル反応,2:特殊反応(にら画像),3:特殊反応(にらテキスト),4:特殊反応(Guild指定画像),5:特殊反応(Guild指定文字),6:リアクション
@@ -135,6 +136,7 @@ reaction_files = {
 結合せよ　反発せよ　地に満ち己の無力を知れ　破道の九十・黒棺！！！！！！
 """],
     49: [0, 1, "https://cookpad.com/search/%E4%BB%8A%E6%97%A5%E3%81%AE%E3%83%A9%E3%83%B3%E3%83%81"],
+    50: [0, 1, "https://twitter.com/AsrockJ/status/1547413829390192640"]
 }
 
 # すべてが許されるGuild
@@ -305,9 +307,8 @@ class normal_reaction(commands.Cog):
             sended_mes = ""
             try:
                 sended_mes = await n_reaction(message)
-            except BaseException as err:
-                if re.search("object NoneType can't be used in 'await' expression", str(err)) == None:
-                    logging.error(err)
+            except Exception as err:
+                logging.error(err)
             if sended_mes != "" and sended_mes != None:
                 await sended_mes.add_reaction("<:trash:908565976407236608>")
                 await asyncio.sleep(3)
