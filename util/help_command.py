@@ -8,7 +8,7 @@ helpContents = {
 にらBOTの使い方をまとめたヘルプです、ぜひご覧ください！
 
 ・使い方
-`n!help`
+`%CommandPrefix%help`
 
 下に表示されるプルダウンから表示したいヘルプジャンル/コンテンツを選択してください。
 """,
@@ -51,10 +51,12 @@ VC系
         10: """\
 メッセージコマンド
 メッセージ長押し/右クリックで「アプリ」から選択するコマンドです。
+一部のコマンドは「その他」の中に省略されていますので、そこから選択してください。
 """,
         11: """\
 メンバーコマンド
 チャンネルの右のメンバー一覧からメンバーを選択して「アプリ」から選択するコマンドです。
+一部のコマンドは「その他」の中に省略されていますので、そこから選択してください。
 """},
 
     ManageServer: {
@@ -64,8 +66,8 @@ VC系
 例えば、アカウント作成日が明らかに最近で、荒らしぽっかったりするときに判別しやすくなります。
 
 ・使い方
-`n!ui set [チャンネルID]`
-`n!ui del`
+`%CommandPrefix%ui set [チャンネルID]`
+`%CommandPrefix%ui del`
 
 ・引数
 `[チャンネルID]`
@@ -73,8 +75,8 @@ VC系
 チャンネルIDを取得するには、[こちら](https://support.discord.com/hc/ja/articles/206346498-%E3%83%A6%E3%83%BC%E3%82%B6%E3%83%BC-%E3%82%B5%E3%83%BC%E3%83%90%E3%83%BC-%E3%83%A1%E3%83%83%E3%82%BB%E3%83%BC%E3%82%B8ID%E3%81%AF%E3%81%A9%E3%81%93%E3%81%A7%E8%A6%8B%E3%81%A4%E3%81%91%E3%82%89%E3%82%8C%E3%82%8B-)をご確認ください。
 
 ・例
-`n!ui set 123456789`
-`n!ui del`
+`%CommandPrefix%ui set 123456789`
+`%CommandPrefix%ui del`
 """,
         2: """\
 ウェルカムメッセージ送信
@@ -82,7 +84,7 @@ VC系
 例えば、誰かが入ってきたときにお出迎えするために使ってみてください！
 
 ・使い方
-`n!welcome [join/leave] [メッセージ本文]`
+`%CommandPrefix%welcome [join/leave] [メッセージ本文]`
 (エイリアス: `youkoso`,`goodbye`,`ようこそ`,`Welcome`)
 
 ・引数
@@ -95,15 +97,15 @@ VC系
 メッセージ内には`%name%`/`%count%`/`%ment%`と入れることで、それぞれ`ユーザー名`/`ユーザー数`/`メンション`に置き換わります。
 
 ・例
-`n!welcome join %name%さんこんにちは！ %count%人目のお客様です！`
-`n!welcome leave %name%さん、またね！`
+`%CommandPrefix%welcome join %name%さんこんにちは！ %count%人目のお客様です！`
+`%CommandPrefix%welcome leave %name%さん、またね！`
 """,
         3: """\
 サーバー加入時 自動ロール付与
 サーバーに誰かが入ってきた際に、自動的に指定したロールを付与します。
 
 ・使い方
-`n!autorole [ロール名またはID]`
+`%CommandPrefix%autorole [ロール名またはID]`
 (エイリアス: `自動ロール`,`オートロール`)
 
 ・引数
@@ -111,7 +113,7 @@ VC系
 付与したいロール名またはIDです。
 
 ・例
-`n!autorole にら民`
+`%CommandPrefix%autorole にら民`
 """,
         4: """\
 ボタンでロールを付与するパネル
@@ -122,29 +124,10 @@ VC系
 
 ・使い方
 ```
-n!rolepanel [*タイトル]
-[ロール名またはID1]
-[ロール名またはID2]
-[ロール名またはID3]...
+/rolepanel
 ```
 
-・引数
-`[*タイトル]`
-あってもなくてもかまいません。
-特定のメッセージをロールパネルのタイトルにしたい場合は入力してください。
-入力する場合は**rolepanel**の後に半角スペースを開けてから入力します。
-入力しない倍は、**rolepanel**の後にすぐ改行してからロールを入力していきます。
-
-`[ロール名またはID]`
-ボタンを押すことで付与/剥奪するロール名またはIDです。
-
-・例
-```
-n!rolepanel
-猫が好きな人
-犬が好きな人
-鳥が好きな人
-```
+(モーダルウィンドウが開きます。)
 """,
         5: """\
 荒らし対策機能
@@ -154,8 +137,8 @@ n!rolepanel
 20秒間に、指定数以上メッセージを送ったユーザーに特定のロールを付与し、荒らし対策とします。
 
 ・使い方
-`n!mod on [メッセージ数] [付与するロール名またはID]`
-`n!mod off`
+`%CommandPrefix%mod on [メッセージ数] [付与するロール名またはID]`
+`%CommandPrefix%mod off`
 
 ・引数
 `[メッセージ数]`
@@ -165,7 +148,7 @@ n!rolepanel
 ミュート用に付与するロールを事前に作成しておき、ここで指定してください。
 
 ・例
-`n!mod on 30 だまられろ！`
+`%CommandPrefix%mod on 30 だまられろ！`
 """,
         6: """\
 メッセージ下部ピン止め機能
@@ -176,15 +159,15 @@ n!rolepanel
 チャンネルを見たら、必ず目に入るような位置なので、そのチャンネルでの簡単なルールなどを書いておくといいでしょう。
 
 ・使い方
-`n!pin on [メッセージ内容]`
-`n!pin off`
+`%CommandPrefix%pin on [メッセージ内容]`
+`%CommandPrefix%pin off`
 
 ・引数
 `[メッセージ内容]`
 下部にピン止めするメッセージの内容です。
 
 ・例
-`n!pin on このチャンネルは随時ニュースが流れるよ`
+`%CommandPrefix%pin on このチャンネルは随時ニュースが流れるよ`
 """,
         7: """\
 サーバーを抜けてもロールを保持する
@@ -192,28 +175,28 @@ n!rolepanel
 ロールキーパー機能です。
 
 ・使い方
-`n!rk [on/off]`
+`%CommandPrefix%rk [on/off]`
 
 ・引数
 `[on/off]`
 機能を有効にするか無効にするか設定できます。
 
 ・例
-`n!rk on`
+`%CommandPrefix%rk on`
 """,
         8: """\
 Bump通知機能
 disboardのBumpが出来る時間(2時間)になったらお知らせしてくれる機能です。
 
 ・使い方
-`n!bump [on/off]`
+`%CommandPrefix%bump [on/off]`
 
 ・引数
 [on/off]
 機能を有効にするか無効にするか設定できます。
 
 ・例
-`n!bump on`
+`%CommandPrefix%bump on`
 """,
         9: """\
 ボタンで投票するパネル
@@ -222,7 +205,7 @@ disboardのBumpが出来る時間(2時間)になったらお知らせしてく�
 
 ・使い方
 ```
-n!pollpanel [on/off] [*タイトル]
+%CommandPrefix%pollpanel [on/off] [*タイトル]
 [選択肢1]
 [選択肢2]
 [選択肢3]...
@@ -241,7 +224,7 @@ onにすると、一人一票になります。
 
 ・例
 ```
-n!pollpanel on 好きなねこ教えてね
+%CommandPrefix%pollpanel on 好きなねこ教えてね
 しろねこ
 くろねこ
 みけねこ
@@ -254,13 +237,13 @@ DissokuのUp通知を行います
 DissokuのUpをしたら、その1時間後に通知します。
 
 ・使い方
-`n!up [on/off] [*ロール]`
+`%CommandPrefix%up [on/off] [*ロール]`
 **on**の場合、ロールを後ろにつけると、ロールをメンションします。
 
 ・例
-`n!up on`
-`n!up on @( ᐛ )وｱｯﾊﾟｧｧｧｧｧｧｧｧｧｧｧｧｧｧ!!`
-`n!up off`
+`%CommandPrefix%up on`
+`%CommandPrefix%up on @( ᐛ )وｱｯﾊﾟｧｧｧｧｧｧｧｧｧｧｧｧｧｧ!!`
+`%CommandPrefix%up off`
 """,
         11: """\
 メッセージに反応してDMを送信します
@@ -270,9 +253,9 @@ DissokuのUpをしたら、その1時間後に通知します。
 指定された文章を含むメッセージが送信された場合にDMを送信します。
 
 ・使い方
-`n!mesdm set [反応メッセージ] [送信DM文章]`
-`n!mesdm del`
-`n!mesdm list`
+`%CommandPrefix%mesdm set [反応メッセージ] [送信DM文章]`
+`%CommandPrefix%mesdm del`
+`%CommandPrefix%mesdm list`
 
 
 ・引数
@@ -286,12 +269,12 @@ DissokuのUpをしたら、その1時間後に通知します。
 
 ・例
 ```
-n!mesdm set "I want to be ([に|ニ|ni]|[ら|ラ|ra])BOT" お、君もにらBOTになりたいのか！
+%CommandPrefix%mesdm set "I want to be ([に|ニ|ni]|[ら|ラ|ra])BOT" お、君もにらBOTになりたいのか！
 > 1. そうだよ（便乗）
 > 2. ちがうよ（便乗）
 ||（返事しても何も起きないよ）||```
-`n!mesdm del`
-`n!mesdm list`
+`%CommandPrefix%mesdm del`
+`%CommandPrefix%mesdm list`
 """,
         12: """\
 メッセージに反応してロール付与/剥奪を行います。
@@ -299,9 +282,9 @@ n!mesdm set "I want to be ([に|ニ|ni]|[ら|ラ|ra])BOT" お、君もにらBOT�
 指定された文章を含むメッセージが送信された場合にロールの付与/剥奪を行います。
 
 ・使い方
-`n!mesrole set [反応メッセージ] [add/del] [ロール名又はID]`
-`n!mesrole del`
-`n!mesrole list`
+`%CommandPrefix%mesrole set [反応メッセージ] [add/del] [ロール名又はID]`
+`%CommandPrefix%mesrole del`
+`%CommandPrefix%mesrole list`
 
 ・引数
 `[反応メッセージ]`
@@ -317,9 +300,9 @@ n!mesdm set "I want to be ([に|ニ|ni]|[ら|ラ|ra])BOT" お、君もにらBOT�
 実際に付与/剥奪するロールです。
 
 ・例
-`n!mesrole set "I don't want to be ([に|ニ|ni]|[ら|ラ|ra])BOT" del にら民`
-`n!mesrole del`
-`n!mesrole list`
+`%CommandPrefix%mesrole set "I don't want to be ([に|ニ|ni]|[ら|ラ|ra])BOT" del にら民`
+`%CommandPrefix%mesrole del`
+`%CommandPrefix%mesrole list`
 """,
         13: """\
 メッセージを下部にピン留めします。
@@ -327,8 +310,8 @@ n!mesdm set "I want to be ([に|ニ|ni]|[ら|ラ|ra])BOT" お、君もにらBOT�
 見やすい位置って下だもんね！？
 
 ・使い方
-`n!pin set [ピン留め文章]`
-`n!pin del`
+`%CommandPrefix%pin set [ピン留め文章]`
+`%CommandPrefix%pin del`
 
 ・引数
 `[ピン留め文章]`
@@ -336,13 +319,13 @@ n!mesdm set "I want to be ([に|ニ|ni]|[ら|ラ|ra])BOT" お、君もにらBOT�
 
 ・例
 ```
-n!pin set ほら！ちゃんと自己紹介しなさい！！！
+%CommandPrefix%pin set ほら！ちゃんと自己紹介しなさい！！！
 > __テンプレート__
 > 名前: nattyan-tv
 > 年齢: 永遠の0
 > やってるゲーム: twitter
 > ひとこと: ねぇよ！！！！```
-`n!pin del`
+`%CommandPrefix%pin del`
 """,
         14: """\
 毎日指定時間にメッセージを送ります。
@@ -350,9 +333,9 @@ n!pin set ほら！ちゃんと自己紹介しなさい！！！
 例えば`5:58`/`6:58`/`7:35`:`7:58`に指定すればめざましじゃんけんに遅れずに済みます（土日も通知されるのがキズですが...）
 
 ・使い方
-`n!remind on [時間(hh:mm)] [送信したいメッセージ文]`
-`n!remind off [時間(hh:mm)]`
-`n!remind list`
+`%CommandPrefix%remind on [時間(hh:mm)] [送信したいメッセージ文]`
+`%CommandPrefix%remind off [時間(hh:mm)]`
+`%CommandPrefix%remind list`
 
 ・引数
 `[時間(hh:mm)]`
@@ -364,10 +347,10 @@ n!pin set ほら！ちゃんと自己紹介しなさい！！！
 
 ・例
 ```
-n!remind on 6:00 起きるのだ！
+%CommandPrefix%remind on 6:00 起きるのだ！
 さっさと起きないとeveryoneメンションしちゃうのだ！
 早く僕の朝食を作るのだ！```
-`n!remind off 6:00`
+`%CommandPrefix%remind off 6:00`
 """},
     ManageUser: {
         1: """\
@@ -375,7 +358,7 @@ n!remind on 6:00 起きるのだ！
 自分または特定のユーザーの情報（名前/ID/アカウント作成日）を表示します。
 
 ・使い方
-`n!d [*ユーザーID]`
+`%CommandPrefix%d [*ユーザーID]`
 
 ・引数
 `[*ユーザーID]`
@@ -383,17 +366,17 @@ n!remind on 6:00 起きるのだ！
 ユーザーIDを取得するには、[こちら](https://support.discord.com/hc/ja/articles/206346498-%E3%83%A6%E3%83%BC%E3%82%B6%E3%83%BC-%E3%82%B5%E3%83%BC%E3%83%90%E3%83%BC-%E3%83%A1%E3%83%83%E3%82%BB%E3%83%BC%E3%82%B8ID%E3%81%AF%E3%81%A9%E3%81%93%E3%81%A7%E8%A6%8B%E3%81%A4%E3%81%91%E3%82%89%E3%82%8C%E3%82%8B-)をご確認ください。
 
 ・例
-`n!d`
+`%CommandPrefix%d`
 """,
         2: """\
 管理者権限の有無をチェック
 あなたにサーバーの管理者権限（にらBOTの大体の操作権）があるかをチェックします。
 
 ・使い方
-`n!admin`
+`%CommandPrefix%admin`
 
 ・例
-`n!admin`
+`%CommandPrefix%admin`
 """,
         3: """\
 招待リンクに名前を付けて管理する
@@ -402,9 +385,9 @@ n!remind on 6:00 起きるのだ！
 この機能は単体ではあんま強みがないですが、`サーバー便利/管理`の`加入/離脱者情報表示`を使用すると、どの招待リンクを使って来たかが分かりやすくなると思います。
 
 ・使い方
-`n!invite set [招待リンクまたはコード] [つけたい名前]`
-`n!invite del [招待リンクまたはコード]`
-`n!invite`（リスト表示）
+`%CommandPrefix%invite set [招待リンクまたはコード] [つけたい名前]`
+`%CommandPrefix%invite del [招待リンクまたはコード]`
+`%CommandPrefix%invite`（リスト表示）
 
 サーバー参加者がどのURLを使用したかは、頑張って検知するようにしますが、場合によっては検知出来ない場合があります。その場合は優しく見守ってください。
 
@@ -417,9 +400,9 @@ n!remind on 6:00 起きるのだ！
 つけたい名前です。
 
 ・例
-`n!invite set awfFpCYTcP メイン`
-`n!invite del awfFpCYTcP`
-`n!invite list`
+`%CommandPrefix%invite set awfFpCYTcP メイン`
+`%CommandPrefix%invite del awfFpCYTcP`
+`%CommandPrefix%invite list`
 """},
     Amuse: {
         1: """\
@@ -427,7 +410,7 @@ n!remind on 6:00 起きるのだ！
 サイコロを振ります。
 
 ・使い方
-`n!dice [サイコロの最大値]`
+`%CommandPrefix%dice [サイコロの最大値]`
 
 ・引数
 `[サイコロの最大値]`
@@ -436,7 +419,7 @@ n!remind on 6:00 起きるのだ！
 なお、数値以外(マイナスなど)を指定しても、数値のみが反映されます。
 
 ・例
-`n!dice 6`
+`%CommandPrefix%dice 6`
 """,
         2: """\
 じゃんけん
@@ -444,14 +427,14 @@ n!remind on 6:00 起きるのだ！
 なお、心理戦/AI機能などはなく、確率は同様に確からしいです。
 
 ・使い方
-`n!janken [グー/チョキ/パー]`
+`%CommandPrefix%janken [グー/チョキ/パー]`
 
 ・引数
 `[グー/チョキ/パー]`
 じゃんけんの手を指定します。
 
 ・例
-`n!janken チョキ`
+`%CommandPrefix%janken チョキ`
 """,
         3: """\
 占い
@@ -460,10 +443,10 @@ n!remind on 6:00 起きるのだ！
 また、この結果によってあなたの人生が完璧に占われるわけではないので、あくまでも**参考**にしてください。
 
 ・使い方
-`n!uranai`
+`%CommandPrefix%uranai`
 
 ・例
-`n!uranai`
+`%CommandPrefix%uranai`
 """,
         4: """\
 Wordle風ゲーム
@@ -472,10 +455,10 @@ Wordle風ゲーム
 遊び方については[こちら](https://snsdays.com/game-app/wodle-play-strategy/)をご確認ください。
 
 ・使い方
-`n!wordle`
+`%CommandPrefix%wordle`
 
 ・例
-`n!wordle`
+`%CommandPrefix%wordle`
 """,
         5: """\
 しりとり風ゲーム
@@ -483,10 +466,10 @@ Wordle風ゲーム
 しりとり風というのは、送られたメッセージの最後の文字から始まる言葉をただ送り返すだけのもので、重複返しもあります。
 
 ・使い方
-`n!srtr`
+`%CommandPrefix%srtr`
 
 ・例
-`n!srtr`
+`%CommandPrefix%srtr`
 """},
     ServerStatus: {
         1: """\
@@ -513,7 +496,7 @@ Embedとは、コマンドを送信したときにたまに返ってくる、横
 
 ・使い方
 ```
-n!embed [カラーコード] [タイトル]
+%CommandPrefix%embed [カラーコード] [タイトル]
 [本文]
 ```
 
@@ -536,7 +519,7 @@ DeepL翻訳及びGoogle翻訳の両方を使用します。
 （デフォルトはDeepL翻訳で、DeepL翻訳使用できない場合にGoogle翻訳が使用されます。）
 
 ・使い方
-`n!translate [ja/en] [翻訳したい文章]`
+`%CommandPrefix%translate [ja/en] [翻訳したい文章]`
 `/translate`
 
 ・引数
@@ -550,7 +533,7 @@ DeepL翻訳及びGoogle翻訳の両方を使用します。
 また、メッセージコマンドを使用して、送信されているメッセージを翻訳することもできます。
 さらに、チャンネルトピックを使用して、流れてくるメッセージを翻訳することもできます。
 
-現在、DeepL翻訳なのか、Google翻訳なのかを知りたい場合は`n!translate`とだけ送信すると、下に使用できる翻訳プロバイダが表示されます。
+現在、DeepL翻訳なのか、Google翻訳なのかを知りたい場合は`%CommandPrefix%translate`とだけ送信すると、下に使用できる翻訳プロバイダが表示されます。
 
 ・有効プロバイダの見方
 `DeepL Translate`: DeepL翻訳が使用されます。
@@ -560,7 +543,7 @@ DeepL翻訳及びGoogle翻訳の両方を使用します。
 
 # 開発者向け
 ・翻訳プロバイダ切り替え
-`n!translate provider`
+`%CommandPrefix%translate provider`
 コマンド送信後、ボタンを押すことで、プロバイダの切り替えを行えます。
 
 Powered by DeepL Translate/Google Translate
@@ -571,10 +554,10 @@ Powered by DeepL Translate/Google Translate
 チャンネルでのにらBOTの便乗機能および、追加反応(オートリプライ)での反応を有効/無効にすることができます。
 真面目なチャンネルなどでは設定しておいてください。怒られます。
 なお、この設定はチャンネルトピックでも使うことができます。
-`n!help`から`チャンネルトピック`->`そのチャンネルでにらの反応を無効化する`からご確認ください。
+`%CommandPrefix%help`から`チャンネルトピック`->`そのチャンネルでにらの反応を無効化する`からご確認ください。
 
 ・使い方
-`n!ar [on/off] [*all]`
+`%CommandPrefix%ar [on/off] [*all]`
 
 ・引数
 `[on/off]`
@@ -585,7 +568,7 @@ Powered by DeepL Translate/Google Translate
 サーバー設定で無効になっている場合は、チャンネル設定で有効にしても反応しなくなります。
 
 ・例
-`n!ar off`
+`%CommandPrefix%ar off`
 """,
         2: """\
 自分で反応を追加するオートリプライ機能
@@ -593,9 +576,9 @@ Powered by DeepL Translate/Google Translate
 トリガーには正規表現を使うことができますが、半角スペースを使うことはできません。
 
 ・使い方
-追加: `n!er add [トリガー] [リターン]`
-リスト: `n!er list`
-削除: `n!er del [トリガー]`
+追加: `%CommandPrefix%er add [トリガー] [リターン]`
+リスト: `%CommandPrefix%er list`
+削除: `%CommandPrefix%er del [トリガー]`
 
 ・引数
 `[トリガー]`
@@ -605,7 +588,7 @@ Powered by DeepL Translate/Google Translate
 なんと返信させるかを指定します。
 
 ・例
-`n!er add bot 呼んだ！？`
+`%CommandPrefix%er add bot 呼んだ！？`
 """,
         3: """\
 特定の言葉に反応する便乗機能
@@ -613,7 +596,7 @@ Powered by DeepL Translate/Google Translate
 にらBOTのメイン的な機能です。便乗します。
 
 ・使い方
-`n!nr [on/off] [*all]`
+`%CommandPrefix%nr [on/off] [*all]`
 
 ・引数
 `[on/off]`
@@ -624,7 +607,7 @@ Powered by DeepL Translate/Google Translate
 サーバー設定で無効になっている場合は、チャンネル設定で有効にしても反応しなくなります。
 
 ・例
-`n!nr off`
+`%CommandPrefix%nr off`
 """,
         4: """\
 特定のチャンネルのメッセージをLINEに送る
@@ -648,26 +631,26 @@ Powered by DeepL Translate/Google Translate
         1: """\
 VCにBOTを参加させる
 音楽再生をする際に、VCにBOTを参加させることができます。
-なお、読み上げ機能を使う際は`n!tts join`を使う必要があります。
+なお、読み上げ機能を使う際は`%CommandPrefix%tts join`を使う必要があります。
 
 音楽再生のコマンドについては[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)にもまとめてあります。
 
 ・使い方
-`n!join`
+`%CommandPrefix%join`
 
 ・例
-`n!join`
+`%CommandPrefix%join`
 """,
         2: """\
 VCからBOTを離脱させる
 音楽再生などが終わった際に、VCからBOTを離脱させることができます。
-なお、読み上げから切断する場合は`n!tts leave`を使う必要があります。
+なお、読み上げから切断する場合は`%CommandPrefix%tts leave`を使う必要があります。
 また、BOTがバグってしまって、VCに取り残されてる場合にもこのコマンドを使うことができます。
 
 音楽再生のコマンドについては[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)にもまとめてあります。
 
 ・使い方
-`n!leave [*f]`
+`%CommandPrefix%leave [*f]`
 
 ・引数
 `[*f]`
@@ -675,7 +658,7 @@ VCからBOTを離脱させる
 BOTを強制的に離脱させたい場合は、`f`を指定してください。
 
 ・例
-`n!leave`
+`%CommandPrefix%leave`
 """,
         3: """\
 読み上げ機能
@@ -691,12 +674,12 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
 
 
 ・使い方
-参加: `n!tts join`
-声の選択: `n!tts voice`
-切断: `n!tts leave`
+参加: `%CommandPrefix%tts join`
+声の選択: `%CommandPrefix%tts voice`
+切断: `%CommandPrefix%tts leave`
 
 ・例
-`n!tts join`
+`%CommandPrefix%tts join`
 """,
         4: """\
 音楽を再生する
@@ -741,7 +724,7 @@ Discordサーバーとのレイテンシ(RTT)測定及びHTTP_dbへのレイテ�
 Ping疎通チェックでは、localhostやLAN内のアドレスは指定||多分||できません。（しないでください。）
 
 ・使い方
-`n!ping [*アドレス]`
+`%CommandPrefix%ping [*アドレス]`
 
 ・引数
 `[*アドレス]`
@@ -749,8 +732,8 @@ Ping疎通チェックでは、localhostやLAN内のアドレスは指定||多�
 指定しないと、Discordサーバーとのレイテンシを測定します。
 
 ・例
-`n!ping`
-`n!ping www.google.com`
+`%CommandPrefix%ping`
+`%CommandPrefix%ping www.google.com`
 """,
         2: """\
 Webページ作成
@@ -758,46 +741,46 @@ HTMLコードを直接送信することで、そのHTMLのページへのURLを
 使用サービスのDynamic-pageについては[こちら](https://github.com/nattyan-tv/dynamic-page)をご確認ください。
 
 ・使い方
-`n!html [HTMLコード]`
+`%CommandPrefix%html [HTMLコード]`
 
 ・引数
 `[HTMLコード]`
 HTMLコードを指定してください。
 
 ・例
-`n!html <h1>Hello World</h1>`
+`%CommandPrefix%html <h1>Hello World</h1>`
 """,
         3: """\
 にらBOTの情報表示
 にらBOTの情報を表示するよ！
 
 ・使い方
-`n!info`
+`%CommandPrefix%info`
 
 ・例
-`n!info`
+`%CommandPrefix%info`
 """,
         4: """\
 ヘルプ表示
 にらBOTのヘルプおよび、各コマンドのヘルプを表示します。
 
 ・使い方
-`n!help [*コマンド]`
+`%CommandPrefix%help [*コマンド]`
 
 ・引数
 `[*コマンド]`
 指定すると、そのコマンドのヘルプを表示します。
-なにも指定せずに`n!help`とだけ送信すると、ヘルプメッセージが送信されます。
+なにも指定せずに`%CommandPrefix%help`とだけ送信すると、ヘルプメッセージが送信されます。
 
 ・例
-`n!help help`
+`%CommandPrefix%help help`
 """},
     ChannelTopic: {
         1: """\
 そのチャンネルでにらの反応を無効化する
 チャンネルトピックに`nira-off`と入力しておくと、そのチャンネルでのにらBOTの反応を無効化できます。
-同様のコマンド`n!ar`があります。
-`n!help`から`にらの反応系`->`にらのコマンド/Bump以外の全反応設定`と選択してください。
+同様のコマンド`%CommandPrefix%ar`があります。
+`%CommandPrefix%help`から`にらの反応系`->`にらのコマンド/Bump以外の全反応設定`と選択してください。
 """,
         2: """\
 そのチャンネルのメッセージを翻訳する
@@ -807,15 +790,15 @@ HTMLコードを指定してください。
 `nira-tl-en`: すべてのメッセージを英語に翻訳する
 `nira-tl-auto`: すべてのメッセージを「日本語は英語に」「英語は日本語に」翻訳する
 
-詳しい情報は`n!help translate`でご確認ください。
+詳しい情報は`%CommandPrefix%help translate`でご確認ください。
 """},
     MessageCommand: {
         1: """\
-Embed取得
-Embedの中身をメッセージに書き起こし、他者から見えないように送信します。
+AutoSSのスタート
+AutoSSを選択されたメッセージで開始します。
 
 ・対象メッセージ
-Embedが含まれているメッセージ
+にらBOTが送信したメッセージ
 """,
         2: """\
 メッセージ翻訳
@@ -824,7 +807,7 @@ Embedが含まれているメッセージ
 ・対象メッセージ
 テキストが含まれているメッセージ
 
-翻訳は`n!translate`でも使用可能です。(`n!help translate`)
+翻訳は`%CommandPrefix%translate`でも使用可能です。(`%CommandPrefix%help translate`)
 """,
         3: """\
 メッセージ読み上げ
@@ -833,37 +816,47 @@ Embedが含まれているメッセージ
 ・対象メッセージ
 テキストが含まれているメッセージ
 
-テキスト読み上げは`n!tts`でも使用可能です。(`n!help tts`)
+テキスト読み上げは`%CommandPrefix%tts`でも使用可能です。(`%CommandPrefix%help tts`)
 """,
         4: """\
 ロールパネル編集
 作成されたロールパネルを編集することができます。
 
 ・対象メッセージ
-にらBOTが送信した`n!rolepanel`または`/rolepanel`で生成したロールパネル
+にらBOTが送信した`%CommandPrefix%rolepanel`または`/rolepanel`で生成したロールパネル
 
-ロールパネルは`n!rolepanel`で生成可能です。(`n!help rolepanel`)
+ロールパネルは`%CommandPrefix%rolepanel`で生成可能です。(`%CommandPrefix%help rolepanel`)
 """,
         5: """\
+投票パネル編集
+作成された投票パネルを編集することができます。
+すでに票が入っている選択肢を削除/編集した場合は、その票は削除されます。
+
+・対象メッセージ
+にらBOTが送信した`%CommandPrefix%pollpanel`または`/pollpanel`で生成した投票パネル
+
+ロールパネルは`%CommandPrefix%pollpanel`で生成可能です。(`%CommandPrefix%help pollpanel`)
+""",
+        6: """\
 下部ピン留めする
 選択されたメッセージを、下部ピン留めとして登録します。
 
 ・対象メッセージ
 テキストが含まれているメッセージ
 
-下部ピン留めは`n!pin`でも使用可能です。(`n!help pin`)
+下部ピン留めは`%CommandPrefix%pin`でも使用可能です。(`%CommandPrefix%help pin`)
 """
     },
     MemberCommand: {
         1: """\
 ユーザー情報表示
 選択されたユーザーの情報を表示します。
-`n!d`の省略版です。
+`%CommandPrefix%d`の省略版です。
 """,
         2: """\
 管理者権限チェック
 選択されたユーザーがにらBOTの管理権限を有しているかを表示します。
-`n!admin`の他人にも使える版です。
+`%CommandPrefix%admin`の他人にも使える版です。
 """,
     }
 }

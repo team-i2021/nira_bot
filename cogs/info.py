@@ -330,7 +330,7 @@ class HelpSelect(nextcord.ui.Select):
                     value="0"
                 ),
                 nextcord.SelectOption(
-                    label='Embed取得',
+                    label='AutoSSスタート',
                     value="10-1"
                 ),
                 nextcord.SelectOption(
@@ -346,8 +346,12 @@ class HelpSelect(nextcord.ui.Select):
                     value="10-4"
                 ),
                 nextcord.SelectOption(
-                    label='下部ピン留めする',
+                    label='投票パネル編集',
                     value="10-5"
+                ),
+                nextcord.SelectOption(
+                    label='下部ピン留めする',
+                    value="10-6"
                 ),
             ]
         elif opt == MemberCommand:
@@ -411,7 +415,7 @@ class HelpSelect(nextcord.ui.Select):
                             )
                         ][
                             int(value.split("-", 1)[1])
-                        ].splitlines()[1:]),
+                        ].splitlines()[1:]).replace("%CommandPrefix%", self.prefix),
                     color=0x00ff00
                 )
             else:
@@ -475,6 +479,17 @@ class info_base():
 [https://github.com/team-i2021/nira_net](https://github.com/team-i2021/nira_net)""",
             inline=False
         )
+        embed.add_field(
+            name="各種表記",
+            value="""\
+- 利用規約
+[https://nira.f5.si/terms_of_service.html](https://nira.f5.si/terms_of_service.html)
+
+- プライバシーポリシー
+[https://nira.f5.si/privacy_policy.html](https://nira.f5.si/privacy_policy.html)
+""",
+            online=False
+        )
         if type == CTX:
             return ctx.reply(embed=embed)
         elif type == SLASH:
@@ -520,19 +535,19 @@ class info(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @ nextcord.slash_command(name="info", description="にらBOTの情報を表示します。", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="info", description="にらBOTの情報を表示します。", guild_ids=n_fc.GUILD_IDS)
     async def info_slash(self, interaction: Interaction):
         await info_base.info(self, interaction, SLASH)
         return
 
-    @ commands.command(name="info", help="""\
+    @commands.command(name="info", help="""\
 にらBOTの情報を表示します。
 どのようなコマンドがあるかを大雑把に説明したり、Discordサポートサーバー、GitHubレポジトリへのリンクがあります。""")
     async def info(self, ctx: commands.Context):
         await info_base.info(self, ctx, CTX)
         return
 
-    @ nextcord.slash_command(name="help", description="にらBOT及び、コマンドのヘルプを表示します。", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="help", description="にらBOT及び、コマンドのヘルプを表示します。", guild_ids=n_fc.GUILD_IDS)
     async def help_slash(
         self,
         interaction: Interaction,
@@ -546,7 +561,7 @@ class info(commands.Cog):
             command = None
         await info_base.help(self, interaction, command, SLASH)
 
-    @ commands.command(name="help", help="""\
+    @commands.command(name="help", help="""\
 にらBOT又はコマンドのヘルプを表示します。
 普通に`n!help`とだけすると、にらBOTのヘルプが表示されます。
 `n!help`の後にヘルプを見たいコマンドを入れると、そのコマンドのヘルプを表示できます。

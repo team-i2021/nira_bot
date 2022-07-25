@@ -88,7 +88,7 @@ class SendEmbed(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @nextcord.message_command(name="Embedコンテンツの取得", guild_ids=n_fc.GUILD_IDS)
+    # @nextcord.message_command(name="Embedコンテンツの取得", guild_ids=n_fc.GUILD_IDS)
     async def embed_message_command(self, interaction: Interaction, message: nextcord.Message):
         await interaction.response.defer(ephemeral=True)
         if len(message.embeds) == 0:

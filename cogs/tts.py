@@ -248,7 +248,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
             await ctx.reply(f"・読み上げ機能\nエラー：書き方が間違っています。\n\n`n!tts join`: 参加\n`n!tts leave`: 退出\n`{self.bot.command_prefix}tts voice`: 声選択")
             return
 
-    @nextcord.message_command(name="メッセージを読み上げる", guild_ids=n_fc.GUILD_IDS)
+    #@nextcord.message_command(name="メッセージを読み上げる", guild_ids=n_fc.GUILD_IDS)
     async def speak_message(self, interaction: Interaction, message: nextcord.Message):
         await interaction.response.defer(ephemeral=True)
         try:

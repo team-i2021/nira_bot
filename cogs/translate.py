@@ -254,7 +254,7 @@ class Translate(commands.Cog):
     ):
         await interaction.response.send_modal(TranslateModal(self.bot, self.deepl_tr, self.google_tr, source_lang, target_lang))
 
-    @nextcord.message_command(name="メッセージ翻訳", guild_ids=n_fc.GUILD_IDS)
+    #@nextcord.message_command(name="メッセージ翻訳", guild_ids=n_fc.GUILD_IDS)
     async def translation_message_command(self, interaction: Interaction, message: nextcord.Message):
         await interaction.response.defer()
         if not contentCheck(message):
