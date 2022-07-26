@@ -105,7 +105,7 @@ class reaction(commands.Cog):
                     if ctx.message.guild.id not in n_fc.ex_reaction_list:
                         n_fc.ex_reaction_list[ctx.message.guild.id] = {
                             "value": 0}
-                    value = n_fc.ex_reaction_list[ctx.message.guild.id]["value"]
+                    value = int(n_fc.ex_reaction_list[ctx.message.guild.id]["value"])
                     ra = ctx.message.content[9:].split(" ", 1)
                     react_triger = ra[0]
                     react_return = ra[1]
@@ -221,7 +221,7 @@ class reaction(commands.Cog):
             try:
                 if interaction.guild.id not in n_fc.ex_reaction_list:
                     n_fc.ex_reaction_list[interaction.guild.id] = {"value": 0}
-                value = n_fc.ex_reaction_list[interaction.guild.id]["value"]
+                value = int(n_fc.ex_reaction_list[interaction.guild.id]["value"])
                 react_triger = triggerMessage
                 react_return = returnMessage
                 changeSetting(SET, ER, interaction, key="value", value=value+1)
