@@ -97,31 +97,31 @@ class reaction(commands.Cog):
 トリガーには正規表現を使うことが出来ます。が、スペースを含むことはできませんのでご了承ください。""")
     async def er(self, ctx: commands.Context):
         if ctx.message.content[:8] == "n!er add":
-            if admin_check.admin_check(ctx.guild, ctx.author):
-                if ctx.message.content == "n!er add":
-                    await ctx.message.reply("構文が異なります。\n```n!er add [トリガー] [返信文]```")
-                    return
-                try:
-                    if ctx.message.guild.id not in n_fc.ex_reaction_list:
-                        n_fc.ex_reaction_list[ctx.message.guild.id] = {
-                            "value": 0}
-                    value = int(n_fc.ex_reaction_list[ctx.message.guild.id]["value"])
-                    ra = ctx.message.content[9:].split(" ", 1)
-                    react_triger = ra[0]
-                    react_return = ra[1]
-                    changeSetting(SET, ER, ctx, key="value", value=value+1)
-                    changeSetting(
-                        SET, ER, ctx, key=f'{value+1}_tr', value=str(react_triger))
-                    changeSetting(
-                        SET, ER, ctx, key=f'{value+1}_re', value=str(react_return))
-                    await ctx.message.reply(f"トリガー：{ra[0]}\nリターン：{ra[1]}")
-                    with open(f'{DIR}/ex_reaction_list.nira', 'wb') as f:
-                        pickle.dump(n_fc.ex_reaction_list, f)
-                    return
-                except BaseException as err:
-                    await ctx.message.reply(embed=eh.eh(err))
-            else:
+            if not admin_check.admin_check(ctx.guild, ctx.author):
                 await ctx.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
+                return
+            if ctx.message.content == "n!er add":
+                await ctx.message.reply("構文が異なります。\n```n!er add [トリガー] [返信文]```")
+                return
+            try:
+                if ctx.message.guild.id not in n_fc.ex_reaction_list:
+                    n_fc.ex_reaction_list[ctx.message.guild.id] = {
+                        "value": 0}
+                value = int(n_fc.ex_reaction_list[ctx.message.guild.id]["value"])
+                ra = ctx.message.content[9:].split(" ", 1)
+                react_triger = ra[0]
+                react_return = ra[1]
+                changeSetting(SET, ER, ctx, key="value", value=value+1)
+                changeSetting(
+                    SET, ER, ctx, key=f'{value+1}_tr', value=str(react_triger))
+                changeSetting(
+                    SET, ER, ctx, key=f'{value+1}_re', value=str(react_return))
+                await ctx.message.reply(f"トリガー：{ra[0]}\nリターン：{ra[1]}")
+                with open(f'{DIR}/ex_reaction_list.nira', 'wb') as f:
+                    pickle.dump(n_fc.ex_reaction_list, f)
+                return
+            except BaseException as err:
+                await ctx.message.reply(embed=eh.eh(err))
         if ctx.message.content[:9] == "n!er list":
             if ctx.message.guild.id not in n_fc.ex_reaction_list or n_fc.ex_reaction_list[ctx.message.guild.id]["value"] == 0:
                 await ctx.message.reply("追加返答は設定されていません。")
@@ -135,6 +135,9 @@ class reaction(commands.Cog):
                 await ctx.message.reply(embed=embed)
                 return
         if ctx.message.content.split(" ", 1)[1][:4] == "edit":
+            if not admin_check.admin_check(ctx.guild, ctx.author):
+                await ctx.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
+                return
             if ctx.message.content.split(" ", 1)[1] == "edit":
                 await ctx.message.reply("構文が異なります。\n```n!er edit [トリガー] [返信文]```")
                 return
@@ -166,6 +169,9 @@ class reaction(commands.Cog):
                 await ctx.message.reply(embed=eh.eh(err))
                 return
         if ctx.message.content.split(" ", 1)[1][:3] == "del":
+            if not admin_check.admin_check(ctx.guild, ctx.author):
+                await ctx.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
+                return
             if ctx.message.guild.id not in n_fc.ex_reaction_list:
                 await ctx.message.reply("追加返答は設定されていません。")
                 return
