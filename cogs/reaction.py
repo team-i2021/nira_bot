@@ -239,6 +239,20 @@ class reaction(commands.Cog):
             await interaction.response.send_message("管理者権限がありません。", ephemeral=True)
             return
 
+    @er_slash.subcommand(name="list", description="追加反応の一覧")
+    async def list_er_slash(self, interaction: Interaction):
+        if interaction.guild.id not in n_fc.ex_reaction_list or n_fc.ex_reaction_list[interaction.guild.id]["value"] == 0:
+            await interaction.send("追加返答は設定されていません。")
+            return
+        else:
+            embed = nextcord.Embed(
+                title="追加返答リスト", description="- にらBOT", color=0x00ff00)
+            for i in range(int(n_fc.ex_reaction_list[interaction.guild.id]["value"])):
+                embed.add_field(name=f"トリガー：{n_fc.ex_reaction_list[interaction.guild.id][f'{i+1}_tr']}",
+                                value=f"リターン：{n_fc.ex_reaction_list[interaction.guild.id][f'{i+1}_re']}", inline=False)
+            await interaction.send(embed=embed)
+            return
+
     @er_slash.subcommand(name="del", description="追加反応の削除")
     async def del_er_slash(
         self,
