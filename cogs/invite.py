@@ -1,4 +1,5 @@
 import asyncio
+import copy
 import logging
 import os
 import sys
@@ -17,17 +18,21 @@ inviteUrlTemplate = compile(r'https://discord.gg/([0-9a-zA-Z]+)')
 
 # inviter
 
-
-async def fetch_invite(client: HTTP_db.Client, discord: list, guild_id: int):
+async def fetch_invite(client: HTTP_db.Client, discord_invites: list, guild_id: int):
     InviteData = dict_list.listToDict(await client.get("invite_data"))
     if guild_id not in InviteData:
-        InviteData[guild_id] = {i.url: [None, i.uses] for i in discord}
+        InviteData[guild_id] = {i.url: [None, i.uses] for i in discord_invites}
     else:
-        for i in discord:
+        print("Let's check invites.")
+        for i in discord_invites:
             if i.url not in InviteData[guild_id].keys():
-                InviteData[guild_id][i.url] == [None, i.uses]
+                InviteData[guild_id][i.url] = [None, i.uses]
             if InviteData[guild_id][i.url][1] != i.uses:
                 InviteData[guild_id][i.url][1] = i.uses
+        tmp_dict = copy.deepcopy(InviteData)
+        for key in tmp_dict[guild_id].keys():
+            if key not in [i.url for i in discord_invites]:
+                del InviteData[guild_id][key]
     await client.post("invite_data", dict_list.dictToList(InviteData))
     return
 
@@ -36,7 +41,9 @@ class Invite(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.client: HTTP_db.Client = database.openClient()
+        asyncio.ensure_future(database.database_initialize(self.client, "invite_data", dict_list.dictToList({})))
 
+    @commands.bot_has_permissions(manage_guild=True)
     @nextcord.slash_command(name="invite", description="Set alias for invite url.", guild_ids=n_fc.GUILD_IDS)
     async def invite_slash(
         self,
@@ -108,11 +115,11 @@ class Invite(commands.Cog):
     @invite_slash.subcommand(name="list", description="招待リンクの一覧を表示します。")
     async def list_invite_slash(self, interaction: Interaction):
         await interaction.response.defer()
-        InviteData = dict_list.listToDict(await self.client.get("invite_data"))
         if len(await interaction.guild.invites()) == 0:
             await interaction.followup.send(embed=nextcord.Embed(title="招待リスト", description="このサーバーでは招待が作成されていません。", color=0x00ff00))
             return
         await fetch_invite(self.client, await interaction.guild.invites(), interaction.guild.id)
+        InviteData = dict_list.listToDict(await self.client.get("invite_data"))
         EmbedDescription = ""
         for key, value in InviteData[interaction.guild.id].items():
             if value[0] is not None:
@@ -124,6 +131,7 @@ class Invite(commands.Cog):
         await interaction.followup.send(embed=embed)
         return
 
+    @commands.bot_has_permissions(manage_guild=True)
     @commands.command(name="invite", help="""\
 招待リンク表示
 
@@ -142,11 +150,11 @@ class Invite(commands.Cog):
     async def invite(self, ctx: commands.Context):
         args = ctx.message.content.split(" ", 3)
         if len(args) == 1:
-            InviteData = dict_list.listToDict(await self.client.get("invite_data"))
             if len(await ctx.guild.invites()) == 0:
                 await ctx.reply(embed=nextcord.Embed(title="招待リスト", description="このサーバーでは招待が作成されていません。", color=0x00ff00))
                 return
             await fetch_invite(self.client, await ctx.guild.invites(), ctx.guild.id)
+            InviteData = dict_list.listToDict(await self.client.get("invite_data"))
             EmbedDescription = ""
             for key, value in InviteData[ctx.guild.id].items():
                 if value[0] is not None:
@@ -175,8 +183,8 @@ class Invite(commands.Cog):
                         InviteURL = f"https://discord.gg/{InviteURL}"
                     else:
                         InviteURL = inviteUrlTemplate.search(InviteURL).group()
-                    InviteData = dict_list.listToDict(await self.client.get("invite_data"))
                     await fetch_invite(self.client, await ctx.guild.invites(), ctx.guild.id)
+                    InviteData = dict_list.listToDict(await self.client.get("invite_data"))
                     if InviteURL in InviteData[ctx.guild.id]:
                         InviteData[ctx.guild.id][InviteURL][0] = None
 
@@ -219,17 +227,19 @@ class Invite(commands.Cog):
         else:
             await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"多分引数が間違ってます。", color=0xFF0000))
 
+    @commands.bot_has_permissions(manage_guild=True)
     @commands.Cog.listener()
     async def on_invite_create(self, invite: nextcord.Invite):
-        InviteData = dict_list.listToDict(await self.client.get("invite_data"))
         await fetch_invite(self.client, await invite.guild.invites(), invite.guild.id)
+        InviteData = dict_list.listToDict(await self.client.get("invite_data"))
         await self.client.post("invite_data", dict_list.dictToList(InviteData))
 
+    @commands.bot_has_permissions(manage_guild=True)
     @commands.Cog.listener()
     async def on_invite_delete(self, invite: nextcord.Invite):
-        InviteData = dict_list.listToDict(await self.client.get("invite_data"))
         await fetch_invite(self.client, await invite.guild.invites(), invite.guild.id)
-        if InviteData[invite.guild.id] in invite.url:
+        InviteData = dict_list.listToDict(await self.client.get("invite_data"))
+        if invite.url in InviteData[invite.guild.id]:
             del InviteData[invite.guild.id][invite.url]
         await self.client.post("invite_data", dict_list.dictToList(InviteData))
 

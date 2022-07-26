@@ -6,6 +6,8 @@ import HTTP_db
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
+__version__ = "util"
+
 jsonFile = f"{sys.path[0]}/util/gapi.json"
 SPREADSHEET_KEY = str(json.load(open(f'{sys.path[0]}/setting.json', 'r'))["database"])
 
@@ -34,6 +36,13 @@ def openClient() -> HTTP_db.Client:
         return HTTP_db.Client(url=url, password=password)
     else:
         return HTTP_db.Client(url=url)
+
+async def database_initialize(client: HTTP_db.Client, key, default):
+    if await client.exists(key):
+        return
+    else:
+        await client.post(key, default)
+        return
 
 # https://qiita.com/164kondo/items/eec4d1d8fd7648217935
 # B2:テスト/B3:TTS/B4:Up通知/B5:Reminder/B6:Captcha/B7:InviteURLs

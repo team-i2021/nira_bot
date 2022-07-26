@@ -619,6 +619,17 @@ class debug(commands.Cog):
         except Exception:
             await interaction.followup.send(embed=nextcord.Embed(title="GET:/ping", description=f"```\n{traceback.format_exc()}```", color=0xFF0000))
 
+    @db.subcommand(name="reload", description="Reload databse module")
+    async def db_reload(self, interaction: Interaction):
+        if not (await self.bot.is_owner(interaction.user)):
+            raise Exception("Forbidden")
+        await interaction.response.defer()
+        try:
+            importlib.reload(HTTP_db)
+            importlib.reload(database)
+            await interaction.followup.send(embed=nextcord.Embed(title="RELOAD MODULES", description=f"Reloaded.\nHTTP_db:`{HTTP_db.__version__}`\nutil.database:`{database.__version__}`", color=0x00ff00))
+        except Exception:
+            await interaction.followup.send(embed=nextcord.Embed(title="RELOAD MODULES", description=f"```\n{traceback.format_exc()}```", color=0xff0000))
 
 def setup(bot):
     bot.add_cog(debug(bot))
