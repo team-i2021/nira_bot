@@ -47,7 +47,6 @@ if len(sys.argv) > 1 and sys.argv[1] == "-d":
 ##### BOTの設定 #####
 intents = nextcord.Intents.all()  # デフォルトのIntentsオブジェクトを生成
 intents.typing = False  # typingを受け取らないように
-intents.presences = True  # Presence Intentだよ
 intents.members = True  # メンバーに関する情報を受け取る
 bot = commands.Bot(command_prefix=PREFIX, intents=intents, help_command=None)
 bot.remove_command("help")  # 意味あるのかしらんけどjishakuのヘルプコマンド削除
