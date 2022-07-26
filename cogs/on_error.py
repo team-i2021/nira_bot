@@ -42,7 +42,7 @@ class error(commands.Cog):
                 await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"エラーが発生しました。\n\n・エラー内容```py\n{str(event)}```\n```sh\n{traceback.format_exc()}```\n```py\n{sys.exc_info()}```\n[サポートサーバー](https://discord.gg/awfFpCYTcP)", color=0xff0000))
                 logging.error(f"エラーが発生しました。\non_error：{str(event)}")
             return
-        except BaseException as err:
+        except Exception as err:
             await ctx.reply(f"""\
 エラー処理中に更にエラーが発生しました。
 ```{traceback.format_exc()}```
@@ -52,7 +52,15 @@ class error(commands.Cog):
             logging.error(
                 f"エラー処理中のエラー\non_error：{traceback.format_exc()}\nハンドリング中のエラー：{err}")
             return
-
+    
+    @commands.Cog.listener()
+    async def on_application_command_error(self, interaction: nextcord.Interaction, event: Exception):
+        print([type(event), event.args])
+        if interaction.response.is_done():
+            await interaction.followup.send(embed=nextcord.Embed(title="エラーが発生しました。", description=f"```py\n{str(event)}```\n```sh\n{traceback.format_exc()}```", color=0xff0000))
+        else:
+            await interaction.response.send_message(embed=nextcord.Embed(title="エラーが発生しました。", description=f"```py\n{str(event)}```\n```sh\n{traceback.format_exc()}```", color=0xff0000), ephemeral=True)
+        logging.error(traceback.format_exc())
 
 def setup(bot):
     bot.add_cog(error(bot))
