@@ -268,8 +268,11 @@ class reaction(commands.Cog):
                 await interaction.response.send_message(f"`{interaction.guild.name}`では追加返答は設定されていません。", ephemeral=True)
             else:
                 if triggerMessage == "all":
+                    await interaction.response.defer()
                     del n_fc.ex_reaction_list[interaction.guild.id]
-                    await interaction.response.send_message(f"`{interaction.guild.id}`での追加反応の設定を削除しました。")
+                    with open(f'{DIR}/ex_reaction_list.nira', 'wb') as f:
+                        pickle.dump(n_fc.ex_reaction_list, f)
+                    await interaction.send(f"`{interaction.guild.id}`での追加反応の設定を削除しました。")
                 else:
                     await interaction.response.defer()
                     result = None
@@ -287,6 +290,8 @@ class reaction(commands.Cog):
                             f"{result+i+1}_tr"] = n_fc.ex_reaction_list[interaction.guild.id][f"{result+i+2}_tr"]
                         n_fc.ex_reaction_list[interaction.guild.id][
                             f"{result+i+1}_re"] = n_fc.ex_reaction_list[interaction.guild.id][f"{result+i+2}_re"]
+                    with open(f'{DIR}/ex_reaction_list.nira', 'wb') as f:
+                        pickle.dump(n_fc.ex_reaction_list, f)
                     await interaction.followup.send(f"`{triger}`を削除しました。")
                     return
         else:
