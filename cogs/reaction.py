@@ -176,13 +176,13 @@ class reaction(commands.Cog):
                 await ctx.message.reply("追加返答は設定されていません。")
                 return
             else:
-                if ctx.message.content.split(" ", 1) == "del all":
+                if ctx.message.content.split(" ", 1)[1] == "del":
+                    await ctx.reply("コマンドの引数が足りません。\n全削除:`n!er del all`\n特定の返答を削除:`n!er del [トリガー]`")
+                    return
+                elif ctx.message.content.split(" ", 1)[1] == "del all":
                     del_re = await ctx.message.reply("追加返答のリストを削除してもよろしいですか？リスト削除には管理者権限が必要です。\n\n:o:：削除\n:x:：キャンセル")
                     await del_re.add_reaction("\U00002B55")
                     await del_re.add_reaction("\U0000274C")
-                    return
-                elif ctx.message.content.split(" ", 1) == "del":
-                    await ctx.reply("コマンドの引数が足りません。\n全削除:`n!er del all`\n特定の返答を削除:`n!er del [トリガー]`")
                     return
                 else:
                     result = None
