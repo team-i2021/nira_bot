@@ -104,10 +104,10 @@ class reaction(commands.Cog):
                     n_fc.ex_reaction_list[ctx.guild.id] = {"value": 0}
                 value = int(changeSetting(STATUS, ER, ctx, key="value"))
                 ra = ctx.message.content[9:].split(" ", 1)
-                react_triger = ra[0]
+                react_trigger = ra[0]
                 react_return = ra[1]
                 changeSetting(SET, ER, ctx, key="value", value=value+1)
-                changeSetting(SET, ER, ctx, key=f'{value+1}_tr', value=str(react_triger))
+                changeSetting(SET, ER, ctx, key=f'{value+1}_tr', value=str(react_trigger))
                 changeSetting(SET, ER, ctx, key=f'{value+1}_re', value=str(react_return))
                 await ctx.reply(f"トリガー：{ra[0]}\nリターン：{ra[1]}")
                 return
@@ -138,7 +138,7 @@ class reaction(commands.Cog):
             if changeSetting(STATUS, ER, ctx, key="value") == 0:
                 await ctx.reply("追加反応は登録されていません。")
                 return
-            ssrt = ctx.message.content.split(" ", 3)  # n!er,edit,triger,reply
+            ssrt = ctx.message.content.split(" ", 3)  # n!er,edit,trigger,reply
             b_tr = ssrt[2]
             b_re = ssrt[3]
             try:
@@ -174,14 +174,14 @@ class reaction(commands.Cog):
                     return
                 else:
                     result = None
-                    triger = ctx.message.content.split(" ", 2)[2]
+                    trigger = ctx.message.content.split(" ", 2)[2]
                     for i in range(math.floor((len(n_fc.ex_reaction_list[ctx.guild.id])-1)/2)):
-                        if changeSetting(STATUS, ER, ctx, key=f"{i+1}_tr") == triger:
+                        if changeSetting(STATUS, ER, ctx, key=f"{i+1}_tr") == trigger:
                             result = i
                             break
                         continue
                     if result == None:
-                        await ctx.reply(f"`{triger}`というトリガーが見つかりませんでした。\n不具合がある場合は全消しするか、サポートサーバーへご連絡ください。")
+                        await ctx.reply(f"`{trigger}`というトリガーが見つかりませんでした。\n不具合がある場合は全消しするか、サポートサーバーへご連絡ください。")
                         return
                     for i in range(math.floor((len(n_fc.ex_reaction_list[ctx.guild.id])-1)/2)-(result+1)):
                         for suf in ("tr", "re"):
@@ -220,12 +220,12 @@ class reaction(commands.Cog):
                 if interaction.guild.id not in n_fc.ex_reaction_list:
                     n_fc.ex_reaction_list[interaction.guild.id] = {"value": 0}
                 value = int(changeSetting(STATUS, ER, interaction, key="value"))
-                react_triger = triggerMessage
+                react_trigger = triggerMessage
                 react_return = returnMessage
                 changeSetting(SET, ER, interaction, key="value", value=value+1)
-                changeSetting(SET, ER, interaction, key=f'{value+1}_tr', value=str(react_triger))
+                changeSetting(SET, ER, interaction, key=f'{value+1}_tr', value=str(react_trigger))
                 changeSetting(SET, ER, interaction, key=f'{value+1}_re', value=str(react_return))
-                await interaction.send(f"トリガー：{react_triger}\nリターン：{react_return}")
+                await interaction.send(f"トリガー：{react_trigger}\nリターン：{react_return}")
                 return
             except BaseException as err:
                 await interaction.send(embed=eh.eh(err))
@@ -269,14 +269,14 @@ class reaction(commands.Cog):
                 else:
                     await interaction.response.defer()
                     result = None
-                    triger = triggerMessage
+                    trigger = triggerMessage
                     for i in range(math.floor((len(n_fc.ex_reaction_list[interaction.guild.id])-1)/2)):
-                        if changeSetting(STATUS, ER, interaction, key=f"{i+1}_tr") == triger:
+                        if changeSetting(STATUS, ER, interaction, key=f"{i+1}_tr") == trigger:
                             result = i
                             break
                         continue
                     if result == None:
-                        await interaction.send(f"`{triger}`というトリガーが見つかりませんでした。\n不具合がある場合は全消しするか、サポートサーバーへご連絡ください。", ephemeral=True)
+                        await interaction.send(f"`{trigger}`というトリガーが見つかりませんでした。\n不具合がある場合は全消しするか、サポートサーバーへご連絡ください。", ephemeral=True)
                         return
                     for i in range(math.floor((len(n_fc.ex_reaction_list[interaction.guild.id])-1)/2)-(result+1)):
                         for suf in ("tr", "re"):
@@ -287,7 +287,7 @@ class reaction(commands.Cog):
                         del n_fc.ex_reaction_list[interaction.guild.id][f"{n_fc.ex_reaction_list[interaction.guild.id]['value']}_{i}"]
                     n_fc.ex_reaction_list[interaction.guild.id]["value"] -= 1
                     save()
-                    await interaction.send(f"`{triger}`を削除しました。")
+                    await interaction.send(f"`{trigger}`を削除しました。")
                     return
         else:
             await interaction.send("管理者権限がありません。", ephemeral=True)
