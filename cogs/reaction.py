@@ -105,7 +105,7 @@ class reaction(commands.Cog):
                 if ctx.message.guild.id not in n_fc.ex_reaction_list:
                     n_fc.ex_reaction_list[ctx.message.guild.id] = {
                         "value": 0}
-                value = int(n_fc.ex_reaction_list[ctx.message.guild.id]["value"])
+                value = int(changeSetting(STATUS, ER, ctx.message, key="value"))
                 ra = ctx.message.content[9:].split(" ", 1)
                 react_triger = ra[0]
                 react_return = ra[1]
@@ -121,15 +121,16 @@ class reaction(commands.Cog):
             except BaseException as err:
                 await ctx.message.reply(embed=eh.eh(err))
         if ctx.message.content[:9] == "n!er list":
-            if ctx.message.guild.id not in n_fc.ex_reaction_list or n_fc.ex_reaction_list[ctx.message.guild.id]["value"] == 0:
+            if ctx.message.guild.id not in n_fc.ex_reaction_list or changeSetting(STATUS, ER, ctx.message, key="value") == 0:
                 await ctx.message.reply("追加返答は設定されていません。")
                 return
             else:
                 embed = nextcord.Embed(
                     title="追加返答リスト", description="- にらBOT", color=0x00ff00)
-                for i in range(int(n_fc.ex_reaction_list[ctx.message.guild.id]["value"])):
-                    embed.add_field(name=f"トリガー：{n_fc.ex_reaction_list[ctx.message.guild.id][f'{i+1}_tr']}",
-                                    value=f"リターン：{n_fc.ex_reaction_list[ctx.message.guild.id][f'{i+1}_re']}", inline=False)
+                for i in range(int(changeSetting(STATUS, ER, ctx.message, key="value"))):
+                    embed.add_field(name=f"トリガー：{changeSetting(STATUS, ER, ctx.message, key=f'{i+1}_tr')}",
+                                    value=f"リターン：{changeSetting(STATUS, ER, ctx.message, key=f'{i+1}_re')}",
+                                    inline=False)
                 await ctx.message.reply(embed=embed)
                 return
         if ctx.message.content.split(" ", 1)[1][:4] == "edit":
@@ -142,7 +143,7 @@ class reaction(commands.Cog):
             if ctx.message.guild.id not in n_fc.ex_reaction_list:
                 await ctx.message.reply("追加反応は登録されていません。")
                 return
-            if n_fc.ex_reaction_list[ctx.message.guild.id]["value"] == 0:
+            if changeSetting(STATUS, ER, ctx.message, key="value") == 0:
                 await ctx.message.reply("追加反応は登録されていません。")
                 return
             ssrt = ctx.message.content.split(" ", 3)  # n!er,edit,triger,reply
@@ -151,8 +152,8 @@ class reaction(commands.Cog):
             try:
                 rt_e = 0
                 for i in range(math.floor((len(n_fc.ex_reaction_list[ctx.message.guild.id])-1)/2)):
-                    if n_fc.ex_reaction_list[ctx.message.guild.id][f"{i+1}_tr"] == b_tr:
-                        n_fc.ex_reaction_list[ctx.message.guild.id][f"{i+1}_re"] = b_re
+                    if changeSetting(STATUS, ER, ctx.message, key=f"{i+1}_tr") == b_tr:
+                        changeSetting(SET, ER, ctx.message, key=f"{i+1}_re", value=b_re)
                         rt_e = 1
                         break
                 if rt_e == 1:
@@ -187,7 +188,7 @@ class reaction(commands.Cog):
                     result = None
                     triger = ctx.message.content.split(" ", 2)[2]
                     for i in range(math.floor((len(n_fc.ex_reaction_list[ctx.message.guild.id])-1)/2)):
-                        if n_fc.ex_reaction_list[ctx.message.guild.id][f"{i+1}_tr"] == triger:
+                        if changeSetting(STATUS, ER, ctx.message, key=f"{i+1}_tr") == triger:
                             result = i
                             break
                         continue
@@ -195,10 +196,12 @@ class reaction(commands.Cog):
                         await ctx.reply(f"`{triger}`というトリガーが見つかりませんでした。\n不具合がある場合は全消しするか、サポートサーバーへご連絡ください。")
                         return
                     for i in range(math.floor((len(n_fc.ex_reaction_list[ctx.message.guild.id])-1)/2)-(result+1)):
-                        n_fc.ex_reaction_list[ctx.message.guild.id][
-                            f"{result+i+1}_tr"] = n_fc.ex_reaction_list[ctx.message.guild.id][f"{result+i+2}_tr"]
-                        n_fc.ex_reaction_list[ctx.message.guild.id][
-                            f"{result+i+1}_re"] = n_fc.ex_reaction_list[ctx.message.guild.id][f"{result+i+2}_re"]
+                        changeSetting(SET, ER, ctx.message,
+                                      key=f"{result+i+1}_tr",
+                                      value=changeSetting(STATUS, ER, ctx.message, key=f"{result+i+2}_tr"))
+                        changeSetting(SET, ER, ctx.message,
+                                      key=f"{result+i+1}_re",
+                                      value=changeSetting(STATUS, ER, ctx.message, key=f"{result+i+2}_re"))
                     await ctx.reply("Ok")
                     return
         return
@@ -226,7 +229,7 @@ class reaction(commands.Cog):
             try:
                 if interaction.guild.id not in n_fc.ex_reaction_list:
                     n_fc.ex_reaction_list[interaction.guild.id] = {"value": 0}
-                value = int(n_fc.ex_reaction_list[interaction.guild.id]["value"])
+                value = int(changeSetting(STATUS, ER, interaction, key="value"))
                 react_triger = triggerMessage
                 react_return = returnMessage
                 changeSetting(SET, ER, interaction, key="value", value=value+1)
@@ -246,15 +249,16 @@ class reaction(commands.Cog):
 
     @er_slash.subcommand(name="list", description="追加反応の一覧")
     async def list_er_slash(self, interaction: Interaction):
-        if interaction.guild.id not in n_fc.ex_reaction_list or n_fc.ex_reaction_list[interaction.guild.id]["value"] == 0:
+        if interaction.guild.id not in n_fc.ex_reaction_list or changeSetting(STATUS, ER, interaction, key="value") == 0:
             await interaction.send("追加返答は設定されていません。")
             return
         else:
             embed = nextcord.Embed(
                 title="追加返答リスト", description="- にらBOT", color=0x00ff00)
-            for i in range(int(n_fc.ex_reaction_list[interaction.guild.id]["value"])):
-                embed.add_field(name=f"トリガー：{n_fc.ex_reaction_list[interaction.guild.id][f'{i+1}_tr']}",
-                                value=f"リターン：{n_fc.ex_reaction_list[interaction.guild.id][f'{i+1}_re']}", inline=False)
+            for i in range(int(changeSetting(STATUS, ER, interaction, key="value"))):
+                    embed.add_field(name=f"トリガー：{changeSetting(STATUS, ER, interaction, key=f'{i+1}_tr')}",
+                                    value=f"リターン：{changeSetting(STATUS, ER, interaction, key=f'{i+1}_re')}",
+                                    inline=False)
             await interaction.send(embed=embed)
             return
 
@@ -283,7 +287,7 @@ class reaction(commands.Cog):
                     result = None
                     triger = triggerMessage
                     for i in range(math.floor((len(n_fc.ex_reaction_list[interaction.guild.id])-1)/2)):
-                        if n_fc.ex_reaction_list[interaction.guild.id][f"{i+1}_tr"] == triger:
+                        if changeSetting(STATUS, ER, interaction, key=f"{i+1}_tr") == triger:
                             result = i
                             break
                         continue
@@ -291,10 +295,12 @@ class reaction(commands.Cog):
                         await interaction.followup.send(f"`{triger}`というトリガーが見つかりませんでした。\n不具合がある場合は全消しするか、サポートサーバーへご連絡ください。", ephemeral=True)
                         return
                     for i in range(math.floor((len(n_fc.ex_reaction_list[interaction.guild.id])-1)/2)-(result+1)):
-                        n_fc.ex_reaction_list[interaction.guild.id][
-                            f"{result+i+1}_tr"] = n_fc.ex_reaction_list[interaction.guild.id][f"{result+i+2}_tr"]
-                        n_fc.ex_reaction_list[interaction.guild.id][
-                            f"{result+i+1}_re"] = n_fc.ex_reaction_list[interaction.guild.id][f"{result+i+2}_re"]
+                        changeSetting(SET, ER, interaction,
+                                      key=f"{result+i+1}_tr",
+                                      value=changeSetting(STATUS, ER, interaction, key=f"{result+i+2}_tr"))
+                        changeSetting(SET, ER, interaction,
+                                      key=f"{result+i+1}_re",
+                                      value=changeSetting(STATUS, ER, interaction, key=f"{result+i+2}_re"))
                     with open(f'{DIR}/ex_reaction_list.nira', 'wb') as f:
                         pickle.dump(n_fc.ex_reaction_list, f)
                     await interaction.followup.send(f"`{triger}`を削除しました。")
@@ -322,7 +328,7 @@ class reaction(commands.Cog):
             if interaction.guild.id not in n_fc.ex_reaction_list:
                 await interaction.response.send_message("追加反応は登録されていません。", ephemeral=True)
                 return
-            if n_fc.ex_reaction_list[interaction.guild.id]["value"] == 0:
+            if changeSetting(STATUS, ER, interaction, key="value") == 0:
                 await interaction.response.send_message("追加反応は登録されていません。", ephemeral=True)
                 return
             await interaction.response.defer()
@@ -331,8 +337,8 @@ class reaction(commands.Cog):
             try:
                 rt_e = 0
                 for i in range(math.floor((len(n_fc.ex_reaction_list[interaction.guild.id])-1)/2)):
-                    if n_fc.ex_reaction_list[interaction.guild.id][f"{i+1}_tr"] == b_tr:
-                        n_fc.ex_reaction_list[interaction.guild.id][f"{i+1}_re"] = b_re
+                    if changeSetting(STATUS, ER, interaction, key=f"{i+1}_tr") == b_tr:
+                        changeSetting(SET, ER, interaction, key=f"{i+1}_re", value=b_re)
                         rt_e = 1
                         break
                 if rt_e == 1:
