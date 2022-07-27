@@ -192,7 +192,7 @@ class reaction(commands.Cog):
                         del n_fc.ex_reaction_list[ctx.guild.id][f"{n_fc.ex_reaction_list[ctx.guild.id]['value']}_{i}"]
                     n_fc.ex_reaction_list[ctx.guild.id]["value"] -= 1
                     save()
-                    await ctx.reply("Ok")
+                    await ctx.reply(f"`{trigger}`を削除しました。")
                     return
         return
 
