@@ -66,23 +66,21 @@ class NotifyTokenSet(nextcord.ui.Modal):
     async def callback(self, interaction: Interaction) -> None:
         await interaction.response.defer()
         if self.token.value == "" or self.token.value is None:
-            await interaction.followup.send("トークンは必須です。", ephemeral=True)
+            await interaction.send("トークンは必須です。", ephemeral=True)
             return
         if admin_check.admin_check(interaction.guild, interaction.user) == False:
-            await interaction.followup.send("あなたにはサーバーの管理権限がないため実行できません。", ephemeral=True)
+            await interaction.send("あなたにはサーバーの管理権限がないため実行できません。", ephemeral=True)
         else:
             token_result = web_api.line_token_check(self.token.value)
             if token_result[0] == False:
-                await interaction.followup.send(f"そのトークンは無効なようです。\n```{token_result[1]}```", ephemeral=True)
+                await interaction.send(f"そのトークンは無効なようです。\n```{token_result[1]}```", ephemeral=True)
                 return
             if interaction.guild.id not in n_fc.notify_token:
-                n_fc.notify_token[interaction.guild.id] = {
-                    interaction.channel.id: self.token.value}
+                n_fc.notify_token[interaction.guild.id] = {interaction.channel.id: self.token.value}
             else:
                 n_fc.notify_token[interaction.guild.id][interaction.channel.id] = self.token.value
-            with open(f'{DIR}/notify_token.nira', 'wb') as f:
-                pickle.dump(n_fc.notify_token, f)
-            await interaction.followup.send(f"{interaction.guild.name}/{interaction.channel.name}で`{self.token.value}`を保存します。\nトークンが他のユーザーに見られないようにしてください。", ephemeral=True)
+            save()
+            await interaction.send(f"{interaction.guild.name}/{interaction.channel.name}で`{self.token.value}`を保存します。\nトークンが他のユーザーに見られないようにしてください。", ephemeral=True)
 
 
 class reaction(commands.Cog):
@@ -99,109 +97,99 @@ class reaction(commands.Cog):
                 await ctx.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
                 return
             if ctx.message.content == "n!er add":
-                await ctx.message.reply("構文が異なります。\n```n!er add [トリガー] [返信文]```")
+                await ctx.reply("構文が異なります。\n```n!er add [トリガー] [返信文]```")
                 return
             try:
-                if ctx.message.guild.id not in n_fc.ex_reaction_list:
-                    n_fc.ex_reaction_list[ctx.message.guild.id] = {
-                        "value": 0}
-                value = int(changeSetting(STATUS, ER, ctx.message, key="value"))
+                if ctx.guild.id not in n_fc.ex_reaction_list:
+                    n_fc.ex_reaction_list[ctx.guild.id] = {"value": 0}
+                value = int(changeSetting(STATUS, ER, ctx, key="value"))
                 ra = ctx.message.content[9:].split(" ", 1)
                 react_triger = ra[0]
                 react_return = ra[1]
                 changeSetting(SET, ER, ctx, key="value", value=value+1)
-                changeSetting(
-                    SET, ER, ctx, key=f'{value+1}_tr', value=str(react_triger))
-                changeSetting(
-                    SET, ER, ctx, key=f'{value+1}_re', value=str(react_return))
-                await ctx.message.reply(f"トリガー：{ra[0]}\nリターン：{ra[1]}")
-                with open(f'{DIR}/ex_reaction_list.nira', 'wb') as f:
-                    pickle.dump(n_fc.ex_reaction_list, f)
+                changeSetting(SET, ER, ctx, key=f'{value+1}_tr', value=str(react_triger))
+                changeSetting(SET, ER, ctx, key=f'{value+1}_re', value=str(react_return))
+                await ctx.reply(f"トリガー：{ra[0]}\nリターン：{ra[1]}")
                 return
             except BaseException as err:
-                await ctx.message.reply(embed=eh.eh(err))
+                await ctx.reply(embed=eh.eh(err))
         if ctx.message.content[:9] == "n!er list":
-            if ctx.message.guild.id not in n_fc.ex_reaction_list or changeSetting(STATUS, ER, ctx.message, key="value") == 0:
-                await ctx.message.reply("追加返答は設定されていません。")
+            if ctx.guild.id not in n_fc.ex_reaction_list or changeSetting(STATUS, ER, ctx, key="value") == 0:
+                await ctx.reply("追加返答は設定されていません。")
                 return
             else:
-                embed = nextcord.Embed(
-                    title="追加返答リスト", description="- にらBOT", color=0x00ff00)
-                for i in range(int(changeSetting(STATUS, ER, ctx.message, key="value"))):
-                    embed.add_field(name=f"トリガー：{changeSetting(STATUS, ER, ctx.message, key=f'{i+1}_tr')}",
-                                    value=f"リターン：{changeSetting(STATUS, ER, ctx.message, key=f'{i+1}_re')}",
+                embed = nextcord.Embed(title="追加返答リスト", description="- にらBOT", color=0x00ff00)
+                for i in range(int(changeSetting(STATUS, ER, ctx, key="value"))):
+                    embed.add_field(name=f"トリガー：{changeSetting(STATUS, ER, ctx, key=f'{i+1}_tr')}",
+                                    value=f"リターン：{changeSetting(STATUS, ER, ctx, key=f'{i+1}_re')}",
                                     inline=False)
-                await ctx.message.reply(embed=embed)
+                await ctx.reply(embed=embed)
                 return
         if ctx.message.content.split(" ", 1)[1][:4] == "edit":
             if not admin_check.admin_check(ctx.guild, ctx.author):
                 await ctx.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
                 return
             if ctx.message.content.split(" ", 1)[1] == "edit":
-                await ctx.message.reply("構文が異なります。\n```n!er edit [トリガー] [返信文]```")
+                await ctx.reply("構文が異なります。\n```n!er edit [トリガー] [返信文]```")
                 return
-            if ctx.message.guild.id not in n_fc.ex_reaction_list:
-                await ctx.message.reply("追加反応は登録されていません。")
+            if ctx.guild.id not in n_fc.ex_reaction_list:
+                await ctx.reply("追加反応は登録されていません。")
                 return
-            if changeSetting(STATUS, ER, ctx.message, key="value") == 0:
-                await ctx.message.reply("追加反応は登録されていません。")
+            if changeSetting(STATUS, ER, ctx, key="value") == 0:
+                await ctx.reply("追加反応は登録されていません。")
                 return
             ssrt = ctx.message.content.split(" ", 3)  # n!er,edit,triger,reply
             b_tr = ssrt[2]
             b_re = ssrt[3]
             try:
-                rt_e = 0
-                for i in range(math.floor((len(n_fc.ex_reaction_list[ctx.message.guild.id])-1)/2)):
-                    if changeSetting(STATUS, ER, ctx.message, key=f"{i+1}_tr") == b_tr:
-                        changeSetting(SET, ER, ctx.message, key=f"{i+1}_re", value=b_re)
-                        rt_e = 1
+                rt_e = False
+                for i in range(math.floor((len(n_fc.ex_reaction_list[ctx.guild.id])-1)/2)):
+                    if changeSetting(STATUS, ER, ctx, key=f"{i+1}_tr") == b_tr:
+                        changeSetting(SET, ER, ctx, key=f"{i+1}_re", value=b_re)
+                        rt_e = True
                         break
-                if rt_e == 1:
-                    await ctx.message.reply(f"トリガー：{b_tr}\nリターン：{b_re}")
-                    with open(f'{DIR}/ex_reaction_list.nira', 'wb') as f:
-                        pickle.dump(n_fc.ex_reaction_list, f)
-                    return
-                elif rt_e == 0:
-                    await ctx.message.reply("そのトリガーは登録されていません！")
-                    return
+                if rt_e:
+                    await ctx.reply(f"トリガー：{b_tr}\nリターン：{b_re}")
+                else:
+                    await ctx.reply("そのトリガーは登録されていません！")
+                return
             except BaseException as err:
-                await ctx.message.reply(embed=eh.eh(err))
+                await ctx.reply(embed=eh.eh(err))
                 return
         if ctx.message.content.split(" ", 1)[1][:3] == "del":
             if not admin_check.admin_check(ctx.guild, ctx.author):
                 await ctx.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
                 return
-            if ctx.message.guild.id not in n_fc.ex_reaction_list:
-                await ctx.message.reply("追加返答は設定されていません。")
+            if ctx.guild.id not in n_fc.ex_reaction_list:
+                await ctx.reply("追加返答は設定されていません。")
                 return
             else:
                 if ctx.message.content.split(" ", 1)[1] == "del":
                     await ctx.reply("コマンドの引数が足りません。\n全削除:`n!er del all`\n特定の返答を削除:`n!er del [トリガー]`")
                     return
                 elif ctx.message.content.split(" ", 1)[1] == "del all":
-                    del n_fc.ex_reaction_list[ctx.message.guild.id]
-                    with open(f'{DIR}/ex_reaction_list.nira', 'wb') as f:
-                        pickle.dump(n_fc.ex_reaction_list, f)
-                    await ctx.message.reply(f"`{ctx.message.guild.id}`での追加反応の設定を削除しました。")
+                    del n_fc.ex_reaction_list[ctx.guild.id]
+                    save()
+                    await ctx.reply(f"`{ctx.guild.id}`での追加反応の設定を削除しました。")
                     return
                 else:
                     result = None
                     triger = ctx.message.content.split(" ", 2)[2]
-                    for i in range(math.floor((len(n_fc.ex_reaction_list[ctx.message.guild.id])-1)/2)):
-                        if changeSetting(STATUS, ER, ctx.message, key=f"{i+1}_tr") == triger:
+                    for i in range(math.floor((len(n_fc.ex_reaction_list[ctx.guild.id])-1)/2)):
+                        if changeSetting(STATUS, ER, ctx, key=f"{i+1}_tr") == triger:
                             result = i
                             break
                         continue
                     if result == None:
                         await ctx.reply(f"`{triger}`というトリガーが見つかりませんでした。\n不具合がある場合は全消しするか、サポートサーバーへご連絡ください。")
                         return
-                    for i in range(math.floor((len(n_fc.ex_reaction_list[ctx.message.guild.id])-1)/2)-(result+1)):
-                        changeSetting(SET, ER, ctx.message,
+                    for i in range(math.floor((len(n_fc.ex_reaction_list[ctx.guild.id])-1)/2)-(result+1)):
+                        changeSetting(SET, ER, ctx,
                                       key=f"{result+i+1}_tr",
-                                      value=changeSetting(STATUS, ER, ctx.message, key=f"{result+i+2}_tr"))
-                        changeSetting(SET, ER, ctx.message,
+                                      value=changeSetting(STATUS, ER, ctx, key=f"{result+i+2}_tr"))
+                        changeSetting(SET, ER, ctx,
                                       key=f"{result+i+1}_re",
-                                      value=changeSetting(STATUS, ER, ctx.message, key=f"{result+i+2}_re"))
+                                      value=changeSetting(STATUS, ER, ctx, key=f"{result+i+2}_re"))
                     await ctx.reply("Ok")
                     return
         return
@@ -233,18 +221,14 @@ class reaction(commands.Cog):
                 react_triger = triggerMessage
                 react_return = returnMessage
                 changeSetting(SET, ER, interaction, key="value", value=value+1)
-                changeSetting(SET, ER, interaction,
-                              key=f'{value+1}_tr', value=str(react_triger))
-                changeSetting(SET, ER, interaction,
-                              key=f'{value+1}_re', value=str(react_return))
-                await interaction.response.send_message(f"トリガー：{react_triger}\nリターン：{react_return}")
-                with open(f'{DIR}/ex_reaction_list.nira', 'wb') as f:
-                    pickle.dump(n_fc.ex_reaction_list, f)
+                changeSetting(SET, ER, interaction, key=f'{value+1}_tr', value=str(react_triger))
+                changeSetting(SET, ER, interaction, key=f'{value+1}_re', value=str(react_return))
+                await interaction.send(f"トリガー：{react_triger}\nリターン：{react_return}")
                 return
             except BaseException as err:
-                await interaction.response.send_message(embed=eh.eh(err))
+                await interaction.send(embed=eh.eh(err))
         else:
-            await interaction.response.send_message("管理者権限がありません。", ephemeral=True)
+            await interaction.send("管理者権限がありません。", ephemeral=True)
             return
 
     @er_slash.subcommand(name="list", description="追加反応の一覧")
@@ -253,8 +237,7 @@ class reaction(commands.Cog):
             await interaction.send("追加返答は設定されていません。")
             return
         else:
-            embed = nextcord.Embed(
-                title="追加返答リスト", description="- にらBOT", color=0x00ff00)
+            embed = nextcord.Embed(title="追加返答リスト", description="- にらBOT", color=0x00ff00)
             for i in range(int(changeSetting(STATUS, ER, interaction, key="value"))):
                     embed.add_field(name=f"トリガー：{changeSetting(STATUS, ER, interaction, key=f'{i+1}_tr')}",
                                     value=f"リターン：{changeSetting(STATUS, ER, interaction, key=f'{i+1}_re')}",
@@ -274,13 +257,12 @@ class reaction(commands.Cog):
     ):
         if admin_check.admin_check(interaction.guild, interaction.user):
             if interaction.guild.id not in n_fc.ex_reaction_list:
-                await interaction.response.send_message(f"`{interaction.guild.name}`では追加返答は設定されていません。", ephemeral=True)
+                await interaction.send(f"`{interaction.guild.name}`では追加返答は設定されていません。", ephemeral=True)
             else:
                 if triggerMessage == "all":
                     await interaction.response.defer()
                     del n_fc.ex_reaction_list[interaction.guild.id]
-                    with open(f'{DIR}/ex_reaction_list.nira', 'wb') as f:
-                        pickle.dump(n_fc.ex_reaction_list, f)
+                    save()
                     await interaction.send(f"`{interaction.guild.id}`での追加反応の設定を削除しました。")
                 else:
                     await interaction.response.defer()
@@ -292,7 +274,7 @@ class reaction(commands.Cog):
                             break
                         continue
                     if result == None:
-                        await interaction.followup.send(f"`{triger}`というトリガーが見つかりませんでした。\n不具合がある場合は全消しするか、サポートサーバーへご連絡ください。", ephemeral=True)
+                        await interaction.send(f"`{triger}`というトリガーが見つかりませんでした。\n不具合がある場合は全消しするか、サポートサーバーへご連絡ください。", ephemeral=True)
                         return
                     for i in range(math.floor((len(n_fc.ex_reaction_list[interaction.guild.id])-1)/2)-(result+1)):
                         changeSetting(SET, ER, interaction,
@@ -301,12 +283,10 @@ class reaction(commands.Cog):
                         changeSetting(SET, ER, interaction,
                                       key=f"{result+i+1}_re",
                                       value=changeSetting(STATUS, ER, interaction, key=f"{result+i+2}_re"))
-                    with open(f'{DIR}/ex_reaction_list.nira', 'wb') as f:
-                        pickle.dump(n_fc.ex_reaction_list, f)
-                    await interaction.followup.send(f"`{triger}`を削除しました。")
+                    await interaction.send(f"`{triger}`を削除しました。")
                     return
         else:
-            await interaction.response.send_message("管理者権限がありません。", ephemeral=True)
+            await interaction.send("管理者権限がありません。", ephemeral=True)
             return
 
     @er_slash.subcommand(name="edit", description="追加反応の編集")
@@ -326,34 +306,31 @@ class reaction(commands.Cog):
     ):
         if admin_check.admin_check(interaction.guild, interaction.user):
             if interaction.guild.id not in n_fc.ex_reaction_list:
-                await interaction.response.send_message("追加反応は登録されていません。", ephemeral=True)
+                await interaction.send("追加反応は登録されていません。", ephemeral=True)
                 return
             if changeSetting(STATUS, ER, interaction, key="value") == 0:
-                await interaction.response.send_message("追加反応は登録されていません。", ephemeral=True)
+                await interaction.send("追加反応は登録されていません。", ephemeral=True)
                 return
             await interaction.response.defer()
             b_tr = triggerMessage
             b_re = returnMessage
             try:
-                rt_e = 0
+                rt_e = False
                 for i in range(math.floor((len(n_fc.ex_reaction_list[interaction.guild.id])-1)/2)):
                     if changeSetting(STATUS, ER, interaction, key=f"{i+1}_tr") == b_tr:
                         changeSetting(SET, ER, interaction, key=f"{i+1}_re", value=b_re)
-                        rt_e = 1
+                        rt_e = True
                         break
-                if rt_e == 1:
-                    await interaction.followup.send(f"トリガー：{b_tr}\nリターン：{b_re}")
-                    with open(f'{DIR}/ex_reaction_list.nira', 'wb') as f:
-                        pickle.dump(n_fc.ex_reaction_list, f)
-                    return
-                elif rt_e == 0:
-                    await interaction.followup.send("そのトリガーは登録されていません！", ephemeral=True)
-                    return
+                if rt_e:
+                    await interaction.send(f"トリガー：{b_tr}\nリターン：{b_re}")
+                else:
+                    await interaction.send("そのトリガーは登録されていません！", ephemeral=True)
+                return
             except BaseException as err:
-                await interaction.response.send_message(embed=eh.eh(err))
+                await interaction.send(embed=eh.eh(err))
                 return
         else:
-            await interaction.response.send_message("管理者権限がありません。", ephemeral=True)
+            await interaction.send("管理者権限がありません。", ephemeral=True)
             return
 
     @commands.command(name="nr", help="""\
@@ -365,52 +342,50 @@ class reaction(commands.Cog):
 `n!nr all on`:通常反応を**サーバーで**有効化""")
     async def nr(self, ctx: commands.Context):
         try:
-            if ctx.message.guild.id not in n_fc.reaction_bool_list:  # 通常反応のブール値存在チェック
-                n_fc.reaction_bool_list[ctx.message.guild.id] = {}
-                n_fc.reaction_bool_list[ctx.message.guild.id][ctx.message.channel.id] = 1
-                n_fc.reaction_bool_list[ctx.message.guild.id]["all"] = 1
-                with open(f'{DIR}/reaction_bool_list.nira', 'wb') as f:
-                    pickle.dump(n_fc.reaction_bool_list, f)
-            if ctx.message.channel.id not in n_fc.reaction_bool_list[ctx.message.guild.id]:
-                n_fc.reaction_bool_list[ctx.message.guild.id][ctx.message.channel.id] = 1
-                with open(f'{DIR}/reaction_bool_list.nira', 'wb') as f:
-                    pickle.dump(n_fc.reaction_bool_list, f)
+            if ctx.guild.id not in n_fc.reaction_bool_list:  # 通常反応のブール値存在チェック
+                n_fc.reaction_bool_list[ctx.guild.id] = {}
+                n_fc.reaction_bool_list[ctx.guild.id][ctx.message.channel.id] = 1
+                n_fc.reaction_bool_list[ctx.guild.id]["all"] = 1
+                save()
+            if ctx.message.channel.id not in n_fc.reaction_bool_list[ctx.guild.id]:
+                n_fc.reaction_bool_list[ctx.guild.id][ctx.message.channel.id] = 1
+                save()
             if ctx.message.content == "n!nr":
-                if n_fc.reaction_bool_list[ctx.message.guild.id]["all"] == 0:
+                if n_fc.reaction_bool_list[ctx.guild.id]["all"] == 0:
                     setting = "サーバーで無効になっている為、チャンネルごとの設定は無効です。\n(`n!help nr`でご確認ください。)"
-                elif n_fc.reaction_bool_list[ctx.message.guild.id][ctx.message.channel.id] == 1:
+                elif n_fc.reaction_bool_list[ctx.guild.id][ctx.message.channel.id] == 1:
                     setting = "有効"
-                elif n_fc.reaction_bool_list[ctx.message.guild.id][ctx.message.channel.id] == 0:
+                elif n_fc.reaction_bool_list[ctx.guild.id][ctx.message.channel.id] == 0:
                     setting = "無効"
                 else:
                     setting = "読み込めませんでした。"
-                await ctx.message.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description=f"通常反応の設定:{setting}\n\n`n!nr [on/off]`で変更できます。", color=0x00ff00))
+                await ctx.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description=f"通常反応の設定:{setting}\n\n`n!nr [on/off]`で変更できます。", color=0x00ff00))
                 return
             if admin_check.admin_check(ctx.message.guild, ctx.message.author) or ctx.message.author.id in n_fc.py_admin:
                 nr_setting = str((ctx.message.content).split(" ", 1)[1])
                 if nr_setting in n_fc.on_ali:
-                    n_fc.reaction_bool_list[ctx.message.guild.id][ctx.message.channel.id] = 1
-                    await ctx.message.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="チャンネルでの通常反応を有効にしました。", color=0x00ff00))
+                    n_fc.reaction_bool_list[ctx.guild.id][ctx.message.channel.id] = 1
+                    await ctx.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="チャンネルでの通常反応を有効にしました。", color=0x00ff00))
                 elif nr_setting in n_fc.off_ali:
-                    n_fc.reaction_bool_list[ctx.message.guild.id][ctx.message.channel.id] = 0
-                    await ctx.message.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="チャンネルでの通常反応を無効にしました。", color=0x00ff00))
+                    n_fc.reaction_bool_list[ctx.guild.id][ctx.message.channel.id] = 0
+                    await ctx.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="チャンネルでの通常反応を無効にしました。", color=0x00ff00))
                 elif nr_setting[:3] == "all":
                     if nr_setting in n_fc.on_ali:
-                        n_fc.reaction_bool_list[ctx.message.guild.id]["all"] = 1
-                        await ctx.message.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="サーバーでの通常反応を有効にしました。", color=0x00ff00))
+                        n_fc.reaction_bool_list[ctx.guild.id]["all"] = 1
+                        await ctx.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="サーバーでの通常反応を有効にしました。", color=0x00ff00))
                     elif nr_setting in n_fc.off_ali:
-                        n_fc.reaction_bool_list[ctx.message.guild.id]["all"] = 0
-                        await ctx.message.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="サーバーでの通常反応を無効にしました。", color=0x00ff00))
+                        n_fc.reaction_bool_list[ctx.guild.id]["all"] = 0
+                        await ctx.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="サーバーでの通常反応を無効にしました。", color=0x00ff00))
                     else:
-                        await ctx.message.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="コマンド使用方法:`n!nr [all] [on/off]`", color=0xff0000))
+                        await ctx.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="コマンド使用方法:`n!nr [all] [on/off]`", color=0xff0000))
                 else:
-                    await ctx.message.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="コマンド使用方法:`n!nr [all] [on/off]`", color=0xff0000))
+                    await ctx.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="コマンド使用方法:`n!nr [all] [on/off]`", color=0xff0000))
                 return
             else:
-                await ctx.message.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
+                await ctx.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
                 return
         except BaseException as err:
-            await ctx.message.reply(embed=eh.eh(err))
+            await ctx.reply(embed=eh.eh(err))
             return
 
     @nextcord.slash_command(name="nr", description="通常反応設定", guild_ids=n_fc.GUILD_IDS)
@@ -429,13 +404,12 @@ class reaction(commands.Cog):
     ):
         if admin_check.admin_check(interaction.guild, interaction.user):
             if interaction.guild.id not in n_fc.reaction_bool_list:
-                n_fc.reaction_bool_list[interaction.guild.id] = {
-                    interaction.channel.id: setting}
+                n_fc.reaction_bool_list[interaction.guild.id] = {interaction.channel.id: setting}
             else:
                 n_fc.reaction_bool_list[interaction.guild.id][interaction.channel.id] = setting
-            await interaction.response.send_message(embed=nextcord.Embed(title="Normal Reaction Setting", description=f"チャンネル <#{interaction.channel.id}> での通常反応を変更しました。", color=0x00ff00), ephemeral=True)
+            await interaction.send(embed=nextcord.Embed(title="Normal Reaction Setting", description=f"チャンネル <#{interaction.channel.id}> での通常反応を変更しました。", color=0x00ff00), ephemeral=True)
         else:
-            await interaction.response.send_message(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000), ephemeral=True)
+            await interaction.send(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000), ephemeral=True)
             return
 
     @nr_slash.subcommand(name="server", description="サーバーでの通常反応設定")
@@ -454,9 +428,9 @@ class reaction(commands.Cog):
                     "all": setting, interaction.channel.id: 1}
             else:
                 n_fc.reaction_bool_list[interaction.guild.id]["all"] = setting
-            await interaction.response.send_message(embed=nextcord.Embed(title="Normal Reaction Setting", description=f"サーバー `{interaction.guild.name}` での通常反応を変更しました。", color=0x00ff00), ephemeral=True)
+            await interaction.send(embed=nextcord.Embed(title="Normal Reaction Setting", description=f"サーバー `{interaction.guild.name}` での通常反応を変更しました。", color=0x00ff00), ephemeral=True)
         else:
-            await interaction.response.send_message(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000), ephemeral=True)
+            await interaction.send(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000), ephemeral=True)
             return
 
     @commands.command(name="ar", help="""\
@@ -468,40 +442,38 @@ class reaction(commands.Cog):
 チャンネルトピックに`nira-off`と入れておくと、そのチャンネルでは反応を無効化します。""")
     async def ar(self, ctx: commands.Context):
         try:
-            if ctx.message.guild.id not in n_fc.all_reaction_list:
+            if ctx.guild.id not in n_fc.all_reaction_list:
                 print(n_fc.all_reaction_list)
-                n_fc.all_reaction_list[ctx.message.guild.id] = {}
-                with open(f'{DIR}/all_reaction_list.nira', 'wb') as f:
-                    pickle.dump(n_fc.all_reaction_list, f)
-            if ctx.message.channel.id not in n_fc.all_reaction_list[ctx.message.guild.id]:
-                n_fc.all_reaction_list[ctx.message.guild.id][ctx.message.channel.id] = 1
-                with open(f'{DIR}/all_reaction_list.nira', 'wb') as f:
-                    pickle.dump(n_fc.all_reaction_list, f)
+                n_fc.all_reaction_list[ctx.guild.id] = {}
+                save()
+            if ctx.message.channel.id not in n_fc.all_reaction_list[ctx.guild.id]:
+                n_fc.all_reaction_list[ctx.guild.id][ctx.message.channel.id] = 1
+                save()
             if ctx.message.content == "n!ar":
-                if n_fc.all_reaction_list[ctx.message.guild.id][ctx.message.channel.id] == 1:
+                if n_fc.all_reaction_list[ctx.guild.id][ctx.message.channel.id] == 1:
                     setting = "有効"
-                elif n_fc.all_reaction_list[ctx.message.guild.id][ctx.message.channel.id] == 0:
+                elif n_fc.all_reaction_list[ctx.guild.id][ctx.message.channel.id] == 0:
                     setting = "無効"
                 else:
                     setting = "読み込めませんでした。"
-                await ctx.message.reply(embed=nextcord.Embed(title="All Reaction Setting", description=f"「通常反応」及び「追加反応」（Bump通知および各種コマンドは除く）の設定:{setting}\n\n`n!ar [on/off]`で変更できます。", color=0x00ff00))
+                await ctx.reply(embed=nextcord.Embed(title="All Reaction Setting", description=f"「通常反応」及び「追加反応」（Bump通知および各種コマンドは除く）の設定:{setting}\n\n`n!ar [on/off]`で変更できます。", color=0x00ff00))
                 return
             if admin_check.admin_check(ctx.message.guild, ctx.message.author) or ctx.message.author.id in n_fc.py_admin:
                 ar_setting = str((ctx.message.content).split(" ", 1)[1])
                 if ar_setting in n_fc.on_ali:
-                    n_fc.all_reaction_list[ctx.message.guild.id][ctx.message.channel.id] = 1
-                    await ctx.message.reply(embed=nextcord.Embed(title="All Reaction Setting", description="チャンネルでの全反応を有効にしました。", color=0x00ff00))
+                    n_fc.all_reaction_list[ctx.guild.id][ctx.message.channel.id] = 1
+                    await ctx.reply(embed=nextcord.Embed(title="All Reaction Setting", description="チャンネルでの全反応を有効にしました。", color=0x00ff00))
                 elif ar_setting in n_fc.off_ali:
-                    n_fc.all_reaction_list[ctx.message.guild.id][ctx.message.channel.id] = 0
-                    await ctx.message.reply(embed=nextcord.Embed(title="All Reaction Setting", description="チャンネルでの全反応を無効にしました。", color=0x00ff00))
+                    n_fc.all_reaction_list[ctx.guild.id][ctx.message.channel.id] = 0
+                    await ctx.reply(embed=nextcord.Embed(title="All Reaction Setting", description="チャンネルでの全反応を無効にしました。", color=0x00ff00))
                 else:
-                    await ctx.message.reply(embed=nextcord.Embed(title="All Reaction Setting", description="コマンド使用方法:`n!ar [all] [on/off]`", color=0xff0000))
+                    await ctx.reply(embed=nextcord.Embed(title="All Reaction Setting", description="コマンド使用方法:`n!ar [all] [on/off]`", color=0xff0000))
                 return
             else:
-                await ctx.message.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
+                await ctx.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
                 return
         except BaseException as err:
-            await ctx.message.reply(embed=eh.eh(err))
+            await ctx.reply(embed=eh.eh(err))
             return
 
     @nextcord.slash_command(name="ar", description="チャンネル全体反応設定", guild_ids=n_fc.GUILD_IDS)
@@ -516,21 +488,19 @@ class reaction(commands.Cog):
     ):
         if admin_check.admin_check(interaction.guild, interaction.user):
             if interaction.guild.id not in n_fc.all_reaction_list:
-                n_fc.all_reaction_list[interaction.guild.id] = {
-                    interaction.channel.id: setting}
+                n_fc.all_reaction_list[interaction.guild.id] = {interaction.channel.id: setting}
             else:
                 n_fc.all_reaction_list[interaction.guild.id][interaction.channel.id] = setting
-            await interaction.response.send_message(embed=nextcord.Embed(title="All Reaction Setting", description=f"チャンネル <#{interaction.channel.id}> での全体反応を変更しました。", color=0x00ff00), ephemeral=True)
+            await interaction.send(embed=nextcord.Embed(title="All Reaction Setting", description=f"チャンネル <#{interaction.channel.id}> での全体反応を変更しました。", color=0x00ff00), ephemeral=True)
         else:
-            await interaction.response.send_message(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000), ephemeral=True)
+            await interaction.send(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000), ephemeral=True)
             return
 
     @commands.command(name="line", help="""\
 DiscordのメッセージをLINEに送信します。
 LINE Notifyという機能を用いて、DiscordのメッセージをLINEに送信します。""")
     async def line(self, ctx: commands.Context):
-        embed = nextcord.Embed(
-            title="DiscordのメッセージをLINEに送信する機能", description="使い方", color=0x00ff00)
+        embed = nextcord.Embed(title="DiscordのメッセージをLINEに送信する機能", description="使い方", color=0x00ff00)
         embed.add_field(name="**このコマンドはスラッシュコマンドです**", value="""\
 `/line set`というスラッシュコマンドを送ると、TOKENを入力する画面が表示されるので、そこにTOKENを入力してください。
 ちなみにTOKENの流出はとんでもないことにつながるので、気をつけてください。""", inline=False)
@@ -552,18 +522,17 @@ TOKENとは簡単に言えばパスワードです。LINE Notifyのページか�
     @line_slash.subcommand(name="del", description="LINE Notifyのトークンを削除します。")
     async def line_del_slash(self, interaction: Interaction):
         if admin_check.admin_check(interaction.guild, interaction.user) == False:
-            await interaction.response.send_message("あなたにはサーバーの管理権限がないため実行できません。", ephemeral=True)
+            await interaction.send("あなたにはサーバーの管理権限がないため実行できません。", ephemeral=True)
         else:
             if interaction.guild.id not in n_fc.notify_token:
-                await interaction.response.send_message(f"{interaction.guild.name}では、LINEトークンが設定されていません。", ephemeral=True)
+                await interaction.send(f"{interaction.guild.name}では、LINEトークンが設定されていません。", ephemeral=True)
                 return
             if interaction.channel.id not in n_fc.notify_token[interaction.guild.id]:
-                await interaction.response.send_message(f"{interaction.channel.name}では、LINEトークンが設定されていません。", ephemeral=True)
+                await interaction.send(f"{interaction.channel.name}では、LINEトークンが設定されていません。", ephemeral=True)
                 return
             del n_fc.notify_token[interaction.guild.id][interaction.channel.id]
-            with open(f'{DIR}/notify_token.nira', 'wb') as f:
-                pickle.dump(n_fc.notify_token, f)
-            await interaction.response.send_message(f"{interaction.channel.name}でのLINEトークンを削除しました。", ephemeral=True)
+            save()
+            await interaction.send(f"{interaction.channel.name}でのLINEトークンを削除しました。", ephemeral=True)
 
 
 def setup(bot):
