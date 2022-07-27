@@ -170,7 +170,7 @@ class reaction(commands.Cog):
                 elif ctx.message.content.split(" ", 1)[1] == "del all":
                     del n_fc.ex_reaction_list[ctx.guild.id]
                     save()
-                    await ctx.reply(f"`{ctx.guild.id}`での追加反応の設定を削除しました。")
+                    await ctx.reply(f"`{ctx.guild.name}`での追加反応の設定を削除しました。")
                     return
                 else:
                     result = None
@@ -265,7 +265,7 @@ class reaction(commands.Cog):
                     await interaction.response.defer()
                     del n_fc.ex_reaction_list[interaction.guild.id]
                     save()
-                    await interaction.send(f"`{interaction.guild.id}`での追加反応の設定を削除しました。")
+                    await interaction.send(f"`{interaction.guild.name}`での追加反応の設定を削除しました。")
                 else:
                     await interaction.response.defer()
                     result = None
