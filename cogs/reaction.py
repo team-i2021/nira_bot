@@ -27,23 +27,21 @@ def changeSetting(
     """kwargs = {"key": key:str, "value": value:str}"""
     if ActionType == SET:
         try:
-            exec(
-                f"n_fc.{FunctionName}[{interaction.guild.id}]['{kwargs['key']}'] = '{kwargs['value']}'")
+            getattr(n_fc, FunctionName)[interaction.guild.id][kwargs["key"]] = kwargs["value"]
             save()
             return True
         except BaseException as err:
             return [False, err]
     elif ActionType == DEL:
         try:
-            exec(
-                f"del n_fc.{FunctionName}[{interaction.guild.id}]['{kwargs['key']}']")
+            del getattr(n_fc, FunctionName)[interaction.guild.id][kwargs["key"]]
             save()
             return True
         except BaseException as err:
             return [False, err]
     elif ActionType == STATUS:
         try:
-            return eval(f"n_fc.{FunctionName}[{interaction.guild.id}]['{kwargs['key']}']")
+            return getattr(n_fc, FunctionName)[interaction.guild.id][kwargs["key"]]
         except BaseException as err:
             return [False, err]
 
