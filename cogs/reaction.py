@@ -92,12 +92,13 @@ class reaction(commands.Cog):
 オートリプライとかって呼ばれるんですかね？まぁ、トリガーとリターンを指定することで、トリガーが送信された際に指定したリターンを送信することが出来ます。
 トリガーには正規表現を使うことが出来ます。が、スペースを含むことはできませんのでご了承ください。""")
     async def er(self, ctx: commands.Context):
-        if ctx.message.content[:8] == "n!er add":
+        args = ctx.message.content.split(" ", 3)
+        if args[1] == "add":
             if not admin_check.admin_check(ctx.guild, ctx.author):
                 await ctx.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
                 return
-            if ctx.message.content == "n!er add":
-                await ctx.reply("構文が異なります。\n```n!er add [トリガー] [返信文]```")
+            if  len(args) == 2:
+                await ctx.reply(f"構文が異なります。\n```{self.bot.command_prefix}er add [トリガー] [返信文]```")
                 return
             try:
                 if ctx.guild.id not in n_fc.ex_reaction_list:
@@ -113,7 +114,7 @@ class reaction(commands.Cog):
                 return
             except BaseException as err:
                 await ctx.reply(embed=eh.eh(err))
-        if ctx.message.content[:9] == "n!er list":
+        elif args[1] == "list":
             if ctx.guild.id not in n_fc.ex_reaction_list or changeSetting(STATUS, ER, ctx, key="value") == 0:
                 await ctx.reply("追加返答は設定されていません。")
                 return
@@ -125,12 +126,12 @@ class reaction(commands.Cog):
                                     inline=False)
                 await ctx.reply(embed=embed)
                 return
-        if ctx.message.content.split(" ", 1)[1][:4] == "edit":
+        elif args[1] == "edit":
             if not admin_check.admin_check(ctx.guild, ctx.author):
                 await ctx.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
                 return
-            if ctx.message.content.split(" ", 1)[1] == "edit":
-                await ctx.reply("構文が異なります。\n```n!er edit [トリガー] [返信文]```")
+            if len(args) != 4:
+                await ctx.reply(f"構文が異なります。\n```{self.bot.command_prefix}er edit [トリガー] [返信文]```")
                 return
             if ctx.guild.id not in n_fc.ex_reaction_list:
                 await ctx.reply("追加反応は登録されていません。")
@@ -138,9 +139,8 @@ class reaction(commands.Cog):
             if changeSetting(STATUS, ER, ctx, key="value") == 0:
                 await ctx.reply("追加反応は登録されていません。")
                 return
-            ssrt = ctx.message.content.split(" ", 3)  # n!er,edit,trigger,reply
-            b_tr = ssrt[2]
-            b_re = ssrt[3]
+            b_tr = args[2]
+            b_re = args[3]
             try:
                 rt_e = False
                 for i in range(math.floor((len(n_fc.ex_reaction_list[ctx.guild.id])-1)/2)):
@@ -149,14 +149,14 @@ class reaction(commands.Cog):
                         rt_e = True
                         break
                 if rt_e:
-                    await ctx.reply(f"トリガー：{b_tr}\nリターン：{b_re}")
+                    await ctx.reply(f"トリガー:{b_tr}\nリターン:{b_re}")
                 else:
                     await ctx.reply("そのトリガーは登録されていません！")
                 return
-            except BaseException as err:
+            except Exception as err:
                 await ctx.reply(embed=eh.eh(err))
                 return
-        if ctx.message.content.split(" ", 1)[1][:3] == "del":
+        elif args[1] == "del":
             if not admin_check.admin_check(ctx.guild, ctx.author):
                 await ctx.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
                 return
@@ -164,17 +164,17 @@ class reaction(commands.Cog):
                 await ctx.reply("追加返答は設定されていません。")
                 return
             else:
-                if ctx.message.content.split(" ", 1)[1] == "del":
+                if len(args) != 3:
                     await ctx.reply("コマンドの引数が足りません。\n全削除:`n!er del all`\n特定の返答を削除:`n!er del [トリガー]`")
                     return
-                elif ctx.message.content.split(" ", 1)[1] == "del all":
+                elif args[2] == "all":
                     del n_fc.ex_reaction_list[ctx.guild.id]
                     save()
                     await ctx.reply(f"`{ctx.guild.name}`での追加反応の設定を削除しました。")
                     return
                 else:
                     result = None
-                    trigger = ctx.message.content.split(" ", 2)[2]
+                    trigger = args[2]
                     for i in range(math.floor((len(n_fc.ex_reaction_list[ctx.guild.id])-1)/2)):
                         if changeSetting(STATUS, ER, ctx, key=f"{i+1}_tr") == trigger:
                             result = i
@@ -388,7 +388,7 @@ class reaction(commands.Cog):
             else:
                 await ctx.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
                 return
-        except BaseException as err:
+        except Exception as err:
             await ctx.reply(embed=eh.eh(err))
             return
 
