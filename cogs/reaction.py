@@ -184,12 +184,14 @@ class reaction(commands.Cog):
                         await ctx.reply(f"`{triger}`というトリガーが見つかりませんでした。\n不具合がある場合は全消しするか、サポートサーバーへご連絡ください。")
                         return
                     for i in range(math.floor((len(n_fc.ex_reaction_list[ctx.guild.id])-1)/2)-(result+1)):
-                        changeSetting(SET, ER, ctx,
-                                      key=f"{result+i+1}_tr",
-                                      value=changeSetting(STATUS, ER, ctx, key=f"{result+i+2}_tr"))
-                        changeSetting(SET, ER, ctx,
-                                      key=f"{result+i+1}_re",
-                                      value=changeSetting(STATUS, ER, ctx, key=f"{result+i+2}_re"))
+                        for suf in ("tr", "re"):
+                            changeSetting(SET, ER, ctx,
+                                          key=f"{result+i+1}_{suf}",
+                                          value=changeSetting(STATUS, ER, ctx, key=f"{result+i+2}_{suf}"))
+                    for i in ("tr", "re"):
+                        del n_fc.ex_reaction_list[ctx.guild.id][f"{n_fc.ex_reaction_list[ctx.guild.id]['value']}_{i}"]
+                    n_fc.ex_reaction_list[ctx.guild.id]["value"] -= 1
+                    save()
                     await ctx.reply("Ok")
                     return
         return
@@ -277,12 +279,14 @@ class reaction(commands.Cog):
                         await interaction.send(f"`{triger}`というトリガーが見つかりませんでした。\n不具合がある場合は全消しするか、サポートサーバーへご連絡ください。", ephemeral=True)
                         return
                     for i in range(math.floor((len(n_fc.ex_reaction_list[interaction.guild.id])-1)/2)-(result+1)):
-                        changeSetting(SET, ER, interaction,
-                                      key=f"{result+i+1}_tr",
-                                      value=changeSetting(STATUS, ER, interaction, key=f"{result+i+2}_tr"))
-                        changeSetting(SET, ER, interaction,
-                                      key=f"{result+i+1}_re",
-                                      value=changeSetting(STATUS, ER, interaction, key=f"{result+i+2}_re"))
+                        for suf in ("tr", "re"):
+                            changeSetting(SET, ER, interaction,
+                                          key=f"{result+i+1}_{suf}",
+                                          value=changeSetting(STATUS, ER, interaction, key=f"{result+i+2}_{suf}"))
+                    for i in ("tr", "re"):
+                        del n_fc.ex_reaction_list[interaction.guild.id][f"{n_fc.ex_reaction_list[interaction.guild.id]['value']}_{i}"]
+                    n_fc.ex_reaction_list[interaction.guild.id]["value"] -= 1
+                    save()
                     await interaction.send(f"`{triger}`を削除しました。")
                     return
         else:
