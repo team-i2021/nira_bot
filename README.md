@@ -34,7 +34,6 @@
 | `py_admin`          | 再起動や Jishaku などの管理者コマンドを使用できるユーザーの DiscordID             | `[1234567989,987654321]`                     | list(int)     |
 | `voicevox`          | VOICEVOX WebAPI の API キー                                                       | `["abcdefg1234","1234abcdef"]`               | list(str)     |
 | `prefix`            | コマンドのプレフィックス                                                          | `"n!"`                                       | str           |
-| `database`          | データベースのキー                                                                | `"abcdefghijklmn12345-opqrstuvwxyz67890"`    | str           |
 | `guild_ids`         | スラッシュコマンドを登録する GuildID。未指定で全サーバーに登録する。              | `[1234567989,987654321]`                     | list(int)     |
 | `unload_cogs`       | cogs フォルダにある Python ファイルで、Cog として読み込まないファイルを指定する。 | `["yabai.py","tondemonai.py"]`               | list(str)     |
 | `load_cogs`         | Debug モードで起動した際に読み込む Cog を指定する。                               | `["debug.py"]`                               | list(str)     |

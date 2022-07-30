@@ -18,7 +18,6 @@ import nextcord
 import requests
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
-from nextcord.ext.commands.core import command
 
 from cogs import normal_reaction as nr
 from util import admin_check, n_fc, eh, database, slash_tool

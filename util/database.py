@@ -3,8 +3,6 @@ import os
 import sys
 import HTTP_db
 
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
 
 __version__ = "util"
 
@@ -12,12 +10,12 @@ jsonFile = f"{sys.path[0]}/util/gapi.json"
 SPREADSHEET_KEY = str(json.load(open(f'{sys.path[0]}/setting.json', 'r'))["database"])
 
 
-def openSheet() -> gspread.Worksheet:
-    scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
-    credentials = ServiceAccountCredentials.from_json_keyfile_name(jsonFile, scope)
-    gc = gspread.authorize(credentials)
-    worksheet = gc.open_by_key(SPREADSHEET_KEY).sheet1
-    return worksheet
+# def openSheet() -> gspread.Worksheet:
+#     scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
+#     credentials = ServiceAccountCredentials.from_json_keyfile_name(jsonFile, scope)
+#     gc = gspread.authorize(credentials)
+#     worksheet = gc.open_by_key(SPREADSHEET_KEY).sheet1
+#     return worksheet
 
 
 def readValue(data, cell) -> dict:
