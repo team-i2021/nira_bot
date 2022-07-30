@@ -28,10 +28,6 @@ SYSDIR = sys.path[0]
 
 # 管理者向けdebug
 
-DBS = database.openSheet()
-DATABASE_KEY = "B2"
-
-
 def save():
     for i in range(len(n_fc.save_list)):
         with open(f'{SYSDIR}/{n_fc.save_list[i]}.nira', 'wb') as f:

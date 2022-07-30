@@ -6,8 +6,8 @@ import HTTP_db
 
 __version__ = "util"
 
-jsonFile = f"{sys.path[0]}/util/gapi.json"
-SPREADSHEET_KEY = str(json.load(open(f'{sys.path[0]}/setting.json', 'r'))["database"])
+# jsonFile = f"{sys.path[0]}/util/gapi.json"
+# SPREADSHEET_KEY = str(json.load(open(f'{sys.path[0]}/setting.json', 'r'))["database"])
 
 
 # def openSheet() -> gspread.Worksheet:

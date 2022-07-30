@@ -111,7 +111,7 @@ class RemindMaker(nextcord.ui.Modal):
             return
 
         REMIND_DATA[interaction.channel.id][time] = self.remind_content.value
-        await pushData()
+        await pushData(self.client)
         await interaction.followup.send(embed=nextcord.Embed(title="設定完了", description=f"毎日`{time}`に <#{interaction.channel.id}> にリマインドメッセージを送信します。", color=0x00ff00))
         return
 
@@ -178,7 +178,7 @@ n!remind on 8:25 おはようございます！
                 return
 
             REMIND_DATA[ctx.channel.id][time] = args[3]
-            await pushData()
+            await pushData(self.client)
             await ctx.reply(embed=nextcord.Embed(title="設定完了", description=f"毎日`{time}`に <#{ctx.channel.id}> にリマインドメッセージを送信します。", color=0x00ff00))
             return
 
@@ -213,7 +213,7 @@ n!remind on 8:25 おはようございます！
             del REMIND_DATA[ctx.channel.id][time]
             if len(REMIND_DATA[ctx.channel.id]) == 0:
                 del REMIND_DATA[ctx.channel.id]
-            await pushData()
+            await pushData(self.client)
             await ctx.reply(embed=nextcord.Embed(title="削除完了", description=f"<#{ctx.channel.id}> での`{time}`のリマインドメッセージを削除しました。", color=0x00ff00))
             return
 
@@ -240,11 +240,11 @@ n!remind on 8:25 おはようございます！
                     await ctx.reply(f"```py\n[SHOW] Remote\n{await self.client.get(DATABASE_KEY)}```")
                     return
                 elif command == "push":
-                    await pushData()
+                    await pushData(self.client)
                     await ctx.reply(f"```py\n[PUSH] Push data to server.\nDevice -> Server\nSuccess.```")
                     return
                 elif command == "pull":
-                    await pullData()
+                    await pullData(self.client)
                     await ctx.reply(f"```py\n[PULL] Pull data from server.\nServer -> Device\nSuccess.```")
                     return
                 else:
@@ -308,7 +308,7 @@ pull - pull data from server to device```""")
             del REMIND_DATA[interaction.channel.id][timeB]
             if len(REMIND_DATA[interaction.channel.id]) == 0:
                 del REMIND_DATA[interaction.channel.id]
-            await pushData()
+            await pushData(self.client)
             await interaction.followup.send(embed=nextcord.Embed(title="削除完了", description=f"<#{interaction.channel.id}> での`{timeB}`のリマインドメッセージを削除しました。", color=0x00ff00))
             return
         else:
