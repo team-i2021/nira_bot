@@ -46,6 +46,7 @@ class VoiceSelect(nextcord.ui.Select):
             nextcord.SelectOption(label='ずんだもん/ノーマル', value=3),
             nextcord.SelectOption(label='ずんだもん/セクシー', value=5),
             nextcord.SelectOption(label='ずんだもん/ツンツン', value=7),
+            nextcord.SelectOption(label='ずんだもん/ささやき', value=22),
             nextcord.SelectOption(label='春日部つむぎ/ノーマル', value=8),
             nextcord.SelectOption(label='波音リツ/ノーマル', value=9),
             nextcord.SelectOption(label='雨晴はう/ノーマル', value=10),
@@ -57,7 +58,9 @@ class VoiceSelect(nextcord.ui.Select):
             nextcord.SelectOption(label='九州そら/ノーマル', value=16),
             nextcord.SelectOption(label='九州そら/セクシー', value=17),
             nextcord.SelectOption(label='九州そら/ツンツン', value=18),
-            nextcord.SelectOption(label='九州そら/ささやき', value=19)
+            nextcord.SelectOption(label='九州そら/ささやき', value=19),
+            nextcord.SelectOption(label='もち子さん/ノーマル', value=20),
+            nextcord.SelectOption(label='剣崎雌雄/ノーマル', value=21),
         ]
 
         super().__init__(placeholder='Please select voice type.',
@@ -75,6 +78,7 @@ class VoiceSelect(nextcord.ui.Select):
 class tts(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.VOICEVOX_VERSION = "0.12.5"
 
     @nextcord.slash_command(name="tts", description="テキストチャンネルの内容をVCで読み上げます", guild_ids=n_fc.GUILD_IDS)
     async def tts_slash(self, interaction: Interaction):
@@ -128,7 +132,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
     async def voice_slash(self, interaction: Interaction):
         view = nextcord.ui.View(timeout=None)
         view.add_item(VoiceSelect())
-        await interaction.response.send_message("下のプルダウンから声を選択してください。", view=view, ephemeral=True)
+        await interaction.response.send_message(f"下のプルダウンから声を選択してください。\n選択可能声種類: `v{self.VOICEVOX_VERSION}`基準", view=view, ephemeral=True)
         return
 
     @tts_slash.subcommand(name="reload", description="Reload TTS modules.")
@@ -225,7 +229,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                         return
                     view = nextcord.ui.View(timeout=None)
                     view.add_item(VoiceSelect())
-                    await ctx.reply("下のプルダウンから声を選択してください。", view=view)
+                    await ctx.reply(f"下のプルダウンから声を選択してください。\n選択可能声種類: `v{self.VOICEVOX_VERSION}`基準", view=view)
                     print(
                         f"{datetime.datetime.now()} - {ctx.guild.name} voice change")
                     return
