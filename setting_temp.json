@@ -10,7 +10,5 @@
     "unload_cogs": [],
     "load_cogs": [],
     "translate":DeepL APIのキー,
-    "database_data":{
-        "address": サーバーのアドレス
-    }
+    "database_url":データベースのURL
 }

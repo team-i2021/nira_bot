@@ -189,16 +189,18 @@ offにするには、`n!pin off`と送信してください。
             for j in PIN_MESSAGE[i].keys():
                 CHANNEL = await self.bot.fetch_channel(j)
                 try:
-                    if CHANNEL.last_message.content == PIN_MESSAGE[i][j] and CHANNEL.last_message.author.id == self.bot.user.id:
+                    if not CHANNEL.last_message.is_system() or (CHANNEL.last_message.content == PIN_MESSAGE[i][j] and CHANNEL.last_message.author.id == self.bot.user.id):
                         continue
-                except Exception as err:
+                except Exception:
+                    logging.error(traceback.format_exc())
                     continue
                 messages = await CHANNEL.history(limit=10).flatten()
                 for message in messages:
                     if message.content == PIN_MESSAGE[i][j] and message.author.id == self.bot.user.id:
                         try:
                             await message.delete()
-                        except Exception as err:
+                        except Exception:
+                            logging.error(traceback.format_exc())
                             continue
                 await CHANNEL.send(PIN_MESSAGE[i][j])
 
@@ -211,5 +213,4 @@ def setup(bot):
 
 
 def teardown(bot):
-    logging.info(f"Pin teardown")
     Bottomup.checkPin.stop()

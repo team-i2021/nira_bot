@@ -38,7 +38,7 @@
 | `unload_cogs`       | cogs フォルダにある Python ファイルで、Cog として読み込まないファイルを指定する。 | `["yabai.py","tondemonai.py"]`               | list(str)     |
 | `load_cogs`         | Debug モードで起動した際に読み込む Cog を指定する。                               | `["debug.py"]`                               | list(str)     |
 | `translate`         | DeepL API のキー（必須ではない）                                                  | `abcd1234-ab12-ab12-ab12-ab12ab12ab12`       | str           |
-| `database_data`     | HTTP_db 用のアドレスなどのデータ                                                  | `{"address":"127.0.0.1","port":45276}`       | dict(str,int) |
+| `database_url`     | HTTP_dbのデータベースのURL                                                  | `http://127.0.0.1:9090`       | str |
 
 ## 起動
 
