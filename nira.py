@@ -15,7 +15,7 @@ import websockets
 from nextcord.ext import commands
 from nextcord import Interaction
 
-from util import n_fc
+from util import n_fc, database
 # from util import database
 from cogs import debug as cogs_debug, server_status, rolepanel, pollpanel
 
@@ -53,6 +53,8 @@ bot = commands.Bot(command_prefix=PREFIX, intents=intents, help_command=None)
 bot.remove_command("help")  # 意味あるのかしらんけどjishakuのヘルプコマンド削除
 bot.load_extension("jishaku")
 
+# データベースの設定
+CLIENT = database.openClient()
 
 # オーナー設定
 async def is_owner(author):
@@ -102,6 +104,7 @@ print("外部設定完了")
 @bot.event
 async def on_ready():
     print("起動後処理を開始...")
+    await bot.change_presence(activity=nextcord.Game(name="起動中...(1/2)", type=1), status=nextcord.Status.idle)
     if os.path.exists(f'{sys.path[0]}/PersistentViews.nira'):
         with open(f'{sys.path[0]}/PersistentViews.nira', 'rb') as f:
             rolepanel.PersistentViews = pickle.load(f)
@@ -117,7 +120,7 @@ async def on_ready():
     # asyncio.new_event_loop().run_in_executor(None, bottomup.MessagePin, bot)
     # asyncio.ensure_future(bottomup.MessagePin(bot))
 
-    await bot.change_presence(activity=nextcord.Game(name="起動中...(1/2)", type=1), status=nextcord.Status.idle)
+    await bot.change_presence(activity=nextcord.Game(name="起動中...(2/2)", type=1), status=nextcord.Status.idle)
     print("ユーザー情報読み込み中")
     for i in bot.guilds:
         if i.id not in n_fc.role_keeper:
@@ -130,27 +133,6 @@ async def on_ready():
     cogs_debug.save()
 
     print("ユーザー情報読み込み完了")
-    await bot.change_presence(activity=nextcord.Game(name="起動中...(2/2)", type=1), status=nextcord.Status.idle)
-
-    print(list(n_fc.force_ss_list.keys()))
-    for i in range(len(list(n_fc.force_ss_list.keys()))):
-        print(list(n_fc.force_ss_list.keys())[i])
-        try:
-            print(
-                f"復元対象チャンネルID:{n_fc.force_ss_list[list(n_fc.force_ss_list.keys())[i]][0]}")
-            ch_obj = await bot.fetch_channel(n_fc.force_ss_list[list(n_fc.force_ss_list.keys())[i]][0])
-            print(
-                f"復元対象チャンネル名:{ch_obj.name}/復元対象メッセージID:{n_fc.force_ss_list[list(n_fc.force_ss_list.keys())[i]][1]}")
-            messs = await ch_obj.fetch_message(n_fc.force_ss_list[list(n_fc.force_ss_list.keys())[i]][1])
-            print(messs.author.id)
-            await messs.edit(content=f"reloading now...\nPlease wait...\n```{datetime.datetime.now()}```", embed=None)
-            print(f"復元対象メッセージコンテンツ:```{messs.content}```")
-            n_fc.pid_ss[list(n_fc.force_ss_list.keys())[i]] = (
-                asyncio.ensure_future(server_status.ss_force(bot.loop, messs)), messs)
-            print(f"復元完了")
-        except BaseException as err:
-            print(err, traceback.format_exc())
-    print("AutoSSのタスク復元完了")
 
     if not DEBUG:
         await bot.change_presence(activity=nextcord.Game(name=f"{PREFIX}help | にらゲー", type=1), status=nextcord.Status.online)
@@ -201,6 +183,7 @@ for i in range(len(n_fc.save_list)):
         os._exit(0)
 print("変数の読み込み完了")
 
+# load extensions
 cogs_dir = HOME + "/cogs"
 cogs_num = len(os.listdir(cogs_dir))
 cogs_list = os.listdir(cogs_dir)
@@ -211,7 +194,7 @@ for i in range(cogs_num):
     try:
         if cogs_list[i][-3:] != ".py" or cogs_list[i] == "__pycache__" or cogs_list[i] == "not_ready.py" or cogs_list[i] in UNLOAD_COGS:
             continue
-        bot.load_extension(f"cogs.{cogs_list[i][:-3]}")
+        bot.load_extension(f"cogs.{cogs_list[i][:-3]}", extras={"client": CLIENT})
     except Exception as err:
         print("Cog読み込み失敗:", cogs_list[i], file=sys.stderr)
         traceback.print_exc()
