@@ -7,23 +7,31 @@ import re
 import sys
 import time
 
+import HTTP_db
 import nextcord
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
 
 import util.srtr as srtr
-from util import admin_check, n_fc, eh, slash_tool
+from util import admin_check, n_fc, eh, slash_tool, database
 
 # Bump通知
 
 SET, DEL, STATUS = [0, 1, 2]
 
+class bump_data:
+    name = "bump_data"
+    value = {}
+    default = {}
+    value_type = database.GUILD_VALUE
 
-class bump(commands.Cog):
+class Bump(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.client = database.openClient()
+        asyncio.ensure_future(database.default_pull(self.client, bump_data))
 
-    def bump_config(
+    async def bump_config(
         self,
         interaction: Interaction or commands.Context,
         action: int,
@@ -35,33 +43,35 @@ class bump(commands.Cog):
         else:
             user = interaction.author
         if action == STATUS:
-            if interaction.guild.id not in n_fc.bump_list:
-                return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="Bump通知", description=f"{interaction.guild.name}でBump設定は無効です。", color=0x00ff00))
+            if interaction.guild.id not in bump_data.value:
+                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="Bump通知", description=f"{interaction.guild.name}でBump設定は無効です。", color=0x00ff00), ephemeral=True)
             else:
-                if n_fc.bump_list[interaction.guild.id] != None:
-                    return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="Bump通知", description=f"{interaction.guild.name}でBump設定は有効です。\nメンションロール:<@&{n_fc.bump_list[interaction.guild.id]}>", color=0x00ff00))
+                if bump_data.value[interaction.guild.id] != None:
+                    await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="Bump通知", description=f"{interaction.guild.name}でBump設定は有効です。\nメンションロール:<@&{bump_data.value[interaction.guild.id]}>", color=0x00ff00), ephemeral=True)
                 else:
-                    return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="Bump通知", description=f"{interaction.guild.name}でBump設定は有効です。\nメンションロール:なし", color=0x00ff00))
+                    await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="Bump通知", description=f"{interaction.guild.name}でBump設定は有効です。\nメンションロール:なし", color=0x00ff00), ephemeral=True)
         elif action == SET:
             if admin_check.admin_check(interaction.guild, user):
                 if item is None:
-                    n_fc.bump_list[interaction.guild.id] = None
+                    bump_data.value[interaction.guild.id] = None
                 else:
-                    n_fc.bump_list[interaction.guild.id] = item.id
-                if n_fc.bump_list[interaction.guild.id] != None:
-                    return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="Bump通知", description=f"{interaction.guild.name}でBump通知の設定を有効にしました。\nメンションロール:<@&{n_fc.bump_list[interaction.guild.id]}>", color=0x00ff00))
+                    bump_data.value[interaction.guild.id] = item.id
+                await database.default_push(self.client, bump_data)
+                if bump_data.value[interaction.guild.id] is not None:
+                    await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="Bump通知", description=f"{interaction.guild.name}でBump通知の設定を有効にしました。\nメンションロール:<@&{bump_data.value[interaction.guild.id]}>", color=0x00ff00), ephemeral=True)
                 else:
-                    return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="Bump通知", description=f"{interaction.guild.name}でBump通知の設定を有効にしました。\nメンションロール:なし", color=0x00ff00))
+                    await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="Bump通知", description=f"{interaction.guild.name}でBump通知の設定を有効にしました。\nメンションロール:なし", color=0x00ff00), ephemeral=True)
             else:
-                return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="エラー", description=f"管理者権限がありません。", color=0xff0000))
+                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="エラー", description=f"管理者権限がありません。", color=0xff0000), ephemeral=True)
         elif action == DEL:
             if admin_check.admin_check(interaction.guild, user):
-                del n_fc.bump_list[interaction.guild.id]
-                return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="Bump通知", description=f"{interaction.guild.name}でBump通知の設定を無効にしました。", color=0x00ff00))
+                del bump_data.value[interaction.guild.id]
+                await database.default_push(self.client, bump_data)
+                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="Bump通知", description=f"{interaction.guild.name}でBump通知の設定を無効にしました。", color=0x00ff00), ephemeral=True)
             else:
-                return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="エラー", description=f"管理者権限がありません。", color=0xff0000))
+                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="エラー", description=f"管理者権限がありません。", color=0xff0000), ephemeral=True)
         else:
-            return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="Bump設定", description=f"`n!bump`:Bump通知の設定の状態表示\n`n!bump on`:サーバーでのBump通知の設定を有効にします。\n`{self.bot.command_prefix}bump off`:サーバーでのBump通知の設定を無効にします。", color=0x00ff00))
+            await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="Bump設定", description=f"`n!bump`:Bump通知の設定の状態表示\n`n!bump on`:サーバーでのBump通知の設定を有効にします。\n`{self.bot.command_prefix}bump off`:サーバーでのBump通知の設定を無効にします。", color=0x00ff00), ephemeral=True)
 
     @commands.command(name="bump", help="""\
 Disboardの通知設定を行います。
@@ -102,7 +112,7 @@ Disboardの通知設定を行います。
         elif args[1] == "off":
             await self.bump_config(ctx, DEL, None)
         else:
-            await self.bump_config(ctx, 302050872383242240, None)
+            await self.bump_config(ctx, -1, None)
 
     @nextcord.slash_command(name="bump", description="bumpの設定をします", guild_ids=n_fc.GUILD_IDS)
     async def bump_slash(self, interaction):
@@ -141,7 +151,7 @@ Disboardの通知設定を行います。
     async def on_message(self, message: nextcord.Message):
         if message.guild == None:
             return
-        if message.guild.id not in n_fc.bump_list:
+        if message.guild.id not in bump_data.value:
             return
         if message.author.id != 302050872383242240:
             return
@@ -155,10 +165,10 @@ Disboardの通知設定を行います。
             await asyncio.sleep(7200)
             bump_rnd = random.randint(1, 3)
             messageContent = ""
-            if n_fc.bump_list[message.guild.id] is None:
+            if bump_data.value[message.guild.id] is None:
                 messageContent = "にらBOT Bump通知"
             else:
-                messageContent = f"<@&{n_fc.bump_list[message.guild.id]}>"
+                messageContent = f"<@&{bump_data.value[message.guild.id]}>"
             if bump_rnd == 1:
                 await message.channel.send(messageContent, embed=nextcord.Embed(title="Bumpの時間よ！", description=f"Bumpしたければすればいいんじゃないの...？(ツンデレ)\n```/bump```", color=0x00ff00))
             elif bump_rnd == 2:
@@ -169,4 +179,4 @@ Disboardの通知設定を行います。
 
 
 def setup(bot):
-    bot.add_cog(bump(bot))
+    bot.add_cog(Bump(bot))
