@@ -210,7 +210,7 @@ class debug(commands.Cog):
                 logging.info(traceback.format_exc())
             await ctx.message.add_reaction("\U00002705")
         else:
-            await ctx.message.reply(embed=nextcord.Embed(title="Error", description=f"You don't have the required permission.", color=0xff0000))
+            await ctx.reply(embed=nextcord.Embed(title="Error", description=f"You don't have the required permission.", color=0xff0000))
 
     @commands.command()
     async def restart(self, ctx: commands.Context):
@@ -241,13 +241,13 @@ class debug(commands.Cog):
                 )
                 return
             except BaseException as err:
-                await ctx.message.reply(f"An error has occurred during restart operation.\n```\n{err}```")
+                await ctx.reply(f"An error has occurred during restart operation.\n```\n{err}```")
                 await self.bot.change_presence(activity=nextcord.Game(name=f"{self.bot.command_prefix}help", type=1), status=nextcord.Status.idle)
                 return
         else:
             embed = nextcord.Embed(
                 title="Error", description=f"You don't have the required permission.", color=0xff0000)
-            await ctx.message.reply(embed=embed)
+            await ctx.reply(embed=embed)
             return
 
     @commands.command()
@@ -281,13 +281,13 @@ class debug(commands.Cog):
                 )
                 return
             except BaseException as err:
-                await ctx.message.reply(f"An error has occurred during shutdown operation.\n```\n{err}```")
+                await ctx.reply(f"An error has occurred during shutdown operation.\n```\n{err}```")
                 await self.bot.change_presence(activity=nextcord.Game(name=f"{self.bot.command_prefix}help", type=1), status=nextcord.Status.idle)
                 return
         else:
             embed = nextcord.Embed(
                 title="Error", description=f"You don't have the required permission.", color=0xff0000)
-            await ctx.message.reply(embed=embed)
+            await ctx.reply(embed=embed)
             return
 
     @commands.command()
@@ -295,13 +295,13 @@ class debug(commands.Cog):
         if ctx.message.author.id not in n_fc.py_admin:
             embed = nextcord.Embed(
                 title="Error", description=f"You don't have the required permission.", color=0xff0000)
-            await ctx.message.reply(embed=embed)
+            await ctx.reply(embed=embed)
             await ctx.message.add_reaction("\U0000274C")
             return
         if ctx.message.content == f"{self.bot.command_prefix}py":
             embed = nextcord.Embed(
                 title="Error", description="The command has no enough arguments!", color=0xff0000)
-            await ctx.message.reply(embed=embed)
+            await ctx.reply(embed=embed)
             await ctx.message.add_reaction("\U0000274C")
             return
         if ctx.message.content.startswith(f"{self.bot.command_prefix}py await"):
@@ -314,7 +314,7 @@ class debug(commands.Cog):
             if ctx.message.content == f"{self.bot.command_prefix}py await":
                 embed = nextcord.Embed(
                     title="Error", description="The command has no enough arguments!", color=0xff0000)
-                await ctx.message.reply(embed=embed)
+                await ctx.reply(embed=embed)
                 await ctx.message.add_reaction("\U0000274C")
                 return
         mes = ctx.message.content[5:].splitlines()
@@ -330,7 +330,7 @@ class debug(commands.Cog):
                     await ctx.message.add_reaction("\U0000274C")
                     embed = nextcord.Embed(
                         title="Error", description=f"Python error has occurred!\n```{err}```\n```sh\n{sys.exc_info()}```", color=0xff0000)
-                    await ctx.message.reply(embed=embed)
+                    await ctx.reply(embed=embed)
                     return
             else:
                 try:
@@ -340,7 +340,7 @@ class debug(commands.Cog):
                     await ctx.message.add_reaction("\U0000274C")
                     embed = nextcord.Embed(
                         title="Error", description=f"Python error has occurred!\n```{err}```\n```sh\n{sys.exc_info()}```", color=0xff0000)
-                    await ctx.message.reply(embed=embed)
+                    await ctx.reply(embed=embed)
                     return
         await ctx.message.add_reaction("\U0001F197")
         return
@@ -350,14 +350,14 @@ class debug(commands.Cog):
         if ctx.message.author.id not in n_fc.py_admin:
             embed = nextcord.Embed(
                 title="Error", description=f"You don't have the required permission.", color=0xff0000)
-            await ctx.message.reply(embed=embed)
+            await ctx.reply(embed=embed)
             await ctx.message.add_reaction("\U0000274C")
             return
         else:
             if ctx.message.content == f"{self.bot.command_prefix}sh":
                 embed = nextcord.Embed(
                     title="Error", description="The command has no enough arguments!", color=0xff0000)
-                await ctx.message.reply(embed=embed)
+                await ctx.reply(embed=embed)
                 await ctx.message.add_reaction("\U0000274C")
                 return
             mes_sh = ctx.message.content[5:].splitlines()
@@ -373,12 +373,12 @@ class debug(commands.Cog):
                     await ctx.message.add_reaction("\U0000274C")
                     embed = nextcord.Embed(
                         title="Error", description=f"Shell error has occurred!\n・Pythonエラー```{err}```\n・スクリプトエラー```{export.stdout}```", color=0xff0000)
-                    await ctx.message.reply(embed=embed)
+                    await ctx.reply(embed=embed)
                     return
             await ctx.message.add_reaction("\U0001F197")
             for i in range(len(sh_rt)):
                 rt_sh = "\n".join(sh_rt)
-            await ctx.message.reply(f"```{rt_sh}```")
+            await ctx.reply(f"```{rt_sh}```")
             return
 
     @commands.command()
@@ -386,15 +386,15 @@ class debug(commands.Cog):
         if ctx.message.author.id in n_fc.py_admin:
             try:
                 save()
-                await ctx.message.reply("Saved.")
+                await ctx.reply("Saved.")
                 logging.info("変数をセーブしました。")
             except BaseException as err:
-                await ctx.message.reply(f"Error happend.\n`{err}`")
+                await ctx.reply(f"Error happend.\n`{err}`")
             return
         else:
             embed = nextcord.Embed(
                 title="Error", description=f"You don't have the required permission.", color=0xff0000)
-            await ctx.message.reply(embed=embed)
+            await ctx.reply(embed=embed)
             return
 
     @nextcord.slash_command(name="extension", description="Manage cogs.", guild_ids=n_fc.GUILD_IDS)
@@ -456,7 +456,7 @@ class debug(commands.Cog):
         if ctx.author.id not in n_fc.py_admin:
             embed = nextcord.Embed(
                 title="Error", description=f"You don't have the required permission.", color=0xff0000)
-            await ctx.message.reply(embed=embed)
+            await ctx.reply(embed=embed)
             return
         else:
             if ctx.message.content == f"{self.bot.command_prefix}reaction":

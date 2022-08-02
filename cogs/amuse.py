@@ -206,7 +206,7 @@ class Amuse(commands.Cog):
 引数1:str
 「グー」または「チョキ」または「パー」の手。""")
     async def janken_ctx(self, ctx: commands.context):
-        await ctx.message.reply(embed=self.jankenEmbed(ctx.message.content, MESSAGE))
+        await ctx.reply(embed=self.jankenEmbed(ctx.message.content, MESSAGE))
         return
 
     @amuse.subcommand(name="janken", description="じゃんけんをします！")
@@ -279,7 +279,7 @@ class Amuse(commands.Cog):
 あなたの行いが良くなれば、自然と運勢も上がっていきますし、行いが悪くなれば、自然と運勢が下がっていきます。
 自分の運勢を上げたいと思うなら、人に優しくしたり、人のことを思った行動をしてみてください。""")
     async def uranai(self, ctx: commands.context):
-        await ctx.message.reply(embed=self.uranaiEmbed())
+        await ctx.reply(embed=self.uranaiEmbed())
         return
 
     @amuse.subcommand(name="uranai", description="占いをします")

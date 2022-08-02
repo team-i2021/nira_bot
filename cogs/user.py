@@ -301,7 +301,7 @@ class user(commands.Cog):
                 await self.ui_config(self.bot, ctx, STATUS, ctx.guild.id, None)
 
         else:
-            await ctx.message.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
+            await ctx.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
             return
 
 

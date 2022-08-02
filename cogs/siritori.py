@@ -91,7 +91,7 @@ class Siritori(commands.Cog):
                 color=0x00ff00
             )
 
-        await ctx.message.reply(embed=embed)
+        await ctx.reply(embed=embed)
         return
 
     @srtr.subcommand(name="start", description="しりとり風のゲームで遊びます")
