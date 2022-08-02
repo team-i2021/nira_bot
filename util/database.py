@@ -1,10 +1,17 @@
 import json
+import logging
 import os
 import sys
 import HTTP_db
+import traceback
+
+from util import dict_list
 
 
 __version__ = "util"
+GUILD_VALUE = 0 # {GUILD.id: value}
+CHANNEL_VALUE = 1 # {GUILD.id: {CHANNEL.id: value}}
+
 
 # jsonFile = f"{sys.path[0]}/util/gapi.json"
 # SPREADSHEET_KEY = str(json.load(open(f'{sys.path[0]}/setting.json', 'r'))["database"])
@@ -35,12 +42,55 @@ def openClient() -> HTTP_db.Client:
     else:
         return HTTP_db.Client(url=url)
 
+
 async def database_initialize(client: HTTP_db.Client, key, default):
     if await client.exists(key):
         return
     else:
         await client.post(key, default)
         return
+
+
+async def default_pull(client: HTTP_db.Client, obj) -> dict:
+    if obj.value_type == CHANNEL_VALUE:
+        if not await client.exists(obj.name):
+            await client.post(obj.name, dict_list.dictToList(obj.default))
+        try:
+            data = dict_list.listToDict(await client.get(obj.name))
+            obj.value = data
+        except Exception:
+            logging.error(traceback.format_exc())
+            obj.value = obj.default
+    elif obj.value_type == GUILD_VALUE:
+        if not await client.exists(obj.name):
+            await client.post(obj.name, list(obj.default.items()))
+        try:
+            data = dict(await client.get(obj.name))
+            obj.value = data
+        except Exception:
+            logging.error(traceback.format_exc())
+            obj.value = obj.default
+    else:
+        raise ValueError("value_type is not defined.")
+
+
+async def default_push(client: HTTP_db.Client, obj) -> None:
+    if obj.value_type == CHANNEL_VALUE:
+        try:
+            await client.post(obj.name, dict_list.dictToList(obj.value))
+            return None
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            raise e
+    elif obj.value_type == GUILD_VALUE:
+        try:
+            await client.post(obj.name, list(obj.value.items()))
+            return None
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            raise e
+    else:
+        raise ValueError("value_type is not defined.")
 
 # https://qiita.com/164kondo/items/eec4d1d8fd7648217935
 # B2:テスト/B3:TTS/B4:Up通知/B5:Reminder/B6:Captcha/B7:InviteURLs
