@@ -11,6 +11,7 @@ from util import dict_list
 __version__ = "util"
 GUILD_VALUE = 0 # {GUILD.id: value}
 CHANNEL_VALUE = 1 # {GUILD.id: {CHANNEL.id: value}}
+OTHER_VALUE = 2
 
 
 # jsonFile = f"{sys.path[0]}/util/gapi.json"
@@ -51,7 +52,7 @@ async def database_initialize(client: HTTP_db.Client, key, default):
         return
 
 
-async def default_pull(client: HTTP_db.Client, obj) -> dict:
+async def default_pull(client: HTTP_db.Client, obj: object) -> dict:
     if obj.value_type == CHANNEL_VALUE:
         if not await client.exists(obj.name):
             await client.post(obj.name, dict_list.dictToList(obj.default))
@@ -74,7 +75,7 @@ async def default_pull(client: HTTP_db.Client, obj) -> dict:
         raise ValueError("value_type is not defined.")
 
 
-async def default_push(client: HTTP_db.Client, obj) -> None:
+async def default_push(client: HTTP_db.Client, obj: object) -> None:
     if obj.value_type == CHANNEL_VALUE:
         try:
             await client.post(obj.name, dict_list.dictToList(obj.value))
