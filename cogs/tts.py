@@ -15,7 +15,7 @@ import websockets
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
 
-from util import n_fc, mc_status, tts_convert, tts_dict
+from util import n_fc, mc_status, tts_convert, tts_dict, database
 
 # Text To Speech
 
@@ -30,11 +30,15 @@ if len(keys) == 0:
 
 global tts_channel, speaker_author
 tts_channel = {}
-speaker_author = {}
 
+class speaker_author:
+    name = "speaker_author"
+    value = {}
+    default = {}
+    value_type = database.GUILD_VALUE
 
 class VoiceSelect(nextcord.ui.Select):
-    def __init__(self):
+    def __init__(self, client):
 
         options = [
             nextcord.SelectOption(label='四国めたん/あまあま', value=0),
@@ -59,14 +63,21 @@ class VoiceSelect(nextcord.ui.Select):
             nextcord.SelectOption(label='九州そら/ささやき', value=19)
         ]
 
-        super().__init__(placeholder='Please select voice type.',
-                         min_values=1, max_values=1, options=options)
+        super().__init__(
+            placeholder='Please select voice type.',
+            min_values=1,
+            max_values=1,
+            options=options
+        )
+
+        self.client = client
 
     async def callback(self, interaction: nextcord.Interaction):
-        speaker_author[interaction.user.id] = self.values[0]
+        speaker_author.value[interaction.user.id] = self.values[0]
         try:
             await interaction.message.channel.send(f'{interaction.user.mention}、設定しました。')
             await interaction.message.delete()
+            await database.default_push(self.client, speaker_author)
         except Exception as err:
             logging.error(err)
 
@@ -127,7 +138,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
     @tts_slash.subcommand(name="voice", description="読み上げの声の種類を変更します")
     async def voice_slash(self, interaction: Interaction):
         view = nextcord.ui.View(timeout=None)
-        view.add_item(VoiceSelect())
+        view.add_item(VoiceSelect(self.client))
         await interaction.response.send_message("下のプルダウンから声を選択してください。", view=view, ephemeral=True)
         return
 
@@ -224,7 +235,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                         await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description="僕...入ってないっす...(´・ω・｀)", color=0xff0000))
                         return
                     view = nextcord.ui.View(timeout=None)
-                    view.add_item(VoiceSelect())
+                    view.add_item(VoiceSelect(self.client))
                     await ctx.reply("下のプルダウンから声を選択してください。", view=view)
                     print(
                         f"{datetime.datetime.now()} - {ctx.guild.name} voice change")
@@ -263,8 +274,8 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                 if message.content == "" or message.content is None:
                     await interaction.followup.send(embed=nextcord.Embed(title="TTSエラー", description="メッセージが空です。", color=0xff0000))
                     return
-                if interaction.user.id not in speaker_author:
-                    speaker_author[interaction.user.id] = 2
+                if interaction.user.id not in speaker_author.value:
+                    speaker_author.value[interaction.user.id] = 2
                 if interaction.guild.voice_client.is_playing():
                     while True:
                         if interaction.guild.voice_client.is_playing():
@@ -274,7 +285,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                 await interaction.followup.send(embed=nextcord.Embed(title="TTS", description=f"```\n{message.content}```\nを読み上げます...", color=0x00ff00))
                 interaction.guild.voice_client.play(
                     nextcord.PCMVolumeTransformer(nextcord.FFmpegPCMAudio(
-                        f"https://api.su-shiki.com/v2/voicevox/audio/?text={tts_convert.convert(message.content)}&key={keys[random.randint(0,len(keys)-1)]}&speaker={speaker_author[interaction.user.id]}"
+                        f"https://api.su-shiki.com/v2/voicevox/audio/?text={tts_convert.convert(message.content)}&key={keys[random.randint(0,len(keys)-1)]}&speaker={speaker_author.value[interaction.user.id]}"
                     ),
                         volume=0.5)
                 )
@@ -301,8 +312,8 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
             return
 
         try:
-            if message.author.id not in speaker_author:
-                speaker_author[message.author.id] = 2
+            if message.author.id not in speaker_author.value:
+                speaker_author.value[message.author.id] = 2
             if message.guild.voice_client.is_playing():
                 while True:
                     if message.guild.voice_client.is_playing():
@@ -311,7 +322,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                         break
             message.guild.voice_client.play(
                 nextcord.PCMVolumeTransformer(nextcord.FFmpegPCMAudio(
-                    f"https://api.su-shiki.com/v2/voicevox/audio/?text={tts_convert.convert(message.content)}&key={keys[random.randint(0,len(keys)-1)]}&speaker={speaker_author[message.author.id]}"
+                    f"https://api.su-shiki.com/v2/voicevox/audio/?text={tts_convert.convert(message.content)}&key={keys[random.randint(0,len(keys)-1)]}&speaker={speaker_author.value[message.author.id]}"
                 ),
                     volume=0.5)
             )
