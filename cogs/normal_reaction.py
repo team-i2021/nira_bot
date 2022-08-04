@@ -245,7 +245,7 @@ def n_reaction(message: nextcord.Message, *custom: int):
 
 
 class normal_reaction(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
 
     @commands.Cog.listener()
@@ -319,7 +319,7 @@ class normal_reaction(commands.Cog):
                     return
 
 
-def setup(bot):
-    bot.add_cog(normal_reaction(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(normal_reaction(bot, **kwargs))
     importlib.reload(srtr)
     importlib.reload(web_api)

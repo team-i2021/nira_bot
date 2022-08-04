@@ -72,8 +72,9 @@ async def ErrorSend(interaction):
 
 
 class UpNotify(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
+        self.client = kwargs["client"]
 
     @commands.command(name="up", aliases=["アップ", "あっぷ", "dissoku"], help="""\
 DissokuのUp通知を行います
@@ -241,9 +242,9 @@ read - read UpperData from server to device```""")
         return
 
 
-def setup(bot):
+def setup(bot, **kwargs):
     readDatabase()
-    bot.add_cog(UpNotify(bot))
+    bot.add_cog(UpNotify(bot, **kwargs))
     UpNotify.writeDatabaseLoop.start(UpNotify(bot))
 
 

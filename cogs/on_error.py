@@ -15,7 +15,7 @@ from util import eh
 
 # エラー時のイベント！
 class error(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
 
     @commands.Cog.listener()
@@ -62,7 +62,7 @@ class error(commands.Cog):
             await interaction.response.send_message(embed=nextcord.Embed(title="エラーが発生しました。", description=f"```py\n{str(event)}```\n```sh\n{traceback.format_exc()}```", color=0xff0000), ephemeral=True)
         logging.error(traceback.format_exc())
 
-def setup(bot):
-    bot.add_cog(error(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(error(bot, **kwargs))
     importlib.reload(nira_commands)
     importlib.reload(eh)

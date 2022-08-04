@@ -72,10 +72,11 @@ class BottomModal(nextcord.ui.Modal):
 
 
 class Bottomup(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
-        self.client: HTTP_db.Client = database.openClient()
+        self.client = kwargs["client"]
         asyncio.ensure_future(pullData(self.client))
+        self.checkPin.start()
 
     @commands.command(name="pin", aliases=("Pin", "bottomup", "ピン留め", "ピン"), help="""\
 特定のメッセージを一番下に持ってくることで、いつでもみれるようにする、ピン留めの改良版。
@@ -207,10 +208,8 @@ offにするには、`n!pin off`と送信してください。
 # logging.error(traceback.format_exc())
 
 
-def setup(bot):
-    bot.add_cog(Bottomup(bot))
-    Bottomup.checkPin.start(Bottomup(bot))
-
+def setup(bot, **kwargs):
+    bot.add_cog(Bottomup(bot, **kwargs))
 
 def teardown(bot):
     Bottomup.checkPin.stop()

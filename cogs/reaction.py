@@ -111,9 +111,9 @@ class NotifyTokenSet(nextcord.ui.Modal):
 
 
 class reaction(commands.Cog):
-    def __init__(self, bot: commands.Bot, client: HTTP_db.Client):
+    def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
-        self.client = client
+        self.client = kwargs["client"]
 
     @commands.command(name="er", help="""\
 追加で新しいにらの反応を作り出すことが出来ます。

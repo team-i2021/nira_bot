@@ -37,9 +37,9 @@ async def pullData(client: HTTP_db.Client):
 
 
 class MessageRole(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
-        self.client: HTTP_db.Client = database.openClient()
+        self.client = kwargs["client"]
         asyncio.ensure_future(pullData(self.client))
 
     @nextcord.slash_command(name="mesrole", description="Message role command", guild_ids=n_fc.GUILD_IDS)
@@ -285,6 +285,6 @@ class MessageRole(commands.Cog):
                 return
 
 
-def setup(bot):
-    bot.add_cog(MessageRole(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(MessageRole(bot, **kwargs))
     importlib.reload(dict_list)

@@ -18,7 +18,7 @@ from util import admin_check, n_fc, eh
 
 
 class Genshin(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
 
 #    @nextcord.slash_command(name="genshin", description="Show genshin info", guild_ids=n_fc.GUILD_IDS)
@@ -50,5 +50,5 @@ class Genshin(commands.Cog):
         return
 
 
-def setup(bot):
-    bot.add_cog(Genshin(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(Genshin(bot, **kwargs))

@@ -19,9 +19,9 @@ import HTTP_db
 
 
 class user_join(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
-        self.client: HTTP_db.Client = database.openClient()
+        self.client = kwargs["client"]
 
     @commands.Cog.listener()
     async def on_member_join(self, member: nextcord.Member):
@@ -166,5 +166,5 @@ class user_join(commands.Cog):
             return
 
 
-def setup(bot):
-    bot.add_cog(user_join(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(user_join(bot, **kwargs))

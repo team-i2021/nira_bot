@@ -50,9 +50,9 @@ async def pullData(client: HTTP_db.Client):
 
 
 class MessageDM(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
-        self.client: HTTP_db.Client = database.openClient()
+        self.client = kwargs["client"]
         asyncio.ensure_future(pullData(self.client))
 
     @nextcord.slash_command(name="mesdm", description="Send DM when a set message is sent", guild_ids=n_fc.GUILD_IDS)
@@ -311,5 +311,5 @@ class MessageDM(commands.Cog):
                 return
 
 
-def setup(bot):
-    bot.add_cog(MessageDM(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(MessageDM(bot, **kwargs))

@@ -443,9 +443,9 @@ class Recheck_SS_Embed(nextcord.ui.View):
 
 
 class server_status(commands.Cog):
-    def __init__(self, bot: commands.Bot, client: HTTP_db.Client):
+    def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
-        self.client = client
+        self.client = kwargs["client"]
         self.check_status_pin_loop.start()
 
     @nextcord.message_command(name="AutoSSのスタート", guild_ids=n_fc.GUILD_IDS)

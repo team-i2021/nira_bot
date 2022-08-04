@@ -10,7 +10,7 @@ from util import admin_check, n_fc, eh, slash_tool
 
 
 class check(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot, **kwagrs):
         self.bot = bot
 
     @nextcord.user_command(name="管理者権限チェック", guild_ids=n_fc.GUILD_IDS)
@@ -44,5 +44,5 @@ class check(commands.Cog):
         return
 
 
-def setup(bot):
-    bot.add_cog(check(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(check(bot, **kwargs))

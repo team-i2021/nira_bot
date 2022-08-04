@@ -16,8 +16,9 @@ from util import admin_check, n_fc, eh
 
 
 class welcome(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
+        self.client = kwargs["client"]
 
     @commands.command(name="welcome", aliases=("youkoso", "goodbye", "ようこそ", "Welcome"), help="""\
 ユーザーが加入/離脱したときに、特定のメッセージをこのチャンネルに送信するようにします。
@@ -211,5 +212,5 @@ n!welcome leave off
         return
 
 
-def setup(bot):
-    bot.add_cog(welcome(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(welcome(bot, **kwargs))

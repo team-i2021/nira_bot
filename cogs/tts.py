@@ -14,7 +14,6 @@ import nextcord
 import websockets
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
-from nextcord.utils import get
 
 from util import n_fc, mc_status, tts_convert, tts_dict
 
@@ -73,8 +72,9 @@ class VoiceSelect(nextcord.ui.Select):
 
 
 class tts(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
+        self.client = kwargs["client"]
 
     @nextcord.slash_command(name="tts", description="テキストチャンネルの内容をVCで読み上げます", guild_ids=n_fc.GUILD_IDS)
     async def tts_slash(self, interaction: Interaction):
@@ -322,5 +322,5 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
             return
 
 
-def setup(bot):
-    bot.add_cog(tts(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(tts(bot, **kwargs))

@@ -36,9 +36,9 @@ async def counterReset():
 
 
 class mod(commands.Cog):
-    def __init__(self, bot: commands.Bot, client: HTTP_db.Client):
+    def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
-        self.client = client
+        self.client = kwargs["client"]
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):

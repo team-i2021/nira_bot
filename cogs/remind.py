@@ -117,10 +117,11 @@ class RemindMaker(nextcord.ui.Modal):
 
 
 class Remind(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
-        self.client: HTTP_db.Client = database.openClient()
+        self.client = kwargs["client"]
         asyncio.ensure_future(pullData(self.client))
+        self.sendReminds.start()
 
     @commands.command(name="remind", aliases=("Remind", "りまいんど", "めざまし", "アラーム"), help="""\
 毎日指定時間にメッセージを送信する
@@ -348,9 +349,8 @@ pull - pull data from server to device```""")
                         logging.error(f"ERR:{err}\n{channel}")
 
 
-def setup(bot):
-    bot.add_cog(Remind(bot))
-    Remind.sendReminds.start(Remind(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(Remind(bot, **kwargs))
 
 
 def teardown(bot):

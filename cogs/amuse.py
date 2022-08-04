@@ -19,7 +19,7 @@ MESSAGE, SLASH = [0, 1]
 
 
 class Amuse(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
 
     @commands.command(name="dice", help="""\
@@ -396,5 +396,5 @@ https://discord.gg/awfFpCYTcP"""
         return
 
 
-def setup(bot):
-    bot.add_cog(Amuse(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(Amuse(bot, **kwargs))

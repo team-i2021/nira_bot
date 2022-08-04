@@ -157,10 +157,9 @@ async def base_cog(bot, ctx, command, name):
 
 
 class debug(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
-        datas = json.load(open(f'{SYSDIR}/setting.json', 'r'))["database_data"]
-        self.client: HTTP_db.Client = database.openClient()
+        self.client = kwargs["client"]
 
     async def ws(self, websocket, path):
         async for message in websocket:
@@ -626,6 +625,6 @@ class debug(commands.Cog):
         except Exception:
             await interaction.followup.send(embed=nextcord.Embed(title="RELOAD MODULES", description=f"```\n{traceback.format_exc()}```", color=0xff0000))
 
-def setup(bot):
-    bot.add_cog(debug(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(debug(bot, *kwargs))
     importlib.reload(slash_tool)

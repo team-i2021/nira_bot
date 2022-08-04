@@ -204,7 +204,7 @@ class TranslateModal(nextcord.ui.Modal):
 
 
 class Translate(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
         SETTING = json.load(open(f'{SYSDIR}/setting.json'))
         if "translate" not in SETTING:
@@ -359,5 +359,5 @@ Powered by DeepL Translate/Google Translate.""")
                 await message.reply(embed=make_embed(result[1], result[0], "...", TARGET))
 
 
-def setup(bot):
-    bot.add_cog(Translate(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(Translate(bot, **kwargs))

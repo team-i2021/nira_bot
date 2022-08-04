@@ -52,7 +52,7 @@ class MessageCommandPulldown(nextcord.ui.Select):
 
 
 class MessageCommands(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
     
     @nextcord.message_command(name="その他", guild_ids=n_fc.GUILD_IDS)
@@ -62,5 +62,5 @@ class MessageCommands(commands.Cog):
         await interaction.response.send_message("実行したいメッセージコマンドを選択してください。", view=view, ephemeral=True)
         return
 
-def setup(bot):
-    bot.add_cog(MessageCommands(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(MessageCommands(bot, **kwargs))

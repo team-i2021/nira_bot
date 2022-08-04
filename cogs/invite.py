@@ -38,9 +38,9 @@ async def fetch_invite(client: HTTP_db.Client, discord_invites: list, guild_id: 
 
 
 class Invite(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
-        self.client: HTTP_db.Client = database.openClient()
+        self.client = kwargs["client"]
         asyncio.ensure_future(database.database_initialize(self.client, "invite_data", dict_list.dictToList({})))
 
     @commands.bot_has_permissions(manage_guild=True)
@@ -244,5 +244,5 @@ class Invite(commands.Cog):
         await self.client.post("invite_data", dict_list.dictToList(InviteData))
 
 
-def setup(bot):
-    bot.add_cog(Invite(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(Invite(bot, **kwargs))

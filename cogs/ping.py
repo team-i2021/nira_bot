@@ -83,10 +83,9 @@ async def base_ping(bot, client: HTTP_db.Client, adr, message: nextcord.Message 
 
 
 class Ping(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
-        datas = json.load(open(f'{SYSDIR}/setting.json', 'r'))["database_data"]
-        self.client = database.openClient()
+        self.client = kwargs["client"]
 
     @nextcord.slash_command(name="ping", description="Discordサーバー又は、指定サーバーとのレイテンシを計測します。", guild_ids=n_fc.GUILD_IDS)
     async def ping_slash(
@@ -121,5 +120,5 @@ IPアドレスまたはドメインの形で指定してください。""")
             await base_ping(self.bot, self.client, texts[1], message)
 
 
-def setup(bot):
-    bot.add_cog(Ping(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(Ping(bot, **kwargs))

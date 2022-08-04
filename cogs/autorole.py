@@ -26,9 +26,9 @@ class autorole_data:
     value_type = database.GUILD_VALUE
 
 class autorole(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
-        self.client = database.openClient()
+        self.client = kwargs["client"]
         asyncio.ensure_future(database.default_pull(self.client, autorole_data))
 
     @nextcord.slash_command(name="autorole", description="自動ロール", guild_ids=GUILD_IDS)
@@ -201,5 +201,5 @@ class autorole(commands.Cog):
         return
 
 
-def setup(bot):
-    bot.add_cog(autorole(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(autorole(bot, **kwargs))

@@ -185,8 +185,9 @@ class RolePanelButton(nextcord.ui.Button):
 
 
 class Rolepanel(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
+        self.client = kwargs["client"]
 
     @nextcord.message_command(name="ロールパネル編集", guild_ids=n_fc.GUILD_IDS)
     async def edit_rolepanel(self, interaction: Interaction, message: nextcord.Message):
@@ -329,9 +330,9 @@ n!rolepanel [*メッセージ内容]
 # args = [["ButtonLabel", "Role_Id"]]
 
 
-def setup(bot):
+def setup(bot, **kwargs):
     if os.path.exists(f'{sys.path[0]}/PersistentViews.nira'):
         with open(f'{sys.path[0]}/PersistentViews.nira', 'rb') as f:
             global PersistentViews
             PersistentViews = pickle.load(f)
-    bot.add_cog(Rolepanel(bot))
+    bot.add_cog(Rolepanel(bot, **kwargs))

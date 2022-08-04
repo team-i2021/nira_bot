@@ -13,7 +13,7 @@ from util import admin_check, n_fc, eh
 SYSDIR = sys.path[0]
 
 class GetReaction(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
 
     @commands.Cog.listener()
@@ -23,5 +23,5 @@ class GetReaction(commands.Cog):
             return
 
 
-def setup(bot):
-    bot.add_cog(GetReaction(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(GetReaction(bot, **kwargs))

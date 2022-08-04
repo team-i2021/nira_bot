@@ -279,8 +279,9 @@ class PollPanelEnd(nextcord.ui.Button):
             await interaction.response.send_message("誰だおめぇ...？\n（投票製作者のみ締め切ることが出来ます！）", ephemeral=True)
 
 class Pollpanel(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
+        self.client = kwargs["client"]
     
     @nextcord.message_command(name="投票パネルの編集", guild_ids=n_fc.GUILD_IDS)
     async def edit_pollpanel(self, interaction: Interaction, message: nextcord.Message):
@@ -408,9 +409,9 @@ n!pollpanel [on/off] [メッセージ内容]
 # args = [["ButtonLabel", "Role_Id"]]
 
 
-def setup(bot):
+def setup(bot, **kwargs):
     if os.path.exists(f'{sys.path[0]}/PollViews.nira'):
         with open(f'{sys.path[0]}/PollViews.nira', 'rb') as f:
             global PollViews
             PollViews = pickle.load(f)
-    bot.add_cog(Pollpanel(bot))
+    bot.add_cog(Pollpanel(bot, **kwargs))

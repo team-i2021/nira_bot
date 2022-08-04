@@ -3,10 +3,11 @@ import os
 import pickle
 import sys
 
+import HTTP_db
 import nextcord
 from nextcord.ext import commands
 
-from util import eh, srtr
+from util import eh, srtr, database
 from util.n_fc import GUILD_IDS, srtr_bool_list
 
 SYSDIR = sys.path[0]
@@ -17,8 +18,9 @@ STOP = ["stop", "off", "end", "exit", "ストップ", "おわり"]
 
 
 class Siritori(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
+        self.client = kwargs["client"]
 
     @nextcord.slash_command(name="srtr", description="しりとり", guild_ids=GUILD_IDS)
     async def srtr(self):
@@ -105,6 +107,6 @@ class Siritori(commands.Cog):
         return
 
 
-def setup(bot):
+def setup(bot, **kwargs):
     importlib.reload(srtr)
-    bot.add_cog(Siritori(bot))
+    bot.add_cog(Siritori(bot, **kwargs))

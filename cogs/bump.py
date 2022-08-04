@@ -26,9 +26,9 @@ class bump_data:
     value_type = database.GUILD_VALUE
 
 class Bump(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot, **kwagrs):
         self.bot = bot
-        self.client = database.openClient()
+        self.client = kwagrs["client"]
         asyncio.ensure_future(database.default_pull(self.client, bump_data))
 
     async def bump_config(
@@ -178,5 +178,5 @@ Disboardの通知設定を行います。
             return
 
 
-def setup(bot):
-    bot.add_cog(Bump(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(Bump(bot, **kwargs))

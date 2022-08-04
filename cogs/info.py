@@ -532,7 +532,7 @@ class info_base():
 
 
 class info(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
 
     @nextcord.slash_command(name="info", description="にらBOTの情報を表示します。", guild_ids=n_fc.GUILD_IDS)
@@ -581,6 +581,6 @@ class info(commands.Cog):
             await info_base.help(self, ctx, command[1], CTX)
 
 
-def setup(bot):
+def setup(bot, **kwargs):
     importlib.reload(hc)
-    bot.add_cog(info(bot))
+    bot.add_cog(info(bot, **kwargs))

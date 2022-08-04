@@ -245,9 +245,9 @@ class minecraft_base:
 
 
 class minecraft(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
-        self.client = database.openClient()
+        self.client = kwargs["client"]
         asyncio.ensure_future(database.default_pull(self.client, minecraft_data))
 
     @commands.command(name="mc", help="""\
@@ -382,6 +382,6 @@ MinecraftのJava/BEサーバーのステータスを表示します
         await minecraft_base.server_check(self, interaction, server)
 
 
-def setup(bot):
-    bot.add_cog(minecraft(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(minecraft(bot, **kwargs))
     importlib.reload(mc_status)

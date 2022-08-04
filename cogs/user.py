@@ -16,8 +16,9 @@ SET, DEL, STATUS = (0, 1, 2)
 
 
 class user(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
+        self.client = kwargs["client"]
 
     def UserInfoEmbed(self, member: nextcord.Member or nextcord.User):
         if member.bot:
@@ -305,5 +306,5 @@ class user(commands.Cog):
             return
 
 
-def setup(bot):
-    bot.add_cog(user(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(user(bot, **kwargs))
