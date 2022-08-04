@@ -34,7 +34,7 @@ class minecraft_status:
             server = mc.lookup(address)
             status = server.status()
             return status
-        except BaseException as err:
+        except Exception as err:
             return err
 
     def bedrock(address):
@@ -43,5 +43,5 @@ class minecraft_status:
             server = mcb.lookup(address)
             status = server.status()
             return status
-        except BaseException as err:
+        except Exception as err:
             return err

@@ -117,7 +117,7 @@ n!welcome leave off
                 await interaction.followup.send(embed=nextcord.Embed(title=f"離脱時のメッセージ表示", description=f"・成功\n```\n{message}```\n`{interaction.channel.name}`にメッセージを設定しました。", color=0x00ff00), ephemeral=True)
             save()
             return
-        except BaseException as err:
+        except Exception as err:
             await interaction.followup.send("コマンド実行時にエラーが発生しました。", embed=nextcord.Embed(title=f"An error has occurred during `/welcome set [**kwargs]`", description=f"```py\n{err}```\n```py\n{traceback.format_exc()}```", color=0xff0000), ephemeral=True)
             return
 
@@ -149,7 +149,7 @@ n!welcome leave off
                 else:
                     await interaction.followup.send(embed=nextcord.Embed(title=f"離脱時のメッセージ表示", description=f"このサーバーには離脱時のメッセージ表示が設定されていません。", color=0xff0000), ephemeral=True)
             return
-        except BaseException as err:
+        except Exception as err:
             await interaction.followup.send("コマンド実行時にエラーが発生しました。", embed=nextcord.Embed(title=f"An error has occurred during `/welcome del [**kwargs]`", description=f"```py\n{err}```\n```py\n{traceback.format_exc()}```", color=0xff0000), ephemeral=True)
             return
 
@@ -177,7 +177,7 @@ n!welcome leave off
                 else:
                     await interaction.followup.send(embed=nextcord.Embed(title=f"離脱時のメッセージ表示", description=f"このサーバーには離脱時のメッセージ表示が設定されていません。", color=0xff0000), ephemeral=True)
             return
-        except BaseException as err:
+        except Exception as err:
             await interaction.followup.send("コマンド実行時にエラーが発生しました。", embed=nextcord.Embed(title=f"An error has occurred during `/welcome status`", description=f"```py\n{err}```\n```py\n{traceback.format_exc()}```", color=0xff0000), ephemeral=True)
             return
 

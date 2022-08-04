@@ -29,7 +29,7 @@ async def MessagePin(bot: nextcord.ext.commands.bot.Bot):
                             await message.delete()
                     await CHANNEL.send(PIN_MESSAGE[i][j])
             await asyncio.sleep(5)
-        except BaseException:
+        except Exception:
             pass
 
 

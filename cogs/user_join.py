@@ -33,7 +33,7 @@ class user_join(commands.Cog):
                     if member.guild.members[i].id != member.id:
                         n_fc.role_keeper[member.guild.id][member.guild.members[i].id] = [
                             j.id for j in member.guild.members[i].roles if j.id != member.guild.id]
-        except BaseException as err:
+        except Exception as err:
             logging.error(err)
 
         try:
@@ -56,7 +56,7 @@ class user_join(commands.Cog):
                             value=f"```{member.created_at}```")
             embed.add_field(name="現在のユーザー数",
                             value=f"`{len(member.guild.members)}`人")
-        except BaseException as err:
+        except Exception as err:
             logging.error(err)
 
         try:
@@ -78,7 +78,7 @@ class user_join(commands.Cog):
                 embed.add_field(
                     name="招待リンク", value=f"{invitedFrom}から招待を受けました！", inline=False)
             await self.client.post("invite_data", dict_list.dictToList(InviteData))
-        except BaseException as err:
+        except Exception as err:
             logging.error(f"{err}\n{traceback.format_exc()}")
 
         try:
@@ -87,7 +87,7 @@ class user_join(commands.Cog):
             else:
                 members_message = None
 
-        except BaseException as err:
+        except Exception as err:
             logging.error(err)
         await asyncio.sleep(2)
 
@@ -108,7 +108,7 @@ class user_join(commands.Cog):
                         name="付与済みロール", value=f"{' '.join([f'<@&{i}>' for i in n_fc.role_keeper[member.guild.id][member.id]])}")
                     await members_message.edit(embed=embed)
 
-            except BaseException as err:
+            except Exception as err:
                 await members_message.edit(f"ロール付与時に何かしらのエラーが発生しました。\n何度も発生する場合はお問い合わせください。\n`{err}`", embed=embed)
                 logging.error(err)
 
@@ -157,7 +157,7 @@ class user_join(commands.Cog):
             n_fc.role_keeper[member.guild.id][member.id] = role_ids
             save()
             return
-        except BaseException as err:
+        except Exception as err:
             if channel == None:
                 pass
             else:

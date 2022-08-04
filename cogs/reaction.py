@@ -55,19 +55,19 @@ async def changeSetting(
             getattr(reaction_datas, FunctionName)[interaction.guild.id][kwargs["key"]] = kwargs["value"]
             await database.default_push(client, getattr(reaction_datas, FunctionName))
             return True
-        except BaseException as err:
+        except Exception as err:
             return [False, err]
     elif ActionType == DEL:
         try:
             del getattr(reaction_datas, FunctionName)[interaction.guild.id][kwargs["key"]]
             await database.default_push(client, getattr(reaction_datas, FunctionName))
             return True
-        except BaseException as err:
+        except Exception as err:
             return [False, err]
     elif ActionType == STATUS:
         try:
             return getattr(reaction_datas, FunctionName)[interaction.guild.id][kwargs["key"]]
-        except BaseException as err:
+        except Exception as err:
             return [False, err]
 
 
@@ -140,7 +140,7 @@ class reaction(commands.Cog):
                 changeSetting(SET, ER, ctx, key=f'{value+1}_re', value=str(react_return))
                 await ctx.reply(f"トリガー：{ra[0]}\nリターン：{ra[1]}")
                 return
-            except BaseException as err:
+            except Exception as err:
                 await ctx.reply(embed=eh.eh(err))
         elif args[1] == "list":
             if ctx.guild.id not in reaction_datas.ex_reaction_list.value or changeSetting(STATUS, ER, ctx, key="value") == 0:
@@ -255,7 +255,7 @@ class reaction(commands.Cog):
                 changeSetting(SET, ER, interaction, key=f'{value+1}_re', value=str(react_return))
                 await interaction.send(f"トリガー：{react_trigger}\nリターン：{react_return}")
                 return
-            except BaseException as err:
+            except Exception as err:
                 await interaction.send(embed=eh.eh(err))
         else:
             await interaction.send("管理者権限がありません。", ephemeral=True)
@@ -358,7 +358,7 @@ class reaction(commands.Cog):
                 else:
                     await interaction.send("そのトリガーは登録されていません！", ephemeral=True)
                 return
-            except BaseException as err:
+            except Exception as err:
                 await interaction.send(embed=eh.eh(err))
                 return
         else:
@@ -504,7 +504,7 @@ class reaction(commands.Cog):
             else:
                 await ctx.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
                 return
-        except BaseException as err:
+        except Exception as err:
             await ctx.reply(embed=eh.eh(err))
             return
 

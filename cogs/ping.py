@@ -73,7 +73,7 @@ async def base_ping(bot, client: HTTP_db.Client, adr, message: nextcord.Message 
         try:
             await asyncio.wait_for(ping_there(adr, message), timeout=8)
             return
-        except BaseException as err:
+        except Exception as err:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             logging.error(

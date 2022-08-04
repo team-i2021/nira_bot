@@ -47,7 +47,7 @@ async def ss_force(self, message: nextcord.Message):
             view=Reload_SS_Auto(self.bot, message, self.client)
         )
         logging.info("Status loaded.(Not scheduled)")
-    except BaseException as err:
+    except Exception as err:
         logging.info(err, traceback.format_exc())
         await message.edit(content=f"err:{err}")
 
@@ -526,7 +526,7 @@ Steam非公式サーバーのステータスを表示します
             else:
                 await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="管理者権限がありません。", color=0xff0000), ephemeral=True)
                 return
-        except BaseException as err:
+        except Exception as err:
             await interaction.followup.send(f"サーバー追加時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
@@ -564,7 +564,7 @@ Steam非公式サーバーのステータスを表示します
             else:
                 await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="管理者権限がありません。", color=0xff0000), ephemeral=True)
                 return
-        except BaseException as err:
+        except Exception as err:
             await interaction.followup.send(f"サーバー削除時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
@@ -592,7 +592,7 @@ Steam非公式サーバーのステータスを表示します
             else:
                 await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="管理者権限がありません。", color=0xff0000), ephemeral=True)
                 return
-        except BaseException as err:
+        except Exception as err:
             await interaction.followup.send(f"サーバー一覧表示時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
@@ -693,7 +693,7 @@ Steam非公式サーバーのステータスを表示します
             else:
                 await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="管理者権限がありません。", color=0xff0000), ephemeral=True)
                 return
-        except BaseException as err:
+        except Exception as err:
             await interaction.followup.send(f"編集時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
@@ -787,7 +787,7 @@ Steam非公式サーバーのステータスを表示します
                 await interaction.followup.send(embed=embed, view=Recheck_SS_Embed())
                 return
 
-        except BaseException as err:
+        except Exception as err:
             await interaction.followup.send(f"ステータス取得時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
@@ -818,7 +818,7 @@ Steam非公式サーバーのステータスを表示します
                     view=Reload_SS_Auto(self.bot, message, self.client)
                 )
                 logging.info("Status loaded.(Scheduled)")
-            except BaseException as err:
+            except Exception as err:
                 logging.info(err, traceback.format_exc())
                 await message.edit(content=f"AutoSSのループ内でエラーが発生しました。\n`再読み込み`ボタン又は`/ss reload`コマンドでリロードしてください。\n```sh\n{traceback.format_exc()}```", embed=None)
 

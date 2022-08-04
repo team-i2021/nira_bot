@@ -219,7 +219,7 @@ class user(commands.Cog):
                 CHANNEL = await bot.fetch_channel(n_fc.welcome_id_list[guild_id])
                 await CHANNEL.send("このチャンネルが、ユーザー情報表示チャンネルとして指定されました。")
                 await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"<#{channel.id}>に指定されました。", color=0x00ff00), ephemeral=True)
-            except BaseException as err:
+            except Exception as err:
                 await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"エラーが発生しました。\n```\n{err}```", color=0xff000), ephemeral=True)
         elif type == DEL:
             try:
@@ -228,7 +228,7 @@ class user(commands.Cog):
                     return
                 del n_fc.welcome_id_list[guild_id]
                 await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"設定を削除しました。", color=0x00ff00), ephemeral=True)
-            except BaseException as err:
+            except Exception as err:
                 await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"エラーが発生しました。\n```\n{err}```", color=0xff000), ephemeral=True)
         elif type == STATUS:
             if guild_id not in n_fc.welcome_id_list:

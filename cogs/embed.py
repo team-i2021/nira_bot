@@ -141,7 +141,7 @@ Embedの本文です。
                 title=emb_title, description=emb_desc, color=emb_clr)
             await ctx.send(embed=embed)
             return
-        except BaseException as err:
+        except Exception as err:
             await ctx.reply(embed=eh.eh(err))
             return
 

@@ -100,5 +100,5 @@ async def on_srtr(message):
                     else:
                         continue
             return
-    except BaseException as err:
+    except Exception as err:
         await message.reply(f"エラーが発生しました。\n```sh\n{traceback.format_exc()}```")

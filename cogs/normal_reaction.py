@@ -315,7 +315,7 @@ class normal_reaction(commands.Cog):
                 try:
                     await sended_mes.remove_reaction("<:trash:908565976407236608>", self.bot.user)
                     return
-                except BaseException:
+                except Exception:
                     return
 
 

@@ -171,7 +171,7 @@ class PollPanelEditModal(nextcord.ui.Modal):
         EmbedTitle = self.message.embeds[0].title
         try:
             await self.message.edit(embed=nextcord.Embed(title=EmbedTitle, description=embed_content, color=0x00ff00).set_footer(text="NIRA Bot - PollPanel v2"), view=PollPanelView(Args))
-        except BaseException as err:
+        except Exception as err:
             await interaction.followup.send(f"エラー: `{err}`")
             return
 

@@ -53,7 +53,7 @@ def load():
                 logging.info("LINE NotifyのTOKENのため、表示はされません。")
             else:
                 exec(f"logging.info(n_fc.{cog_name})")
-        except BaseException as err:
+        except Exception as err:
             logging.info(f"変数[{system_list[i]}]のファイル読み込みに失敗しました。\n{err}")
             func_error_count = 1
     if func_error_count > 0:
@@ -110,39 +110,39 @@ async def base_cog(bot, ctx, command, name):
                 try:
                     bot.reload_extension(f"cogs.{name}")
                     await ctx.respond(f"リロードしました。")
-                except BaseException as err:
+                except Exception as err:
                     await ctx.respond(f"リロードできませんでした。\n```{err}```")
             else:
                 try:
                     bot.reload_extension(f"cogs.{ctx.message.content[13:]}")
                     await ctx.reply(f"リロードしました。")
-                except BaseException as err:
+                except Exception as err:
                     await ctx.reply(f"リロードできませんでした。\n```{err}```")
         elif type == 0 and command == "load" and name != None or ctx.message.content[:10] == f"{bot.command_prefix}cog load":
             if type == 0:
                 try:
                     bot.reload_extension(f"cogs.{name}")
                     await ctx.respond(f"ロードしました。")
-                except BaseException as err:
+                except Exception as err:
                     await ctx.respond(f"ロードできませんでした。\n```{err}```")
             else:
                 try:
                     bot.load_extension(f"cogs.{ctx.message.content[11:]}")
                     await ctx.reply(f"ロードしました。")
-                except BaseException as err:
+                except Exception as err:
                     await ctx.reply(f"ロードできませんでした。\n```{err}```")
         elif type == 0 and command == "unload" and name != None or ctx.message.content[:12] == f"{bot.command_prefix}cog unload":
             if type == 0:
                 try:
                     bot.unload_extension(f"cogs.{name}")
                     await ctx.respond(f"アンロードしました。")
-                except BaseException as err:
+                except Exception as err:
                     await ctx.respond(f"アンロードできませんでした。\n```{err}```")
             else:
                 try:
                     bot.unload_extension(f"cogs.{ctx.message.content[13:]}")
                     await ctx.reply(f"アンロードしました。")
-                except BaseException as err:
+                except Exception as err:
                     await ctx.reply(f"アンロードできませんでした。\n```{err}```")
         elif type == 0 and command == "list" or ctx.message.content == f"{bot.command_prefix}cog list":
             await ctx.reply(list(dict(bot.cogs).keys()))
@@ -189,7 +189,7 @@ class debug(commands.Cog):
                     else:
                         exec(f"""{message}""")
                     await websocket.send(str(rt))
-            except BaseException as err:
+            except Exception as err:
                 await websocket.send(f"An error has occured:{err}")
 
     async def ws_main(self, port):
@@ -205,7 +205,7 @@ class debug(commands.Cog):
                 await ctx.message.add_reaction("\U0001F310")
                 self.websocket_coro = asyncio.create_task(self.ws_main(port))
                 await self.websocket_coro
-            except BaseException as err:
+            except Exception as err:
                 logging.info(traceback.format_exc())
             await ctx.message.add_reaction("\U00002705")
         else:
@@ -239,7 +239,7 @@ class debug(commands.Cog):
                     text=True
                 )
                 return
-            except BaseException as err:
+            except Exception as err:
                 await ctx.reply(f"An error has occurred during restart operation.\n```\n{err}```")
                 await self.bot.change_presence(activity=nextcord.Game(name=f"{self.bot.command_prefix}help", type=1), status=nextcord.Status.idle)
                 return
@@ -279,7 +279,7 @@ class debug(commands.Cog):
                     text=True
                 )
                 return
-            except BaseException as err:
+            except Exception as err:
                 await ctx.reply(f"An error has occurred during shutdown operation.\n```\n{err}```")
                 await self.bot.change_presence(activity=nextcord.Game(name=f"{self.bot.command_prefix}help", type=1), status=nextcord.Status.idle)
                 return
@@ -325,7 +325,7 @@ class debug(commands.Cog):
                 try:
                     mes_py = mes[i].split(" ", 1)[1]
                     cmd_rt.append(await eval(mes_py))
-                except BaseException as err:
+                except Exception as err:
                     await ctx.message.add_reaction("\U0000274C")
                     embed = nextcord.Embed(
                         title="Error", description=f"Python error has occurred!\n```{err}```\n```sh\n{sys.exc_info()}```", color=0xff0000)
@@ -335,7 +335,7 @@ class debug(commands.Cog):
                 try:
                     exec(mes[i])
                     cmd_rt.append("")
-                except BaseException as err:
+                except Exception as err:
                     await ctx.message.add_reaction("\U0000274C")
                     embed = nextcord.Embed(
                         title="Error", description=f"Python error has occurred!\n```{err}```\n```sh\n{sys.exc_info()}```", color=0xff0000)
@@ -368,7 +368,7 @@ class debug(commands.Cog):
                     export = subprocess.run(
                         f'{mes_sh[i]}', stdout=PIPE, stderr=PIPE, shell=True, text=True)
                     sh_rt.append(export.stdout)
-                except BaseException as err:
+                except Exception as err:
                     await ctx.message.add_reaction("\U0000274C")
                     embed = nextcord.Embed(
                         title="Error", description=f"Shell error has occurred!\n・Pythonエラー```{err}```\n・スクリプトエラー```{export.stdout}```", color=0xff0000)
@@ -387,7 +387,7 @@ class debug(commands.Cog):
                 save()
                 await ctx.reply("Saved.")
                 logging.info("変数をセーブしました。")
-            except BaseException as err:
+            except Exception as err:
                 await ctx.reply(f"Error happend.\n`{err}`")
             return
         else:
@@ -438,7 +438,7 @@ class debug(commands.Cog):
             try:
                 self.bot.unload_extension(f"cogs.{cogname}")
                 await interaction.followup.send(f"The cog `cogs.{cogname}` successfully unloaded.", ephemeral=True)
-            except BaseException as err:
+            except Exception as err:
                 await interaction.followup.send(f"Failed to unload cog `cogs.{cogname}`.\n```py\n{err}```", ephemeral=True)
         else:
             raise Exception("Forbidden")
@@ -466,7 +466,7 @@ class debug(commands.Cog):
                 await ctx.reply("End")
             try:
                 await nr.n_reaction(ctx.message, int(ctx.message.content.split(" ", 1)[1]))
-            except BaseException as err:
+            except Exception as err:
                 await ctx.reply(f"```{err}```")
 
     @commands.command()

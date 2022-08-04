@@ -51,7 +51,7 @@ async def server_check(embed, type, g_id, n):
     try:
         sv_ad = n_fc.steam_server_list[g_id][f"{n}_ad"]
         sv_nm = n_fc.steam_server_list[g_id][f"{n}_nm"]
-    except BaseException:
+    except Exception:
         embed.add_field(
             name=f"サーバーは{n}にはセットされていません。",
             value=f"`n!ss list`でサーバーリストを確認してみましょう！",
@@ -141,7 +141,7 @@ def ss_bool(g_id, n):
             sv_pl = RetryPlayers(sv_ad)
             if sv_pl is None:
                 raise TimeoutError("timed out")
-        except BaseException:
+        except Exception:
             pass
         else:
             return True

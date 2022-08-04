@@ -67,7 +67,7 @@ class VoiceSelect(nextcord.ui.Select):
         try:
             await interaction.message.channel.send(f'{interaction.user.mention}、設定しました。')
             await interaction.message.delete()
-        except BaseException as err:
+        except Exception as err:
             logging.error(err)
 
 
@@ -188,7 +188,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                     )
                     print(f"{datetime.datetime.now()} - {ctx.guild.name}でTTSに接続")
                     return
-            except BaseException as err:
+            except Exception as err:
                 await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description=f"```{err}```\n```sh\n{sys.exc_info()}```", color=0xff0000))
                 print(
                     f"[TTS接続時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
@@ -208,7 +208,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                     await ctx.reply(embed=nextcord.Embed(title="TTS", description="あっ...ばいばーい...", color=0x00ff00))
                     print(f"{datetime.datetime.now()} - {ctx.guild.name}でTTSから切断")
                     return
-            except BaseException as err:
+            except Exception as err:
                 await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description=f"```{err}```\n```sh\n{sys.exc_info()}```", color=0xff0000))
                 print(
                     f"[TTS切断時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
@@ -229,7 +229,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                     print(
                         f"{datetime.datetime.now()} - {ctx.guild.name} voice change")
                     return
-            except BaseException as err:
+            except Exception as err:
                 await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description=f"```{err}```\n```sh\n{sys.exc_info()}```", color=0xff0000))
                 print(
                     f"[TTS voice change時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
@@ -279,7 +279,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                         volume=0.5)
                 )
                 return
-        except BaseException as err:
+        except Exception as err:
             await interaction.followup.send(embed=nextcord.Embed(title="TTSエラー", description=f"```{err}```\n```sh\n{sys.exc_info()}```", color=0xff0000))
             print(
                 f"[TTS読み上げ時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
@@ -315,7 +315,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                 ),
                     volume=0.5)
             )
-        except BaseException as err:
+        except Exception as err:
             await message.channel.send(embed=nextcord.Embed(title="TTSエラー", description=f"```{err}```\n```sh\n{sys.exc_info()}```", color=0xff0000))
             print(
                 f"[TTS送信時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")

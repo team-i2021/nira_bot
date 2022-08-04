@@ -139,7 +139,7 @@ class Amuse(commands.Cog):
                 mes_te = content.split(" ", 1)[1]
             elif type == SLASH:
                 mes_te = content
-        except BaseException as err:
+        except Exception as err:
             return nextcord.Embed(title="Error", description=f"な、なんかエラー出たけど！？\n```{self.bot.command_prefix}janken [グー/チョキ/パー]```\n{err}", color=0xff0000)
         if mes_te != "グー" and mes_te != "ぐー" and mes_te != "チョキ" and mes_te != "ちょき" and mes_te != "パー" and mes_te != "ぱー":
             return nextcord.Embed(title="Error", description=f"じゃんけんっていのは、「グー」「チョキ」「パー」のどれかを出して遊ぶゲームだよ。\n[ルール解説](https://ja.wikipedia.org/wiki/%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93#:~:text=%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93%E3%81%AF2%E4%BA%BA%E4%BB%A5%E4%B8%8A,%E3%81%A8%E6%95%97%E8%80%85%E3%82%92%E6%B1%BA%E5%AE%9A%E3%81%99%E3%82%8B%E3%80%82)\n```{self.bot.command_prefix}janken [グー/チョキ/パー]```", color=0xff0000)

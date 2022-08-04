@@ -233,7 +233,7 @@ read - read UpperData from server to device```""")
                 elif up_rnd == 3:
                     await message.channel.send(messageContent, embed=nextcord.Embed(title="Upしましょう！", description=f"Upしてみませんか！\n```/dissoku up```", color=0x00ff00))
                 return
-            except BaseException as err:
+            except Exception as err:
                 logging.error(err)
 
     @tasks.loop(seconds=30)

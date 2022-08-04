@@ -150,7 +150,7 @@ class RolePanelEditModal(nextcord.ui.Modal):
         EmbedTitle = self.message.embeds[0].title
         try:
             await self.message.edit(embed=nextcord.Embed(title=EmbedTitle, description=embed_content, color=0x00ff00), view=RolePanelView(ViewArgs))
-        except BaseException as err:
+        except Exception as err:
             await interaction.followup.send(f"エラー: `{err}`")
             return
 
@@ -180,7 +180,7 @@ class RolePanelButton(nextcord.ui.Button):
             await interaction.user.add_roles(role)
             await interaction.response.send_message(f"`{role.name}`を付与しました。", ephemeral=True)
             return
-        except BaseException as err:
+        except Exception as err:
             await interaction.response.send_message(f"ロール付与/剥奪時のエラー: {err}", ephemeral=True)
 
 

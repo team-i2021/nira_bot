@@ -61,7 +61,7 @@ class mod(commands.Cog):
                 await message.author.add_roles(role, reason="にらBOTの荒らし対策機能")
                 await message.channel.send(f"{message.author.mention}は、メッセージ数が規定オーバーのため、ミュートしました。")
                 return
-            except BaseException as err:
+            except Exception as err:
                 await message.channel.send(f"{message.author.name}をミュートしようとしましたがエラーが発生しました。\n```\n{err}```")
                 return
 
@@ -147,7 +147,7 @@ class mod(commands.Cog):
                 mod_list.value[interaction.guild.id] = {
                     "counter": counter, "role": role.id}
                 await database.default_push(self.client, mod_list)
-            except BaseException as err:
+            except Exception as err:
                 await interaction.response.send_message(embed=nextcord.Embed(title="荒らし対策", description=f"エラーが発生しました。\n```\n{err}```", color=0xff0000), ephemeral=True)
                 return
             await interaction.response.send_message(embed=nextcord.Embed(title="荒らし対策", description=f"サーバーで機能を有効にしました。\nメッセージカウンター:`{counter}`\nミュート用ロール:<@&{role.id}>", color=0x00ff00), ephemeral=True)

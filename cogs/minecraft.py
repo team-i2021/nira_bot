@@ -132,7 +132,7 @@ class minecraft_base:
                             else:
                                 embed.add_field(name=f"サーバー名:`{minecraft_data.value[ctx.guild.id][i+1][0]}`({minecraft_data.value[ctx.guild.id][i+1][2]})",
                                                 value=f":white_check_mark: Online\n`{status.motd}`\nPing:`{ping}ms`\nPlayers:`{players}/{status.players_max}人`\nGameMode:`{status.gamemode}`\n\n\n", inline=False)
-                except BaseException:
+                except Exception:
                     embed.add_field(
                         name=f"サーバー名:`{minecraft_data.value[ctx.guild.id][i+1][0]}`({minecraft_data.value[ctx.guild.id][i+1][2]})", value=f":ng: Offline\n\n\n", inline=False)
                 embed.set_footer(text=f"Pingは参考値にしてください。")
@@ -157,7 +157,7 @@ class minecraft_base:
                         else:
                             embed.add_field(name=f"サーバー名:`{minecraft_data.value[ctx.guild.id][i+1][0]}`({minecraft_data.value[ctx.guild.id][i+1][2]})",
                                             value=f":white_check_mark: Online\n```py\n{vars(status)}```\n\n\n", inline=False)
-                except BaseException as err:
+                except Exception as err:
                     embed.add_field(name=f"サーバー名:`{minecraft_data.value[ctx.guild.id][i+1][0]}`({minecraft_data.value[ctx.guild.id][i+1][2]})",
                                     value=f":ng: Offline\n```py\n{err}\n\n{traceback.format_exc()}```\n\n\n", inline=False)
                 embed.set_footer(text=f"Detail mode")
@@ -207,7 +207,7 @@ class minecraft_base:
                         else:
                             embed.add_field(name=f"サーバー名:`{minecraft_data.value[ctx.guild.id][serverid][0]}`({minecraft_data.value[ctx.guild.id][serverid][2]})",
                                             value=f":white_check_mark: Online\n`{status.motd}`\nPing:`{ping}ms`\nPlayers:`{players}/{status.players_max}人`\nGameMode:`{status.gamemode}`\n\n\n", inline=False)
-            except BaseException:
+            except Exception:
                 embed.add_field(
                     name=f"サーバー名:`{minecraft_data.value[ctx.guild.id][serverid][0]}`({minecraft_data.value[ctx.guild.id][serverid][2]})", value=f":ng: Offline\n\n\n", inline=False)
             embed.set_footer(text=f"Pingは参考値にしてください。")
@@ -237,7 +237,7 @@ class minecraft_base:
             await user.send(embed=embed)
             return
 
-        except BaseException:
+        except Exception:
             logging.error(
                 f"An error has occured during the execution of the function `{self.bot.command_prefix}mc list`/`/mc list`\n{traceback.format_exc()}")
             await messages.mreply(ctx, f"サーバー列挙/送信時にエラーが発生しました。", embed=nextcord.Embed(title="An error has occurred...", description=f"```sh\n{traceback.format_exc()}```", color=0xff0000), ephemeral=True)
