@@ -299,7 +299,7 @@ class normal_reaction(commands.Cog):
                 pickle.dump(n_fc.reaction_bool_list, f)
         #########################################
         # 通常反応
-        # 「n!nr [on/off]」で変更できます
+        # 「$nr [on/off]」で変更できます
         #########################################
         if n_fc.reaction_bool_list[message.guild.id]["all"] != 1:
             return

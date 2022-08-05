@@ -37,7 +37,7 @@ class error(commands.Cog):
                     close_oneline = close_description.splitlines()[0]
                 else:
                     close_oneline = "(ヘルプがないコマンド)"
-                await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"`{self.bot.command_prefix}{keyword_command}`というコマンドは存在しません。\n`n!help`でコマンドを確認してください。\n\nもしかして：`{self.bot.command_prefix}{close_command}`:`{close_oneline}`", color=0xff0000))
+                await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"`{self.bot.command_prefix}{keyword_command}`というコマンドは存在しません。\n`{self.boy.command_prefix}help`でコマンドを確認してください。\n\nもしかして：`{self.bot.command_prefix}{close_command}`:`{close_oneline}`", color=0xff0000))
             else:
                 await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"エラーが発生しました。\n\n・エラー内容```py\n{str(event)}```\n```sh\n{traceback.format_exc()}```\n```py\n{sys.exc_info()}```\n[サポートサーバー](https://discord.gg/awfFpCYTcP)", color=0xff0000))
                 logging.error(f"エラーが発生しました。\non_error：{str(event)}")

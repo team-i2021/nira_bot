@@ -102,11 +102,11 @@ class mod(commands.Cog):
                 return
         else:
             if ctx.guild.id not in n_fc.mod_list:
-                await ctx.reply(embed=nextcord.Embed(title="荒らし対策", description=f"サーバーで機能は`無効`になっています。\n\n・機能の有効化\n`n!mod on [規定メッセージ数] [付与するロール]`\n\n・機能の無効化\n`{self.bot.command_prefix}mod off`", color=0x00ff00))
+                await ctx.reply(embed=nextcord.Embed(title="荒らし対策", description=f"サーバーで機能は`無効`になっています。\n\n・機能の有効化\n`{self.bot.command.prefix}mod on [規定メッセージ数] [付与するロール]`\n\n・機能の無効化\n`{self.bot.command_prefix}mod off`", color=0x00ff00))
             else:
                 counter = n_fc.mod_list[ctx.guild.id]["counter"]
                 role = n_fc.mod_list[ctx.guild.id]["role"]
-                await ctx.reply(embed=nextcord.Embed(title="荒らし対策", description=f"サーバーで機能は`有効`になっています。\nメッセージカウンター:`{counter}`\nミュート用ロール:<@&{role}>\n\n・機能の有効化\n`n!mod on [規定メッセージ数] [付与するロール]`\n\n・機能の無効化\n`{self.bot.command_prefix}mod off`", color=0x00ff00))
+                await ctx.reply(embed=nextcord.Embed(title="荒らし対策", description=f"サーバーで機能は`有効`になっています。\nメッセージカウンター:`{counter}`\nミュート用ロール:<@&{role}>\n\n・機能の有効化\n`{self.bot.command_prefix}mod on [規定メッセージ数] [付与するロール]`\n\n・機能の無効化\n`{self.bot.command_prefix}mod off`", color=0x00ff00))
             return
 
     @nextcord.slash_command(name="mod", description="荒らし対策機能の設定を変更します。", guild_ids=n_fc.GUILD_IDS)

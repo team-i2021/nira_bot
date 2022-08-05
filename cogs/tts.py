@@ -94,7 +94,7 @@ class tts(commands.Cog):
             return
         else:
             if not interaction.guild.voice_client is None:
-                await interaction.response.send_message(embed=nextcord.Embed(title="TTSエラー", description=f"既にVCに入っています。\n音楽再生から切り替える場合は、`n!leave`->`{self.bot.command_prefix}tts join`の順に入力してください。", color=0xff0000), ephemeral=True)
+                await interaction.response.send_message(embed=nextcord.Embed(title="TTSエラー", description=f"既にVCに入っています。\n音楽再生から切り替える場合は、`{self.bot.command_prefix}leave`->`{self.bot.command_prefix}tts join`の順に入力してください。", color=0xff0000), ephemeral=True)
                 return
             await interaction.user.voice.channel.connect()
             tts_channel[interaction.guild.id] = interaction.channel.id
@@ -164,7 +164,7 @@ API制限などが来た場合はご了承ください。許せ。""")
             return
         args = ctx.message.content.split(" ", 2)
         if len(args) != 2:
-            await ctx.reply(f"・読み上げ機能\nエラー：書き方が間違っています。\n\n`n!tts join`: 参加\n`{self.bot.command_prefix}tts leave`: 退出")
+            await ctx.reply(f"・読み上げ機能\nエラー：書き方が間違っています。\n\n{self.bot.command_prefix}tts join`: 参加\n`{self.bot.command_prefix}tts leave`: 退出")
             return
 
         if args[1] == "join":
@@ -174,7 +174,7 @@ API制限などが来た場合はご了承ください。許せ。""")
                     return
                 else:
                     if not ctx.message.guild.voice_client is None:
-                        await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description=f"既にVCに入っています。\n音楽再生から切り替える場合は、`n!leave`->`{self.bot.command_prefix}tts join`の順に入力してください。", color=0xff0000))
+                        await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description=f"既にVCに入っています。\n音楽再生から切り替える場合は、`{self.bot.command_prefix}leave`->`{self.bot.command_prefix}tts join`の順に入力してください。", color=0xff0000))
                         return
                     await ctx.author.voice.channel.connect()
                     tts_channel[ctx.guild.id] = ctx.channel.id
@@ -245,11 +245,11 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
             await ctx.reply("Reloaded.")
 
         elif args[1] == "reload" and ctx.author.id not in n_fc.py_admin:
-            await ctx.reply(f"・読み上げ機能\nエラー：書き方が間違っています。\n\n`n!tts join`: 参加\n`n!tts leave`: 退出\n`{self.bot.command_prefix}tts voice`: 声選択")
+            await ctx.reply(f"・読み上げ機能\nエラー：書き方が間違っています。\n\n`{self.bot.command_prefix}tts join`: 参加\n`{self.bot.command_prefix}tts leave`: 退出\n`{self.bot.command_prefix}tts voice`: 声選択")
             return
 
         else:
-            await ctx.reply(f"・読み上げ機能\nエラー：書き方が間違っています。\n\n`n!tts join`: 参加\n`n!tts leave`: 退出\n`{self.bot.command_prefix}tts voice`: 声選択")
+            await ctx.reply(f"・読み上げ機能\nエラー：書き方が間違っています。\n\n`{self.bot.command_prefix}tts join`: 参加\n`{self.bot.command_prefix}tts leave`: 退出\n`{self.bot.command_prefix}tts voice`: 声選択")
             return
 
     #@nextcord.message_command(name="メッセージを読み上げる", guild_ids=n_fc.GUILD_IDS)

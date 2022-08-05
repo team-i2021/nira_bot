@@ -56,7 +56,7 @@ class autorole(commands.Cog):
             if type == SLASH:
                 usage = "`/autorole on [ロール]` / `/autorole off` / `/autorole status`"
             else:
-                usage = f"`n!autorole on [ロール名/ロールID/メンション]` / `{self.bot.command_prefix}autorole off`"
+                usage = f"`{self.bot.command_prefix}autorole on [ロール名/ロールID/メンション]` / `{self.bot.command_prefix}autorole off`"
 
             return (None, nextcord.Embed(title="自動ロール", description=f"{msg}\n{usage}", color=0x00ff00))
 
@@ -120,7 +120,7 @@ class autorole(commands.Cog):
 
         else:
             msg = (None, nextcord.Embed(
-                title="自動ロール", description=f"コマンドの使用方法が不正です。\n`n!autorole on [ロール名又はロールID]`/`{self.bot.command_prefix}autorole off`", color=0x00ff00))
+                title="自動ロール", description=f"コマンドの使用方法が不正です。\n`{self.bot.command_prefix}autorole on [ロール名又はロールID]`/`{self.bot.command_prefix}autorole off`", color=0x00ff00))
 
         await messages.mreply(ctx, msg[0], embed=msg[1])
         return

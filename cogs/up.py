@@ -68,7 +68,7 @@ def UpNotifyConfig(bot: commands.Bot, interaction, config_type: int, value: int 
 
 
 async def ErrorSend(interaction):
-    return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="エラー", description=f"コマンドの引数が異なります。\n`n!up [on/off] [*メンションするロール]`", color=0xff0000))
+    return slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="エラー", description=f"コマンドの引数が異なります。\n`{self.bot.command_prefix}up [on/off] [*メンションするロール]`", color=0xff0000))
 
 
 class UpNotify(commands.Cog):

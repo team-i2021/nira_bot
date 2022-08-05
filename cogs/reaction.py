@@ -165,7 +165,7 @@ class reaction(commands.Cog):
                 return
             else:
                 if len(args) != 3:
-                    await ctx.reply("コマンドの引数が足りません。\n全削除:`n!er del all`\n特定の返答を削除:`n!er del [トリガー]`")
+                    await ctx.reply(f"コマンドの引数が足りません。\n全削除:`{self.bot.command_prefix}er del all`\n特定の返答を削除:`n!er del [トリガー]`")
                     return
                 elif args[2] == "all":
                     del n_fc.ex_reaction_list[ctx.guild.id]
@@ -354,16 +354,16 @@ class reaction(commands.Cog):
             if ctx.message.channel.id not in n_fc.reaction_bool_list[ctx.guild.id]:
                 n_fc.reaction_bool_list[ctx.guild.id][ctx.message.channel.id] = 1
                 save()
-            if ctx.message.content == "n!nr":
+            if ctx.message.content == f"{self.bot.command_prefix}nr":
                 if n_fc.reaction_bool_list[ctx.guild.id]["all"] == 0:
-                    setting = "サーバーで無効になっている為、チャンネルごとの設定は無効です。\n(`n!help nr`でご確認ください。)"
+                    setting = f"サーバーで無効になっている為、チャンネルごとの設定は無効です。\n(`{self.bot.command_prefix}help nr`でご確認ください。)"
                 elif n_fc.reaction_bool_list[ctx.guild.id][ctx.message.channel.id] == 1:
                     setting = "有効"
                 elif n_fc.reaction_bool_list[ctx.guild.id][ctx.message.channel.id] == 0:
                     setting = "無効"
                 else:
                     setting = "読み込めませんでした。"
-                await ctx.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description=f"通常反応の設定:{setting}\n\n`n!nr [on/off]`で変更できます。", color=0x00ff00))
+                await ctx.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description=f"通常反応の設定:{setting}\n\n`{self.bot.command_prefix}nr [on/off]`で変更できます。", color=0x00ff00))
                 return
             if admin_check.admin_check(ctx.message.guild, ctx.message.author) or ctx.message.author.id in n_fc.py_admin:
                 nr_setting = str((ctx.message.content).split(" ", 1)[1])
@@ -381,9 +381,9 @@ class reaction(commands.Cog):
                         n_fc.reaction_bool_list[ctx.guild.id]["all"] = 0
                         await ctx.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="サーバーでの通常反応を無効にしました。", color=0x00ff00))
                     else:
-                        await ctx.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="コマンド使用方法:`n!nr [all] [on/off]`", color=0xff0000))
+                        await ctx.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description=f"コマンド使用方法:`{self.bot.command_prefix}nr [all] [on/off]`", color=0xff0000))
                 else:
-                    await ctx.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="コマンド使用方法:`n!nr [all] [on/off]`", color=0xff0000))
+                    await ctx.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description=f"コマンド使用方法:`{self.bot.command_prefix}nr [all] [on/off]`", color=0xff0000))
                 return
             else:
                 await ctx.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
@@ -453,14 +453,14 @@ class reaction(commands.Cog):
             if ctx.message.channel.id not in n_fc.all_reaction_list[ctx.guild.id]:
                 n_fc.all_reaction_list[ctx.guild.id][ctx.message.channel.id] = 1
                 save()
-            if ctx.message.content == "n!ar":
+            if ctx.message.content == f"{self.bot.command_prefix}ar":
                 if n_fc.all_reaction_list[ctx.guild.id][ctx.message.channel.id] == 1:
                     setting = "有効"
                 elif n_fc.all_reaction_list[ctx.guild.id][ctx.message.channel.id] == 0:
                     setting = "無効"
                 else:
                     setting = "読み込めませんでした。"
-                await ctx.reply(embed=nextcord.Embed(title="All Reaction Setting", description=f"「通常反応」及び「追加反応」（Bump通知および各種コマンドは除く）の設定:{setting}\n\n`n!ar [on/off]`で変更できます。", color=0x00ff00))
+                await ctx.reply(embed=nextcord.Embed(title="All Reaction Setting", description=f"「通常反応」及び「追加反応」（Bump通知および各種コマンドは除く）の設定:{setting}\n\n`{self.bot.command_prefix}ar [on/off]`で変更できます。", color=0x00ff00))
                 return
             if admin_check.admin_check(ctx.message.guild, ctx.message.author) or ctx.message.author.id in n_fc.py_admin:
                 ar_setting = str((ctx.message.content).split(" ", 1)[1])
@@ -471,7 +471,7 @@ class reaction(commands.Cog):
                     n_fc.all_reaction_list[ctx.guild.id][ctx.message.channel.id] = 0
                     await ctx.reply(embed=nextcord.Embed(title="All Reaction Setting", description="チャンネルでの全反応を無効にしました。", color=0x00ff00))
                 else:
-                    await ctx.reply(embed=nextcord.Embed(title="All Reaction Setting", description="コマンド使用方法:`n!ar [all] [on/off]`", color=0xff0000))
+                    await ctx.reply(embed=nextcord.Embed(title="All Reaction Setting", description=f"コマンド使用方法:`{self.bot.command_prefix}ar [all] [on/off]`", color=0xff0000))
                 return
             else:
                 await ctx.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
