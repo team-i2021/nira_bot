@@ -11,17 +11,13 @@
 ## セットアップ
 
 1. `pip3 install -r requirements.txt`などの方法で、`requirements.txt`のモジュールをインストールします。
-2. データベースの情報を`util/gapi.json`に書き込みます。  
-   データベースについては[こちら](https://nattyan-tv.github.io/nira-note/bot/notes/database)をご確認ください。
-3. `setting_temp.json`及び下の表を参考にして、`setting.json`に TOKEN などの必要な設定を書き込みます。
-4. `HTTP_db`のデータベースのパスワードを、`password`ファイルに書き込んで保存します。
+2. `setting_temp.json`及び下の表を参考にして、`setting.json`に TOKEN などの必要な設定を書き込みます。
+3. `HTTP_db`のデータベースのパスワードを、`password`ファイルに書き込んで保存します。
 
 - 追加したファイルのツリー図
   ```sh
   N:.
   \--nira_bot
-     +--util
-     |  \--gapi.json
      +--setting.json
      \--password
   ```
