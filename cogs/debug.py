@@ -59,103 +59,6 @@ def load():
     if func_error_count > 0:
         logging.info("変数の読み込みに失敗しました。")
 
-
-async def base_cog(bot, ctx, command, name):
-    if ctx.message == None:
-        type = 0
-    else:
-        type = 1
-    if ctx.author.id in n_fc.py_admin:
-        if type == 0 and command == None and name == None or type == 1 and ctx.message.content == f"{bot.command_prefix}cog":
-            embed = nextcord.Embed(
-                title="cogs", description="`extension`", color=0x00ff00)
-            embed.add_field(
-                name="Cog Names", value="表示されている名前は、`cog.[Cog name]`のcog nameです。", inline=False)
-            embed.add_field(
-                name="amuse", value="娯楽系のコマンド。\n`janken`/`uranai`/`dice`")
-            embed.add_field(
-                name="bump", value="bump通知の設定コマンド及び、Bump取得とメッセージ送信。\n`bump`")
-            embed.add_field(name="check", value="管理者チェックをするコマンド。\n`check`")
-            embed.add_field(
-                name="debug", value="管理者用コマンド。\n`create`/`py_exec`/`read`/`restart`/`exit`/`py`/`sh`/`save`/`cog`")
-            embed.add_field(name="embed", value="Embed送信用コマンド。\n`embed`")
-            embed.add_field(name="get_reaction", value="リアクションを受け取った際のイベント。")
-            embed.add_field(name="info", value="にらBOTの情報系コマンド。\n`info`/`help`")
-            embed.add_field(
-                name="music", value="音楽再生(VC)に関するコマンド。\n`join`/`play`/`pause`/`resume`/`stop`/`leave`")
-            embed.add_field(name="normal_reaction",
-                            value="送信されたメッセージに反応するイベント。")
-            embed.add_field(name="ping", value="pingコマンド。\n`ping`")
-            embed.add_field(name="reaction", value="反応系コマンド。\n`nr`/`er`/`ar`")
-            embed.add_field(name="siritori", value="しりとり系コマンド。\n`srtr`")
-            embed.add_field(name="user_join", value="ユーザーがguildに入った際のイベント。")
-            embed.add_field(name="user", value="ユーザー情報表示系コマンド。\n`d`/`ui`")
-            embed.add_field(
-                name="Cog function", value="cog系のコマンドです。`[Cog name]`には「`cog.`」を抜いたCogの名前だけを入力してください。", inline=False)
-            embed.add_field(
-                name=f"`/cog`/`{bot.command_prefix}cog`", value="cogの情報を表示します。")
-            embed.add_field(
-                name=f"`/cog reload [Cog name]`/`{bot.command_prefix}cog reload [Cog name]`", value="指定したCogをリロードします。")
-            embed.add_field(
-                name=f"`/cog load [Cog name]`/`{bot.command_prefix}cog load [Cog name]`", value="指定したCogをロードします。")
-            embed.add_field(
-                name=f"`/cog unload [Cog name]`/`{bot.command_prefix}cog unload [Cog name]`", value="指定したCogをアンロードします。")
-            if type == 0:
-                await ctx.respond(embed=embed)
-            else:
-                await ctx.reply(embed=embed)
-            return
-        elif type == 0 and command == "reload" and name != None or ctx.message.content[:12] == f"{bot.command_prefix}cog reload":
-            if type == 0:
-                try:
-                    bot.reload_extension(f"cogs.{name}")
-                    await ctx.respond(f"リロードしました。")
-                except Exception as err:
-                    await ctx.respond(f"リロードできませんでした。\n```{err}```")
-            else:
-                try:
-                    bot.reload_extension(f"cogs.{ctx.message.content[13:]}")
-                    await ctx.reply(f"リロードしました。")
-                except Exception as err:
-                    await ctx.reply(f"リロードできませんでした。\n```{err}```")
-        elif type == 0 and command == "load" and name != None or ctx.message.content[:10] == f"{bot.command_prefix}cog load":
-            if type == 0:
-                try:
-                    bot.reload_extension(f"cogs.{name}")
-                    await ctx.respond(f"ロードしました。")
-                except Exception as err:
-                    await ctx.respond(f"ロードできませんでした。\n```{err}```")
-            else:
-                try:
-                    bot.load_extension(f"cogs.{ctx.message.content[11:]}")
-                    await ctx.reply(f"ロードしました。")
-                except Exception as err:
-                    await ctx.reply(f"ロードできませんでした。\n```{err}```")
-        elif type == 0 and command == "unload" and name != None or ctx.message.content[:12] == f"{bot.command_prefix}cog unload":
-            if type == 0:
-                try:
-                    bot.unload_extension(f"cogs.{name}")
-                    await ctx.respond(f"アンロードしました。")
-                except Exception as err:
-                    await ctx.respond(f"アンロードできませんでした。\n```{err}```")
-            else:
-                try:
-                    bot.unload_extension(f"cogs.{ctx.message.content[13:]}")
-                    await ctx.reply(f"アンロードしました。")
-                except Exception as err:
-                    await ctx.reply(f"アンロードできませんでした。\n```{err}```")
-        elif type == 0 and command == "list" or ctx.message.content == f"{bot.command_prefix}cog list":
-            await ctx.reply(list(dict(bot.cogs).keys()))
-        elif type == 0 and command == None or type == 0 and name == None:
-            await ctx.respond("コマンドの引数が異常です。")
-    else:
-        if type == 0:
-            await ctx.respond("管理者権限が必要です。")
-        else:
-            await ctx.reply("管理者権限が必要です。")
-    return
-
-
 class debug(commands.Cog):
     def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
@@ -396,127 +299,107 @@ class debug(commands.Cog):
             await ctx.reply(embed=embed)
             return
 
-    @nextcord.slash_command(name="extension", description="Manage cogs.", guild_ids=n_fc.GUILD_IDS)
-    async def cog_slash(self, interaction):
+    @nextcord.slash_command(name="debug", description="Debug commands", guild_ids=n_fc.GUILD_IDS)
+    async def debug_slash(self, interaction):
         pass
 
-    @cog_slash.subcommand(name="list", description="List cogs.")
-    async def list_cog_slash(self, interaction):
+    @debug_slash.subcommand(name="extension", description="Manage extensions")
+    async def extension_slash(self, interaction):
+        pass
+
+    @extension_slash.subcommand(name="list", description="List extensions.")
+    async def list_extension_slash(self, interaction):
         if await self.bot.is_owner(interaction.user):
             await interaction.response.send_message(f"```py\n{list(dict(self.bot.cogs).keys())}```", ephemeral=True)
         else:
             raise Exception("Forbidden")
 
-    @cog_slash.subcommand(name="load", description="Load cog.")
-    async def load_cogs_slash(self, interaction: Interaction, cogname: str = SlashOption(name="cogname", description="Cog name.", required=True)):
+    @extension_slash.subcommand(name="load", description="Load extension.")
+    async def load_extension_slash(self, interaction: Interaction, cogname: str = SlashOption(name="cogname", description="Cog name.", required=True)):
         if await self.bot.is_owner(interaction.user):
             await interaction.response.defer()
             try:
-                self.bot.load_extension(f"cogs.{cogname}")
-                await interaction.followup.send(f"The cog `cogs.{cogname}` successfully loaded.", ephemeral=True)
+                self.bot.load_extension(cogname, extras={"client", self.client})
+                await interaction.followup.send(f"The cog `{cogname}` successfully loaded.", ephemeral=True)
             except Exception as err:
-                await interaction.followup.send(f"Failed to load cog `cogs.{cogname}`.\n```py\n{err}```", ephemeral=True)
+                await interaction.followup.send(f"Failed to load cog `{cogname}`.\n```py\n{err}```", ephemeral=True)
         else:
             raise Exception("Forbidden")
 
-    @cog_slash.subcommand(name="reload", description="Reload cog.")
-    async def reload_cogs_slash(self, interaction: Interaction, cogname: str = SlashOption(name="cogname", description="Cog name.", required=True)):
+    @extension_slash.subcommand(name="reload", description="Reload extension.")
+    async def reload_extension_slash(self, interaction: Interaction, cogname: str = SlashOption(name="cogname", description="Cog name.", required=True)):
         if await self.bot.is_owner(interaction.user):
             await interaction.response.defer()
             try:
-                self.bot.reload_extension(f"cogs.{cogname}")
-                await interaction.followup.send(f"The cog `cogs.{cogname}` successfully reloaded.", ephemeral=True)
+                self.bot.unload_extension(cogname)
+                self.bot.load_extension(f"{cogname}", extras={"client", self.client})
+                await interaction.followup.send(f"The cog `{cogname}` successfully reloaded.", ephemeral=True)
             except Exception as err:
-                await interaction.followup.send(f"Failed to reload cog `cogs.{cogname}`.\n```py\n{err}```", ephemeral=True)
+                await interaction.followup.send(f"Failed to reload cog `{cogname}`.\n```py\n{err}```", ephemeral=True)
         else:
             raise Exception("Forbidden")
 
-    @cog_slash.subcommand(name="unload", description="Unload cog.")
-    async def unload_cogs_slash(self, interaction: Interaction, cogname: str = SlashOption(name="cogname", description="Cog name.", required=True)):
+    @extension_slash.subcommand(name="unload", description="Unload extension.")
+    async def unload_extension_slash(self, interaction: Interaction, cogname: str = SlashOption(name="cogname", description="Cog name.", required=True)):
         if await self.bot.is_owner(interaction.user):
             await interaction.response.defer()
             try:
-                self.bot.unload_extension(f"cogs.{cogname}")
-                await interaction.followup.send(f"The cog `cogs.{cogname}` successfully unloaded.", ephemeral=True)
+                self.bot.unload_extension(cogname)
+                await interaction.followup.send(f"The cog `{cogname}` successfully unloaded.", ephemeral=True)
             except Exception as err:
-                await interaction.followup.send(f"Failed to unload cog `cogs.{cogname}`.\n```py\n{err}```", ephemeral=True)
+                await interaction.followup.send(f"Failed to unload cog `{cogname}`.\n```py\n{err}```", ephemeral=True)
         else:
             raise Exception("Forbidden")
 
-    @commands.command(name="cog", help="Manage cogs.")
-    async def cog(self, ctx: commands.Context):
-        command = None
-        name = None
-        await base_cog(self.bot, ctx, command, name)
-        return
+    @debug_slash.subcommand(name="info", description="Show debug info.")
+    async def info_slash(self, interaction: Interaction):
+        await interaction.response.defer()
+        os = platform.system()
+        try:
+            ping = f"{round((await self.client.ping()).ping * 1000, 2)}ms"
+        except Exception:
+            ping = "Connection Error"
+        embed = nextcord.Embed(
+            title="Debug info",
+            description=f"Hosting on {os}",
+            color=0x363636
+        )
+        embed.add_field(
+            name="CPU",
+            value=f"{psutil.cpu_percent(None)}%"
+        )
+        embed.add_field(
+            name="RAM",
+            value=f"{psutil.virtual_memory().percent}%"
+        )
+        embed.add_field(
+            name="Ping(Discord)",
+            value=f"{round(self.bot.latency * 1000, 2)}ms"
+        )
+        embed.add_field(
+            name="Ping(HTTP_db)",
+            value=ping
+        )
+        embed.add_field(
+            name="Guilds",
+            value=f"{len(self.bot.guilds)}"
+        )
+        embed.add_field(
+            name="Users",
+            value=f"{len(self.bot.users)}"
+        )
+        embed.add_field(
+            name="VoiceClients",
+            value=f"{len(self.bot.voice_clients)}"
+        )
+        embed.add_field(
+            name="Extensions",
+            value=f"```\n{list(dict(self.bot.cogs).keys())}```",
+            inline=False
+        )
+        await interaction.followup.send(embed=embed, username="Debug info")
 
-    @commands.command()
-    async def reaction(self, ctx: commands.Context):
-        if ctx.author.id not in n_fc.py_admin:
-            embed = nextcord.Embed(
-                title="Error", description=f"You don't have the required permission.", color=0xff0000)
-            await ctx.reply(embed=embed)
-            return
-        else:
-            if ctx.message.content == f"{self.bot.command_prefix}reaction":
-                await ctx.reply("引数「ReplyID」が足りません。")
-                return
-            if ctx.message.content == f"{self.bot.command_prefix}reaction reload":
-                importlib.reload(nr)
-                await ctx.reply("End")
-            try:
-                await nr.n_reaction(ctx.message, int(ctx.message.content.split(" ", 1)[1]))
-            except Exception as err:
-                await ctx.reply(f"```{err}```")
-
-    @commands.command()
-    async def debug(self, ctx: commands.Context, action: str):
-        if await self.bot.is_owner(ctx.author):
-            if action == "reload":
-                message = await ctx.reply("変数の再ロードをしています...")
-                try:
-                    save()
-                    importlib.reload(n_fc)
-                    load()
-                    SETTING = json.load(
-                        open(f'{sys.path[0]}/setting.json', 'r'))
-                    n_fc.py_admin = SETTING["py_admin"]
-                    n_fc.GUILD_IDS = SETTING["guild_ids"]
-                except Exception as err:
-                    await message.edit(content=f"エラーが発生しました。{err}")
-                    return
-                await message.edit(content=f"変数の読み込みが完了しました。\nAdmin:{n_fc.py_admin}")
-            elif action == "info":
-                os = platform.system()
-                try:
-                    ping = f"{round((await self.client.ping()).ping * 1000, 2)}ms"
-                except Exception:
-                    ping = "Connection Error"
-                embed = nextcord.Embed(
-                    title="Debug info",
-                    description=os,
-                    color=0x363636
-                )
-                embed.add_field(
-                    name="CPU", value=f"{psutil.cpu_percent(None)}%")
-                embed.add_field(
-                    name="RAM", value=f"{psutil.virtual_memory().percent}%")
-                embed.add_field(name="Ping(Discord)",
-                                value=f"{round(self.bot.latency * 1000, 2)}ms")
-                embed.add_field(name="Ping(HTTP_db)", value=ping)
-                embed.add_field(name="Guilds", value=f"{len(self.bot.guilds)}")
-                embed.add_field(name="Users", value=f"{len(self.bot.users)}")
-                embed.add_field(name="VoiceClients",
-                                value=f"{len(self.bot.voice_clients)}")
-                embed.add_field(
-                    name="Cogs", value=f"```\n{list(dict(self.bot.cogs).keys())}```", inline=False)
-                await ctx.reply(embed=embed)
-
-    @commands.command()
-    async def lb(self, ctx):
-        return
-
-    @nextcord.slash_command(name="db", description="database", guild_ids=n_fc.GUILD_IDS)
+    @debug_slash.subcommand(name="db", description="database", guild_ids=n_fc.GUILD_IDS)
     async def db(self, interaction: Interaction):
         pass
 
@@ -580,16 +463,16 @@ class debug(commands.Cog):
         except Exception:
             await interaction.followup.send(embed=nextcord.Embed(title="POST:/delete", description=f"```\n{traceback.format_exc()}```", color=0xFF0000))
 
-    @db.subcommand(name="delete_all", description="Method POST:/delete_all")
-    async def db_delete_all(self, interaction: Interaction):
-        if not (await self.bot.is_owner(interaction.user)):
-            raise Exception("Forbidden")
-        await interaction.response.defer()
-        try:
-            await self.client.delete_all()
-            await interaction.followup.send(embed=nextcord.Embed(title="POST:/delete_all", description="", color=0x00ff00))
-        except Exception:
-            await interaction.followup.send(embed=nextcord.Embed(title="POST:/delete_all", description=f"```\n{traceback.format_exc()}```", color=0xFF0000))
+#    @db.subcommand(name="delete_all", description="Method POST:/delete_all")
+#    async def db_delete_all(self, interaction: Interaction):
+#        if not (await self.bot.is_owner(interaction.user)):
+#            raise Exception("Forbidden")
+#        await interaction.response.defer()
+#        try:
+#            await self.client.delete_all()
+#            await interaction.followup.send(embed=nextcord.Embed(title="POST:/delete_all", description="", color=0x00ff00))
+#        except Exception:
+#            await interaction.followup.send(embed=nextcord.Embed(title="POST:/delete_all", description=f"```\n{traceback.format_exc()}```", color=0xFF0000))
 
     @db.subcommand(name="info", description="Method GET:/info")
     async def db_info(self, interaction: Interaction):
@@ -625,6 +508,52 @@ class debug(commands.Cog):
         except Exception:
             await interaction.followup.send(embed=nextcord.Embed(title="RELOAD MODULES", description=f"```\n{traceback.format_exc()}```", color=0xff0000))
 
+
+    @commands.command()
+    async def reaction(self, ctx: commands.Context):
+        if ctx.author.id not in n_fc.py_admin:
+            embed = nextcord.Embed(
+                title="Error",
+                description=f"You don't have the required permission.",
+                color=0xff0000
+            )
+            await ctx.reply(embed=embed)
+            return
+        else:
+            if ctx.message.content == f"{self.bot.command_prefix}reaction":
+                await ctx.reply("引数「ReplyID」が足りません。")
+                return
+            if ctx.message.content == f"{self.bot.command_prefix}reaction reload":
+                importlib.reload(nr)
+                await ctx.reply("End")
+            try:
+                await nr.n_reaction(ctx.message, int(ctx.message.content.split(" ", 1)[1]))
+            except Exception as err:
+                await ctx.reply(f"```{err}```")
+
+    @commands.command()
+    async def debug(self, ctx: commands.Context, action: str):
+        if await self.bot.is_owner(ctx.author):
+            if action == "reload":
+                message = await ctx.reply("変数の再ロードをしています...")
+                try:
+                    save()
+                    importlib.reload(n_fc)
+                    load()
+                    SETTING = json.load(
+                        open(f'{sys.path[0]}/setting.json', 'r'))
+                    n_fc.py_admin = SETTING["py_admin"]
+                    n_fc.GUILD_IDS = SETTING["guild_ids"]
+                except Exception as err:
+                    await message.edit(content=f"エラーが発生しました。{err}")
+                    return
+                await message.edit(content=f"変数の読み込みが完了しました。\nAdmin:{n_fc.py_admin}")
+
+    @commands.command()
+    async def lb(self, ctx):
+        return
+
+
 def setup(bot, **kwargs):
-    bot.add_cog(debug(bot, *kwargs))
+    bot.add_cog(debug(bot, **kwargs))
     importlib.reload(slash_tool)
