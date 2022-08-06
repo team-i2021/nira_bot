@@ -52,7 +52,7 @@ class error(commands.Cog):
             logging.error(
                 f"エラー処理中のエラー\non_error：{traceback.format_exc()}\nハンドリング中のエラー：{err}")
             return
-    
+
     @commands.Cog.listener()
     async def on_application_command_error(self, interaction: nextcord.Interaction, event: Exception):
         print([type(event), event.args])

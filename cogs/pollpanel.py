@@ -282,7 +282,7 @@ class Pollpanel(commands.Cog):
     def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
         self.client = kwargs["client"]
-    
+
     @nextcord.message_command(name="投票パネルの編集", guild_ids=n_fc.GUILD_IDS)
     async def edit_pollpanel(self, interaction: Interaction, message: nextcord.Message):
         if message.author.id != self.bot.user.id:
