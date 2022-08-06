@@ -353,6 +353,8 @@ class debug(commands.Cog):
 
     @debug_slash.subcommand(name="info", description="Show debug info.")
     async def info_slash(self, interaction: Interaction):
+        if not (await self.bot.is_owner(interaction.user)):
+            raise Exception("Forbidden")
         await interaction.response.defer()
         os = platform.system()
         try:
@@ -508,6 +510,35 @@ class debug(commands.Cog):
         except Exception:
             await interaction.followup.send(embed=nextcord.Embed(title="RELOAD MODULES", description=f"```\n{traceback.format_exc()}```", color=0xff0000))
 
+    @debug_slash.subcommand(name="command", description="Manage commands")
+    async def command_slash(self, interaction):
+        pass
+
+    @command_slash.subcommand(name="list", description="List commands")
+    async def command_slash_list(self, interaction: Interaction):
+        if not (await self.bot.is_owner(interaction.user)):
+            raise Exception("Forbidden")
+        await interaction.response.send_message(embed=nextcord.Embed(title="COMMANDS", description=f"```py\n{self.bot.all_commands.keys()}```", color=0x00ff00))
+        return
+
+    @command_slash.subcommand(name="sync", description="sync application command")
+    async def command_slash_sync(
+        self,
+        interaction: Interaction,
+        guild_id: str = SlashOption(name="guild_id", description="Guild id", required=False),
+    ):
+        if not (await self.bot.is_owner(interaction.user)):
+            raise Exception("Forbidden")
+        await interaction.response.defer()
+        try:
+            if not guild_id:
+                guild_id = None
+            else:
+                guild_id = eval(guild_id)
+            await self.bot.sync_application_commands(guild_id=guild_id)
+            await interaction.followup.send(embed=nextcord.Embed(title="SYNC", description=f"```\n{guild_id}```", color=0x00ff00))
+        except Exception:
+            await interaction.followup.send(embed=nextcord.Embed(title="SYNC", description=f"```\n{traceback.format_exc()}```", color=0xFF0000))
 
     @commands.command()
     async def reaction(self, ctx: commands.Context):
