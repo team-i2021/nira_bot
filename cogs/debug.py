@@ -399,7 +399,7 @@ class debug(commands.Cog):
         )
         await interaction.followup.send(embed=embed, username="Debug info")
 
-    @debug_slash.subcommand(name="db", description="database", guild_ids=n_fc.GUILD_IDS)
+    @debug_slash.subcommand(name="db", description="database")
     async def db(self, interaction: Interaction):
         pass
 
