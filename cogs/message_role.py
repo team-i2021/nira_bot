@@ -247,7 +247,7 @@ class MessageRole(commands.Cog):
                 return
 
         elif command_type == "db":
-            if ctx.author.id not in n_fc.py_admin:
+            if not await self.bot.is_owner(ctx.author):
                 await ctx.reply(embed=nextcord.Embed(title="Forbidden", description="このコマンドの使用には、BOTのオーナー権限が必要です。", color=0xff0000))
                 return
             if len(args) != 1:

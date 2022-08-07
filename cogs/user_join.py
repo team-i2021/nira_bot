@@ -11,7 +11,6 @@ import HTTP_db
 import nextcord
 from nextcord.ext import commands
 
-from cogs.debug import save
 from util import admin_check, n_fc, eh, database, dict_list
 
 
@@ -31,16 +30,31 @@ class WelcomeInfo:
     default = {}
     value_type = database.GUILD_VALUE
 
+
 class InviteData:
     name = "invite_data"
     value = {}
     default = {}
     value_type = database.CHANNEL_VALUE
 
+
 class user_join(commands.Cog):
     def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
         self.client = kwargs["client"]
+        asyncio.ensure_future(self.fetch_role_keeper())
+
+    async def fetch_role_keeper(self):
+        await self.bot.wait_until_ready()
+        await database.default_pull(self.client, RoleKeeper)
+
+        for i in self.bot.guilds:
+            if i.id not in n_fc.role_keeper:
+                n_fc.role_keeper[i.id] = {"rk": 0}
+            for j in i.members:
+                n_fc.role_keeper[i.id][j.id] = [k.id for k in j.roles if k.id != i.id]
+
+        await database.default_push(self.client, RoleKeeper)
 
     @commands.Cog.listener()
     async def on_member_join(self, member: nextcord.Member):
@@ -196,3 +210,4 @@ class user_join(commands.Cog):
 
 def setup(bot, **kwargs):
     bot.add_cog(user_join(bot, **kwargs))
+

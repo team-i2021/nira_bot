@@ -37,7 +37,7 @@ class check(commands.Cog):
     async def admin(self, ctx: commands.Context):
         if admin_check.admin_check(ctx.guild, ctx.author):
             await slash_tool.messages.mreply(ctx, "", embed=nextcord.Embed(title="ADMIN", description=f"権限があるようです。", color=0x00ff00))
-        elif (await self.bot.is_owner(ctx.author)):save()save()
+        elif (await self.bot.is_owner(ctx.author)):
             await slash_tool.messages.mreply(ctx, "", embed=nextcord.Embed(title="ADMIN", description=f"サーバー権限はありませんが、コマンドは実行できます。（BOT開発者）", color=0xffff00))
         else:
             await slash_tool.messages.mreply(ctx, "", embed=nextcord.Embed(title="ADMIN", description=f"権限がないようです。\n**（管理者権限を付与したロールがありませんでした。）**\n自分が管理者の場合は、自分に管理者権限を付与したロールを付けてください。", color=0xff0000))

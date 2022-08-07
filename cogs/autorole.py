@@ -9,7 +9,7 @@ from nextcord import Interaction, SlashOption, Role
 from nextcord.ext import commands
 
 from cogs.debug import save
-from util import admin_check, n_fc, database, dict_list
+from util import admin_check, database, dict_list
 from util.n_fc import GUILD_IDS
 from util.slash_tool import messages
 

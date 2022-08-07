@@ -16,8 +16,6 @@ from nextcord.ext import commands
 from nextcord import Interaction
 
 from util import n_fc, database
-# from util import database
-from cogs import debug as cogs_debug, server_status, rolepanel, pollpanel
 
 sys.setrecursionlimit(10000)  # エラー回避
 print("モジュールインポート完了")
@@ -67,6 +65,7 @@ print("BOTの設定完了")
 if not os.path.exists(f"{sys.path[0]}/nira.log"):
     with open(f"{sys.path[0]}/nira.log", "w") as f:
         f.write("")
+
 FORMATTER = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
 logging.basicConfig(
     format=FORMATTER,
@@ -104,8 +103,6 @@ print("外部設定完了")
 
 @bot.event
 async def on_ready():
-    print("起動後処理を開始...")
-    await bot.change_presence(activity=nextcord.Game(name="起動中...(1/2)", type=1), status=nextcord.Status.idle)
     #if os.path.exists(f'{sys.path[0]}/PersistentViews.nira'):
     #    with open(f'{sys.path[0]}/PersistentViews.nira', 'rb') as f:
     #        rolepanel.PersistentViews = pickle.load(f)
@@ -120,19 +117,6 @@ async def on_ready():
 
     # asyncio.new_event_loop().run_in_executor(None, bottomup.MessagePin, bot)
     # asyncio.ensure_future(bottomup.MessagePin(bot))
-
-    await bot.change_presence(activity=nextcord.Game(name="起動中...(2/2)", type=1), status=nextcord.Status.idle)
-    print("ユーザー情報読み込み中")
-    for i in bot.guilds:
-        if i.id not in n_fc.role_keeper:
-            n_fc.role_keeper[i.id] = {"rk": 0}
-        for j in i.members:
-            n_fc.role_keeper[i.id][j.id] = [
-                k.id for k in j.roles if k.name != "@everyone"]
-    if DEBUG:
-        print(n_fc.role_keeper)
-
-    print("ユーザー情報読み込み完了")
 
     if not DEBUG:
         await bot.change_presence(activity=nextcord.Game(name=f"{PREFIX}help | にらゲー", type=1), status=nextcord.Status.online)
