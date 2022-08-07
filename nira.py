@@ -49,7 +49,7 @@ intents = nextcord.Intents.all()  # デフォルトのIntentsオブジェクト�
 intents.typing = False  # typingを受け取らないように
 intents.presences = False  # Presence Intentだよ
 intents.members = True  # メンバーに関する情報を受け取る
-bot = commands.Bot(command_prefix=PREFIX, intents=intents, help_command=None)
+bot = commands.Bot(command_prefix=PREFIX, intents=intents, help_command=None, activity=nextcord.Game(name="接続中...", type=1), status=nextcord.Status.dnd)
 bot.remove_command("help")  # 意味あるのかしらんけどjishakuのヘルプコマンド削除
 bot.load_extension("jishaku")
 
@@ -63,9 +63,10 @@ bot.is_owner = is_owner
 print("BOTの設定完了")
 
 
-#DBS = database.openSheet()
-
 # loggingの設定
+if not os.path.exists(f"{sys.path[0]}/nira.log"):
+    with open(f"{sys.path[0]}/nira.log", "w") as f:
+        f.write("")
 FORMATTER = '%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s'
 logging.basicConfig(
     format=FORMATTER,
@@ -105,17 +106,17 @@ print("外部設定完了")
 async def on_ready():
     print("起動後処理を開始...")
     await bot.change_presence(activity=nextcord.Game(name="起動中...(1/2)", type=1), status=nextcord.Status.idle)
-    if os.path.exists(f'{sys.path[0]}/PersistentViews.nira'):
-        with open(f'{sys.path[0]}/PersistentViews.nira', 'rb') as f:
-            rolepanel.PersistentViews = pickle.load(f)
-        for i in rolepanel.PersistentViews:
-            bot.add_view(rolepanel.RolePanelView(i))
+    #if os.path.exists(f'{sys.path[0]}/PersistentViews.nira'):
+    #    with open(f'{sys.path[0]}/PersistentViews.nira', 'rb') as f:
+    #        rolepanel.PersistentViews = pickle.load(f)
+    #    for i in rolepanel.PersistentViews:
+    #        bot.add_view(rolepanel.RolePanelView(i))
 
-    if os.path.exists(f'{sys.path[0]}/PollViews.nira'):
-        with open(f'{sys.path[0]}/PollViews.nira', 'rb') as f:
-            pollpanel.PollViews = pickle.load(f)
-        for i in pollpanel.PollViews:
-            bot.add_view(pollpanel.PollPanelView(i))
+    #if os.path.exists(f'{sys.path[0]}/PollViews.nira'):
+    #    with open(f'{sys.path[0]}/PollViews.nira', 'rb') as f:
+    #        pollpanel.PollViews = pickle.load(f)
+    #    for i in pollpanel.PollViews:
+    #        bot.add_view(pollpanel.PollPanelView(i))
 
     # asyncio.new_event_loop().run_in_executor(None, bottomup.MessagePin, bot)
     # asyncio.ensure_future(bottomup.MessagePin(bot))
@@ -130,7 +131,6 @@ async def on_ready():
                 k.id for k in j.roles if k.name != "@everyone"]
     if DEBUG:
         print(n_fc.role_keeper)
-    cogs_debug.save()
 
     print("ユーザー情報読み込み完了")
 
@@ -159,29 +159,29 @@ COMMANDS: {[i.name for i in list(bot.commands)]}
 
 
 # 変数読み込み
-func_error_count = 0
-for i in range(len(n_fc.save_list)):
-    logging.info(f"Start:{n_fc.save_list[i]}")
-    try:
-        if os.path.isfile(f"{HOME}/{n_fc.save_list[i]}.nira"):
-            with open(f'{HOME}/{n_fc.save_list[i]}.nira', 'rb') as f:
-                exec(f"n_fc.{n_fc.save_list[i]} = pickle.load(f)")
-            logging.info(f"変数[{n_fc.save_list[i]}]のファイル読み込みに成功しました。")
-            if n_fc.save_list[i] == "notify_token.nira":
-                logging.info("LINE NotifyのTOKENのため、表示はされません。")
-            else:
-                if DEBUG:
-                    exec(f"logging.info(n_fc.{n_fc.save_list[i]})")
-        else:
-            logging.info("ファイルが存在しません。")
-            with open(f"{HOME}/{n_fc.save_list[i]}.nira", "wb") as f:
-                pickle.dump({}, f)
-    except Exception as err:
-        logging.info(
-            f"変数[{n_fc.save_list[i]}]のファイル読み込みに失敗しました。\n{err}\n{traceback.format_exc()}")
-        print("変数の読み込み時にエラーが発生しました。ログを確認して、再度やり直してください。", file=sys.stderr)
-        os._exit(0)
-print("変数の読み込み完了")
+#func_error_count = 0
+#for i in range(len(n_fc.save_list)):
+#    logging.info(f"Start:{n_fc.save_list[i]}")
+#    try:
+#        if os.path.isfile(f"{HOME}/{n_fc.save_list[i]}.nira"):
+#            with open(f'{HOME}/{n_fc.save_list[i]}.nira', 'rb') as f:
+#                exec(f"n_fc.{n_fc.save_list[i]} = pickle.load(f)")
+#            logging.info(f"変数[{n_fc.save_list[i]}]のファイル読み込みに成功しました。")
+#            if n_fc.save_list[i] == "notify_token.nira":
+#                logging.info("LINE NotifyのTOKENのため、表示はされません。")
+#            else:
+#                if DEBUG:
+#                    exec(f"logging.info(n_fc.{n_fc.save_list[i]})")
+#        else:
+#            logging.info("ファイルが存在しません。")
+#            with open(f"{HOME}/{n_fc.save_list[i]}.nira", "wb") as f:
+#                pickle.dump({}, f)
+#    except Exception as err:
+#        logging.info(
+#            f"変数[{n_fc.save_list[i]}]のファイル読み込みに失敗しました。\n{err}\n{traceback.format_exc()}")
+#        print("変数の読み込み時にエラーが発生しました。ログを確認して、再度やり直してください。", file=sys.stderr)
+#        os._exit(0)
+#print("変数の読み込み完了")
 
 # load extensions
 cogs_dir = HOME + "/cogs"

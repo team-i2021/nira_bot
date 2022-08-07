@@ -28,38 +28,8 @@ SYSDIR = sys.path[0]
 
 # 管理者向けdebug
 
-def save():
-    for i in range(len(n_fc.save_list)):
-        with open(f'{SYSDIR}/{n_fc.save_list[i]}.nira', 'wb') as f:
-            exec(f"pickle.dump(n_fc.{n_fc.save_list[i]}, f)")
 
-
-def load():
-    func_error_count = 0
-    nira_f_num = len(os.listdir(SYSDIR))
-    system_list = os.listdir(SYSDIR)
-    logging.info((nira_f_num, system_list))
-    for i in range(nira_f_num):
-        logging.info(f"StartProcess:{system_list[i]}")
-        if system_list[i][-5:] != ".nira":
-            logging.info(f"Skip:{system_list[i]}")
-            continue
-        try:
-            cog_name = system_list[i][:-5]
-            with open(f'{SYSDIR}/{system_list[i]}', 'rb') as f:
-                exec(f"n_fc.{cog_name} = pickle.load(f)")
-            logging.info(f"変数[{system_list[i]}]のファイル読み込みに成功しました。")
-            if system_list[i] == "notify_token.nira":
-                logging.info("LINE NotifyのTOKENのため、表示はされません。")
-            else:
-                exec(f"logging.info(n_fc.{cog_name})")
-        except Exception as err:
-            logging.info(f"変数[{system_list[i]}]のファイル読み込みに失敗しました。\n{err}")
-            func_error_count = 1
-    if func_error_count > 0:
-        logging.info("変数の読み込みに失敗しました。")
-
-class debug(commands.Cog):
+class Debug(commands.Cog):
     def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
         self.client = kwargs["client"]
@@ -108,7 +78,7 @@ class debug(commands.Cog):
                 await ctx.message.add_reaction("\U0001F310")
                 self.websocket_coro = asyncio.create_task(self.ws_main(port))
                 await self.websocket_coro
-            except Exception as err:
+            except Exception:
                 logging.info(traceback.format_exc())
             await ctx.message.add_reaction("\U00002705")
         else:
@@ -130,7 +100,6 @@ class debug(commands.Cog):
                 return
             await self.bot.change_presence(activity=nextcord.Game(name="再起動中...", type=1), status=nextcord.Status.dnd)
             try:
-                save()
                 await restart_code.edit(content="```\nnira@nira-bot $ sudo restart nira-bot\nAre you sure want to restart nira-bot?[y/n]\ny\nRestarting nira-bot now...```")
                 logging.info(
                     f"-----[{self.bot.command_prefix}restart]コマンドが実行されたため、再起動します。-----")
@@ -167,9 +136,7 @@ class debug(commands.Cog):
                 await exit_code.edit(content="```\nnira@nira-bot $ sudo shutdown nira-bot\nAre you sure want to shutdown nira-bot?[y/n]\nn\nThe shutdown operation has been canceled.(user operation)```")
                 return
             await self.bot.change_presence(activity=nextcord.Game(name="終了中...", type=1), status=nextcord.Status.dnd)
-            await exit_code.edit(content="終了準備中...")
             try:
-                save()
                 await exit_code.edit(content="```\nnira@nira-bot $ sudo shutdown nira-bot\nAre you sure want to shutdown nira-bot?[y/n]\ny\nShutdowning nira-bot now...```")
                 logging.info(
                     f"-----[{self.bot.command_prefix}exit]コマンドが実行されたため、終了します。-----")
@@ -283,27 +250,11 @@ class debug(commands.Cog):
             await ctx.reply(f"```{rt_sh}```")
             return
 
-    @commands.command()
-    async def save(self, ctx: commands.Context):
-        if (await self.bot.is_owner(ctx.author)):
-            try:
-                save()
-                await ctx.reply("Saved.")
-                logging.info("変数をセーブしました。")
-            except Exception as err:
-                await ctx.reply(f"Error happend.\n`{err}`")
-            return
-        else:
-            embed = nextcord.Embed(
-                title="Error", description=f"You don't have the required permission.", color=0xff0000)
-            await ctx.reply(embed=embed)
-            return
-
     @nextcord.slash_command(name="debug", description="Debug commands", guild_ids=n_fc.GUILD_IDS)
     async def debug_slash(self, interaction):
         pass
 
-    @debug_slash.subcommand(name="extension", description="Manage extensions")
+    @debug_slash.subcommand(name="extenssave()ion", description="Manage extensions")
     async def extension_slash(self, interaction):
         pass
 
@@ -562,23 +513,6 @@ class debug(commands.Cog):
             except Exception as err:
                 await ctx.reply(f"```{err}```")
 
-    @commands.command()
-    async def debug(self, ctx: commands.Context, action: str):
-        if await self.bot.is_owner(ctx.author):
-            if action == "reload":
-                message = await ctx.reply("変数の再ロードをしています...")
-                try:
-                    save()
-                    importlib.reload(n_fc)
-                    load()
-                    SETTING = json.load(
-                        open(f'{sys.path[0]}/setting.json', 'r'))
-                    n_fc.py_admin = SETTING["py_admin"]
-                    n_fc.GUILD_IDS = SETTING["guild_ids"]
-                except Exception as err:
-                    await message.edit(content=f"エラーが発生しました。{err}")
-                    return
-                await message.edit(content=f"変数の読み込みが完了しました。\nAdmin:{n_fc.py_admin}")
 
     @commands.command()
     async def lb(self, ctx):
@@ -586,5 +520,5 @@ class debug(commands.Cog):
 
 
 def setup(bot, **kwargs):
-    bot.add_cog(debug(bot, **kwargs))
+    bot.add_cog(Debug(bot, **kwargs))
     importlib.reload(slash_tool)

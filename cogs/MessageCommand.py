@@ -1,5 +1,6 @@
 import sys
 
+import HTTP_db
 import nextcord
 from nextcord import Interaction
 from nextcord.ext import commands
@@ -14,7 +15,7 @@ SYSDIR = sys.path[0]
 
 
 class MessageCommandPulldown(nextcord.ui.Select):
-    def __init__(self, bot: commands.Bot, interaction: Interaction, message: nextcord.Message):
+    def __init__(self, bot: commands.Bot, client: HTTP_db.Client, interaction: Interaction, message: nextcord.Message):
         options = [
             nextcord.SelectOption(
                 label="Embedコンテンツの取得", description="Embedの中身を取得します。", value="embed"
@@ -35,17 +36,18 @@ class MessageCommandPulldown(nextcord.ui.Select):
         )
 
         self.bot = bot
+        self.kwargs = {"client": client}
         self.interaciton = interaction
         self.message = message
     
     async def callback(self, interaction: Interaction):
         value = self.values[0]
         if value == "embed":
-            await embed.SendEmbed.embed_message_command(embed.SendEmbed(self.bot), interaction, self.message)
+            await embed.SendEmbed.embed_message_command(embed.SendEmbed(self.bot, self.kwargs), interaction, self.message)
         elif value == "translate":
-            await translate.Translate.translation_message_command(translate.Translate(self.bot), interaction, self.message)
+            await translate.Translate.translation_message_command(translate.Translate(self.bot, self.kwargs), interaction, self.message)
         elif value == "tts":
-            await tts.tts.speak_message(tts.tts(self.bot), interaction, self.message)
+            await tts.tts.speak_message(tts.tts(self.bot, self.kwargs), interaction, self.message)
         return
 
 
@@ -54,11 +56,12 @@ class MessageCommandPulldown(nextcord.ui.Select):
 class MessageCommands(commands.Cog):
     def __init__(self, bot: commands.Bot, **kwargs):
         self.bot = bot
+        self.client = kwargs["client"]
     
     @nextcord.message_command(name="その他", guild_ids=n_fc.GUILD_IDS)
     async def other_message_command(self, interaction: Interaction, message: nextcord.Message):
         view = nextcord.ui.View()
-        view.add_item(MessageCommandPulldown(self.bot, interaction, message))
+        view.add_item(MessageCommandPulldown(self.bot, self.client, interaction, message))
         await interaction.response.send_message("実行したいメッセージコマンドを選択してください。", view=view, ephemeral=True)
         return
 

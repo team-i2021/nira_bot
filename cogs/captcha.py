@@ -9,25 +9,11 @@ from nextcord.ext import commands
 
 from util import n_fc, database
 
-DBS = database.openSheet()
-DATABASE_KEY = "B6"
 
 CaptchaData = {}
 
 
 # reading
-
-def readDatabase() -> None:
-    data = database.readValue(DBS, DATABASE_KEY)
-    if data != "" and data is not None:
-        global CaptchaData
-        CaptchaData = data
-        CaptchaDataTemp = {}
-        for key, value in CaptchaData.items():
-            CaptchaDataTemp[int(key)] = value
-        CaptchaData = CaptchaDataTemp
-    return
-
 
 # web captcha
 
@@ -60,7 +46,7 @@ class CaptchaSetting(nextcord.ui.View):
         await interaction.response.defer()
         if interaction.user.id == self.author:
             CaptchaData[interaction.guild.id] = self.role_id
-            database.writeValue(DBS, DATABASE_KEY, CaptchaData)
+            #database.writeValue(DBS, DATABASE_KEY, CaptchaData)
             await interaction.followup.send(embed=nextcord.Embed(title="Web認証", description=f"認証を設定しました。\n認証ページで認証をすると <#&{CaptchaData[interaction.guild.id]}> が付与されます。", color=0x00ff00), ephemeral=True)
             await asyncio.sleep(1)
             await interaction.channel.send(embed=nextcord.Embed(title="Web認証", description="認証を行うには下のボタンを押してください。", view=CaptchaView()))
@@ -89,7 +75,7 @@ class Captcha(commands.Cog):
             return
         else:
             CaptchaData[interaction.guild.id] = self.role_id
-            database.writeValue(DBS, DATABASE_KEY, CaptchaData)
+            #database.writeValue(DBS, DATABASE_KEY, CaptchaData)
             await interaction.followup.send(embed=nextcord.Embed(title="Web認証", description=f"認証を設定しました。\n認証ページで認証をすると <#&{CaptchaData[interaction.guild.id]}> が付与されます。", color=0x00ff00), ephemeral=True)
             await asyncio.sleep(1)
             await interaction.channel.send(embed=nextcord.Embed(title="Web認証", description="認証を行うには下のボタンを押してください。", view=CaptchaView()))
@@ -152,7 +138,7 @@ reCapthaなんで、強いとは思うんですけど、それよりバグが心
             elif msg.content == "y":
                 CaptchaData[ctx.guild.id] = role_id
                 await action.delete()
-                database.writeValue(database, DATABASE_KEY, CaptchaData)
+                #database.writeValue(database, DATABASE_KEY, CaptchaData)
                 await ctx.reply(embed=nextcord.Embed(title="Web認証", description=f"認証を設定しました。\n認証ページで認証をすると <#&{CaptchaData[ctx.guild.id]}> が付与されます。", color=0x00ff00))
                 await asyncio.sleep(1)
                 await ctx.channel.send(embed=nextcord.Embed(title="Web認証", description="認証を行うには下のボタンを押してください。", view=CaptchaView()))
@@ -161,7 +147,7 @@ reCapthaなんで、強いとは思うんですけど、それよりバグが心
         else:
             CaptchaData[ctx.guild.id] = role_id
             await action.delete()
-            database.writeValue(database, DATABASE_KEY, CaptchaData)
+            #database.writeValue(database, DATABASE_KEY, CaptchaData)
             await ctx.reply(embed=nextcord.Embed(title="Web認証", description=f"認証を設定しました。\n認証ページで認証をすると <#&{CaptchaData[ctx.guild.id]}> が付与されます。", color=0x00ff00))
             await asyncio.sleep(1)
             await ctx.channel.send(embed=nextcord.Embed(title="Web認証", description="認証を行うには下のボタンを押してください。", view=CaptchaView()))
@@ -171,9 +157,10 @@ reCapthaなんで、強いとは思うんですけど、それよりバグが心
 
 
 def setup(bot):
-    readDatabase()
+    #readDatabase()
     bot.add_cog(Captcha(bot))
 
 
 def teardown(bot):
-    database.writeValue(DBS, DATABASE_KEY, CaptchaData)
+    #database.writeValue(DBS, DATABASE_KEY, CaptchaData)
+    return
