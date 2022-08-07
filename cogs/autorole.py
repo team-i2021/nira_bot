@@ -95,7 +95,7 @@ class autorole(commands.Cog):
                 msg = ("自動ロール\nエラー：ロールを指定してください。", None)
 
             # 空のリストは False になる
-            elif ctx.message.mentions or ctx.message.channel_mentions:
+            elif ctx.message.mentions or ctx.channel_mentions:
                 msg = ("自動ロール\nエラー：ロールでないメンションが含まれています。", None)
 
             # ロールのメンション数が1より多いか、ロールのメンションとそうでない文字列が混在している

@@ -87,11 +87,11 @@ class Siritori(commands.Cog):
 
         if control_arg in START:
             embed = await self.srtr_control(
-                True, ctx.message.guild, ctx.message.channel)
+                True, ctx.guild, ctx.channel)
 
         elif control_arg in STOP:
             embed = await self.srtr_control(
-                False, ctx.message.guild, ctx.message.channel)
+                False, ctx.guild, ctx.channel)
 
         else:
             embed = nextcord.Embed(

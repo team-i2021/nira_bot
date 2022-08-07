@@ -357,11 +357,11 @@ n!pollpanel [on/off] [メッセージ内容]
     async def pollpanel(self, ctx: commands.Context):
         if ctx.message.content == f"{self.bot.command_prefix}pollpanel debug":
             await ctx.message.add_reaction('🐛')
-            if ctx.author.id in n_fc.py_admin:
-                await ctx.send(f"{ctx.message.author.mention}", embed=nextcord.Embed(title="Views", description=PollViews, color=0x00ff00))
+            if (await self.bot.is_owner(ctx.author)):
+                await ctx.send(f"{ctx.author.mention}", embed=nextcord.Embed(title="Views", description=PollViews, color=0x00ff00))
                 return
             else:
-                await ctx.send(f"{ctx.message.author.mention}", embed=nextcord.Embed(title="ERR", description="あなたは管理者ではありません。", color=0xff0000))
+                await ctx.send(f"{ctx.author.mention}", embed=nextcord.Embed(title="ERR", description="あなたは管理者ではありません。", color=0xff0000))
                 return
         if len(ctx.message.content.splitlines()) < 2:
             await ctx.send(f"投票パネル機能を使用するにはメッセージ内容と選択肢を指定してください。\n```\n{self.bot.command_prefix}pollpanel [on/off] [メッセージ内容]\n[選択肢1]\n[選択肢2]...```")

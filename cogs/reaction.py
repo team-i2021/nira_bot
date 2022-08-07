@@ -376,30 +376,30 @@ class reaction(commands.Cog):
         try:
             if ctx.guild.id not in reaction_datas.reaction_bool_list.value:  # 通常反応のブール値存在チェック
                 reaction_datas.reaction_bool_list.value[ctx.guild.id] = {}
-                reaction_datas.reaction_bool_list.value[ctx.guild.id][ctx.message.channel.id] = 1
+                reaction_datas.reaction_bool_list.value[ctx.guild.id][ctx.channel.id] = 1
                 reaction_datas.reaction_bool_list.value[ctx.guild.id]["all"] = 1
                 await database.default_push(self.client, reaction_datas.reaction_bool_list)
-            if ctx.message.channel.id not in reaction_datas.reaction_bool_list.value[ctx.guild.id]:
-                reaction_datas.reaction_bool_list.value[ctx.guild.id][ctx.message.channel.id] = 1
+            if ctx.channel.id not in reaction_datas.reaction_bool_list.value[ctx.guild.id]:
+                reaction_datas.reaction_bool_list.value[ctx.guild.id][ctx.channel.id] = 1
                 await database.default_push(self.client, reaction_datas.reaction_bool_list)
             if ctx.message.content == "n!nr":
                 if reaction_datas.reaction_bool_list.value[ctx.guild.id]["all"] == 0:
                     setting = "サーバーで無効になっている為、チャンネルごとの設定は無効です。\n(`n!help nr`でご確認ください。)"
-                elif reaction_datas.reaction_bool_list.value[ctx.guild.id][ctx.message.channel.id] == 1:
+                elif reaction_datas.reaction_bool_list.value[ctx.guild.id][ctx.channel.id] == 1:
                     setting = "有効"
-                elif reaction_datas.reaction_bool_list.value[ctx.guild.id][ctx.message.channel.id] == 0:
+                elif reaction_datas.reaction_bool_list.value[ctx.guild.id][ctx.channel.id] == 0:
                     setting = "無効"
                 else:
                     setting = "読み込めませんでした。"
                 await ctx.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description=f"通常反応の設定:{setting}\n\n`n!nr [on/off]`で変更できます。", color=0x00ff00))
                 return
-            if admin_check.admin_check(ctx.message.guild, ctx.message.author):
+            if admin_check.admin_check(ctx.guild, ctx.author):
                 nr_setting = str((ctx.message.content).split(" ", 1)[1])
                 if nr_setting in n_fc.on_ali:
-                    reaction_datas.reaction_bool_list.value[ctx.guild.id][ctx.message.channel.id] = 1
+                    reaction_datas.reaction_bool_list.value[ctx.guild.id][ctx.channel.id] = 1
                     await ctx.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="チャンネルでの通常反応を有効にしました。", color=0x00ff00))
                 elif nr_setting in n_fc.off_ali:
-                    reaction_datas.reaction_bool_list.value[ctx.guild.id][ctx.message.channel.id] = 0
+                    reaction_datas.reaction_bool_list.value[ctx.guild.id][ctx.channel.id] = 0
                     await ctx.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="チャンネルでの通常反応を無効にしました。", color=0x00ff00))
                 elif nr_setting[:3] == "all":
                     if nr_setting in n_fc.on_ali:
@@ -478,25 +478,25 @@ class reaction(commands.Cog):
                 print(reaction_datas.all_reaction_list.value)
                 reaction_datas.all_reaction_list.value[ctx.guild.id] = {}
                 await database.default_push(self.client, reaction_datas.all_reaction_list)
-            if ctx.message.channel.id not in reaction_datas.all_reaction_list.value[ctx.guild.id]:
-                reaction_datas.all_reaction_list.value[ctx.guild.id][ctx.message.channel.id] = 1
+            if ctx.channel.id not in reaction_datas.all_reaction_list.value[ctx.guild.id]:
+                reaction_datas.all_reaction_list.value[ctx.guild.id][ctx.channel.id] = 1
                 await database.default_push(self.client, reaction_datas.all_reaction_list)
             if ctx.message.content == "n!ar":
-                if reaction_datas.all_reaction_list.value[ctx.guild.id][ctx.message.channel.id] == 1:
+                if reaction_datas.all_reaction_list.value[ctx.guild.id][ctx.channel.id] == 1:
                     setting = "有効"
-                elif reaction_datas.all_reaction_list.value[ctx.guild.id][ctx.message.channel.id] == 0:
+                elif reaction_datas.all_reaction_list.value[ctx.guild.id][ctx.channel.id] == 0:
                     setting = "無効"
                 else:
                     setting = "読み込めませんでした。"
                 await ctx.reply(embed=nextcord.Embed(title="All Reaction Setting", description=f"「通常反応」及び「追加反応」（Bump通知および各種コマンドは除く）の設定:{setting}\n\n`n!ar [on/off]`で変更できます。", color=0x00ff00))
                 return
-            if admin_check.admin_check(ctx.message.guild, ctx.message.author):
+            if admin_check.admin_check(ctx.guild, ctx.author):
                 ar_setting = str((ctx.message.content).split(" ", 1)[1])
                 if ar_setting in n_fc.on_ali:
-                    reaction_datas.all_reaction_list.value[ctx.guild.id][ctx.message.channel.id] = 1
+                    reaction_datas.all_reaction_list.value[ctx.guild.id][ctx.channel.id] = 1
                     await ctx.reply(embed=nextcord.Embed(title="All Reaction Setting", description="チャンネルでの全反応を有効にしました。", color=0x00ff00))
                 elif ar_setting in n_fc.off_ali:
-                    reaction_datas.all_reaction_list.value[ctx.guild.id][ctx.message.channel.id] = 0
+                    reaction_datas.all_reaction_list.value[ctx.guild.id][ctx.channel.id] = 0
                     await ctx.reply(embed=nextcord.Embed(title="All Reaction Setting", description="チャンネルでの全反応を無効にしました。", color=0x00ff00))
                 else:
                     await ctx.reply(embed=nextcord.Embed(title="All Reaction Setting", description="コマンド使用方法:`n!ar [all] [on/off]`", color=0xff0000))

@@ -175,7 +175,7 @@ class user(commands.Cog):
 大前提、**ちゃんと機能するとは思わないでください。**
 `n!rk [on/off]`でロールキーパー機能の設定が可能です。ただ、ロールキーパー機能を有効にするには`n!ui`の、ユーザー情報表示を有効にしないと有効になりません。""")
     async def rk(self, ctx: commands.Context):
-        if admin_check.admin_check(ctx.message.guild, ctx.message.author) or ctx.message.author.id in n_fc.py_admin:
+        if admin_check.admin_check(ctx.guild, ctx.author) or ctx.author.id in n_fc.py_admin:
             if ctx.message.content == f"{self.bot.command_prefix}rk":
                 embed = nextcord.Embed(
                     title="ロールキーパー", description=f"`{self.bot.command_prefix}rk [on/off]`", color=0x00ff00)
@@ -285,7 +285,7 @@ class user(commands.Cog):
 `n!ui set [チャンネルID]`
 `n!ui del`""")
     async def ui(self, ctx: commands.Context):
-        if admin_check.admin_check(ctx.message.guild, ctx.message.author) or ctx.message.author.id in n_fc.py_admin:
+        if admin_check.admin_check(ctx.guild, ctx.author) or ctx.author.id in n_fc.py_admin:
             mes_arg = ctx.message.content.split(" ")
             if len(mes_arg) == 1:
                 await self.ui_config(self.bot, ctx, STATUS, ctx.guild.id, None)

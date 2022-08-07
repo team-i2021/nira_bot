@@ -102,7 +102,7 @@ class debug(commands.Cog):
 
     @commands.command()
     async def websocket(self, ctx: commands.Context):
-        if ctx.message.author.id in n_fc.py_admin:
+        if (await self.bot.is_owner(ctx.author)):
             port = ctx.message.content.split(" ", 1)[1]
             try:
                 await ctx.message.add_reaction("\U0001F310")
@@ -116,7 +116,7 @@ class debug(commands.Cog):
 
     @commands.command()
     async def restart(self, ctx: commands.Context):
-        if ctx.message.author.id in n_fc.py_admin:
+        if (await self.bot.is_owner(ctx.author)):
             def check(m):
                 return (m.content == 'y' or m.content == 'n') and m.author == ctx.author and m.channel == ctx.channel
             restart_code = await ctx.reply("```\nnira@nira-bot $ sudo restart nira-bot\nAre you sure want to restart nira-bot?[y/n]```")
@@ -154,7 +154,7 @@ class debug(commands.Cog):
 
     @commands.command()
     async def exit(self, ctx: commands.Context):
-        if ctx.message.author.id in n_fc.py_admin:
+        if (await self.bot.is_owner(ctx.author)):
             def check(m):
                 return (m.content == 'y' or m.content == 'n') and m.author == ctx.author and m.channel == ctx.channel
             exit_code = await ctx.reply("```\nnira@nira-bot $ sudo shutdown nira-bot\nAre you sure want to shutdown nira-bot?[y/n]```")
@@ -194,7 +194,7 @@ class debug(commands.Cog):
 
     @commands.command()
     async def py(self, ctx: commands.Context):
-        if ctx.message.author.id not in n_fc.py_admin:
+        if ctx.author.id not in n_fc.py_admin:
             embed = nextcord.Embed(
                 title="Error", description=f"You don't have the required permission.", color=0xff0000)
             await ctx.reply(embed=embed)
@@ -207,7 +207,7 @@ class debug(commands.Cog):
             await ctx.message.add_reaction("\U0000274C")
             return
         if ctx.message.content.startswith(f"{self.bot.command_prefix}py await"):
-            if ctx.message.author.id not in n_fc.py_admin:
+            if ctx.author.id not in n_fc.py_admin:
                 embed = nextcord.Embed(
                     title="Error", description=f"You don't have the required permission.", color=0xff0000)
                 await ctx.message.repcly(embed=embed)
@@ -249,7 +249,7 @@ class debug(commands.Cog):
 
     @commands.command()
     async def sh(self, ctx: commands.Context):
-        if ctx.message.author.id not in n_fc.py_admin:
+        if ctx.author.id not in n_fc.py_admin:
             embed = nextcord.Embed(
                 title="Error", description=f"You don't have the required permission.", color=0xff0000)
             await ctx.reply(embed=embed)
@@ -285,7 +285,7 @@ class debug(commands.Cog):
 
     @commands.command()
     async def save(self, ctx: commands.Context):
-        if ctx.message.author.id in n_fc.py_admin:
+        if (await self.bot.is_owner(ctx.author)):
             try:
                 save()
                 await ctx.reply("Saved.")

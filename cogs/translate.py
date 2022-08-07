@@ -321,7 +321,7 @@ Powered by DeepL Translate/Google Translate.""")
                 await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"言語設定がおかしいです。\n英語:`en`/日本語:`jp`\n`{self.bot.command_prefix}translate [ja/en] [text]`", color=0xff0000))
                 return
             try:
-                async with ctx.message.channel.typing():
+                async with ctx.channel.typing():
                     result = await translation(self.bot, self.deepl_tr, self.google_tr, args[2], None, lang)
                     await ctx.reply(embed=make_embed(result[1], result[0], "...", lang))
                     return

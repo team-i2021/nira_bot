@@ -274,10 +274,10 @@ n!rolepanel [*メッセージ内容]
         if ctx.message.content == f"{self.bot.command_prefix}rolepanel debug":
             await ctx.message.add_reaction('🐛')
             if await self.bot.is_owner(ctx.author):
-                await ctx.send(f"{ctx.message.author.mention}", embed=nextcord.Embed(title="Views", description=PersistentViews, color=0x00ff00))
+                await ctx.send(f"{ctx.author.mention}", embed=nextcord.Embed(title="Views", description=PersistentViews, color=0x00ff00))
                 return
             else:
-                await ctx.send(f"{ctx.message.author.mention}", embed=nextcord.Embed(title="ERR", description="あなたは管理者ではありません。", color=0xff0000))
+                await ctx.send(f"{ctx.author.mention}", embed=nextcord.Embed(title="ERR", description="あなたは管理者ではありません。", color=0xff0000))
                 return
             return
         if admin_check(ctx.guild, ctx.author) == False:

@@ -130,17 +130,17 @@ async def launch_ss(self, channel_id, message_id):
 # コマンド内部
 async def ss_base(self, ctx: commands.Context):
     if ctx.message.content == f"{self.bot.command_prefix}ss":
-        if ctx.message.guild.id not in steam_server.value:
+        if ctx.guild.id not in steam_server.value:
             await ctx.reply("サーバーは登録されていません。")
             return
-        async with ctx.message.channel.typing():
+        async with ctx.channel.typing():
             embed = nextcord.Embed(
                 title="Server Status Checker",
-                description=f"{ctx.message.author.mention}\n:globe_with_meridians:Status\n==========",
+                description=f"{ctx.author.mention}\n:globe_with_meridians:Status\n==========",
                 color=0x00ff00
             )
-            for i in map(str, range(1, int(steam_server.value[ctx.message.guild.id]["value"])+1)):
-                await server_check.server_check(embed, 0, ctx.message.guild.id, i)
+            for i in map(str, range(1, int(steam_server.value[ctx.guild.id]["value"])+1)):
+                await server_check.server_check(embed, 0, ctx.guild.id, i)
             await asyncio.sleep(1)
             await ctx.reply(embed=embed, view=Recheck_SS_Embed())
         return
@@ -177,8 +177,8 @@ async def ss_base(self, ctx: commands.Context):
             await ctx.reply("サーバーは登録されていません。")
             return
         else:
-            if admin_check.admin_check(ctx.guild, ctx.message.author) or ctx.message.author.id in n_fc.py_admin:
-                user = await self.bot.fetch_user(ctx.message.author.id)
+            if admin_check.admin_check(ctx.guild, ctx.author):
+                user = await self.bot.fetch_user(ctx.author.id)
                 embed = nextcord.Embed(
                     title="Steam Server List", description=f"「{ctx.guild.name}」のサーバーリスト\n```保存数：{str(steam_server.value[ctx.guild.id]['value'])}```", color=0x00ff00)
                 for i in range(int(steam_server.value[ctx.guild.id]['value'])):
@@ -192,7 +192,7 @@ async def ss_base(self, ctx: commands.Context):
                 return
 
     elif args[1] == "auto":
-        if admin_check.admin_check(ctx.guild, ctx.message.author) == False:
+        if admin_check.admin_check(ctx.guild, ctx.author) == False:
             await ctx.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
             return
         if ctx.message.content == f"{self.bot.command_prefix}ss auto":
@@ -357,7 +357,7 @@ async def ss_base(self, ctx: commands.Context):
         async with ctx.channel.typing():
             embed = nextcord.Embed(
                 title="Server Status Checker",
-                description=f"{ctx.message.author.mention}\n:globe_with_meridians:Status\n==========",
+                description=f"{ctx.author.mention}\n:globe_with_meridians:Status\n==========",
                 color=0x00ff00
             )
             for i in map(str, range(1, int(steam_server.value[ctx.guild.id]["value"])+1)):
@@ -391,7 +391,7 @@ async def ss_base(self, ctx: commands.Context):
         async with ctx.channel.typing():
             embed = nextcord.Embed(
                 title="Server Status Checker",
-                description=f"{ctx.message.author.mention}\n:globe_with_meridians:Status\n==========",
+                description=f"{ctx.author.mention}\n:globe_with_meridians:Status\n==========",
                 color=0x00ff00
             )
             await server_check.server_check(embed, 0, ctx.guild.id, args[1])

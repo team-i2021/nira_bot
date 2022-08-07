@@ -187,7 +187,7 @@ API制限などが来た場合はご了承ください。許せ。""")
                     await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description="先にボイスチャンネルに接続してください。", color=0xff0000))
                     return
                 else:
-                    if not ctx.message.guild.voice_client is None:
+                    if not ctx.guild.voice_client is None:
                         await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description=f"既にVCに入っています。\n音楽再生から切り替える場合は、`n!leave`->`{self.bot.command_prefix}tts join`の順に入力してください。", color=0xff0000))
                         return
                     await ctx.author.voice.channel.connect()
@@ -218,10 +218,10 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                     await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description="先にボイスチャンネルに接続してください。", color=0xff0000))
                     return
                 else:
-                    if ctx.message.guild.voice_client is None:
+                    if ctx.guild.voice_client is None:
                         await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description="そもそも入ってないっす...(´・ω・｀)", color=0xff0000))
                         return
-                    await ctx.message.guild.voice_client.disconnect()
+                    await ctx.guild.voice_client.disconnect()
                     del tts_channel.value[ctx.guild.id]
                     await database.default_push(self.client, tts_channel)
                     await ctx.reply(embed=nextcord.Embed(title="TTS", description="あっ...ばいばーい...", color=0x00ff00))
@@ -239,7 +239,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                     await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description="先にボイスチャンネルに接続してください。", color=0xff0000))
                     return
                 else:
-                    if ctx.message.guild.voice_client is None:
+                    if ctx.guild.voice_client is None:
                         await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description="僕...入ってないっす...(´・ω・｀)", color=0xff0000))
                         return
                     view = nextcord.ui.View(timeout=None)

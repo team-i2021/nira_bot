@@ -107,7 +107,7 @@ class mod(commands.Cog):
                 return
 
         elif ctx.message.content == f"{self.bot.command_prefix}mod debug":
-            if ctx.author.id in n_fc.py_admin:
+            if (await self.bot.is_owner(ctx.author)):
                 await ctx.reply(f"messageCounter: `{counter.messageCounter}`\nmod_list: `{mod_list.value}`\nmod_check: `{counter.messageCounter[ctx.author.id] >= mod_list.value[ctx.guild.id]['counter']}`\nlast reset: `{reset_time}`")
                 return
 
