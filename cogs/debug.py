@@ -3,7 +3,6 @@ import importlib
 import json
 import logging
 import os
-import pickle
 import platform
 import re
 import shutil
@@ -14,15 +13,15 @@ import psutil
 import websockets
 from subprocess import PIPE
 
+import HTTP_db
 import nextcord
 import requests
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
 
-from cogs import normal_reaction as nr
 from util import admin_check, n_fc, eh, database, slash_tool
+from util.nira import NIRA
 
-import HTTP_db
 
 SYSDIR = sys.path[0]
 
@@ -30,10 +29,9 @@ SYSDIR = sys.path[0]
 
 
 class Debug(commands.Cog):
-    def __init__(self, bot: commands.Bot, **kwargs):
+    def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
-        self.client = kwargs["client"]
-
+        
     async def ws(self, websocket, path):
         async for message in websocket:
             try:
@@ -86,6 +84,9 @@ class Debug(commands.Cog):
 
     @commands.command()
     async def restart(self, ctx: commands.Context):
+        if not self.bot.debug:
+            await ctx.reply(f"本番環境においてリスタートコマンドを使用することはできません。")
+            return
         if (await self.bot.is_owner(ctx.author)):
             def check(m):
                 return (m.content == 'y' or m.content == 'n') and m.author == ctx.author and m.channel == ctx.channel
@@ -123,6 +124,9 @@ class Debug(commands.Cog):
 
     @commands.command()
     async def exit(self, ctx: commands.Context):
+        if not self.bot.debug:
+            await ctx.reply(f"本番環境においてリスタートコマンドを使用することはできません。")
+            return
         if (await self.bot.is_owner(ctx.author)):
             def check(m):
                 return (m.content == 'y' or m.content == 'n') and m.author == ctx.author and m.channel == ctx.channel
@@ -254,7 +258,7 @@ class Debug(commands.Cog):
     async def debug_slash(self, interaction):
         pass
 
-    @debug_slash.subcommand(name="extenssave()ion", description="Manage extensions")
+    @debug_slash.subcommand(name="extension", description="Manage extensions")
     async def extension_slash(self, interaction):
         pass
 
@@ -270,7 +274,7 @@ class Debug(commands.Cog):
         if await self.bot.is_owner(interaction.user):
             await interaction.response.defer()
             try:
-                self.bot.load_extension(cogname, extras={"client", self.client})
+                self.bot.load_extension(cogname)
                 await interaction.followup.send(f"The cog `{cogname}` successfully loaded.", ephemeral=True)
             except Exception as err:
                 await interaction.followup.send(f"Failed to load cog `{cogname}`.\n```py\n{err}```", ephemeral=True)
@@ -282,8 +286,7 @@ class Debug(commands.Cog):
         if await self.bot.is_owner(interaction.user):
             await interaction.response.defer()
             try:
-                self.bot.unload_extension(cogname)
-                self.bot.load_extension(f"{cogname}", extras={"client", self.client})
+                self.bot.reload_extension(cogname)
                 await interaction.followup.send(f"The cog `{cogname}` successfully reloaded.", ephemeral=True)
             except Exception as err:
                 await interaction.followup.send(f"Failed to reload cog `{cogname}`.\n```py\n{err}```", ephemeral=True)
@@ -309,12 +312,12 @@ class Debug(commands.Cog):
         await interaction.response.defer()
         os = platform.system()
         try:
-            ping = f"{round((await self.client.ping()).ping * 1000, 2)}ms"
+            ping = f"{round((await self.bot.client.ping()).ping * 1000, 2)}ms"
         except Exception:
             ping = "Connection Error"
         embed = nextcord.Embed(
             title="Debug info",
-            description=f"Hosting on {os}",
+            description=f"Hosting on {os} {(lambda x: platform.release() if x in ['Darwin', 'Windows'] else '')(platform.system())}",
             color=0x363636
         )
         embed.add_field(
@@ -350,7 +353,7 @@ class Debug(commands.Cog):
             value=f"```\n{list(dict(self.bot.cogs).keys())}```",
             inline=False
         )
-        await interaction.followup.send(embed=embed, username="Debug info")
+        await interaction.followup.send(embed=embed)
 
     @debug_slash.subcommand(name="db", description="database")
     async def db(self, interaction: Interaction):
@@ -363,7 +366,7 @@ class Debug(commands.Cog):
         await interaction.response.defer()
         try:
             key = eval(key)
-            value = await self.client.get(key)
+            value = await self.bot.client.get(key)
             await interaction.followup.send(embed=nextcord.Embed(title="POST:/get", description=f"```\n{value}```", color=0x00ff00))
         except Exception:
             await interaction.followup.send(embed=nextcord.Embed(title="POST:/get", description=f"```\n{traceback.format_exc()}```", color=0xFF0000))
@@ -374,7 +377,7 @@ class Debug(commands.Cog):
             raise Exception("Forbidden")
         await interaction.response.defer()
         try:
-            value = await self.client.get_all()
+            value = await self.bot.client.get_all()
             await interaction.followup.send(embed=nextcord.Embed(title="POST:/get_all", description=f"```\n{value}```", color=0x00ff00))
         except Exception:
             await interaction.followup.send(embed=nextcord.Embed(title="POST:/get_all", description=f"```\n{traceback.format_exc()}```", color=0xFF0000))
@@ -387,7 +390,7 @@ class Debug(commands.Cog):
         try:
             key = eval(key)
             value = eval(value)
-            await self.client.post(key, value)
+            await self.bot.client.post(key, value)
             await interaction.followup.send(embed=nextcord.Embed(title="POST:/post", description=f"```\n{value}```", color=0x00ff00))
         except Exception:
             await interaction.followup.send(embed=nextcord.Embed(title="POST:/post", description=f"```\n{traceback.format_exc()}```", color=0xFF0000))
@@ -399,7 +402,7 @@ class Debug(commands.Cog):
         await interaction.response.defer()
         try:
             key = eval(key)
-            value = await self.client.exists(key)
+            value = await self.bot.client.exists(key)
             await interaction.followup.send(embed=nextcord.Embed(title="POST:/exists", description=f"```\n{value}```", color=0x00ff00))
         except Exception:
             await interaction.followup.send(embed=nextcord.Embed(title="POST:/exists", description=f"```\n{traceback.format_exc()}```", color=0xFF0000))
@@ -411,18 +414,19 @@ class Debug(commands.Cog):
         await interaction.response.defer()
         try:
             key = eval(key)
-            await self.client.delete(key)
+            await self.bot.client.delete(key)
             await interaction.followup.send(embed=nextcord.Embed(title="POST:/delete", description=f"```\n{key}```", color=0x00ff00))
         except Exception:
             await interaction.followup.send(embed=nextcord.Embed(title="POST:/delete", description=f"```\n{traceback.format_exc()}```", color=0xFF0000))
 
+#    危ないよね
 #    @db.subcommand(name="delete_all", description="Method POST:/delete_all")
 #    async def db_delete_all(self, interaction: Interaction):
 #        if not (await self.bot.is_owner(interaction.user)):
 #            raise Exception("Forbidden")
 #        await interaction.response.defer()
 #        try:
-#            await self.client.delete_all()
+#            await self.bot.client.delete_all()
 #            await interaction.followup.send(embed=nextcord.Embed(title="POST:/delete_all", description="", color=0x00ff00))
 #        except Exception:
 #            await interaction.followup.send(embed=nextcord.Embed(title="POST:/delete_all", description=f"```\n{traceback.format_exc()}```", color=0xFF0000))
@@ -433,7 +437,7 @@ class Debug(commands.Cog):
             raise Exception("Forbidden")
         await interaction.response.defer()
         try:
-            value = await self.client.info()
+            value = await self.bot.client.info()
             await interaction.followup.send(embed=nextcord.Embed(title="GET:/info", description=f"{value}", color=0x00ff00))
         except Exception:
             await interaction.followup.send(embed=nextcord.Embed(title="GET:/info", description=f"```\n{traceback.format_exc()}```", color=0xFF0000))
@@ -444,7 +448,7 @@ class Debug(commands.Cog):
             raise Exception("Forbidden")
         await interaction.response.defer()
         try:
-            value = await self.client.ping()
+            value = await self.bot.client.ping()
             await interaction.followup.send(embed=nextcord.Embed(title="GET:/ping", description=f"{round(float(value.ping) * 1000, 2)}ms", color=0x00ff00))
         except Exception:
             await interaction.followup.send(embed=nextcord.Embed(title="GET:/ping", description=f"```\n{traceback.format_exc()}```", color=0xFF0000))
@@ -490,29 +494,6 @@ class Debug(commands.Cog):
             await interaction.followup.send(embed=nextcord.Embed(title="SYNC", description=f"```\n{guild_id}```", color=0x00ff00))
         except Exception:
             await interaction.followup.send(embed=nextcord.Embed(title="SYNC", description=f"```\n{traceback.format_exc()}```", color=0xFF0000))
-
-    @commands.command()
-    async def reaction(self, ctx: commands.Context):
-        if ctx.author.id not in n_fc.py_admin:
-            embed = nextcord.Embed(
-                title="Error",
-                description=f"You don't have the required permission.",
-                color=0xff0000
-            )
-            await ctx.reply(embed=embed)
-            return
-        else:
-            if ctx.message.content == f"{self.bot.command_prefix}reaction":
-                await ctx.reply("引数「ReplyID」が足りません。")
-                return
-            if ctx.message.content == f"{self.bot.command_prefix}reaction reload":
-                importlib.reload(nr)
-                await ctx.reply("End")
-            try:
-                await nr.n_reaction(ctx.message, int(ctx.message.content.split(" ", 1)[1]))
-            except Exception as err:
-                await ctx.reply(f"```{err}```")
-
 
     @commands.command()
     async def lb(self, ctx):

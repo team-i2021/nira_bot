@@ -5,7 +5,7 @@ from nextcord import Interaction
 from nextcord.ext import commands
 
 from util.n_fc import GUILD_IDS
-
+from util.nira import NIRA
 
 class CodeInsert(nextcord.ui.Modal):
     def __init__(self):
@@ -31,7 +31,7 @@ class CodeInsert(nextcord.ui.Modal):
 
 
 class Code(commands.Cog):
-    def __init__(self, bot: commands.Bot, **kwargs):
+    def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
 
     @nextcord.slash_command(name="html", description="HTMLを入力してページを返します。", guild_ids=GUILD_IDS)

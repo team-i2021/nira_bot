@@ -12,6 +12,7 @@ from nextcord.ext import commands
 from util.n_fc import GUILD_IDS
 from util.slash_tool import messages
 from util.wordle_data import words
+from util.nira import NIRA
 
 # 娯楽系
 
@@ -19,7 +20,7 @@ MESSAGE, SLASH = [0, 1]
 
 
 class Amuse(commands.Cog):
-    def __init__(self, bot: commands.Bot, **kwargs):
+    def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
 
     @commands.command(name="dice", help="""\

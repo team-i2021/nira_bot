@@ -10,38 +10,34 @@ from nextcord import Interaction, SlashOption, ChannelType
 from nextcord.ext import commands, tasks
 
 from util import admin_check, n_fc, eh, dict_list, database
+from util.nira import NIRA
 
 # ボトムアップ的な機能
 
-PIN_MESSAGE = {}
-
-async def MessagePin(bot: nextcord.ext.commands.bot.Bot):
-    while True:
-        try:
-            for i in PIN_MESSAGE.keys():
-                for j in PIN_MESSAGE[i].keys():
-                    CHANNEL = await bot.fetch_channel(j)
-                    if CHANNEL.last_message.content == PIN_MESSAGE[i][j] and CHANNEL.last_message.author.id == bot.user.id:
-                        continue
-                    messages = await CHANNEL.history(limit=10).flatten()
-                    for message in messages:
-                        if message.content == PIN_MESSAGE[i][j] and message.author.id == bot.user.id:
-                            await message.delete()
-                    await CHANNEL.send(PIN_MESSAGE[i][j])
-            await asyncio.sleep(5)
-        except Exception:
-            pass
+class pin_message:
+    name = "bottom_up"
+    value = {}
+    default = {}
+    value_type = database.CHANNEL_VALUE
 
 
-async def pullData(client: HTTP_db.Client):
-    global PIN_MESSAGE
-    if not await client.exists("bottom_up"):
-        await client.post("bottom_up", [])
-    try:
-        PIN_MESSAGE = dict_list.listToDict(await client.get("bottom_up"))
-    except Exception:
-        logging.error(traceback.format_exc())
-        PIN_MESSAGE = {}
+#async def MessagePin(client, bot):
+#    while True:
+#        try:
+#            for i in pin_message.value.keys():
+#                for j in pin_message.value[i].keys():
+#                    CHANNEL = bot.fetch_channel(j)
+#                    if CHANNEL.last_message.content == pin_message.value[i][j] and CHANNEL.last_message.author.id == bot.user.id:
+#                        continue
+#                    messages = await CHANNEL.history(limit=10).flatten()
+#                    for message in messages:
+#                        if message.content == pin_message.value[i][j] and message.author.id == bot.user.id:
+#                            await message.delete()
+#                    await CHANNEL.send(pin_message.value[i][j])
+#            await asyncio.sleep(5)
+#        except Exception:
+#            pass
+
 
 
 class BottomModal(nextcord.ui.Modal):
@@ -62,21 +58,24 @@ class BottomModal(nextcord.ui.Modal):
         self.add_item(self.mes)
 
     async def callback(self, interaction: nextcord.Interaction) -> None:
-        if interaction.guild.id not in PIN_MESSAGE:
-            PIN_MESSAGE[interaction.guild.id] = {
+        if interaction.guild.id not in pin_message.value:
+            pin_message.value[interaction.guild.id] = {
                 interaction.channel.id: self.mes.value}
         else:
-            PIN_MESSAGE[interaction.guild.id][interaction.channel.id] = self.mes.value
-        await self.client.post("bottom_up", dict_list.dictToList(PIN_MESSAGE))
+            pin_message.value[interaction.guild.id][interaction.channel.id] = self.mes.value
+        await database.default_push(self.client, pin_message)
         await interaction.response.send_message(f"ピン留めを保存しました。", embed=nextcord.Embed(title="ピン留め", description=self.mes.value), ephemeral=True)
 
 
 class Bottomup(commands.Cog):
-    def __init__(self, bot: commands.Bot, **kwargs):
+    def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
-        self.client = kwargs["client"]
-        asyncio.ensure_future(pullData(self.client))
-        self.checkPin.start()
+        asyncio.ensure_future(database.default_pull(self.bot.client, pin_message))
+        if not self.checkPin.is_running():
+            self.checkPin.start()
+
+    def cog_unload(self):
+        self.checkPin.cancel()
 
     @commands.command(name="pin", aliases=("Pin", "bottomup", "ピン留め", "ピン"), help="""\
 特定のメッセージを一番下に持ってくることで、いつでもみれるようにする、ピン留めの改良版。
@@ -94,33 +93,53 @@ offにするには、`n!pin off`と送信してください。
         if admin_check.admin_check(ctx.guild, ctx.author):
             args = ctx.message.content.split(" ", 2)
             if len(args) == 1:
-                await ctx.reply(f"`{self.bot.command_prefix}pin on [メッセージ内容...(複数行可)]` と送ってください。")
+                await ctx.reply(f"セットするには`{self.bot.command_prefix}pin on [メッセージ内容...(複数行可)]` と送ってください。\nセット解除するには`{self.bot.command_prefix}pin off`と送ってください。")
                 return
             if args[1] == "on":
                 if len(args) != 3:
                     await ctx.reply(f"・エラー\n引数が足りません。\n`{self.bot.command_prefix}pin on [メッセージ内容]`または`{self.bot.command_prefix}pin off`")
                     return
-                if ctx.guild.id not in PIN_MESSAGE:
-                    PIN_MESSAGE[ctx.guild.id] = {ctx.channel.id: args[2]}
+                if ctx.guild.id not in pin_message.value:
+                    pin_message.value[ctx.guild.id] = {ctx.channel.id: args[2]}
                 else:
-                    PIN_MESSAGE[ctx.guild.id][ctx.channel.id] = args[2]
-                await self.client.post("bottom_up", dict_list.dictToList(PIN_MESSAGE))
+                    pin_message.value[ctx.guild.id][ctx.channel.id] = args[2]
+                await database.default_push(self.bot.client, pin_message)
                 await ctx.message.add_reaction("\U0001F197")
                 await ctx.reply("Ok")
             elif args[1] == "off":
-                if ctx.guild.id not in PIN_MESSAGE or ctx.channel.id not in PIN_MESSAGE[ctx.guild.id]:
+                if ctx.guild.id not in pin_message.value or ctx.channel.id not in pin_message.value[ctx.guild.id]:
                     await ctx.reply("このチャンネルにはpinメッセージはありません。")
                     return
                 else:
                     messages = await ctx.channel.history(limit=10).flatten()
-                    search_message = PIN_MESSAGE[ctx.guild.id][ctx.channel.id]
-                    del PIN_MESSAGE[ctx.guild.id][ctx.channel.id]
-                    await self.client.post("bottom_up", dict_list.dictToList(PIN_MESSAGE))
+                    search_message = pin_message.value[ctx.guild.id][ctx.channel.id]
+                    del pin_message.value[ctx.guild.id][ctx.channel.id]
+                    await database.default_push(self.bot.client, pin_message)
                     for i in messages:
                         if i.content == search_message:
                             await i.delete()
                     await ctx.reply("登録を解除しました。")
                     return
+            elif args[1] == "debug":
+                if not await self.bot.is_owner(ctx.author):
+                    await ctx.reply("権限があります。じゃなかった...ありません。")
+                    return
+                if args[2] == "next":
+                    await ctx.reply(self.checkPin.next_iteration)
+                    return
+                elif args[2] == "check":
+                    await ctx.reply(self.checkPin.failed())
+                    return
+                elif args[2] == "start":
+                    self.checkPin.start()
+                    await ctx.reply("start")
+                    return
+                elif args[2] == "stop":
+                    self.checkPin.cancel()
+                    await ctx.reply("stop")
+                    return
+                elif args[2] == "get":
+                    await ctx.reply(self.checkPin.get_task())
             else:
                 await ctx.reply(f"・エラー\n使い方が違います。\n`{self.bot.command_prefix}pin on [メッセージ内容]`または`{self.bot.command_prefix}pin off`")
                 return
@@ -134,12 +153,12 @@ offにするには、`n!pin off`と送信してください。
             await interaction.response.send_message("あなたには管理者権限がありません。", ephemeral=True)
         if message.content is None or message.content == "":
             await interaction.response.send_message(f"指定されたメッセージには本文がありません。", ephemeral=True)
-        if interaction.guild.id not in PIN_MESSAGE:
-            PIN_MESSAGE[interaction.guild.id] = {
+        if interaction.guild.id not in pin_message.value:
+            pin_message.value[interaction.guild.id] = {
                 interaction.channel.id: message.content}
         else:
-            PIN_MESSAGE[interaction.guild.id][interaction.channel.id] = message.content
-        await self.client.post("bottom_up", dict_list.dictToList(PIN_MESSAGE))
+            pin_message.value[interaction.guild.id][interaction.channel.id] = message.content
+        await database.default_push(self.bot.client, pin_message)
         await interaction.response.send_message(f"ピン留めを保存しました。", embed=nextcord.Embed(title="ピン留め", description=message.content), ephemeral=True)
 
     @nextcord.slash_command(name="pin", description="メッセージ下部ピン留め機能", guild_ids=n_fc.GUILD_IDS)
@@ -152,7 +171,7 @@ offにするには、`n!pin off`と送信してください。
         interaction: Interaction
     ):
         if admin_check.admin_check(interaction.guild, interaction.user):
-            await interaction.response.send_modal(BottomModal)
+            await interaction.response.send_modal(BottomModal(self.bot.client))
         else:
             await interaction.response.send_message("あなたには管理者権限がありません。", ephemeral=True)
             return
@@ -165,16 +184,16 @@ offにするには、`n!pin off`と送信してください。
         await interaction.response.defer(ephemeral=True)
         if admin_check.admin_check(interaction.guild, interaction.user):
             try:
-                if interaction.guild.id not in PIN_MESSAGE or interaction.channel.id not in PIN_MESSAGE[interaction.guild.id]:
+                if interaction.guild.id not in pin_message.value or interaction.channel.id not in pin_message.value[interaction.guild.id]:
                     await interaction.followup.send("このチャンネルにはpinメッセージはありません。", ephemeral=True)
                 else:
                     messages = await interaction.channel.history(limit=10).flatten()
-                    search_message = PIN_MESSAGE[interaction.guild.id][interaction.channel.id]
-                    del PIN_MESSAGE[interaction.guild.id][interaction.channel.id]
+                    search_message = pin_message.value[interaction.guild.id][interaction.channel.id]
+                    del pin_message.value[interaction.guild.id][interaction.channel.id]
                     for i in messages:
                         if i.content == search_message:
                             await i.delete()
-                    await self.client.post("bottom_up", dict_list.dictToList(PIN_MESSAGE))
+                    await database.default_push(self.bot.client, pin_message)
                     await interaction.followup.send("登録を解除しました。", ephemeral=True)
             except Exception:
                 await interaction.followup.send(f"エラーが発生しました。\n```sh\n{traceback.format_exc()}```", ephemeral=True)
@@ -186,24 +205,31 @@ offにするには、`n!pin off`と送信してください。
     @tasks.loop(seconds=3)
     async def checkPin(self):
         await self.bot.wait_until_ready()
-        for i in PIN_MESSAGE.keys():
-            for j in PIN_MESSAGE[i].keys():
-                CHANNEL = await self.bot.fetch_channel(j)
-                try:
-                    if not CHANNEL.last_message.is_system() or (CHANNEL.last_message.content == PIN_MESSAGE[i][j] and CHANNEL.last_message.author.id == self.bot.user.id):
+        for i in pin_message.value.keys():
+            for j in pin_message.value[i].keys():
+                CHANNEL = self.bot.get_channel(j)
+                if CHANNEL is None:
+                    try:
+                        CHANNEL = await self.bot.fetch_channel(j)
+                    except Exception:
                         continue
+                    continue
+                try:
+                    if CHANNEL.last_message is not None:
+                        if (CHANNEL.last_message.content == pin_message.value[i][j] and CHANNEL.last_message.author.id == self.bot.user.id):
+                            continue
                 except Exception:
                     logging.error(traceback.format_exc())
                     continue
                 messages = await CHANNEL.history(limit=10).flatten()
                 for message in messages:
-                    if message.content == PIN_MESSAGE[i][j] and message.author.id == self.bot.user.id:
+                    if message.content == pin_message.value[i][j] and message.author.id == self.bot.user.id:
                         try:
                             await message.delete()
                         except Exception:
                             logging.error(traceback.format_exc())
                             continue
-                await CHANNEL.send(PIN_MESSAGE[i][j])
+                await CHANNEL.send(pin_message.value[i][j])
 
 # logging.error(traceback.format_exc())
 
@@ -211,5 +237,5 @@ offにするには、`n!pin off`と送信してください。
 def setup(bot, **kwargs):
     bot.add_cog(Bottomup(bot, **kwargs))
 
-def teardown(bot):
-    Bottomup.checkPin.stop()
+def teardown(bot, **kwargs):
+    print("Pin: teardown!")

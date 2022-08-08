@@ -8,8 +8,8 @@ import nextcord
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
 
-from cogs.debug import save
 from util import admin_check, n_fc, eh, database
+from util.nira import NIRA
 
 # 規定秒数以内に指定数メッセージを送信した人をミュートするモデレーター的な機能
 # n!mod
@@ -36,9 +36,10 @@ async def counterReset():
 
 
 class mod(commands.Cog):
-    def __init__(self, bot: commands.Bot, **kwargs):
+    def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
-        self.client = kwargs["client"]
+        asyncio.ensure_future(database.default_pull(self.bot.client, mod_list))
+
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
@@ -89,7 +90,7 @@ class mod(commands.Cog):
                     return
                 mod_list.value[ctx.guild.id] = {
                     "counter": int(arg[0]), "role": role_id}
-                await database.default_push(self.client, mod_list)
+                await database.default_push(self.bot.client, mod_list)
                 await ctx.reply(f"設定完了", embed=nextcord.Embed(title="荒らし対策", description=f"メッセージカウンター:`{arg[0]}`\nミュート用ロール:<@&{role_id}>", color=0x00ff00))
                 return
             else:
@@ -99,7 +100,7 @@ class mod(commands.Cog):
         elif ctx.message.content == f"{self.bot.command_prefix}mod off":
             if admin_check.admin_check(ctx.guild, ctx.author):
                 del mod_list.value[ctx.guild.id]
-                await database.default_push(self.client, mod_list)
+                await database.default_push(self.bot.client, mod_list)
                 await ctx.reply("設定完了", embed=nextcord.Embed(title="荒らし対策", description=f"設定を削除しました。", color=0x00ff00))
                 return
             else:
@@ -146,7 +147,7 @@ class mod(commands.Cog):
             try:
                 mod_list.value[interaction.guild.id] = {
                     "counter": counter, "role": role.id}
-                await database.default_push(self.client, mod_list)
+                await database.default_push(self.bot.client, mod_list)
             except Exception as err:
                 await interaction.response.send_message(embed=nextcord.Embed(title="荒らし対策", description=f"エラーが発生しました。\n```\n{err}```", color=0xff0000), ephemeral=True)
                 return
@@ -168,7 +169,7 @@ class mod(commands.Cog):
             else:
                 try:
                     del mod_list.value[interaction.guild.id]
-                    await database.default_push(self.client, mod_list)
+                    await database.default_push(self.bot.client, mod_list)
                 except Exception as err:
                     await interaction.response.send_message(embed=nextcord.Embed(title="荒らし対策", description=f"エラーが発生しました。\n```\n{err}```", color=0xff0000), ephemeral=True)
                     return

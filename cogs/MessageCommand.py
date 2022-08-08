@@ -7,6 +7,7 @@ from nextcord.ext import commands
 
 from cogs import embed, translate, tts
 from util import n_fc
+from util.nira import NIRA
 
 
 # メッセージコマンド
@@ -54,14 +55,13 @@ class MessageCommandPulldown(nextcord.ui.Select):
 
 
 class MessageCommands(commands.Cog):
-    def __init__(self, bot: commands.Bot, **kwargs):
+    def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
-        self.client = kwargs["client"]
-    
+            
     @nextcord.message_command(name="その他", guild_ids=n_fc.GUILD_IDS)
     async def other_message_command(self, interaction: Interaction, message: nextcord.Message):
         view = nextcord.ui.View()
-        view.add_item(MessageCommandPulldown(self.bot, self.client, interaction, message))
+        view.add_item(MessageCommandPulldown(self.bot, self.bot.client, interaction, message))
         await interaction.response.send_message("実行したいメッセージコマンドを選択してください。", view=view, ephemeral=True)
         return
 

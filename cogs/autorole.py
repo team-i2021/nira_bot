@@ -8,10 +8,10 @@ import nextcord
 from nextcord import Interaction, SlashOption, Role
 from nextcord.ext import commands
 
-from cogs.debug import save
 from util import admin_check, database, dict_list
 from util.n_fc import GUILD_IDS
 from util.slash_tool import messages
+from util.nira import NIRA
 
 # Autorole
 
@@ -26,10 +26,9 @@ class autorole_data:
     value_type = database.GUILD_VALUE
 
 class autorole(commands.Cog):
-    def __init__(self, bot: commands.Bot, **kwargs):
+    def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
-        self.client = kwargs["client"]
-        asyncio.ensure_future(database.default_pull(self.client, autorole_data))
+        asyncio.ensure_future(database.default_pull(self.bot.client, autorole_data))
 
     @nextcord.slash_command(name="autorole", description="自動ロール", guild_ids=GUILD_IDS)
     async def autorole(self):
@@ -45,7 +44,7 @@ class autorole(commands.Cog):
 
 
             autorole_data.value[guild.id] = role.id
-            await database.default_push(self.client, autorole_data)
+            await database.default_push(self.bot.client, autorole_data)
             return (None, nextcord.Embed(title="自動ロール", description=f"設定完了：{role.mention}を自動的に付与します。", color=0x00ff00))
 
         elif mode == OFF:
@@ -53,7 +52,7 @@ class autorole(commands.Cog):
                 return ("サーバーで自動ロールは設定されていません。", None)
             else:
                 del autorole_data.value[guild.id]
-                await database.default_push(self.client, autorole_data)
+                await database.default_push(self.bot.client, autorole_data)
                 return ("サーバーで自動ロールを無効にしました。", None)
 
         else:

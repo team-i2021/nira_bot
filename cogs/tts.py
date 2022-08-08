@@ -16,6 +16,7 @@ from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
 
 from util import n_fc, mc_status, tts_convert, tts_dict, database
+from util.nira import NIRA
 
 # Text To Speech
 
@@ -88,10 +89,9 @@ class VoiceSelect(nextcord.ui.Select):
 
 
 class tts(commands.Cog):
-    def __init__(self, bot: commands.Bot, **kwargs):
+    def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
-        self.client = kwargs["client"]
-
+        
     @nextcord.slash_command(name="tts", description="テキストチャンネルの内容をVCで読み上げます", guild_ids=n_fc.GUILD_IDS)
     async def tts_slash(self, interaction: Interaction):
         pass
@@ -110,7 +110,7 @@ class tts(commands.Cog):
                 return
             await interaction.user.voice.channel.connect()
             tts_channel.value[interaction.guild.id] = interaction.channel.id
-            await database.default_push(self.client, tts_channel)
+            await database.default_push(self.bot.client, tts_channel)
             await interaction.response.send_message("接続しました", embed=nextcord.Embed(title="TTS", description="""\
 TTSの読み上げ音声には、VOICEVOXが使われています。  
 [各キャラクターについて](https://voicevox.hiroshiba.jp/)  
@@ -137,7 +137,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                 return
             await interaction.guild.voice_client.disconnect()
             del tts_channel.value[interaction.guild.id]
-            await database.default_push(self.client, tts_channel)
+            await database.default_push(self.bot.client, tts_channel)
             await interaction.response.send_message(embed=nextcord.Embed(title="TTS", description="あっ...ばいばーい...", color=0x00ff00))
             return
         return
@@ -145,13 +145,13 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
     @tts_slash.subcommand(name="voice", description="読み上げの声の種類を変更します")
     async def voice_slash(self, interaction: Interaction):
         view = nextcord.ui.View(timeout=None)
-        view.add_item(VoiceSelect(self.client))
+        view.add_item(VoiceSelect(self.bot.client))
         await interaction.response.send_message("下のプルダウンから声を選択してください。", view=view, ephemeral=True)
         return
 
     @tts_slash.subcommand(name="reload", description="Reload TTS modules.")
     async def reload_slash(self, interaction: Interaction):
-        if interaction.user.id in n_fc.py_admin:
+        if await self.bot.is_owner(interaction.user):
             importlib.reload(tts_convert)
             importlib.reload(tts_dict)
             await interaction.response.send_message(nextcord.Embed(title="Reloaded.", description="TTS modules were reloaded.", color=0x00ff00), ephemeral=True)
@@ -192,7 +192,7 @@ API制限などが来た場合はご了承ください。許せ。""")
                         return
                     await ctx.author.voice.channel.connect()
                     tts_channel.value[ctx.guild.id] = ctx.channel.id
-                    await database.default_push(self.client, tts_channel)
+                    await database.default_push(self.bot.client, tts_channel)
                     await ctx.reply("接続しました", embed=nextcord.Embed(title="TTS", description="""\
 TTSの読み上げ音声には、VOICEVOXが使われています。  
 [各キャラクターについて](https://voicevox.hiroshiba.jp/)  
@@ -223,7 +223,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                         return
                     await ctx.guild.voice_client.disconnect()
                     del tts_channel.value[ctx.guild.id]
-                    await database.default_push(self.client, tts_channel)
+                    await database.default_push(self.bot.client, tts_channel)
                     await ctx.reply(embed=nextcord.Embed(title="TTS", description="あっ...ばいばーい...", color=0x00ff00))
                     logging.info(f"Leave TTS from {ctx.guild.name}")
                     return
@@ -243,7 +243,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                         await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description="僕...入ってないっす...(´・ω・｀)", color=0xff0000))
                         return
                     view = nextcord.ui.View(timeout=None)
-                    view.add_item(VoiceSelect(self.client))
+                    view.add_item(VoiceSelect(self.bot.client))
                     await ctx.reply("下のプルダウンから声を選択してください。", view=view)
                     logging.info(f"Change TTS {ctx.author.name}'s Voice at {ctx.guild.name}")
                     return

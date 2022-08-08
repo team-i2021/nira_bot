@@ -1,26 +1,36 @@
+import asyncio
 import datetime
 import logging
 import os
-import pickle
 import re
 import sys
 from os import getenv
 import traceback
 
+import HTTP_db
 import nextcord
-from nextcord import Interaction, message
+from nextcord import Interaction
 from nextcord.ext import commands
-from nextcord.utils import get
 
-from util import n_fc, mc_status
-from util.admin_check import admin_check
+from util import n_fc, mc_status, database
+from util.nira import NIRA
 
-global PollViews
-PollViews = []
+class PollViews:
+    name = "pollviews"
+    value = []
+    default = []
+    value_type = database.SAME_VALUE
 
 # pollpanel v2
 pollpanel_title_compile = re.compile(r"作成者:<@[0-9]+>")
 pollpanel_value_compile = re.compile(r".+:`[0-9]+`票:.+")
+
+async def pull(bot: commands.Bot, client: HTTP_db.Client) -> None:
+    await database.default_pull(client, PollViews)
+    for i in PollViews.value:
+        bot.add_view(PollPanelView(i))
+    return None
+
 
 class PollPanelSlashInput(nextcord.ui.Modal):
     def __init__(self, bot):
@@ -78,13 +88,11 @@ class PollPanelSlashInput(nextcord.ui.Modal):
                 ":`0`票:なし\n".join(values) + ":`0`票:なし"
 
         self.bot.add_view(PollPanelView(values))
-        PollViews.append(values)
+        PollViews.value.append(values)
         if self.EmbedTitle.value == "" or self.EmbedTitle.value is None:
             self.EmbedTitle.value = "にらBOT投票パネル"
-        with open(f'{sys.path[0]}/PollViews.nira', 'wb') as f:
-            pickle.dump(PollViews, f)
+        await database.default_push(self.bot.client, PollViews)
         try:
-            
             await interaction.followup.send(f"作成者:{interaction.user.mention}", embed=nextcord.Embed(title=f"{self.EmbedTitle.value}", description=embed_content, color=0x00ff00).set_footer(text="NIRA Bot - PollPanel v2"), view=PollPanelView(values))
         except Exception:
             await interaction.followup.send(f"エラー: ```\n{traceback.format_exc()}```")
@@ -163,10 +171,9 @@ class PollPanelEditModal(nextcord.ui.Modal):
 
         embed_content += "\n".join([f"{key}:{value}" for key, value in options.items()])
         self.bot.add_view(PollPanelView(values))
-        PollViews.append(Args)
+        PollViews.value.append(Args)
 
-        with open(f'{sys.path[0]}/PollViews.nira', 'wb') as f:
-            pickle.dump(PollViews, f)
+        await database.default_push(self.bot.client, PollViews)
 
         EmbedTitle = self.message.embeds[0].title
         try:
@@ -176,6 +183,7 @@ class PollPanelEditModal(nextcord.ui.Modal):
             return
 
 
+
 class PollPanelView(nextcord.ui.View):
     def __init__(self, args):
         super().__init__(timeout=None)
@@ -183,6 +191,7 @@ class PollPanelView(nextcord.ui.View):
         for i in args:
             self.add_item(PollPanelButton(i))
         self.add_item(PollPanelEnd())
+
 
 
 class PollPanelButton(nextcord.ui.Button):
@@ -253,6 +262,8 @@ class PollPanelButton(nextcord.ui.Button):
 
         except Exception as err:
             await interaction.response.send_message(f"ERR: `{err}`", ephemeral=True)
+            logging.error(err, exc_info=True)
+
 
 
 class PollPanelEndConfirm(nextcord.ui.Button):
@@ -264,6 +275,8 @@ class PollPanelEndConfirm(nextcord.ui.Button):
         await self.interaction.message.edit(content="投票終了！", view=None)
         await interaction.response.send_message("投票は締め切られました。\n削除確認メッセージは削除しても構いません。", ephemeral=True)
         return
+
+
 
 class PollPanelEnd(nextcord.ui.Button):
     def __init__(self):
@@ -278,10 +291,12 @@ class PollPanelEnd(nextcord.ui.Button):
         else:
             await interaction.response.send_message("誰だおめぇ...？\n（投票製作者のみ締め切ることが出来ます！）", ephemeral=True)
 
+
+
 class Pollpanel(commands.Cog):
-    def __init__(self, bot: commands.Bot, **kwargs):
+    def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
-        self.client = kwargs["client"]
+        asyncio.ensure_future(pull(self.bot, self.bot.client))
 
     @nextcord.message_command(name="投票パネルの編集", guild_ids=n_fc.GUILD_IDS)
     async def edit_pollpanel(self, interaction: Interaction, message: nextcord.Message):
@@ -358,7 +373,7 @@ n!pollpanel [on/off] [メッセージ内容]
         if ctx.message.content == f"{self.bot.command_prefix}pollpanel debug":
             await ctx.message.add_reaction('🐛')
             if (await self.bot.is_owner(ctx.author)):
-                await ctx.send(f"{ctx.author.mention}", embed=nextcord.Embed(title="Views", description=PollViews, color=0x00ff00))
+                await ctx.send(f"{ctx.author.mention}", embed=nextcord.Embed(title="Views", description=PollViews.value, color=0x00ff00))
                 return
             else:
                 await ctx.send(f"{ctx.author.mention}", embed=nextcord.Embed(title="ERR", description="あなたは管理者ではありません。", color=0xff0000))
@@ -396,9 +411,8 @@ n!pollpanel [on/off] [メッセージ内容]
             poll_type = False
 
         self.bot.add_view(PollPanelView(ViewArgs))
-        PollViews.append(ViewArgs)
-        with open(f'{sys.path[0]}/PollViews.nira', 'wb') as f:
-            pickle.dump(PollViews, f)
+        PollViews.value.append(ViewArgs)
+        await database.default_push(self.bot.client, PollViews)
         try:
             await ctx.send(f"作成者:{ctx.author.mention}", embed=nextcord.Embed(title=f"{content}", description=embed_content, color=0x00ff00).set_footer(text="NIRA Bot - PollPanel v2"), view=PollPanelView(ViewArgs))
         except Exception as err:
@@ -410,8 +424,4 @@ n!pollpanel [on/off] [メッセージ内容]
 
 
 def setup(bot, **kwargs):
-    if os.path.exists(f'{sys.path[0]}/PollViews.nira'):
-        with open(f'{sys.path[0]}/PollViews.nira', 'rb') as f:
-            global PollViews
-            PollViews = pickle.load(f)
     bot.add_cog(Pollpanel(bot, **kwargs))

@@ -1,7 +1,6 @@
 import asyncio
 import importlib
 import os
-import pickle
 import sys
 
 import HTTP_db
@@ -10,6 +9,7 @@ from nextcord.ext import commands
 
 from util import eh, srtr, database
 from util.n_fc import GUILD_IDS
+from util.nira import NIRA
 
 SYSDIR = sys.path[0]
 START = ["start", "on", "play", "スタート", "はじめ"]
@@ -24,16 +24,16 @@ class srtr_data:
     value_type = database.CHANNEL_VALUE
 
 class Siritori(commands.Cog):
-    def __init__(self, bot: commands.Bot, **kwargs):
+    def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
-        self.client = kwargs["client"]
-        asyncio.ensure_future(asyncio.ensure_future(database.default_pull(self.client, srtr_data)))
 
     @nextcord.slash_command(name="srtr", description="しりとり", guild_ids=GUILD_IDS)
     async def srtr(self):
         pass
 
     async def srtr_control(self, start: bool, guild, channel) -> nextcord.Embed:
+        await database.default_pull(self.bot.client, srtr_data)
+
         if start:
             if guild.id not in srtr_data.value:
                 srtr_data.value[guild.id] = {}
@@ -43,10 +43,10 @@ class Siritori(commands.Cog):
 
             try:
                 srtr_data.value[guild.id][channel.id] = 1
-                await database.default_push(self.client, srtr_data)
+                await database.default_push(self.bot.client, srtr_data)
 
             except Exception as err:
-                return eh(err)
+                return eh(self.bot.client, err)
 
             return nextcord.Embed(title="しりとり", description=f"{channel.name}でしりとりを始めます。", color=0x00ff00)
 
@@ -56,10 +56,10 @@ class Siritori(commands.Cog):
 
             try:
                 del srtr_data.value[guild.id][channel.id]
-                await database.default_push(self.client, srtr_data)
+                await database.default_push(self.bot.client, srtr_data)
 
             except Exception as err:
-                return eh(err)
+                return eh(self.bot.client, err)
 
             return nextcord.Embed(title="しりとり", description=f"{channel.name}でのしりとりを終了します。", color=0x00ff00)
 
@@ -112,6 +112,14 @@ class Siritori(commands.Cog):
     async def srtr_stop(self, interaction: nextcord.Interaction):
         await interaction.response.send_message(embed=(await self.srtr_control(False, interaction.guild, interaction.channel)))
         return
+
+    @commands.Cog.listener()
+    async def on_message(self, message: nextcord.Message):
+        await database.default_pull(self.bot.client, srtr_data)
+        if message.guild.id in srtr_data.value:
+            if message.channel.id in srtr_data.value[message.guild.id]:
+                await srtr.on_srtr(message, self.bot.client)
+                return
 
 
 def setup(bot, **kwargs):

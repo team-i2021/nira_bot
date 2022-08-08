@@ -16,6 +16,7 @@ from nextcord.ext import commands
 
 
 from util import admin_check, n_fc, eh
+from util.nira import NIRA
 
 # Translate
 
@@ -204,10 +205,10 @@ class TranslateModal(nextcord.ui.Modal):
 
 
 class Translate(commands.Cog):
-    def __init__(self, bot: commands.Bot, **kwargs):
+    def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
         SETTING = json.load(open(f'{SYSDIR}/setting.json'))
-        if "translate" not in SETTING:
+        if "translate" not in SETTING or SETTING["translate"] == "":
             self.deepl_tr = None
             PROVIDER['DEEPL']['ACTIVE'] = False
             print(
@@ -306,7 +307,7 @@ Powered by DeepL Translate/Google Translate.""")
             )
         elif len(args) == 2:
             if args[1] == "provider":
-                if ctx.author.id not in n_fc.py_admin:
+                if not await self.bot.is_owner(ctx.author):
                     raise Exception("Forbidden")
                 message = await ctx.send("Please wait...")
                 await message.edit(content="", embed=nextcord.Embed(title="Provider Switch", description=f"DeepL Translate: `{(lambda x: 'Enable' if x else 'Disable')(PROVIDER['DEEPL']['ACTIVE'])}`\nGoogle Translate: `{(lambda x: 'Enable' if x else 'Disable')(PROVIDER['GOOGLE']['ACTIVE'])}`", color=0x00ff00), view=ProviderSwitch(message=message))

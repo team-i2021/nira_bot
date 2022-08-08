@@ -1,6 +1,7 @@
 import datetime
 import logging
 from util import admin_check, n_fc, eh, dict_list, database
+from util.nira import NIRA
 import asyncio
 from nextcord.ext import commands
 import nextcord
@@ -28,10 +29,9 @@ class MessageDMData:
     value_type = database.CHANNEL_VALUE
 
 class MessageDM(commands.Cog):
-    def __init__(self, bot: commands.Bot, **kwargs):
+    def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
-        self.client = kwargs["client"]
-        asyncio.ensure_future(database.default_pull(self.client, MessageDMData))
+        asyncio.ensure_future(database.default_pull(self.bot.client, MessageDMData))
 
     @nextcord.slash_command(name="mesdm", description="Send DM when a set message is sent", guild_ids=n_fc.GUILD_IDS)
     async def slash_message_dm(self, interaction: Interaction):
@@ -71,7 +71,7 @@ class MessageDM(commands.Cog):
                 color=0x00ff00
             )
         )
-        await database.default_push(self.client, MessageDMData)
+        await database.default_push(self.bot.client, MessageDMData)
         return
 
     @slash_message_dm.subcommand(name="del", description="チャンネルのメッセージDMの設定を削除します")
@@ -103,7 +103,7 @@ class MessageDM(commands.Cog):
                 del MessageDMData.value[interaction.guild.id]
 
             await interaction.followup.send(embed=nextcord.Embed(title="メッセージDMの設定", description=f"チャンネル:<#{interaction.channel.id}>\n`{regex}`の設定を削除しました。", color=0x00ff00))
-            await database.default_push(self.client, MessageDMData)
+            await database.default_push(self.bot.client, MessageDMData)
             return
 
     @slash_message_dm.subcommand(name="list", description="メッセージDMの設定を表示します")
@@ -196,7 +196,7 @@ class MessageDM(commands.Cog):
                 )
 
             await ctx.reply(embed=nextcord.Embed(title="メッセージDMの設定", description=f"チャンネル:<#{ctx.channel.id}>\n判定メッセージ:`{args[0]}`\n・メッセージ内容```\n{(lambda x: x if len(x) <= 1000 else f'{x[:1000]}...')(args[1])}```", color=0x00ff00))
-            await database.default_push(self.client, MessageDMData)
+            await database.default_push(self.bot.client, MessageDMData)
             return
 
         elif command_type == "del":
@@ -231,7 +231,7 @@ class MessageDM(commands.Cog):
                 del MessageDMData.value[ctx.guild.id]
 
             await ctx.reply(embed=nextcord.Embed(title="メッセージDMの設定", description=f"チャンネル:<#{ctx.channel.id}>での`{args[0]}`を削除しました。", color=0x00ff00))
-            await database.default_push(self.client, MessageDMData)
+            await database.default_push(self.bot.client, MessageDMData)
             return
 
         elif command_type == "list":
@@ -265,20 +265,20 @@ class MessageDM(commands.Cog):
                 return
             if args[0] == "pull":
                 try:
-                    await database.default_pull(self.client, MessageDMData)
+                    await database.default_pull(self.bot.client, MessageDMData)
                 except Exception:
                     MessageDMData.value = {}
                 await ctx.reply(embed=nextcord.Embed(title="OK", description=f"Pulled from database.", color=0x00ff00))
             elif args[0] == "push":
                 try:
-                    await database.default_push(self.client, MessageDMData)
+                    await database.default_push(self.bot.client, MessageDMData)
                 except Exception as err:
                     await ctx.reply(embed=nextcord.Embed(title="Internal Server Error", description=f"An error has occurred.\n```sh\n{err}```", color=0xff0000))
                     return
                 await ctx.reply(embed=nextcord.Embed(title="OK", description=f"Pushed to database.", color=0x00ff00))
             elif args[0] == "server":
                 try:
-                    await ctx.reply(embed=nextcord.Embed(title="OK", description=f"Server\n```py\n{dict_list.listToDict(await self.client.get(MessageDMData.namesave()))}```", color=0x00ff00))
+                    await ctx.reply(embed=nextcord.Embed(title="OK", description=f"Server\n```py\n{dict_list.listToDict(await self.bot.client.get(MessageDMData.name))}```", color=0x00ff00))
                 except Exception as err:
                     await ctx.reply(embed=nextcord.Embed(title="Internal Server Error", description=f"An error has occurred.\n```sh\n{err}```", color=0xff0000))
             elif args[0] == "client":

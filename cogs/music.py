@@ -305,7 +305,7 @@ class music(commands.Cog):
                             await ctx.reply(f"追加したよ！\nあなたの曲は`{len(music_list[ctx.guild.id])}`番目！")
                             return
         except Exception as err:
-            await ctx.reply(embed=eh.eh(err))
+            await ctx.reply(embed=eh.eh(self.bot.client, err))
             logging.error(f"[楽曲再生時or再生中のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
             return
 

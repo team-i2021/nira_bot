@@ -12,6 +12,7 @@ import nextcord
 from nextcord.ext import commands
 
 from util import admin_check, n_fc, eh, database, dict_list
+from util.nira import NIRA
 
 
 # ユーザー参加時の挙動
@@ -39,36 +40,35 @@ class InviteData:
 
 
 class user_join(commands.Cog):
-    def __init__(self, bot: commands.Bot, **kwargs):
+    def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
-        self.client = kwargs["client"]
         asyncio.ensure_future(self.fetch_role_keeper())
 
     async def fetch_role_keeper(self):
         await self.bot.wait_until_ready()
-        await database.default_pull(self.client, RoleKeeper)
+        await database.default_pull(self.bot.client, RoleKeeper)
 
         for i in self.bot.guilds:
-            if i.id not in n_fc.role_keeper:
-                n_fc.role_keeper[i.id] = {"rk": 0}
+            if i.id not in RoleKeeper.value:
+                RoleKeeper.value[i.id] = {"rk": 0}
             for j in i.members:
-                n_fc.role_keeper[i.id][j.id] = [k.id for k in j.roles if k.id != i.id]
+                RoleKeeper.value[i.id][j.id] = [k.id for k in j.roles if k.id != i.id]
 
-        await database.default_push(self.client, RoleKeeper)
+        await database.default_push(self.bot.client, RoleKeeper)
 
     @commands.Cog.listener()
     async def on_member_join(self, member: nextcord.Member):
-        await database.default_pull(self.client, WelcomeInfo)
-        await database.default_pull(self.client, RoleKeeper)
-        await database.default_pull(self.client, InviteData)
+        await database.default_pull(self.bot.client, WelcomeInfo)
+        await database.default_pull(self.bot.client, RoleKeeper)
+        await database.default_pull(self.bot.client, InviteData)
         try:
             channel = member.guild.get_channel(WelcomeInfo.value[member.guild.id])
             if member.guild.id not in RoleKeeper.value:
                 RoleKeeper.value[member.guild.id] = {"rk": 0}
                 for i in range(len(member.guild.members)):
                     if member.guild.members[i].id != member.id:
-                        n_fc.role_keeper[member.guild.id][member.guild.members[i].id] = [j.id for j in member.guild.members[i].roles if j.id != member.guild.id]
-                asyncio.ensure_future(database.default_push(self.client, WelcomeInfo))
+                        RoleKeeper.value[member.guild.id][member.guild.members[i].id] = [j.id for j in member.guild.members[i].roles if j.id != member.guild.id]
+                asyncio.ensure_future(database.default_push(self.bot.client, WelcomeInfo))
         except Exception as err:
             logging.error(err, traceback.format_exc())
 
@@ -113,7 +113,7 @@ class user_join(commands.Cog):
                     invitedFrom = f"[{invitedUrl.url}]({invitedUrl.url})"
                 embed.add_field(
                     name="招待リンク", value=f"{invitedFrom}から招待を受けました！", inline=False)
-            asyncio.ensure_future(database.default_push(self.client, InviteData))
+            asyncio.ensure_future(database.default_push(self.bot.client, InviteData))
         except Exception as err:
             logging.error(f"{err}\n{traceback.format_exc()}")
 
@@ -132,7 +132,7 @@ class user_join(commands.Cog):
             try:
                 if member.id not in RoleKeeper.value[member.guild.id]:
                     RoleKeeper.value[member.guild.id][member.id] = [i.id for i in member.roles if i.id != member.guild.id]
-                    asyncio.ensure_future(database.default_push(self.client, RoleKeeper))
+                    asyncio.ensure_future(database.default_push(self.bot.client, RoleKeeper))
                 else:
                     for i in range(len(RoleKeeper.value[member.guild.id][member.id])):
                         role = member.guild.get_role(RoleKeeper.value[member.guild.id][member.id][i])
@@ -157,10 +157,10 @@ class user_join(commands.Cog):
         time_diff = time_diff.total_seconds()
         user_id = member.id
         try:
-            await database.default_pull(self.client, WelcomeInfo)
+            await database.default_pull(self.bot.client, WelcomeInfo)
             user = await self.bot.fetch_user(user_id)
             if member.guild.id in WelcomeInfo.value:
-                channel = self.bot.get_channel(n_fc.welcome_id_list[member.guild.id])
+                channel = self.bot.get_channel(WelcomeInfo.value[member.guild.id])
             else:
                 channel = None
             embed = nextcord.Embed(
@@ -192,12 +192,12 @@ class user_join(commands.Cog):
             
             # After send...
 
-            await database.default_pull(self.client, RoleKeeper)
+            await database.default_pull(self.bot.client, RoleKeeper)
             if member.guild.id not in RoleKeeper:
                 RoleKeeper.value[member.guild.id] = {"rk": 0}
                 return
             RoleKeeper.value[member.guild.id][member.id] = role_ids
-            await database.default_push(self.client, RoleKeeper)
+            await database.default_push(self.bot.client, RoleKeeper)
             return
         except Exception as err:
             if channel == None:

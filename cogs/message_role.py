@@ -14,6 +14,7 @@ from nextcord import Interaction, SlashOption, ChannelType
 from nextcord.ext import commands
 
 from util import admin_check, n_fc, eh, dict_list, database
+from util.nira import NIRA
 
 ROLE_ID = re.compile(r"<@&[0-9]+?>")
 
@@ -30,10 +31,9 @@ class MessageRoleData:
 
 
 class MessageRole(commands.Cog):
-    def __init__(self, bot: commands.Bot, **kwargs):
+    def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
-        self.client = kwargs["client"]
-        asyncio.ensure_future(database.default_pull(self.client, MessageRoleData))
+        asyncio.ensure_future(database.default_pull(self.bot.client, MessageRoleData))
 
     @nextcord.slash_command(name="mesrole", description="Message role command", guild_ids=n_fc.GUILD_IDS)
     async def slash_message_role(self, interaction: Interaction):
@@ -74,7 +74,7 @@ class MessageRole(commands.Cog):
                 color=0x00ff00
             )
         )
-        await database.default_push(self.client, MessageRoleData)
+        await database.default_push(self.bot.client, MessageRoleData)
         return
 
     @slash_message_role.subcommand(name="del", description="チャンネルのメッセージロールの設定を削除します")
@@ -95,7 +95,7 @@ class MessageRole(commands.Cog):
             if len(MessageRoleData.value[interaction.guild.id]) == 0:
                 del MessageRoleData.value[interaction.guild.id]
             await interaction.followup.send(embed=nextcord.Embed(title="メッセージロールの設定", description=f"チャンネル:<#{interaction.channel.id}>\nメッセージロールの設定を削除しました。", color=0x00ff00))
-            await database.default_push(self.client, MessageRoleData)
+            await database.default_push(self.bot.client, MessageRoleData)
             return
 
     @slash_message_role.subcommand(name="list", description="メッセージロールの設定を表示します")
@@ -211,7 +211,7 @@ class MessageRole(commands.Cog):
                     args[0], (lambda x: True if x == "add" else False)(args[1]), role.id]
 
             await ctx.reply(embed=nextcord.Embed(title="メッセージロールの設定", description=f"チャンネル:<#{ctx.channel.id}>\n判定メッセージ:`{args[0]}`\nロール:<@&{role.id}>を{(lambda x: '付与' if x else '剥奪')(args[1])}します。", color=0x00ff00))
-            await database.default_push(self.client, MessageRoleData)
+            await database.default_push(self.bot.client, MessageRoleData)
             return
 
         elif command_type == "del":
@@ -230,7 +230,7 @@ class MessageRole(commands.Cog):
             if len(MessageRoleData.value[ctx.guild.id]) == 0:
                 del MessageRoleData.value[ctx.guild.id]
             await ctx.reply(embed=nextcord.Embed(title="メッセージロールの設定", description=f"チャンネル:<#{ctx.channel.id}>の設定を削除しました。", color=0x00ff00))
-            await database.default_push(self.client, MessageRoleData)
+            await database.default_push(self.bot.client, MessageRoleData)
             return
 
         elif command_type == "list":
@@ -255,20 +255,20 @@ class MessageRole(commands.Cog):
                 return
             if args[0] == "pull":
                 try:
-                    await database.default_pull(self.client, MessageRoleData)
+                    await database.default_pull(self.bot.client, MessageRoleData)
                 except Exception:
                     MessageRoleData.value = {}
                 await ctx.reply(embed=nextcord.Embed(title="OK", description=f"Pulled from database.", color=0x00ff00))
             elif args[0] == "push":
                 try:
-                    await database.default_push(self.client, MessageRoleData)
+                    await database.default_push(self.bot.client, MessageRoleData)
                 except Exception as err:
                     await ctx.reply(embed=nextcord.Embed(title="Internal Server Error", description=f"An error has occurred.\n```sh\n{err}```", color=0xff0000))
                     return
                 await ctx.reply(embed=nextcord.Embed(title="OK", description=f"Pushed to database.", color=0x00ff00))
             elif args[0] == "server":
                 try:
-                    await ctx.reply(embed=nextcord.Embed(title="OK", description=f"Server\n```py\n{dict_list.listToDict(await self.client.get(MessageRoleData.name))}```", color=0x00ff00))
+                    await ctx.reply(embed=nextcord.Embed(title="OK", description=f"Server\n```py\n{dict_list.listToDict(await self.bot.client.get(MessageRoleData.name))}```", color=0x00ff00))
                 except Exception as err:
                     await ctx.reply(embed=nextcord.Embed(title="Internal Server Error", description=f"An error has occurred.\n```sh\n{err}```", color=0xff0000))
             elif args[0] == "client":

@@ -1,7 +1,6 @@
 import asyncio
 import datetime
 import math
-import pickle
 import random
 import re
 import sys
@@ -28,8 +27,7 @@ class bump_data:
 class Bump(commands.Cog):
     def __init__(self, bot: commands.Bot, **kwagrs):
         self.bot = bot
-        self.client = kwagrs["client"]
-        asyncio.ensure_future(database.default_pull(self.client, bump_data))
+        asyncio.ensure_future(database.default_pull(self.bot.client, bump_data))
 
     async def bump_config(
         self,
@@ -56,7 +54,7 @@ class Bump(commands.Cog):
                     bump_data.value[interaction.guild.id] = None
                 else:
                     bump_data.value[interaction.guild.id] = item.id
-                await database.default_push(self.client, bump_data)
+                await database.default_push(self.bot.client, bump_data)
                 if bump_data.value[interaction.guild.id] is not None:
                     await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="Bump通知", description=f"{interaction.guild.name}でBump通知の設定を有効にしました。\nメンションロール:<@&{bump_data.value[interaction.guild.id]}>", color=0x00ff00), ephemeral=True)
                 else:
@@ -66,7 +64,7 @@ class Bump(commands.Cog):
         elif action == DEL:
             if admin_check.admin_check(interaction.guild, user):
                 del bump_data.value[interaction.guild.id]
-                await database.default_push(self.client, bump_data)
+                await database.default_push(self.bot.client, bump_data)
                 await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="Bump通知", description=f"{interaction.guild.name}でBump通知の設定を無効にしました。", color=0x00ff00), ephemeral=True)
             else:
                 await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="エラー", description=f"管理者権限がありません。", color=0xff0000), ephemeral=True)

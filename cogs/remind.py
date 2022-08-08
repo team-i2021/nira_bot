@@ -7,12 +7,13 @@ import sys
 import traceback
 from re import compile
 
+import HTTP_db
 import nextcord
 from nextcord import Interaction, SlashOption, ChannelType
 from nextcord.ext import commands, tasks
 
 from util import admin_check, n_fc, eh, database, dict_list
-import HTTP_db
+from util.nira import NIRA
 
 # りまいんど
 
@@ -117,11 +118,13 @@ class RemindMaker(nextcord.ui.Modal):
 
 
 class Remind(commands.Cog):
-    def __init__(self, bot: commands.Bot, **kwargs):
+    def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
-        self.client = kwargs["client"]
-        asyncio.ensure_future(pullData(self.client))
+        asyncio.ensure_future(pullData(self.bot.client))
         self.sendReminds.start()
+
+    def cog_unload(self):
+        self.sendReminds.cancel()
 
     @commands.command(name="remind", aliases=("Remind", "りまいんど", "めざまし", "アラーム"), help="""\
 毎日指定時間にメッセージを送信する
@@ -144,7 +147,7 @@ n!remind on 8:25 おはようございます！
     async def remind(self, ctx: commands.Context):
         args = ctx.message.content.split(" ", 3)
         if len(args) < 2:
-            await ctx.reply(embed=nextcord.Embed(title="使い方", description=f"`{self.bot.command_prefix}remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`\n`n!remind off [時間(hh:mm)]`\n`n!remind list`\n\n詳しくは`{self.bot.command_prefix}help remind`を参照してください。", color=0xff0000))
+            await ctx.reply(embed=nextcord.Embed(title="使い方", description=f"`{self.bot.command_prefix}remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`\n`{self.bot.command_prefix}remind off [時間(hh:mm)]`\n`{self.bot.command_prefix}remind list`\n\n詳しくは`{self.bot.command_prefix}help remind`を参照してください。", color=0xff0000))
             return
         if args[1] == "on":
             if not admin_check.admin_check(ctx.guild, ctx.author):
@@ -179,7 +182,7 @@ n!remind on 8:25 おはようございます！
                 return
 
             REMIND_DATA[ctx.channel.id][time] = args[3]
-            await pushData(self.client)
+            await pushData(self.bot.client)
             await ctx.reply(embed=nextcord.Embed(title="設定完了", description=f"毎日`{time}`に <#{ctx.channel.id}> にリマインドメッセージを送信します。", color=0x00ff00))
             return
 
@@ -214,7 +217,7 @@ n!remind on 8:25 おはようございます！
             del REMIND_DATA[ctx.channel.id][time]
             if len(REMIND_DATA[ctx.channel.id]) == 0:
                 del REMIND_DATA[ctx.channel.id]
-            await pushData(self.client)
+            await pushData(self.bot.client)
             await ctx.reply(embed=nextcord.Embed(title="削除完了", description=f"<#{ctx.channel.id}> での`{time}`のリマインドメッセージを削除しました。", color=0x00ff00))
             return
 
@@ -238,14 +241,14 @@ n!remind on 8:25 おはようございます！
                     await ctx.reply(f"```py\n[SHOW] Local\n{REMIND_DATA}```")
                     return
                 elif command == "remote":
-                    await ctx.reply(f"```py\n[SHOW] Remote\n{await self.client.get(DATABASE_KEY)}```")
+                    await ctx.reply(f"```py\n[SHOW] Remote\n{await self.bot.client.get(DATABASE_KEY)}```")
                     return
                 elif command == "push":
-                    await pushData(self.client)
+                    await pushData(self.bot.client)
                     await ctx.reply(f"```py\n[PUSH] Push data to server.\nDevice -> Server\nSuccess.```")
                     return
                 elif command == "pull":
-                    await pullData(self.client)
+                    await pullData(self.bot.client)
                     await ctx.reply(f"```py\n[PULL] Pull data from server.\nServer -> Device\nSuccess.```")
                     return
                 else:
@@ -309,7 +312,7 @@ pull - pull data from server to device```""")
             del REMIND_DATA[interaction.channel.id][timeB]
             if len(REMIND_DATA[interaction.channel.id]) == 0:
                 del REMIND_DATA[interaction.channel.id]
-            await pushData(self.client)
+            await pushData(self.bot.client)
             await interaction.followup.send(embed=nextcord.Embed(title="削除完了", description=f"<#{interaction.channel.id}> での`{timeB}`のリマインドメッセージを削除しました。", color=0x00ff00))
             return
         else:
@@ -355,4 +358,4 @@ def setup(bot, **kwargs):
 
 def teardown(bot):
     logging.info(f"Pin teardown")
-    Remind.sendReminds.stop()
+    Remind.sendReminds.cancel()

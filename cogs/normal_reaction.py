@@ -4,7 +4,6 @@ import importlib
 import listre
 import logging
 import os
-import pickle
 import random
 import re
 import sys
@@ -13,7 +12,8 @@ import nextcord
 from nextcord.ext import commands
 
 import util.srtr as srtr
-from util import admin_check, n_fc, eh, web_api
+from util import admin_check, n_fc, eh, web_api, database
+from util.nira import NIRA
 
 SYSDIR = sys.path[0]
 
@@ -21,6 +21,33 @@ image_root = "https://team-i2021.github.io/nira_bot/images"
 image_loc = f"{SYSDIR}/images"
 
 # 通常反応をまとめたもの。
+
+class reaction_datas:
+    class all_reaction_list:
+        name = "all_reaction_list"
+        value = {}
+        default = {}
+        value_type = database.CHANNEL_VALUE
+
+    class ex_reaction_list:
+        name = "ex_reaction_list"
+        value = {}
+        default = {}
+        value_type = database.CHANNEL_VALUE
+
+    class reaction_bool_list:
+        name = "reaction_bool_list"
+        value = {}
+        default = {}
+        value_type = database.CHANNEL_VALUE
+
+
+class notify_token:
+    name = "notify_token"
+    value = {}
+    default = {}
+    value_type = database.CHANNEL_VALUE
+
 
 nira_hantei = r'にら|ニラ|nira|garlic|韮|Chinese chives|Allium tuberosum|てりじの|テリジノ'
 
@@ -245,78 +272,73 @@ def n_reaction(message: nextcord.Message, *custom: int):
 
 
 class normal_reaction(commands.Cog):
-    def __init__(self, bot: commands.Bot, **kwargs):
+    def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
-        # LINEでのメッセージ送信
+        await database.default_pull(self.bot.client, notify_token)
         if message.guild == None:
             return
-        if message.guild.id in n_fc.notify_token:
-            if message.channel.id in n_fc.notify_token[message.guild.id]:
-                web_api.notify_line(
-                    message, n_fc.notify_token[message.guild.id][message.channel.id])
+        if message.guild.id in notify_token.value:
+            if message.channel.id in notify_token.value[message.guild.id]:
+                web_api.notify_line(message, notify_token.value[message.guild.id][message.channel.id])
         # 自分自身(BOT)には反応しない
         if message.author.bot:
             return
-        if message.content.startswith(f"{self.bot.command_prefix}") or message.content[-1:] == ".":
+        if message.content.startswith(self.bot.command_prefix) or message.content[-1:] == ".":
             return
         # if message.author.id in n_fc.py_admin and message.guild.id == 885410991234490408 and message.content[-1:] != ";" and message.content[:7] != "http://" and message.content[:8] != "https://":
         #     await self.bot.http.delete_message(message.channel.id, message.id)
         #     await message.channel.send(embed=nextcord.Embed(title=f"{message.author.name}",description=f"error: nextcord.c:0: parse(syntax) error before `send_message`\n{message.content}", color=0xff0000))
         #     return
         # AllReactionSetting
-        if message.guild.id in n_fc.all_reaction_list:
-            if message.channel.id in n_fc.all_reaction_list[message.guild.id]:
-                if n_fc.all_reaction_list[message.guild.id][message.channel.id] != 1:
+        await database.default_pull(self.bot.client, reaction_datas.all_reaction_list)
+        if message.guild.id in reaction_datas.all_reaction_list.value:
+            if message.channel.id in reaction_datas.all_reaction_list.value[message.guild.id]:
+                if reaction_datas.all_reaction_list.value[message.guild.id][message.channel.id] != 1:
                     return
-        # しりとりブール
-        if message.guild.id in n_fc.srtr_bool_list:
-            if message.channel.id in n_fc.srtr_bool_list[message.guild.id]:
-                await srtr.on_srtr(message)
-                return
         if message.channel.topic != None and re.search("nira-off", message.channel.topic):
             return
         # 追加反応
-        if message.guild.id in n_fc.ex_reaction_list:
-            if n_fc.ex_reaction_list[message.guild.id]["value"] != 0:
-                for i in range(int(n_fc.ex_reaction_list[message.guild.id]["value"])):
-                    if re.search(rf'{n_fc.ex_reaction_list[message.guild.id][f"{i+1}_tr"]}', message.content):
-                        sended_mes = await message.reply(n_fc.ex_reaction_list[message.guild.id][f"{i+1}_re"])
+        await database.default_pull(self.bot.client, reaction_datas.ex_reaction_list)
+        if message.guild.id in reaction_datas.ex_reaction_list.value:
+            if reaction_datas.ex_reaction_list.value[message.guild.id]["value"] != 0:
+                for i in range(int(reaction_datas.ex_reaction_list.value[message.guild.id]["value"])):
+                    if re.search(reaction_datas.ex_reaction_list.value[message.guild.id][f"{i+1}_tr"], message.content):
+                        sended_mes = await message.reply(reaction_datas.ex_reaction_list.value[message.guild.id][f"{i+1}_re"])
                         return
         ###############################
         # 通常反応のブール値存在チェック #
         ###############################
-        if message.guild.id not in n_fc.reaction_bool_list:
-            n_fc.reaction_bool_list[message.guild.id] = {
-                "all": 1, message.channel.id: 1}
-            with open(f'{SYSDIR}/reaction_bool_list.nira', 'wb') as f:
-                pickle.dump(n_fc.reaction_bool_list, f)
-        if message.channel.id not in n_fc.reaction_bool_list[message.guild.id]:
-            n_fc.reaction_bool_list[message.guild.id][message.channel.id] = 1
-            with open(f'{SYSDIR}/reaction_bool_list.nira', 'wb') as f:
-                pickle.dump(n_fc.reaction_bool_list, f)
+        await database.default_pull(self.bot.client, reaction_datas.reaction_bool_list)
+        if message.guild.id not in reaction_datas.reaction_bool_list.value:
+            reaction_datas.reaction_bool_list.value[message.guild.id] = {"all": 1, message.channel.id: 1}
+            asyncio.ensure_future(database.default_push(self.bot.client, reaction_datas.reaction_bool_list))
+        if message.channel.id not in reaction_datas.reaction_bool_list.value[message.guild.id]:
+            reaction_datas.reaction_bool_list.value[message.guild.id][message.channel.id] = 1
+            asyncio.ensure_future(database.default_push(self.bot.client, reaction_datas.reaction_bool_list))
         #########################################
         # 通常反応
         # 「n!nr [on/off]」で変更できます
         #########################################
-        if n_fc.reaction_bool_list[message.guild.id]["all"] != 1:
+        if reaction_datas.reaction_bool_list.value[message.guild.id]["all"] != 1:
             return
-        if n_fc.reaction_bool_list[message.guild.id][message.channel.id] == 1:
+        if reaction_datas.reaction_bool_list.value[message.guild.id][message.channel.id] == 1:
             sended_mes = ""
             try:
                 sended_mes = await n_reaction(message)
             except Exception as err:
-                logging.error(err)
+                logging.error(err, exc_info=True)
             if sended_mes != "" and sended_mes != None:
                 await sended_mes.add_reaction("<:trash:908565976407236608>")
                 await asyncio.sleep(3)
                 try:
                     await sended_mes.remove_reaction("<:trash:908565976407236608>", self.bot.user)
                     return
-                except Exception:
-                    return
+                except Exception as err:
+                    logging.error(err, exc_info=True)
+        return
 
 
 def setup(bot, **kwargs):

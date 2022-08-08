@@ -3,7 +3,6 @@ import datetime
 import importlib
 import logging
 import os
-import pickle
 import re
 import sys
 import traceback
@@ -14,6 +13,7 @@ from nextcord import SlashOption, Interaction
 from nextcord.ext import commands, tasks
 
 from util import admin_check, eh, n_fc, server_check, database
+from util.nira import NIRA
 
 # loggingの設定
 
@@ -39,12 +39,12 @@ async def ss_force(self, message: nextcord.Message):
         embed = nextcord.Embed(
             title="ServerStatus Checker", description=f"LastCheck:`{datetime.datetime.now()}`", color=0x00ff00)
         for i in range(int(steam_server.value[message.guild.id]["value"])):
-            await server_check.ss_pin_embed(embed, message.guild.id, i + 1)
+            await server_check.ss_pin_embed(self.bot.client, embed, message.guild.id, i + 1)
         embed.set_footer(text="pingは参考値です")
         await message.edit(
             f"AutoSS実行中\n止めるには`{self.bot.command_prefix}ss auto off`または`/ss off`\nリロードするには下の`再読み込み`ボタンか`/ss reload`\n止まった場合は一度オフにしてから再度オンにしてください",
             embed=embed,
-            view=Reload_SS_Auto(self.bot, message, self.client)
+            view=Reload_SS_Auto(self.bot, message, self.bot.client)
         )
         logging.info("Status loaded.(Not scheduled)")
     except Exception as err:
@@ -140,7 +140,7 @@ async def ss_base(self, ctx: commands.Context):
                 color=0x00ff00
             )
             for i in map(str, range(1, int(steam_server.value[ctx.guild.id]["value"])+1)):
-                await server_check.server_check(embed, 0, ctx.guild.id, i)
+                await server_check.server_check(self.bot.client, embed, 0, ctx.guild.id, i)
             await asyncio.sleep(1)
             await ctx.reply(embed=embed, view=Recheck_SS_Embed())
         return
@@ -166,7 +166,7 @@ async def ss_base(self, ctx: commands.Context):
                 steam_server.value[ctx.guild.id]["value"] = str(
                     sset_point + 1)
                 await ctx.reply(f"サーバー名：{ad_name}\nサーバーアドレス: ({ad_ip},{ad_port})")
-                await database.default_push(self.client, steam_server)
+                await database.default_push(self.bot.client, steam_server)
                 return
             except Exception as err:
                 await ctx.reply(f"サーバー追加時にエラーが発生しました。\n```sh\n{err}```")
@@ -208,7 +208,7 @@ async def ss_base(self, ctx: commands.Context):
                 return
             mes_ss = await ctx.channel.send(f"Check your set message!")
             autoss_list.value[ctx.guild.id] = [ctx.channel.id, mes_ss.id]
-            await database.default_push(self.client, autoss_list)
+            await database.default_push(self.bot.client, autoss_list)
             asyncio.ensure_future(ss_force(self, mes_ss))
             return
 
@@ -219,13 +219,13 @@ async def ss_base(self, ctx: commands.Context):
             try:
                 if ctx.guild.id in autoss_list.value:
                     del autoss_list.value[ctx.guild.id]
-                    await database.default_push(self.client, autoss_list)
+                    await database.default_push(self.bot.client, autoss_list)
                     await ctx.reply(f"AutoSSを無効にしました。\n再度有効にするには`{self.bot.command_prefix}ss auto on`または`/ss auto on`を使用してください。")
                     return
                 else:
                     await ctx.reply("AutoSSは実行されていません。")
             except Exception as err:
-                await ctx.reply(embed=eh.eh(err))
+                await ctx.reply(embed=eh.eh(self.bot.client, err))
                 return
 
             else:
@@ -240,7 +240,7 @@ async def ss_base(self, ctx: commands.Context):
                     int(ctx.message.content[16:].split(" ", 1)[0]),
                     int(ctx.message.content[16:].split(" ", 1)[1])
                 ]
-                await database.default_push(self.client, autoss_list)
+                await database.default_push(self.bot.client, autoss_list)
                 asyncio.ensure_future(ss_force(self, messs))
                 return
         else:
@@ -273,10 +273,10 @@ async def ss_base(self, ctx: commands.Context):
             steam_server.value[ctx.guild.id][f"{s_id}_ad"] = (s_ip, s_port)
             steam_server.value[ctx.guild.id][f"{s_id}_nm"] = s_nm
             await ctx.reply(f"サーバーナンバー：{s_id}\nサーバー名: {s_nm}\nサーバーアドレス: ({s_ip},{s_port})")
-            await database.default_push(self.client, steam_server)
+            await database.default_push(self.bot.client, steam_server)
             return
         except Exception as err:
-            await ctx.reply(embed=eh.eh(err))
+            await ctx.reply(embed=eh.eh(self.bot.client, err))
             return
 
     elif args[1] == "sort":
@@ -298,7 +298,7 @@ async def ss_base(self, ctx: commands.Context):
         try:
             steam_server.value[ctx.guild.id][f"{args[2]}_nm"], steam_server.value[ctx.guild.id][f"{args[2]}_ad"], steam_server.value[ctx.guild.id][f"{args[3]}_nm"], steam_server.value[ctx.guild.id][
                 f"{args[3]}_ad"] = steam_server.value[ctx.guild.id][f"{args[3]}_nm"], steam_server.value[ctx.guild.id][f"{args[3]}_ad"], steam_server.value[ctx.guild.id][f"{args[2]}_nm"], steam_server.value[ctx.guild.id][f"{args[2]}_ad"]
-            await database.default_push(self.client, steam_server)
+            await database.default_push(self.bot.client, steam_server)
             await ctx.reply("入れ替えが完了しました。")
             return
         except Exception as err:
@@ -313,7 +313,7 @@ async def ss_base(self, ctx: commands.Context):
             try:
                 del_num = int(ctx.message.content[9:])
             except Exception as err:
-                await ctx.reply(embed=eh.eh(err))
+                await ctx.reply(embed=eh.eh(self.bot.client, err))
                 return
             if admin_check.admin_check(ctx.guild, ctx.author):
                 if del_num > int(steam_server.value[ctx.guild.id]["value"]):
@@ -334,18 +334,18 @@ async def ss_base(self, ctx: commands.Context):
                     del steam_server.value[ctx.guild.id][f"{all_value}_ad"]
                     steam_server.value[ctx.guild.id]["value"] = str(
                         all_value - 1)
-                    await database.default_push(self.client, steam_server)
+                    await database.default_push(self.bot.client, steam_server)
                     await ctx.reply(embed=nextcord.Embed(title="削除", description=f"ID:{del_num}のサーバーをリストから削除しました。", color=0xff0000))
                 except Exception as err:
                     logging.error(traceback.format_exc())
-                    await ctx.reply(embed=eh.eh(err))
+                    await ctx.reply(embed=eh.eh(self.bot.client, err))
                     return
             else:
                 await ctx.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
                 return
         else:
             del steam_server.value[ctx.guild.id]
-            await database.default_push(self.client, steam_server)
+            await database.default_push(self.bot.client, steam_server)
             await ctx.reply(embed=nextcord.Embed(title="リスト削除", description=f"{ctx.author.mention}\nリストは正常に削除されました。", color=0xffffff))
             return
         return
@@ -361,7 +361,7 @@ async def ss_base(self, ctx: commands.Context):
                 color=0x00ff00
             )
             for i in map(str, range(1, int(steam_server.value[ctx.guild.id]["value"])+1)):
-                await server_check.server_check(embed, 1, ctx.guild.id, i)
+                await server_check.server_check(self.bot.client, embed, 1, ctx.guild.id, i)
             await asyncio.sleep(1)
             await ctx.reply(embed=embed)
             return
@@ -394,7 +394,7 @@ async def ss_base(self, ctx: commands.Context):
                 description=f"{ctx.author.mention}\n:globe_with_meridians:Status\n==========",
                 color=0x00ff00
             )
-            await server_check.server_check(embed, 0, ctx.guild.id, args[1])
+            await server_check.server_check(self.bot.client, embed, 0, ctx.guild.id, args[1])
             await asyncio.sleep(1)
             await ctx.reply(embed=embed)
             return
@@ -433,7 +433,7 @@ class Recheck_SS_Embed(nextcord.ui.View):
                 color=0x00ff00
             )
             for i in map(str, range(1, int(steam_server.value[interaction.guild.id]["value"])+1)):
-                await server_check.server_check(embed, 0, interaction.guild.id, i)
+                await server_check.server_check(self.bot.client, embed, 0, interaction.guild.id, i)
             await interaction.followup.send(f'{interaction.user.mention} - Server Status', embed=embed, view=Recheck_SS_Embed())
             logging.info("rechecked")
 
@@ -443,10 +443,13 @@ class Recheck_SS_Embed(nextcord.ui.View):
 
 
 class server_status(commands.Cog):
-    def __init__(self, bot: commands.Bot, **kwargs):
+    def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
-        self.client = kwargs["client"]
         self.check_status_pin_loop.start()
+        asyncio.ensure_future(database.default_pull(self.bot.client, steam_server))
+
+    def cog_unload(self):
+        self.check_status_pin_loop.cancel()
 
     @nextcord.message_command(name="AutoSSのスタート", guild_ids=n_fc.GUILD_IDS)
     async def start_auto_ss(self, interaction: Interaction, message: nextcord.Message):
@@ -520,7 +523,7 @@ Steam非公式サーバーのステータスを表示します
                 steam_server.value[interaction.guild.id][f"{SSValue + 1}_nm"] = ServerName
                 steam_server.value[interaction.guild.id]["value"] = str(
                     SSValue + 1)
-                await database.default_push(self.client, steam_server)
+                await database.default_push(self.bot.client, steam_server)
                 await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description=f"サーバーの追加に成功しました。\nサーバー名：`{ServerName}`\nサーバーアドレス: `{ServerAddress}:{ServerPort}`", color=0x00ff00), ephemeral=True)
                 return
             else:
@@ -558,7 +561,7 @@ Steam非公式サーバーのステータスを表示します
                 del steam_server.value[interaction.guild.id][f"{ServerID}_nm"]
                 del steam_server.value[interaction.guild.id][f"{ServerID}_ad"]
                 steam_server.value[interaction.guild.id]["value"] = int(steam_server.value[interaction.guild.id]["value"]) - 1
-                await database.default_push(self.client, steam_server)
+                await database.default_push(self.bot.client, steam_server)
                 await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description=f"サーバーの削除に成功しました。", color=0x00ff00), ephemeral=True)
                 return
             else:
@@ -633,7 +636,7 @@ Steam非公式サーバーのステータスを表示します
                     return
                 steam_server.value[interaction.guild.id][f"{SortSource}_nm"], steam_server.value[interaction.guild.id][f"{SortSource}_ad"], steam_server.value[interaction.guild.id][f"{SortDestination}_nm"], steam_server.value[interaction.guild.id][f"{SortDestination}_ad"] = steam_server.value[
                     interaction.guild.id][f"{SortDestination}_nm"], steam_server.value[interaction.guild.id][f"{SortDestination}_ad"], steam_server.value[interaction.guild.id][f"{SortSource}_nm"], steam_server.value[interaction.guild.id][f"{SortSource}_ad"]
-                await database.default_push(self.client, steam_server)
+                await database.default_push(self.bot.client, steam_server)
                 await interaction.followup.send("ソートが完了しました。", ephemeral=True)
                 return
             else:
@@ -688,7 +691,7 @@ Steam非公式サーバーのステータスを表示します
                 steam_server.value[interaction.guild.id][f"{EditSource}_nm"] = ServerName
                 steam_server.value[interaction.guild.id][f"{EditSource}_ad"] = (
                     ServerAddress, ServerPort)
-                await database.default_push(self.client, steam_server)
+                await database.default_push(self.bot.client, steam_server)
                 await interaction.followup.send("編集が完了しました。", ephemeral=True)
             else:
                 await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="管理者権限がありません。", color=0xff0000), ephemeral=True)
@@ -719,7 +722,7 @@ Steam非公式サーバーのステータスを表示します
             mes_ss.channel.id,
             mes_ss.id
         ]
-        await database.default_push(self.client, autoss_list)
+        await database.default_push(self.bot.client, autoss_list)
         await interaction.followup.send("AutoSSを開始しました。")
 
     @auto_slash.subcommand(name="off", description="鯖のリアルタイムステータス表示をオフにします")
@@ -734,11 +737,11 @@ Steam非公式サーバーのステータスを表示します
                 return
             else:
                 del autoss_list.value[interaction.guild.id]
-                await database.default_push(self.client, steam_server)
+                await database.default_push(self.bot.client, steam_server)
                 await interaction.followup.send("AutoSSを無効にしました。", ephemeral=True)
                 return
         except Exception as err:
-            await interaction.followup.send(embed=eh.eh(err), ephemeral=True)
+            await interaction.followup.send(embed=eh.eh(self.bot.client, err), ephemeral=True)
             return
 
     @ss_slash.subcommand(name="status", description="Steam非公式サーバーのステータスを表示します")
@@ -761,7 +764,7 @@ Steam非公式サーバーのステータスを表示します
                 embed = nextcord.Embed(
                     title="Server Status Checker", description=f"{interaction.user.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
                 for i in map(str, range(1, int(steam_server.value[interaction.guild.id]["value"])+1)):
-                    await server_check.server_check(embed, 1, interaction.guild.id, i)
+                    await server_check.server_check(self.bot.client, embed, 1, interaction.guild.id, i)
                 await interaction.followup.send(embed=embed)
                 return
 
@@ -771,8 +774,7 @@ Steam非公式サーバーのステータスを表示します
                     return
                 embed = nextcord.Embed(
                     title="Server Status Checker", description=f"{interaction.user.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
-                server_check.server_check(
-                    embed, 0, interaction.guild.id, server_id)
+                server_check.server_check(self.bot.client, embed, 0, interaction.guild.id, server_id)
                 await interaction.followup.send(embed=embed)
                 return
 
@@ -783,7 +785,7 @@ Steam非公式サーバーのステータスを表示します
                 embed = nextcord.Embed(
                     title="Server Status Checker", description=f"{interaction.user.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
                 for i in map(str, range(1, int(steam_server.value[interaction.guild.id]["value"])+1)):
-                    await server_check.server_check(embed, 0, interaction.guild.id, i)
+                    await server_check.server_check(self.bot.client, embed, 0, interaction.guild.id, i)
                 await interaction.followup.send(embed=embed, view=Recheck_SS_Embed())
                 return
 
@@ -805,17 +807,20 @@ Steam非公式サーバーのステータスを表示します
     @tasks.loop(minutes=5.0)
     async def check_status_pin_loop(self):
         for CHANNEL, MESSAGE in autoss_list.value.values():
-            message: nextcord.Message = await (await self.bot.fetch_channel(CHANNEL)).fetch_message(MESSAGE)
             try:
+                message: nextcord.PartialMessage = await (self.bot.get_channel(CHANNEL)).get_partial_message(MESSAGE)
                 embed = nextcord.Embed(
-                    title="ServerStatus Checker", description=f"LastCheck:`{datetime.datetime.now()}`", color=0x00ff00)
+                    title="ServerStatus Checker",
+                    description=f"LastCheck:`{datetime.datetime.now()}`",
+                    color=0x00ff00
+                )
                 for i in range(int(steam_server.value[message.guild.id]["value"])):
-                    await server_check.ss_pin_embed(embed, message.guild.id, i + 1)
+                    await server_check.ss_pin_embed(self.bot.client, embed, message.guild.id, i + 1)
                 embed.set_footer(text="pingは参考値です")
                 await message.edit(
                     f"AutoSS実行中\n止めるには`{self.bot.command_prefix}ss auto off`または`/ss off`\nリロードするには下の`再読み込み`ボタンか`/ss reload`\n止まった場合は一度オフにしてから再度オンにしてください",
                     embed=embed,
-                    view=Reload_SS_Auto(self.bot, message, self.client)
+                    view=Reload_SS_Auto(self.bot, message, self.bot.client)
                 )
                 logging.info("Status loaded.(Scheduled)")
             except Exception as err:

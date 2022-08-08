@@ -14,6 +14,7 @@ import util.mc_status as mc_status
 from util import n_fc, database
 from util.admin_check import admin_check
 from util.slash_tool import messages
+from util.nira import NIRA
 
 mcMessage = {
     "ja": {
@@ -42,7 +43,7 @@ class minecraft_base:
                 value = minecraft_data.value[ctx.guild.id]["value"] + 1
                 minecraft_data.value[ctx.guild.id][value] = addition_data
                 minecraft_data.value[ctx.guild.id]["value"] = value
-            await database.default_push(self.client, minecraft_data)
+            await database.default_push(self.bot.client, minecraft_data)
         except Exception:
             await messages.mreply(ctx, f"サーバー追加時にエラーが発生しました。", embed=nextcord.Embed(title="An error has occurred...", description=f"```sh\n{traceback.format_exc()}```", color=0xff0000), ephemeral=True)
             return
@@ -57,7 +58,7 @@ class minecraft_base:
         if select_id == "all":
             try:
                 del minecraft_data.value[ctx.guild.id]
-                await database.default_push(self.client, minecraft_data)
+                await database.default_push(self.bot.client, minecraft_data)
             except Exception:
                 await messages.mreply(ctx, f"サーバー削除時にエラーが発生しました。", embed=nextcord.Embed(title="An error has occurred...", description=f"```sh\n{traceback.format_exc()}```", color=0xff0000), ephemeral=True)
                 return
@@ -71,7 +72,7 @@ class minecraft_base:
         if minecraft_data.value[ctx.guild.id]["value"] == 1:
             try:
                 del minecraft_data.value[ctx.guild.id]
-                await database.default_push(self.client, minecraft_data)
+                await database.default_push(self.bot.client, minecraft_data)
             except Exception:
                 await messages.mreply(ctx, f"サーバー削除時にエラーが発生しました。", embed=nextcord.Embed(title="An error has occurred...", description=f"```sh\n{traceback.format_exc()}```", color=0xff0000), ephemeral=True)
                 return
@@ -84,7 +85,7 @@ class minecraft_base:
                 minecraft_data.value[ctx.guild.id][i] = minecraft_data.value[ctx.guild.id][i+1]
             del minecraft_data.value[ctx.guild.id][value]
             minecraft_data.value[ctx.guild.id]["value"] = value - 1
-            await database.default_push(self.client, minecraft_data)
+            await database.default_push(self.bot.client, minecraft_data)
         except Exception:
             await messages.mreply(ctx, f"サーバー削除時にエラーが発生しました。", embed=nextcord.Embed(title="An error has occurred...", description=f"```sh\n{traceback.format_exc()}```", color=0xff0000), ephemeral=True)
             return
@@ -245,10 +246,9 @@ class minecraft_base:
 
 
 class minecraft(commands.Cog):
-    def __init__(self, bot: commands.Bot, **kwargs):
+    def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
-        self.client = kwargs["client"]
-        asyncio.ensure_future(database.default_pull(self.client, minecraft_data))
+        asyncio.ensure_future(database.default_pull(self.bot.client, minecraft_data))
 
     @commands.command(name="mc", help="""\
 MinecraftのJava/BEサーバーのステータスを表示します

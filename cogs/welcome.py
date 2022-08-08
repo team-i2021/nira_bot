@@ -9,8 +9,8 @@ import nextcord
 from nextcord import Interaction, SlashOption, ChannelType
 from nextcord.ext import commands
 
-from cogs.debug import save
 from util import admin_check, n_fc, eh, database
+from util.nira import NIRA
 
 # join message system
 
@@ -54,10 +54,9 @@ class WelcomeMaker(nextcord.ui.Modal):
 
 
 class Welcome(commands.Cog):
-    def __init__(self, bot: commands.Bot, **kwargs):
+    def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
-        self.client = kwargs["client"]
-        asyncio.ensure_future(database.default_pull(self.client, WelcomeMessage))
+        asyncio.ensure_future(database.default_pull(self.bot.client, WelcomeMessage))
 
     @commands.command(name="welcome", aliases=("youkoso", "goodbye", "ようこそ", "Welcome"), help="""\
 ユーザーが加入/離脱したときに、特定のメッセージをこのチャンネルに送信するようにします。

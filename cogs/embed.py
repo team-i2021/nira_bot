@@ -7,6 +7,7 @@ from nextcord import Interaction
 from nextcord.ext import commands
 
 from util import admin_check, n_fc, eh
+from util.nira import NIRA
 
 # embedを送信する機能
 
@@ -85,7 +86,7 @@ class EmbedMaker(nextcord.ui.Modal):
 
 
 class SendEmbed(commands.Cog):
-    def __init__(self, bot: commands.Bot, **kwargs):
+    def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
 
     # @nextcord.message_command(name="Embedコンテンツの取得", guild_ids=n_fc.GUILD_IDS)
@@ -142,7 +143,7 @@ Embedの本文です。
             await ctx.send(embed=embed)
             return
         except Exception as err:
-            await ctx.reply(embed=eh.eh(err))
+            await ctx.reply(embed=eh.eh(self.bot.client, err))
             return
 
 

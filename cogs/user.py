@@ -1,6 +1,5 @@
 import asyncio
 import os
-import pickle
 import re
 import sys
 
@@ -9,8 +8,8 @@ import nextcord
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
 
-from cogs.debug import save
 from util import admin_check, eh, slash_tool, database, n_fc
+from util.nira import NIRA
 
 SET, DEL, STATUS = (0, 1, 2)
 
@@ -32,10 +31,9 @@ class WelcomeInfo:
 
 
 class user(commands.Cog):
-    def __init__(self, bot: commands.Bot, **kwargs):
+    def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
-        self.client = kwargs["client"]
-
+        
     def UserInfoEmbed(self, member: nextcord.Member or nextcord.User):
         if member.bot:
             embed = nextcord.Embed(
@@ -186,14 +184,14 @@ class user(commands.Cog):
         )
     ):
         if admin_check.admin_check(interaction.guild, interaction.user):
-            await database.default_pull(self.client, RoleKeeper)
+            await database.default_pull(self.bot.client, RoleKeeper)
             if interaction.guild.id in RoleKeeper.value:
                 RoleKeeper.value[interaction.guild.id]["rk"] = SettingValue
                 await interaction.response.send_message(embed=nextcord.Embed(title="Role Keeper", description="設定を変更しました。", color=0x00ff00))
             else:
                 RoleKeeper.value[interaction.guild.id] = {"rk": SettingValue}
                 await interaction.response.send_message(embed=nextcord.Embed(title="Role Keeper", description="設定を変更しました。", color=0x00ff00))
-            await database.default_push(self.client, RoleKeeper)
+            await database.default_push(self.bot.client, RoleKeeper)
             return
         else:
             await interaction.response.send_message(embed=nextcord.Embed(title="Error", description="権限がありません。", color=0xff0000))
@@ -211,10 +209,10 @@ class user(commands.Cog):
                     description=f"`{self.bot.command_prefix}rk [on/off]`",
                     color=0x00ff00
                 )
-                await database.default_pull(self.client, RoleKeeper)
+                await database.default_pull(self.bot.client, RoleKeeper)
                 if ctx.guild.id not in RoleKeeper.value:
                     RoleKeeper.value[ctx.guild.id] = {"rk": 0}
-                    await database.default_push(self.client, RoleKeeper)
+                    await database.default_push(self.bot.client, RoleKeeper)
                 if RoleKeeper.value[ctx.guild.id]["rk"] == 0:
                     role_bool = "無効"
                 else:
@@ -227,7 +225,7 @@ class user(commands.Cog):
                 return
             if ctx.message.content.split(" ", 1)[1] in n_fc.on_ali:
                 # ロールキーパーオンにしやがれ
-                await database.default_pull(self.client, RoleKeeper)
+                await database.default_pull(self.bot.client, RoleKeeper)
                 if ctx.guild.id not in RoleKeeper.value:
                     RoleKeeper.value[ctx.guild.id] = {"rk": 1}
                 else:
@@ -241,7 +239,7 @@ class user(commands.Cog):
             else:
                 await ctx.reply(f"値が不正です。\n`{self.bot.command_prefix}rk [on/off]`")
                 return
-            await database.default_push(self.client, RoleKeeper)
+            await database.default_push(self.bot.client, RoleKeeper)
             await ctx.reply("ロールキーパーの設定を更新しました。")
             return
         else:
@@ -289,7 +287,7 @@ class user(commands.Cog):
         )
     ):
         if admin_check.admin_check(interaction.guild, interaction.user):
-            await self.ui_config(self.bot, self.client, interaction, SET, interaction.guild.id, channel)
+            await self.ui_config(self.bot, self.bot.client, interaction, SET, interaction.guild.id, channel)
         else:
             await interaction.response.send_message("管理者権限がありません。", ephemeral=True)
         return
@@ -300,7 +298,7 @@ class user(commands.Cog):
         interaction: Interaction
     ):
         if admin_check.admin_check(interaction.guild, interaction.user):
-            await self.ui_config(self.bot, self.client, interaction, DEL, interaction.guild.id, None)
+            await self.ui_config(self.bot, self.bot.client, interaction, DEL, interaction.guild.id, None)
         else:
             await interaction.response.send_message("管理者権限がありません。", ephemeral=True)
         return
@@ -311,7 +309,7 @@ class user(commands.Cog):
         interaction: Interaction
     ):
         if admin_check.admin_check(interaction.guild, interaction.user):
-            await self.ui_config(self.bot, self.client, interaction, STATUS, interaction.guild.id, None)
+            await self.ui_config(self.bot, self.bot.client, interaction, STATUS, interaction.guild.id, None)
         else:
             await interaction.response.send_message("管理者権限がありません。", ephemeral=True)
         return
@@ -326,18 +324,18 @@ class user(commands.Cog):
         if admin_check.admin_check(ctx.guild, ctx.author):
             mes_arg = ctx.message.content.split(" ")
             if len(mes_arg) == 1:
-                await self.ui_config(self.bot, self.client, ctx, STATUS, ctx.guild.id, None)
+                await self.ui_config(self.bot, self.bot.client, ctx, STATUS, ctx.guild.id, None)
                 return
             elif mes_arg[1] == "set":
                 set_id = int("".join(re.findall(r'[0-9]', mes_arg[2])))
                 channel = await self.bot.fetch_channel(set_id)
-                await self.ui_config(self.bot, self.client, ctx, SET, ctx.guild.id, channel)
+                await self.ui_config(self.bot, self.bot.client, ctx, SET, ctx.guild.id, channel)
                 return
             elif mes_arg[1] == "del":
-                await self.ui_config(self.bot, self.client, ctx, DEL, ctx.guild.id, None)
+                await self.ui_config(self.bot, self.bot.client, ctx, DEL, ctx.guild.id, None)
                 return
             else:
-                await self.ui_config(self.bot, self.client, ctx, STATUS, ctx.guild.id, None)
+                await self.ui_config(self.bot, self.bot.client, ctx, STATUS, ctx.guild.id, None)
 
         else:
             await ctx.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))

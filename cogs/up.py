@@ -16,6 +16,7 @@ from nextcord.ext import commands, tasks
 
 from util.n_fc import GUILD_IDS
 from util import slash_tool, admin_check, database
+from util.nira import NIRA
 
 SET, DEL, STATUS = (0, 1, 2)
 ROLE_ID = compile(r"<@&[0-9]+?>")
@@ -58,10 +59,9 @@ async def ErrorSend(interaction):
 
 
 class UpNotify(commands.Cog):
-    def __init__(self, bot: commands.Bot, **kwargs):
+    def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
-        self.client = kwargs["client"]
-
+        
     @commands.command(name="up", aliases=["アップ", "あっぷ", "dissoku"], help="""\
 DissokuのUp通知を行います
 
@@ -81,7 +81,7 @@ DissokuのUpをしたら、その1時間後に通知します。
         if admin_check.admin_check(ctx.guild, ctx.author):
             args = ctx.message.content.split(" ", 3)
             if len(args) == 1:
-                await (await UpNotifyConfig(self.bot, self.client, ctx, STATUS, None))
+                await (await UpNotifyConfig(self.bot, self.bot.client, ctx, STATUS, None))
                 return
             elif len(args) > 3:
                 await ErrorSend(ctx)
@@ -89,9 +89,9 @@ DissokuのUpをしたら、その1時間後に通知します。
                 return
             elif len(args) == 2:
                 if args[1] == "on":
-                    await (await UpNotifyConfig(self.bot, self.client, ctx, SET, None))
+                    await (await UpNotifyConfig(self.bot, self.bot.client, ctx, SET, None))
                 elif args[1] == "off":
-                    await (await UpNotifyConfig(self.bot, self.client, ctx, DEL, None))
+                    await (await UpNotifyConfig(self.bot, self.bot.client, ctx, DEL, None))
                 elif args[1][:5] == "debug":
                     if await self.bot.is_owner(ctx.author):
                         debugArg = args[1].split(":", 1)
@@ -102,10 +102,10 @@ DissokuのUpをしたら、その1時間後に通知します。
                         if debugArg == "current":
                             await ctx.reply(f"```py\n# [SHOW] Device\n{Upper.value}```")
                         elif debugArg == "write":
-                            await database.default_push(self.client, Upper)
+                            await database.default_push(self.bot.client, Upper)
                             await ctx.reply(f"```sh\n[WRITE] Device -> Server\nExecuted.```")
                         elif debugArg == "read":
-                            await database.default_pull(self.client, Upper)
+                            await database.default_pull(self.bot.client, Upper)
                             await ctx.reply(f"```sh\n[READ] Server -> Device\nExecuted.```")
                         else:
                             await ctx.reply(f"""\
@@ -127,7 +127,7 @@ read - read Upper.value from server to device```""")
             else:
                 if args[1] == "on":
                     if ROLE_ID.fullmatch(args[2]):
-                        await (await UpNotifyConfig(self.bot, self.client, ctx, SET, int(ROLE_ID.fullmatch(args[2]).group().replace("<@&", "").replace(">", ""))))
+                        await (await UpNotifyConfig(self.bot, self.bot.client, ctx, SET, int(ROLE_ID.fullmatch(args[2]).group().replace("<@&", "").replace(">", ""))))
                         return
 
                     role = None
@@ -145,7 +145,7 @@ read - read Upper.value from server to device```""")
                     if role is None:
                         await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"指定したロール`{args[2]}`が見つかりませんでした。", color=0xff0000))
                         return
-                    await (await UpNotifyConfig(self.bot, self.client, ctx, SET, role.id))
+                    await (await UpNotifyConfig(self.bot, self.bot.client, ctx, SET, role.id))
                     return
                 else:
                     await ErrorSend(ctx)
@@ -170,20 +170,20 @@ read - read Upper.value from server to device```""")
         if admin_check.admin_check(interaction.guild, interaction.user):
             if not role is None:
                 role = role.id
-            await (await UpNotifyConfig(self.bot, self.client, interaction, SET, role))
+            await (await UpNotifyConfig(self.bot, self.bot.client, interaction, SET, role))
         else:
             await interaction.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
 
     @up_slash.subcommand(name="off", description="Dissoku通知を無効にします")
     async def up_slash_off(self, interaction: Interaction):
         if admin_check.admin_check(interaction.guild, interaction.user):
-            await (await UpNotifyConfig(self.bot, self.client, interaction, DEL, None))
+            await (await UpNotifyConfig(self.bot, self.bot.client, interaction, DEL, None))
         else:
             await interaction.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
 
     @up_slash.subcommand(name="status", description="Dissoku通知の状態を確認します")
     async def up_slash_status(self, interaction: Interaction):
-        await (await UpNotifyConfig(self.bot, self.client, interaction, STATUS, None))
+        await (await UpNotifyConfig(self.bot, self.bot.client, interaction, STATUS, None))
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
