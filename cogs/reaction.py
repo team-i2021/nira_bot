@@ -23,24 +23,26 @@ class reaction_datas:
         value = {}
         default = {}
         value_type = database.CHANNEL_VALUE
-    
+
     class ex_reaction_list:
         name = "ex_reaction_list"
         value = {}
         default = {}
         value_type = database.CHANNEL_VALUE
-    
+
     class reaction_bool_list:
         name = "reaction_bool_list"
         value = {}
         default = {}
         value_type = database.CHANNEL_VALUE
 
+
 class notify_token:
     name = "notify_token"
     value = {}
     default = {}
     value_type = database.CHANNEL_VALUE
+
 
 async def changeSetting(
     client: HTTP_db.Client,
@@ -224,9 +226,11 @@ class reaction(commands.Cog):
                     return
         return
 
+
     @nextcord.slash_command(name="er", description="追加反応設定", guild_ids=n_fc.GUILD_IDS)
     async def er_slash(self, interaction: Interaction):
         pass
+
 
     @er_slash.subcommand(name="add", description="追加反応の設定追加")
     async def add_er_slash(
@@ -261,6 +265,7 @@ class reaction(commands.Cog):
             await interaction.send("管理者権限がありません。", ephemeral=True)
             return
 
+
     @er_slash.subcommand(name="list", description="追加反応の一覧")
     async def list_er_slash(self, interaction: Interaction):
         if interaction.guild.id not in reaction_datas.ex_reaction_list.value or changeSetting(STATUS, ER, interaction, key="value") == 0:
@@ -274,6 +279,7 @@ class reaction(commands.Cog):
                                     inline=False)
             await interaction.send(embed=embed)
             return
+
 
     @er_slash.subcommand(name="del", description="追加反応の削除")
     async def del_er_slash(
@@ -321,6 +327,7 @@ class reaction(commands.Cog):
             await interaction.send("管理者権限がありません。", ephemeral=True)
             return
 
+
     @er_slash.subcommand(name="edit", description="追加反応の編集")
     async def edit_er_slash(
         self,
@@ -364,6 +371,7 @@ class reaction(commands.Cog):
         else:
             await interaction.send("管理者権限がありません。", ephemeral=True)
             return
+
 
     @commands.command(name="nr", help="""\
 にらBOTの通常反応（にらとか）を無効にしたりすることが出来ます。
@@ -420,9 +428,11 @@ class reaction(commands.Cog):
             await ctx.reply(embed=eh.eh(err))
             return
 
+
     @nextcord.slash_command(name="nr", description="通常反応設定", guild_ids=n_fc.GUILD_IDS)
     async def nr_slash(self, interaction):
         pass
+
 
     @nr_slash.subcommand(name="channel", description="チャンネルでの通常反応設定")
     async def channel_nr_slash(
@@ -444,6 +454,7 @@ class reaction(commands.Cog):
             await interaction.send(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000), ephemeral=True)
             return
 
+
     @nr_slash.subcommand(name="server", description="サーバーでの通常反応設定")
     async def server_nr_slash(
         self,
@@ -464,6 +475,7 @@ class reaction(commands.Cog):
         else:
             await interaction.send(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000), ephemeral=True)
             return
+
 
     @commands.command(name="ar", help="""\
 にらBOTの通常反応及び追加反応(Bump通知および`n!`コマンド以外のすべて)を無効にしたりすることが出来ます。
@@ -508,6 +520,7 @@ class reaction(commands.Cog):
             await ctx.reply(embed=eh.eh(err))
             return
 
+
     @nextcord.slash_command(name="ar", description="チャンネル全体反応設定", guild_ids=n_fc.GUILD_IDS)
     async def ar_slash(
         self,
@@ -528,6 +541,7 @@ class reaction(commands.Cog):
             await interaction.send(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000), ephemeral=True)
             return
 
+
     @commands.command(name="line", help="""\
 DiscordのメッセージをLINEに送信します。
 LINE Notifyという機能を用いて、DiscordのメッセージをLINEに送信します。""")
@@ -541,15 +555,18 @@ TOKENとは簡単に言えばパスワードです。LINE Notifyのページか�
 [TOKENの発行方法](https://qiita.com/nattyan_tv/items/33ac7a7269fe12e49198)""", inline=False)
         await ctx.reply(embed=embed)
 
-    # imadake...
+
+    # 今だけGuild指定しない...
     @nextcord.slash_command(name="line", description="LINE Notifyの設定")
     async def line_slash(self, interaction: Interaction):
         pass
+
 
     @line_slash.subcommand(name="set", description="LINE Notifyのトークンを設定します。")
     async def line_set_slash(self, interaction: Interaction):
         modal = NotifyTokenSet()
         await interaction.response.send_modal(modal=modal)
+
 
     @line_slash.subcommand(name="del", description="LINE Notifyのトークンを削除します。")
     async def line_del_slash(self, interaction: Interaction):
