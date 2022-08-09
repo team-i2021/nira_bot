@@ -100,7 +100,7 @@ n!welcome leave off
             if ctx.guild.id in WelcomeMessage.value:
                 if args[1] in WelcomeMessage.value[ctx.guild.id]:
                     del WelcomeMessage.value[ctx.guid.id][args[1]]
-                    await database.default_push(self.client, WelcomeMessage)
+                    await database.default_push(self.bot.client, WelcomeMessage)
                     await ctx.reply(f"<#{ctx.channel.id}>の{args[1]}メッセージを削除しました。")
                 else:
                     await ctx.reply(f"・Welcomeメッセージコマンド\n{args[1]}メッセージは<#{ctx.channel.id}>には設定されていません。")
@@ -111,7 +111,7 @@ n!welcome leave off
             WelcomeMessage.value[ctx.guild.id] = {ctx.channel.id: (args[1], args[2])}
         else:
             WelcomeMessage.value[ctx.guild.id][ctx.channel.id] = (args[1], args[2])
-        await database.default_push(self.client, WelcomeMessage)
+        await database.default_push(self.bot.client, WelcomeMessage)
         await ctx.reply(embed=nextcord.Embed(title=f"Welcomeメッセージ設定: `{args[1]}`", description=args[2], color=0x00ff00))
         return
 
@@ -130,7 +130,7 @@ n!welcome leave off
             choices={"参加時": "join", "離脱時": "leave"}
         )
     ):
-        await interaction.response.send_modal(WelcomeMaker(MessageType, self.client))
+        await interaction.response.send_modal(WelcomeMaker(MessageType, self.bot.client))
 
     @welcome_slash.subcommand(name="del", description="サーバー加入/離脱時のメッセージ設定を削除します")
     async def del_slash(
@@ -142,7 +142,7 @@ n!welcome leave off
             if interaction.guild.id in WelcomeMessage.value:
                 if interaction.channel.id in WelcomeMessage.value[interaction.guild.id]:
                     del WelcomeMessage.value[interaction.guild.id][interaction.channel.id]
-                    await database.default_push(self.client, WelcomeMessage)
+                    await database.default_push(self.bot.client, WelcomeMessage)
                     await interaction.followup.send(embed=nextcord.Embed(title=f"Welcomeメッセージ表示", description=f"・成功\n設定を削除しました。", color=0x00ff00))
                 else:
                     await interaction.followup.send(embed=nextcord.Embed(title=f"Welcomeメッセージ表示", description=f"このチャンネルにはWelcomeメッセージ表示が設定されていません。", color=0xff0000), ephemeral=True)
