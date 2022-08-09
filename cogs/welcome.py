@@ -41,6 +41,7 @@ class WelcomeMaker(nextcord.ui.Modal):
 
     async def callback(self, interaction: nextcord.Interaction) -> None:
         try:
+            await interaction.response.defer(ephemeral=True)
             if interaction.guild.id not in WelcomeMessage.value:
                 WelcomeMessage.value[interaction.guild.id] = {interaction.channel.id: (self.message_type, self.main_content.value)}
             else:
