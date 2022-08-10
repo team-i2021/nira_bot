@@ -73,7 +73,7 @@ class user_join(commands.Cog):
             logging.error(err, traceback.format_exc())
 
         try:
-            if member.id not in WelcomeInfo.value[member.guild.id]:
+            if member.id not in RoleKeeper.value[member.guild.id]:
                 embed = nextcord.Embed(
                     title="こんにちは！",
                     description=f"名前： `{member.name}`\nID: `{member.id}`",
