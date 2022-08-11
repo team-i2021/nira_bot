@@ -121,11 +121,10 @@ class MessageRole(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
+        if isinstance(message.channel, nextcord.DMChannel):
+            return
         if message.author.bot:
             return
-        if message.guild is None:
-            return
-
         if message.guild.id not in MessageRoleData.value:
             return
         if message.channel.id not in MessageRoleData.value[message.guild.id]:

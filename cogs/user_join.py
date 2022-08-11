@@ -103,11 +103,10 @@ class user_join(commands.Cog):
                 invitedUrl = None
                 for key, value in InviteData.value[member.guild.id].items():
                     for i in Invites:
-                        if i.url == key:
-                            if i.uses != value[1]:
-                                invitedUrl = i
-                                InviteData.value[member.guild.id][invitedUrl.url][1] = invitedUrl.uses
-                                break
+                        if i.url == key and i.uses != value[1]:
+                            invitedUrl = i
+                            InviteData.value[member.guild.id][invitedUrl.url][1] = invitedUrl.uses
+                            break
                 invitedFrom = f"[{InviteData.value[member.guild.id][invitedUrl.url][0]}]({invitedUrl.url})"
                 if InviteData.value[member.guild.id][invitedUrl.url][0] is None:
                     invitedFrom = f"[{invitedUrl.url}]({invitedUrl.url})"
@@ -147,7 +146,7 @@ class user_join(commands.Cog):
             except Exception as err:
                 await members_message.edit(f"ロール付与時に何かしらのエラーが発生しました。\n何度も発生する場合はお問い合わせください。\n`{err}`", embed=embed)
                 logging.error(err)
-        return
+
 
     @commands.Cog.listener()
     async def on_member_remove(self, member: nextcord.Member):
@@ -177,32 +176,26 @@ class user_join(commands.Cog):
             role_text = ""
             role_ids = []
             for i in range(len(member.roles)):
-                if member.roles[i].id == member.guild.id:
-                    pass
-                else:
+                if member.roles[i].id != member.guild.id:
                     role_text = role_text + f" <@&{member.roles[i].id}> "
                     role_ids.append(member.roles[i].id)
             embed.add_field(name="付与されていたロール", value=f"{role_text}")
             if time_diff <= 100:
                 embed.add_field(name="即抜けRTA記録", value=f"`{round(time_diff, 4)}`秒")
-            if channel == None:
-                pass
-            else:
+            if channel is not None:
                 removed_message = await channel.send(embed=embed)
-            
+
             # After send...
 
             await database.default_pull(self.bot.client, RoleKeeper)
-            if member.guild.id not in RoleKeeper:
+            if member.guild.id not in RoleKeeper.value:
                 RoleKeeper.value[member.guild.id] = {"rk": 0}
                 return
             RoleKeeper.value[member.guild.id][member.id] = role_ids
             await database.default_push(self.bot.client, RoleKeeper)
             return
         except Exception as err:
-            if channel == None:
-                pass
-            else:
+            if channel is not None:
                 await removed_message.edit(f"おっと...これは大変ですね...\nユーザー離脱時の処理時にエラーが発生しました。\n`{err}`", embed=embed)
             logging.error(f"ユーザー離脱時の情報表示システムのエラー\n{err}\n`{traceback.format_exc()}`")
             return

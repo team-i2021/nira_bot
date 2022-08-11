@@ -16,6 +16,11 @@ from util.nira import NIRA
 
 SET, DEL, STATUS = [0, 1, 2]
 VALUE_TYPE = {"join": 0, 0: 0, "leave": 1, 1: 1}
+MESSAGES = [
+    "Welcomeメッセージ",
+    "このサーバーにはWelcomeメッセージは設定されていません。",
+    "このチャンネルにはWelcomeメッセージは設定されていません。",
+]
 
 class WelcomeMessage:
     name = "welcome_message"
@@ -27,14 +32,14 @@ def editSetting(setting_type: int | None = None, guild_id: int | None = None, ch
     if setting_type == SET:
         if guild_id not in WelcomeMessage.value:
             WelcomeMessage.value[guild_id] = {channel_id: (None, None) }
-        elif channel_id not in WelcomeMessge.value[guild_id]:
+        elif channel_id not in WelcomeMessage.value[guild_id]:
             WelcomeMessage.value[guild_id][channel_id] = (None, None)
         WelcomeMessage.value[guild_id][channel_id][VALUE_TYPE[value_type]] = value
         return 0
     elif setting_type == DEL:
         if guild_id not in WelcomeMessage.value:
             return 1
-        elif channel_id not in WelcomeMessge.value[guild_id]:
+        elif channel_id not in WelcomeMessage.value[guild_id]:
             return 2
         WelcomeMessage.value[guild_id][channel_id][VALUE_TYPE[value_type]] = None
         if list(WelcomeMessage.value[guild_id][channel_id]) == [None, None]:
@@ -42,10 +47,10 @@ def editSetting(setting_type: int | None = None, guild_id: int | None = None, ch
             if len(WelcomeMessage.value[guild_id].keys()) == 0:
                 WelcomeMessage.value[guild_id]
         return 0
-    elif setting_typr == STATUS:
+    elif setting_type == STATUS:
         if guild_id not in WelcomeMessage.value:
             return 1
-        elif channel_id not in WelcomeMessge.value[guild_id]:
+        elif channel_id not in WelcomeMessage.value[guild_id]:
             return 2
         return WelcomeMessage.value[guild_id][channel_id][VALUE_TYPE[value_type]]
 
@@ -71,7 +76,7 @@ class WelcomeMaker(nextcord.ui.Modal):
     async def callback(self, interaction: nextcord.Interaction) -> None:
         try:
             await interaction.response.defer(ephemeral=True)
-            result = editSetting(SET, interaction.guild.id, interaction.channel.id, self.message_type, self.main_content.value)
+            editSetting(SET, interaction.guild.id, interaction.channel.id, self.message_type, self.main_content.value)
             await database.default_push(self.client, WelcomeMessage)
             await interaction.followup.send(embed=nextcord.Embed(title=f"{self.message_type}メッセージ表示", description=self.main_content.value, color=0x00ff00), ephemeral=True)
             return
@@ -126,15 +131,15 @@ n!welcome leave off
         if args[2] == "off":
             result = editSetting(DEL, ctx.guild.id, ctx.channel.id, args[1],)
             if result == 1:
-                embed = nextcord.Embed(title="Welcomeメッセージ", description="このサーバーにはWelcomeメッセージは設定されていません。", color=0xff0000)
+                embed = nextcord.Embed(title=MESSAGES[0], description=MESSAGES[1], color=0xff0000)
             elif result == 2:
-                embed = nextcord.Embed(title="Welcomeメッセージ", description="このチャンネルにはWelcomeメッセージは設定されていません。", color=0xff0000)
+                embed = nextcord.Embed(title=MESSAGES[0], description=MESSAGES[2], color=0xff0000)
             else:
-                embed = nextcord.Embed(title="Welcomeメッセージ", description=f"このチャンネルの{args[1]}のメッセージを削除しました。", color=0x00ff00)
+                embed = nextcord.Embed(title=MESSAGES[0], description=f"このチャンネルの{args[1]}のメッセージを削除しました。", color=0x00ff00)
             await ctx.reply(embed=embed)
             return
         else:
-            result = editSetting(SET, ctx.guild.id, ctx.channel.id, args[1], args[2])
+            editSetting(SET, ctx.guild.id, ctx.channel.id, args[1], args[2])
             await database.default_push(self.bot.client, WelcomeMessage)
             await ctx.reply(embed=nextcord.Embed(title=f"Welcomeメッセージ設定: `{args[1]}`", description=args[2], color=0x00ff00))
             return
@@ -171,11 +176,11 @@ n!welcome leave off
         try:
             result = editSetting(DEL, interaction.guild.id, interaction.channel.id, MessageType,)
             if result == 1:
-                embed = nextcord.Embed(title="Welcomeメッセージ", description="このサーバーにはWelcomeメッセージは設定されていません。", color=0xff0000)
+                embed = nextcord.Embed(title=MESSAGES[0], description=MESSAGES[1], color=0xff0000)
             elif result == 2:
-                embed = nextcord.Embed(title="Welcomeメッセージ", description="このチャンネルにはWelcomeメッセージは設定されていません。", color=0xff0000)
+                embed = nextcord.Embed(title=MESSAGES[0], description=MESSAGES[2], color=0xff0000)
             else:
-                embed = nextcord.Embed(title="Welcomeメッセージ", description=f"このチャンネルの{MessageType}のメッセージを削除しました。", color=0x00ff00)
+                embed = nextcord.Embed(title=MESSAGES[0], description=f"このチャンネルの{MessageType}のメッセージを削除しました。", color=0x00ff00)
             await interaction.send(embed=embed)
             return
         except Exception as err:
@@ -192,11 +197,11 @@ n!welcome leave off
             result1 = editSetting(STATUS, interaction.guild.id, interaction.channel.id, "join")
             result2 = editSetting(STATUS, interaction.guild.id, interaction.channel.id, "leave")
             if result1 == 4 or result2 == 4:
-                embed = nextcord.Embed(title="Welcomeメッセージ", description="このサーバーにはWelcomeメッセージは設定されていません。", color=0xff0000)
+                embed = nextcord.Embed(title=MESSAGES[0], description=MESSAGES[1], color=0xff0000)
             elif result1 == 8 or result2 == 8:
-                embed = nextcord.Embed(title="Welcomeメッセージ", description="このチャンネルにはWelcomeメッセージは設定されていません。", color=0xff0000)
+                embed = nextcord.Embed(title=MESSAGES[0], description=MESSAGES[2], color=0xff0000)
             else:
-                embed = nextcord.Embed(title="Welcomeメッセージ", description=f"{interaction.guid.name}/<#{interaction.channel.id}>", color=0x00ff00)
+                embed = nextcord.Embed(title=MESSAGES[0], description=f"{interaction.guid.name}/<#{interaction.channel.id}>", color=0x00ff00)
                 embed.add_field(name="joinメッセージ", value=(lambda x: "設定されていません。" if x is None else x)(result1), inline=False)
                 embed.add_field(name="leaveメッセージ", value=(lambda x: "設定されていません。" if x is None else x)(result2), inline=False)
             await interaction.send(embed=embed)

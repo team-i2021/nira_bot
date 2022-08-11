@@ -147,7 +147,7 @@ Disboardの通知設定を行います。
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
-        if message.guild == None:
+        if isinstance(message.channel, nextcord.DMChannel):
             return
         if message.guild.id not in bump_data.value:
             return

@@ -187,37 +187,43 @@ read - read Upper.value from server to device```""")
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
-        await asyncio.sleep(5)
-        if message.guild == None:
+        if isinstance(message.channel, nextcord.DMChannel):
             return
         if message.guild.id not in Upper.value:
             return
         if message.author.id != 761562078095867916:
             return
-        if message.embeds == []:
-            return
-        if message.embeds[0].title != "ディスコード速報 | Discordサーバー・友達募集・ボット掲示板":
-            return
-        if message.embeds[0].fields[0].name == f"`{message.guild.name}` をアップしたよ!":
-            try:
-                print("up set.")
-                await message.channel.send(embed=nextcord.Embed(title="Up通知設定", description=f"<t:{math.floor(time.time())+3600}:f>、<t:{math.floor(time.time())+3600}:R>に通知します。", color=0x00ff00))
-                await asyncio.sleep(3600)
-                up_rnd = random.randint(1, 3)
-                messageContent = ""
-                if Upper.value[message.guild.id] is None:
-                    messageContent = "にらBOT Up通知"
-                else:
-                    messageContent = f"<@&{Upper.value[message.guild.id]}>"
-                if up_rnd == 1:
-                    await message.channel.send(messageContent, embed=nextcord.Embed(title="Upの時間だけどぉ！？！？", description=f"ほらほら～Upしないのぉ？？？\n```/dissoku up```", color=0x00ff00))
-                elif up_rnd == 2:
-                    await message.channel.send(messageContent, embed=nextcord.Embed(title="Upしやがれください！", description=f"お前がUpするんだよ、あくしろよ！\n```/dissoku up```", color=0x00ff00))
-                elif up_rnd == 3:
-                    await message.channel.send(messageContent, embed=nextcord.Embed(title="Upしましょう！", description=f"Upしてみませんか！\n```/dissoku up```", color=0x00ff00))
+        for _ in range(20):
+            message = await message.channel.fetch_message(message.id)
+            if message.embeds == []:
+                await asyncio.sleep(0.5)
+                continue
+            if message.embeds[0].title != "ディスコード速報 | Discordサーバー・友達募集・ボット掲示板":
+                await asyncio.sleep(0.5)
+                continue
+            if message.embeds[0].fields[0].name == f"`{message.guild.name}` をアップしたよ!":
+                try:
+                    print("up set.")
+                    await message.channel.send(embed=nextcord.Embed(title="Up通知設定", description=f"<t:{math.floor(time.time())+3600}:f>、<t:{math.floor(time.time())+3600}:R>に通知します。", color=0x00ff00))
+                    await asyncio.sleep(3600)
+                    up_rnd = random.randint(1, 3)
+                    messageContent = ""
+                    if Upper.value[message.guild.id] is None:
+                        messageContent = "にらBOT Up通知"
+                    else:
+                        messageContent = f"<@&{Upper.value[message.guild.id]}>"
+                    if up_rnd == 1:
+                        await message.channel.send(messageContent, embed=nextcord.Embed(title="Upの時間だけどぉ！？！？", description=f"ほらほら～Upしないのぉ？？？\n```/dissoku up```", color=0x00ff00))
+                    elif up_rnd == 2:
+                        await message.channel.send(messageContent, embed=nextcord.Embed(title="Upしやがれください！", description=f"お前がUpするんだよ、あくしろよ！\n```/dissoku up```", color=0x00ff00))
+                    elif up_rnd == 3:
+                        await message.channel.send(messageContent, embed=nextcord.Embed(title="Upしましょう！", description=f"Upしてみませんか！\n```/dissoku up```", color=0x00ff00))
+                    return
+                except Exception as err:
+                    logging.error(err)
+                    return
+            else:
                 return
-            except Exception as err:
-                logging.error(err)
 
 
 def setup(bot, **kwargs):

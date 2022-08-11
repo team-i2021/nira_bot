@@ -115,6 +115,8 @@ class Siritori(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
+        if isinstance(message.channel, nextcord.DMChannel):
+            return
         await database.default_pull(self.bot.client, srtr_data)
         if message.guild.id in srtr_data.value:
             if message.channel.id in srtr_data.value[message.guild.id]:

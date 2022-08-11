@@ -128,9 +128,9 @@ class MessageDM(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
-        if message.author.bot:
+        if isinstance(message.channel, nextcord.DMChannel):
             return
-        if message.guild is None:
+        if message.author.bot:
             return
         if message.guild.id not in MessageDMData.value:
             return

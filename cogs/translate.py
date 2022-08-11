@@ -332,6 +332,8 @@ Powered by DeepL Translate/Google Translate.""")
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
+        if isinstance(message.channel, nextcord.DMChannel):
+            return
         if not contentCheck(message):
             return
         if message.author.id == self.bot.user.id:

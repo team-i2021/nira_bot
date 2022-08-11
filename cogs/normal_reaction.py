@@ -277,9 +277,11 @@ class normal_reaction(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
-        await database.default_pull(self.bot.client, notify_token)
-        if message.guild == None:
+        if isinstance(message.channel, nextcord.DMChannel) and message.author != self.bot.user:
+            await n_reaction(message)
+        if isinstance(message.channel, nextcord.Thread):
             return
+        await database.default_pull(self.bot.client, notify_token)
         if message.guild.id in notify_token.value:
             if message.channel.id in notify_token.value[message.guild.id]:
                 web_api.notify_line(message, notify_token.value[message.guild.id][message.channel.id])
