@@ -1,18 +1,13 @@
 # 沢山のインポート
-import asyncio
-import datetime
 import json
 import logging
 import os
-import pip
-import re
+import requests
 import sys
 import traceback
+import time
 
 import nextcord
-import websockets
-from nextcord.ext import commands
-from nextcord import Interaction
 
 from util import n_fc, database
 from util.nira import NIRA
@@ -48,12 +43,24 @@ if len(sys.argv) > 1 and sys.argv[1] == "-d":
 ##### データベースの設定 #####
 CLIENT = database.openClient()
 
+for i in range(1, 4):
+    print(f"データベース接続チェック {i}/3...")
+    result = requests.post(f"{CLIENT.url}/auth", json={"password": CLIENT.password})
+    if result.status_code != 200:
+        if i <= 2: print(f"データベースに接続できませんでした。\nステータスコード: {result.status_code}");
+        else: print("データベースに接続できませんでした。\nプログラムを終了します。"); os._exit(0)
+    else:
+        if result.json()["status"] == "success": print("データベースに接続できました。"); break
+        else: print("データベースのパスワードが違います。\nプログラムを終了します。"); os._exit(0)
+    time.sleep(1)
+
 
 ##### BOTの設定 #####
 intents = nextcord.Intents.all()  # 全部盛りのIntentsオブジェクトを生成
 intents.typing = False  # 流石に重くなりそう
 intents.presences = False
 intents.members = True
+intents.message_content = True
 
 bot = NIRA(
     command_prefix=SETTING["prefix"],
