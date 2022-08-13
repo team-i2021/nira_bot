@@ -69,7 +69,8 @@ class Bump(commands.Cog):
             else:
                 await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="エラー", description=f"管理者権限がありません。", color=0xff0000), ephemeral=True)
         else:
-            await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="Bump設定", description=f"`n!bump`:Bump通知の設定の状態表示\n`n!bump on`:サーバーでのBump通知の設定を有効にします。\n`{self.bot.command_prefix}bump off`:サーバーでのBump通知の設定を無効にします。", color=0x00ff00), ephemeral=True)
+            await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="Bump設定", description=f"`{self.bot.command_prefix}bump`:Bump通知の設定の状態表示\n`{self.bot.command_prefix}bump on`:サーバーでのBump通知の設定を有効にします。\n`{self.bot.command_prefix}bump off`:サーバーでのBump通知の設定を無効にします。", color=0x00ff00), ephemeral=True)
+
 
     @commands.command(name="bump", help="""\
 Disboardの通知設定を行います。

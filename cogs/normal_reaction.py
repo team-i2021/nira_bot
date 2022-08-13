@@ -324,7 +324,7 @@ class normal_reaction(commands.Cog):
             asyncio.ensure_future(database.default_push(self.bot.client, reaction_datas.reaction_bool_list))
         #########################################
         # 通常反応
-        # 「n!nr [on/off]」で変更できます
+        # 「$nr [on/off]」で変更できます
         #########################################
         if reaction_datas.reaction_bool_list.value[message.guild.id]["all"] != 1:
             return

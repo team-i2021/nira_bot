@@ -149,6 +149,7 @@ n!remind on 8:25 おはようございます！
         if len(args) < 2:
             await ctx.reply(embed=nextcord.Embed(title="使い方", description=f"`{self.bot.command_prefix}remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`\n`{self.bot.command_prefix}remind off [時間(hh:mm)]`\n`{self.bot.command_prefix}remind list`\n\n詳しくは`{self.bot.command_prefix}help remind`を参照してください。", color=0xff0000))
             return
+
         if args[1] == "on":
             if not admin_check.admin_check(ctx.guild, ctx.author):
                 await ctx.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
@@ -267,7 +268,7 @@ pull - pull data from server to device```""")
                 await ctx.reply("管理者権限がありません。")
                 return
         else:
-            await ctx.reply(embed=nextcord.Embed(title="使い方", description=f"`{self.bot.command_prefix}remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`\n`n!remind off [時間(hh:mm)]`\n`n!remind list`\n\n詳しくは`{self.bot.command_prefix}help remind`を参照してください。", color=0xff0000))
+            await ctx.reply(embed=nextcord.Embed(title="使い方", description=f"`{self.bot.command_prefix}remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`\n`{self.bot.command_prefix}remind off [時間(hh:mm)]`\n`{self.bot.command_prefix}remind list`\n\n詳しくは`{self.bot.command_prefix}help remind`を参照してください。", color=0xff0000))
             return
 
     @nextcord.slash_command(name="remind", description="remind", guild_ids=n_fc.GUILD_IDS)

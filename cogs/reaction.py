@@ -219,8 +219,9 @@ class reaction(commands.Cog):
                     for i in range(math.floor((len(reaction_datas.ex_reaction_list.value[ctx.guild.id])-1)/2)-(result+1)):
                         for suf in ("tr", "re"):
                             changeSetting(SET, ER, ctx,
-                                          key=f"{result+i+1}_{suf}",
-                                          value=changeSetting(STATUS, ER, ctx, key=f"{result+i+2}_{suf}"))
+                                key=f"{result+i+1}_{suf}",
+                                value=changeSetting(STATUS, ER, ctx, key=f"{result+i+2}_{suf}")
+                            )
                     for i in ("tr", "re"):
                         del reaction_datas.ex_reaction_list.value[ctx.guild.id][f"{reaction_datas.ex_reaction_list.value[ctx.guild.id]['value']}_{i}"]
                     reaction_datas.ex_reaction_list.value[ctx.guild.id]["value"] -= 1
@@ -322,9 +323,11 @@ class reaction(commands.Cog):
                         return
                     for i in range(math.floor((len(reaction_datas.ex_reaction_list.value[interaction.guild.id])-1)/2)-(result+1)):
                         for suf in ("tr", "re"):
-                            changeSetting(SET, ER, interaction,
-                                          key=f"{result+i+1}_{suf}",
-                                          value=changeSetting(STATUS, ER, interaction, key=f"{result+i+2}_{suf}"))
+                            changeSetting(
+                                SET, ER, interaction,
+                                key=f"{result+i+1}_{suf}",
+                                value=changeSetting(STATUS, ER, interaction, key=f"{result+i+2}_{suf}")
+                            )
                     for i in ("tr", "re"):
                         del reaction_datas.ex_reaction_list.value[interaction.guild.id][f"{reaction_datas.ex_reaction_list.value[interaction.guild.id]['value']}_{i}"]
                     reaction_datas.ex_reaction_list.value[interaction.guild.id]["value"] -= 1
@@ -429,9 +432,9 @@ class reaction(commands.Cog):
                         reaction_datas.reaction_bool_list.value[ctx.guild.id]["all"] = 0
                         await ctx.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="サーバーでの通常反応を無効にしました。", color=0x00ff00))
                     else:
-                        await ctx.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="コマンド使用方法:`n!nr [all] [on/off]`", color=0xff0000))
+                        await ctx.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description=f"コマンド使用方法:`{self.bot.command_prefix}nr [all] [on/off]`", color=0xff0000))
                 else:
-                    await ctx.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="コマンド使用方法:`n!nr [all] [on/off]`", color=0xff0000))
+                    await ctx.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="コマンド使用方法:`{self.bot.command_prefix}nr [all] [on/off]`", color=0xff0000))
                 await database.default_push(self.bot.client, reaction_datas.reaction_bool_list)
                 return
             else:
@@ -517,7 +520,7 @@ class reaction(commands.Cog):
                 else:
                     setting = "読み込めませんでした。"
                 await database.default_push(self.bot.client, reaction_datas.all_reaction_list)
-                await ctx.reply(embed=nextcord.Embed(title="All Reaction Setting", description=f"「通常反応」及び「追加反応」（Bump通知および各種コマンドは除く）の設定:{setting}\n\n`n!ar [on/off]`で変更できます。", color=0x00ff00))
+                await ctx.reply(embed=nextcord.Embed(title="All Reaction Setting", description=f"「通常反応」及び「追加反応」（Bump通知および各種コマンドは除く）の設定:{setting}\n\n`{self.bot.command_prefix}ar [on/off]`で変更できます。", color=0x00ff00))
                 return
             if admin_check.admin_check(ctx.guild, ctx.author):
                 ar_setting = str((ctx.message.content).split(" ", 1)[1])
@@ -528,7 +531,7 @@ class reaction(commands.Cog):
                     reaction_datas.all_reaction_list.value[ctx.guild.id][ctx.channel.id] = 0
                     await ctx.reply(embed=nextcord.Embed(title="All Reaction Setting", description="チャンネルでの全反応を無効にしました。", color=0x00ff00))
                 else:
-                    await ctx.reply(embed=nextcord.Embed(title="All Reaction Setting", description="コマンド使用方法:`n!ar [all] [on/off]`", color=0xff0000))
+                    await ctx.reply(embed=nextcord.Embed(title="All Reaction Setting", description=f"コマンド使用方法:`{self.bot.command_prefix}ar [all] [on/off]`", color=0xff0000))
                 await database.default_push(self.bot.client, reaction_datas.all_reaction_list)
                 return
             else:
