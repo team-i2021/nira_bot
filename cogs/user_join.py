@@ -11,7 +11,7 @@ import HTTP_db
 import nextcord
 from nextcord.ext import commands
 
-from util import admin_check, n_fc, eh, database, dict_list
+from util import admin_check, n_fc, eh, database, dict_list, parallel
 from util.nira import NIRA
 
 
@@ -58,9 +58,11 @@ class user_join(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member: nextcord.Member):
-        await database.default_pull(self.bot.client, WelcomeInfo)
-        await database.default_pull(self.bot.client, RoleKeeper)
-        await database.default_pull(self.bot.client, InviteData)
+        tasks = []
+        tasks.append(asyncio.ensure_future(database.default_pull(self.bot.client, WelcomeInfo)))
+        tasks.append(asyncio.ensure_future(database.default_pull(self.bot.client, RoleKeeper)))
+        tasks.append(asyncio.ensure_future(database.default_pull(self.bot.client, InviteData)))
+        await parallel.wait(tasks)
         try:
             channel = member.guild.get_channel(WelcomeInfo.value[member.guild.id])
             if member.guild.id not in RoleKeeper.value:
