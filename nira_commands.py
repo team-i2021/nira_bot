@@ -64,8 +64,8 @@ commands_description = {
     "サーバー加入/離脱したユーザーの情報を表示する",
     "ping":
     "Discordサーバーや指定したサーバーとのレスポンスを表示する",
-    "jishaku":
-    "jishaku(for Debug)",
+    "onami":
+    "onami(for Debug)",
     "info":
     "にらBOTの情報を表示する",
     "exit":

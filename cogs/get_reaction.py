@@ -1,6 +1,5 @@
 import logging
 import os
-import pickle
 import requests
 import sys
 
@@ -9,11 +8,12 @@ from nextcord.ext import commands
 
 from cogs import server_status
 from util import admin_check, n_fc, eh
+from util.nira import NIRA
 
 SYSDIR = sys.path[0]
 
 class GetReaction(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
 
     @commands.Cog.listener()
@@ -23,5 +23,5 @@ class GetReaction(commands.Cog):
             return
 
 
-def setup(bot):
-    bot.add_cog(GetReaction(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(GetReaction(bot, **kwargs))

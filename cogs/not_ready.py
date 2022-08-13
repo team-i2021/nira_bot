@@ -1,11 +1,12 @@
 import nextcord
 from nextcord.ext import commands
+from util.nira import NIRA
 
 # 変数読み込むまで....
 
 
 class not_ready(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
 
     @commands.Cog.listener()
@@ -15,5 +16,5 @@ class not_ready(commands.Cog):
             await message.reply("現在起動準備中です。")
 
 
-def setup(bot):
-    bot.add_cog(not_ready(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(not_ready(bot, **kwargs))

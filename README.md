@@ -6,22 +6,19 @@
 
 ## 必要なもの
 
-- Python3.8 以上
+- Python3.10 以上
+- つよい（小並感）パソコン（Windows/Linux/macOSどれでも可）
 
 ## セットアップ
 
 1. `pip3 install -r requirements.txt`などの方法で、`requirements.txt`のモジュールをインストールします。
-2. データベースの情報を`util/gapi.json`に書き込みます。  
-   データベースについては[こちら](https://nattyan-tv.github.io/nira-note/bot/notes/database)をご確認ください。
-3. `setting_temp.json`及び下の表を参考にして、`setting.json`に TOKEN などの必要な設定を書き込みます。
-4. `HTTP_db`のデータベースのパスワードを、`password`ファイルに書き込んで保存します。
+2. `setting_temp.json`及び下の表を参考にして、`setting.json`に TOKEN などの必要な設定を書き込みます。
+3. `HTTP_db`のデータベースのパスワードを、`password`ファイルに書き込んで保存します。
 
 - 追加したファイルのツリー図
   ```sh
   N:.
   \--nira_bot
-     +--util
-     |  \--gapi.json
      +--setting.json
      \--password
   ```
@@ -34,12 +31,11 @@
 | `py_admin`          | 再起動や Jishaku などの管理者コマンドを使用できるユーザーの DiscordID             | `[1234567989,987654321]`                     | list(int)     |
 | `voicevox`          | VOICEVOX WebAPI の API キー                                                       | `["abcdefg1234","1234abcdef"]`               | list(str)     |
 | `prefix`            | コマンドのプレフィックス                                                          | `"n!"`                                       | str           |
-| `database`          | データベースのキー                                                                | `"abcdefghijklmn12345-opqrstuvwxyz67890"`    | str           |
 | `guild_ids`         | スラッシュコマンドを登録する GuildID。未指定で全サーバーに登録する。              | `[1234567989,987654321]`                     | list(int)     |
 | `unload_cogs`       | cogs フォルダにある Python ファイルで、Cog として読み込まないファイルを指定する。 | `["yabai.py","tondemonai.py"]`               | list(str)     |
 | `load_cogs`         | Debug モードで起動した際に読み込む Cog を指定する。                               | `["debug.py"]`                               | list(str)     |
 | `translate`         | DeepL API のキー（必須ではない）                                                  | `abcd1234-ab12-ab12-ab12-ab12ab12ab12`       | str           |
-| `database_data`     | HTTP_db 用のアドレスなどのデータ                                                  | `{"address":"127.0.0.1","port":45276}`       | dict(str,int) |
+| `database_url`     | HTTP_dbのデータベースのURL                                                  | `http://127.0.0.1:9090`       | str |
 
 ## 起動
 
@@ -59,7 +55,8 @@ Debug モードで起動すると、下記の状態になります。
 # Contribute
 
 issue や PR を立てる場合は、初心者プログラマー(私)にやさしくしてくれるとうれしいです。  
-特にテンプレとかは書かないですし、**大半の人がみて分かりやすいような書き方**であれば何でもいいです。
+特にテンプレとかは書かないですし、**大半の人がみて分かりやすいような書き方**であれば何でもいいです。  
+なお、Contribute用のガイドは[こちら](https://github.com/team-i2021/nira_bot/contribute.md)にあります。
 
 # 機能
 

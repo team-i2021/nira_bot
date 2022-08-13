@@ -9,6 +9,7 @@ from nextcord.ext import commands
 
 import util.help_command as hc
 from util import admin_check, n_fc, eh, slash_tool
+from util.nira import NIRA
 
 # インフォ系
 
@@ -488,7 +489,7 @@ class info_base():
 - プライバシーポリシー
 [https://nira.f5.si/privacy_policy.html](https://nira.f5.si/privacy_policy.html)
 """,
-            online=False
+            inline=False
         )
         if type == CTX:
             return ctx.reply(embed=embed)
@@ -532,7 +533,7 @@ class info_base():
 
 
 class info(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
 
     @nextcord.slash_command(name="info", description="にらBOTの情報を表示します。", guild_ids=n_fc.GUILD_IDS)
@@ -581,6 +582,6 @@ class info(commands.Cog):
             await info_base.help(self, ctx, command[1], CTX)
 
 
-def setup(bot):
+def setup(bot, **kwargs):
     importlib.reload(hc)
-    bot.add_cog(info(bot))
+    bot.add_cog(info(bot, **kwargs))

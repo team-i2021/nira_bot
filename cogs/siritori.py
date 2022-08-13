@@ -1,13 +1,15 @@
+import asyncio
 import importlib
 import os
-import pickle
 import sys
 
+import HTTP_db
 import nextcord
 from nextcord.ext import commands
 
-from util import eh, srtr
-from util.n_fc import GUILD_IDS, srtr_bool_list
+from util import eh, srtr, database
+from util.n_fc import GUILD_IDS
+from util.nira import NIRA
 
 SYSDIR = sys.path[0]
 START = ["start", "on", "play", "スタート", "はじめ"]
@@ -15,42 +17,49 @@ STOP = ["stop", "off", "end", "exit", "ストップ", "おわり"]
 
 # しりとり管理系
 
+class srtr_data:
+    name = "srtr_data"
+    value = {}
+    default = {}
+    value_type = database.CHANNEL_VALUE
 
 class Siritori(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
 
     @nextcord.slash_command(name="srtr", description="しりとり", guild_ids=GUILD_IDS)
     async def srtr(self):
         pass
 
-    def srtr_control(self, start: bool, guild, channel) -> nextcord.Embed:
-        if start:
-            if guild.id not in srtr_bool_list:
-                srtr_bool_list[guild.id] = {}
+    async def srtr_control(self, start: bool, guild, channel) -> nextcord.Embed:
+        await database.default_pull(self.bot.client, srtr_data)
 
-            if channel.id in srtr_bool_list[guild.id]:
+        if start:
+            if guild.id not in srtr_data.value:
+                srtr_data.value[guild.id] = {}
+
+            if channel.id in srtr_data.value[guild.id]:
                 return nextcord.Embed(title="しりとり", description=f"{channel.name}でしりとりは既に実行されています。", color=0x00ff00)
 
             try:
-                srtr_bool_list[guild.id][channel.id] = 1
-                with open(f"{SYSDIR}/srtr_bool_list.nira", "wb") as f:
-                    pickle.dump(srtr_bool_list, f)
-            except BaseException as err:
-                return eh(err)
+                srtr_data.value[guild.id][channel.id] = 1
+                await database.default_push(self.bot.client, srtr_data)
+
+            except Exception as err:
+                return eh(self.bot.client, err)
 
             return nextcord.Embed(title="しりとり", description=f"{channel.name}でしりとりを始めます。", color=0x00ff00)
 
         else:
-            if guild.id not in srtr_bool_list or channel.id not in srtr_bool_list[guild.id]:
+            if guild.id not in srtr_data.value or channel.id not in srtr_data.value[guild.id]:
                 return nextcord.Embed(title="しりとり", description=f"{channel.name}でしりとりは実行されていません。", color=0x00ff00)
 
             try:
-                del srtr_bool_list[guild.id][channel.id]
-                with open(f"{SYSDIR}/srtr_bool_list.nira", "wb") as f:
-                    pickle.dump(srtr_bool_list, f)
-            except BaseException as err:
-                return eh(err)
+                del srtr_data.value[guild.id][channel.id]
+                await database.default_push(self.bot.client, srtr_data)
+
+            except Exception as err:
+                return eh(self.bot.client, err)
 
             return nextcord.Embed(title="しりとり", description=f"{channel.name}でのしりとりを終了します。", color=0x00ff00)
 
@@ -77,12 +86,12 @@ class Siritori(commands.Cog):
         control_arg = ctx.message.content.split(" ", 1)[1]
 
         if control_arg in START:
-            embed = self.srtr_control(
-                True, ctx.message.guild, ctx.message.channel)
+            embed = await self.srtr_control(
+                True, ctx.guild, ctx.channel)
 
         elif control_arg in STOP:
-            embed = self.srtr_control(
-                False, ctx.message.guild, ctx.message.channel)
+            embed = await self.srtr_control(
+                False, ctx.guild, ctx.channel)
 
         else:
             embed = nextcord.Embed(
@@ -91,20 +100,30 @@ class Siritori(commands.Cog):
                 color=0x00ff00
             )
 
-        await ctx.message.reply(embed=embed)
+        await ctx.reply(embed=embed)
         return
 
     @srtr.subcommand(name="start", description="しりとり風のゲームで遊びます")
     async def srtr_start(self, interaction: nextcord.Interaction):
-        await interaction.response.send_message(embed=self.srtr_control(True, interaction.guild, interaction.channel))
+        await interaction.response.send_message(embed=(await self.srtr_control(True, interaction.guild, interaction.channel)))
         return
 
     @srtr.subcommand(name="stop", description="チャンネルのしりとりゲームを終了します")
     async def srtr_stop(self, interaction: nextcord.Interaction):
-        await interaction.response.send_message(embed=self.srtr_control(False, interaction.guild, interaction.channel))
+        await interaction.response.send_message(embed=(await self.srtr_control(False, interaction.guild, interaction.channel)))
         return
 
+    @commands.Cog.listener()
+    async def on_message(self, message: nextcord.Message):
+        if isinstance(message.channel, nextcord.DMChannel):
+            return
+        await database.default_pull(self.bot.client, srtr_data)
+        if message.guild.id in srtr_data.value:
+            if message.channel.id in srtr_data.value[message.guild.id]:
+                await srtr.on_srtr(message, self.bot.client)
+                return
 
-def setup(bot):
+
+def setup(bot, **kwargs):
     importlib.reload(srtr)
-    bot.add_cog(Siritori(bot))
+    bot.add_cog(Siritori(bot, **kwargs))

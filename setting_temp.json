@@ -5,12 +5,9 @@
     "py_admin":[管理者用コマンドを実行できるユーザーのID(複数可)],
     "voicevox":[WEB版VOICEVOXのAPIキー(複数可)],
     "prefix": プリフィックス,
-    "database": Googleのデータベースキー,
     "guild_ids": [サーバーID(複数可)],
     "unload_cogs": [],
     "load_cogs": [],
     "translate":DeepL APIのキー,
-    "database_data":{
-        "address": サーバーのアドレス
-    }
+    "database_url":データベースのURL
 }

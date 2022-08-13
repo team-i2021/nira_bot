@@ -14,6 +14,7 @@ from nextcord import Interaction, SlashOption, ChannelType
 from nextcord.ext import commands
 
 from util import admin_check, n_fc, eh, dict_list, database
+from util.nira import NIRA
 
 ROLE_ID = re.compile(r"<@&[0-9]+?>")
 
@@ -22,25 +23,17 @@ ROLE_ID = re.compile(r"<@&[0-9]+?>")
 
 SYSDIR = sys.path[0]
 
-MESSAGE_ROLE_SETTINGS = {}
-
-
-async def pullData(client: HTTP_db.Client):
-    global MESSAGE_ROLE_SETTINGS
-    if not await client.exists("message_role"):
-        await client.post("message_role", [])
-    try:
-        MESSAGE_ROLE_SETTINGS = dict_list.listToDict(await client.get("message_role"))
-    except Exception:
-        logging.error(traceback.format_exc())
-        MESSAGE_ROLE_SETTINGS = {}
+class MessageRoleData:
+    name = "message_role"
+    value = {}
+    default = {}
+    value_type = database.CHANNEL_VALUE
 
 
 class MessageRole(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
-        self.client: HTTP_db.Client = database.openClient()
-        asyncio.ensure_future(pullData(self.client))
+        asyncio.ensure_future(database.default_pull(self.bot.client, MessageRoleData))
 
     @nextcord.slash_command(name="mesrole", description="Message role command", guild_ids=n_fc.GUILD_IDS)
     async def slash_message_role(self, interaction: Interaction):
@@ -67,11 +60,11 @@ class MessageRole(commands.Cog):
         action_type = (lambda x: True if x else False)(action_type)
         await interaction.response.defer(ephemeral=True)
 
-        if interaction.guild.id not in MESSAGE_ROLE_SETTINGS:
-            MESSAGE_ROLE_SETTINGS[interaction.guild.id] = {
+        if interaction.guild.id not in MessageRoleData.value:
+            MessageRoleData.value[interaction.guild.id] = {
                 interaction.channel.id: [regex, action_type, role.id]}
         else:
-            MESSAGE_ROLE_SETTINGS[interaction.guild.id][interaction.channel.id] = [
+            MessageRoleData.value[interaction.guild.id][interaction.channel.id] = [
                 regex, action_type, role.id]
 
         await interaction.followup.send(
@@ -81,7 +74,7 @@ class MessageRole(commands.Cog):
                 color=0x00ff00
             )
         )
-        await self.client.post("message_role", dict_list.dictToList(MESSAGE_ROLE_SETTINGS))
+        await database.default_push(self.bot.client, MessageRoleData)
         return
 
     @slash_message_role.subcommand(name="del", description="チャンネルのメッセージロールの設定を削除します")
@@ -91,18 +84,18 @@ class MessageRole(commands.Cog):
             await interaction.followup.send(embed=nextcord.Embed(title="Error", description="あなたは管理者ではありません。", color=0xff0000))
             return
 
-        if interaction.guild.id not in MESSAGE_ROLE_SETTINGS:
+        if interaction.guild.id not in MessageRoleData.value:
             await interaction.followup.send(embed=nextcord.Embed(title="メッセージロールの設定", description="このサーバーにはメッセージロールの設定がありません。", color=0xff0000))
             return
-        elif interaction.channel.id not in MESSAGE_ROLE_SETTINGS[interaction.guild.id]:
+        elif interaction.channel.id not in MessageRoleData.value[interaction.guild.id]:
             await interaction.followup.send(embed=nextcord.Embed(title="メッセージロールの設定", description="このチャンネルにはメッセージロールの設定がありません。", color=0xff0000))
             return
         else:
-            del MESSAGE_ROLE_SETTINGS[interaction.guild.id][interaction.channel.id]
-            if len(MESSAGE_ROLE_SETTINGS[interaction.guild.id]) == 0:
-                del MESSAGE_ROLE_SETTINGS[interaction.guild.id]
+            del MessageRoleData.value[interaction.guild.id][interaction.channel.id]
+            if len(MessageRoleData.value[interaction.guild.id]) == 0:
+                del MessageRoleData.value[interaction.guild.id]
             await interaction.followup.send(embed=nextcord.Embed(title="メッセージロールの設定", description=f"チャンネル:<#{interaction.channel.id}>\nメッセージロールの設定を削除しました。", color=0x00ff00))
-            await self.client.post("message_role", dict_list.dictToList(MESSAGE_ROLE_SETTINGS))
+            await database.default_push(self.bot.client, MessageRoleData)
             return
 
     @slash_message_role.subcommand(name="list", description="メッセージロールの設定を表示します")
@@ -112,13 +105,20 @@ class MessageRole(commands.Cog):
             await interaction.followup.send(embed=nextcord.Embed(title="Error", description="あなたは管理者ではありません。", color=0xff0000))
             return
 
-        if interaction.guild.id not in MESSAGE_ROLE_SETTINGS:
+        if interaction.guild.id not in MessageRoleData.value:
             await interaction.followup.send(embed=nextcord.Embed(title="メッセージロールの設定", description="このサーバーにはメッセージロールの設定がありません。", color=0x00ff00))
-            return
         else:
             embed = nextcord.Embed(
                 title="メッセージロールの設定", description=interaction.guild.name, color=0x00ff00)
-            for channel_id, channel_setting in MESSAGE_ROLE_SETTINGS[interaction.guild.id].items():
+            for channel_id, channel_setting in MessageRoleData.value[interaction.guild.id].items():
+                if len(channel_setting) == 0:
+                    del MessageRoleData.value[interaction.guild.id][channel_id]
+                    if len(MessageRoleData.value[interaction.guild.id]) == 0:
+                        del MessageRoleData.value[interaction.guild.id]
+                        await interaction.send(embed=nextcord.Embed(title="メッセージロールの設定", description="このサーバーには設定がありません。", color=0x00ff00))
+                        return
+                    asyncio.ensure_future(database.default_push(self.bot.client, MessageRoleData))
+                    continue
                 embed.add_field(
                     name=(await self.bot.fetch_channel(channel_id)).name,
                     value=f"判定メッセージ:`{channel_setting[0]}`\nロール:<@&{channel_setting[2]}>\nロール{(lambda x: '付与' if x else '剥奪')(channel_setting[1])}をします。",
@@ -128,20 +128,19 @@ class MessageRole(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
+        if isinstance(message.channel, nextcord.DMChannel):
+            return
         if message.author.bot:
             return
-        if message.guild is None:
+        if message.guild.id not in MessageRoleData.value:
             return
-
-        if message.guild.id not in MESSAGE_ROLE_SETTINGS:
+        if message.channel.id not in MessageRoleData.value[message.guild.id]:
             return
-        if message.channel.id not in MESSAGE_ROLE_SETTINGS[message.guild.id]:
-            return
-        if re.search(MESSAGE_ROLE_SETTINGS[message.guild.id][message.channel.id][0], message.content) is not None:
-            if MESSAGE_ROLE_SETTINGS[message.guild.id][message.channel.id][1]:
-                await message.author.add_roles(message.guild.get_role(MESSAGE_ROLE_SETTINGS[message.guild.id][message.channel.id][2]), reason="nira-bot MessageRole Service")
+        if re.search(MessageRoleData.value[message.guild.id][message.channel.id][0], message.content) is not None:
+            if MessageRoleData.value[message.guild.id][message.channel.id][1]:
+                await message.author.add_roles(message.guild.get_role(MessageRoleData.value[message.guild.id][message.channel.id][2]), reason="nira-bot MessageRole Service")
             else:
-                await message.author.remove_roles(message.guild.get_role(MESSAGE_ROLE_SETTINGS[message.guild.id][message.channel.id][2]), reason="nira-bot MessageRole Service")
+                await message.author.remove_roles(message.guild.get_role(MessageRoleData.value[message.guild.id][message.channel.id][2]), reason="nira-bot MessageRole Service")
             await message.add_reaction("\u2705")
 
     @commands.command(name="mesrole", help="""\
@@ -177,9 +176,9 @@ class MessageRole(commands.Cog):
 `n!mesrole add "You Tube"` add YouTubeの間に空白入れるタイプの人`
 `n!mesrole remove ([Nn][Ii][Rr][Aa]|[にニﾆ][らラﾗ]) remove にらと言ってない人`
 `n!mesrole list`""")
-    async def mesrole(self, ctx: commands.Context, command_type: str, *args):
+    async def mesrole(self, ctx: commands.Context, command_type: str = "list", *args):
         # regex: str, action_type: str, role: str or int
-        global MESSAGE_ROLE_SETTINGS
+
         if command_type not in ["set", "del", "list", "db"]:
             await ctx.reply(embed=nextcord.Embed(title="Error", description=f"コマンドが正しくありません。\n個所:第1引数(command_type)\n第1引数は`set`か`del`か`list`のみが許容されます。\n`{self.bot.command_prefix}help mesrole`", color=0xff0000))
             return
@@ -210,51 +209,57 @@ class MessageRole(commands.Cog):
                 await ctx.reply(embed=nextcord.Embed(title="Error", description=f"指定したロール`{args[2]}`が見つかりませんでした。\nロール名又はロールIDが正しく指定されてることを確認してください。", color=0xff0000))
                 return
 
-            if ctx.guild.id not in MESSAGE_ROLE_SETTINGS:
-                MESSAGE_ROLE_SETTINGS[ctx.guild.id] = {
+            if ctx.guild.id not in MessageRoleData.value:
+                MessageRoleData.value[ctx.guild.id] = {
                     ctx.channel.id: [args[0], (lambda x: True if x == "add" else False)(args[1]), role.id]}
             else:
-                MESSAGE_ROLE_SETTINGS[ctx.guild.id][ctx.channel.id] = [
+                MessageRoleData.value[ctx.guild.id][ctx.channel.id] = [
                     args[0], (lambda x: True if x == "add" else False)(args[1]), role.id]
 
             await ctx.reply(embed=nextcord.Embed(title="メッセージロールの設定", description=f"チャンネル:<#{ctx.channel.id}>\n判定メッセージ:`{args[0]}`\nロール:<@&{role.id}>を{(lambda x: '付与' if x else '剥奪')(args[1])}します。", color=0x00ff00))
-            await self.client.post("message_role", dict_list.dictToList(MESSAGE_ROLE_SETTINGS))
-            return
+            await database.default_push(self.bot.client, MessageRoleData)
 
         elif command_type == "del":
             if not admin_check.admin_check(ctx.guild, ctx.author):
                 await ctx.reply(embed=nextcord.Embed(title="Error", description="あなたは管理者ではありません。", color=0xff0000))
                 return
 
-            if ctx.guild.id not in MESSAGE_ROLE_SETTINGS:
+            if ctx.guild.id not in MessageRoleData.value:
                 await ctx.reply(embed=nextcord.Embed(title="Error", description="このサーバーには設定がありません。", color=0xff0000))
                 return
-            elif ctx.channel.id not in MESSAGE_ROLE_SETTINGS[ctx.guild.id]:
+            elif ctx.channel.id not in MessageRoleData.value[ctx.guild.id]:
                 await ctx.reply(embed=nextcord.Embed(title="Error", description="このチャンネルには設定がありません。", color=0xff0000))
                 return
 
-            del MESSAGE_ROLE_SETTINGS[ctx.guild.id][ctx.channel.id]
-            if len(MESSAGE_ROLE_SETTINGS[ctx.guild.id]) == 0:
-                del MESSAGE_ROLE_SETTINGS[ctx.guild.id]
+            del MessageRoleData.value[ctx.guild.id][ctx.channel.id]
+            if len(MessageRoleData.value[ctx.guild.id]) == 0:
+                del MessageRoleData.value[ctx.guild.id]
             await ctx.reply(embed=nextcord.Embed(title="メッセージロールの設定", description=f"チャンネル:<#{ctx.channel.id}>の設定を削除しました。", color=0x00ff00))
-            await self.client.post("message_role", dict_list.dictToList(MESSAGE_ROLE_SETTINGS))
+            await database.default_push(self.bot.client, MessageRoleData)
             return
 
         elif command_type == "list":
-            if ctx.guild.id not in MESSAGE_ROLE_SETTINGS:
+            if ctx.guild.id not in MessageRoleData.value:
                 await ctx.reply(embed=nextcord.Embed(title="メッセージロール", description="このサーバーには設定がありません。", color=0x00ff00))
-                return
             else:
                 embed = nextcord.Embed(
                     title="メッセージロールの設定", description=ctx.guild.name, color=0x00ff00)
-                for channel_id, channel_setting in MESSAGE_ROLE_SETTINGS[ctx.guild.id].items():
+                for channel_id, channel_setting in MessageRoleData.value[ctx.guild.id].items():
+                    if len(channel_setting) == 0:
+                        del MessageRoleData.value[ctx.guild.id][channel_id]
+                        if len(MessageRoleData.value[ctx.guild.id]) == 0:
+                            del MessageRoleData.value[ctx.guild.id]
+                            await ctx.reply(embed=nextcord.Embed(title="メッセージロールの設定", description="このサーバーには設定がありません。", color=0x00ff00))
+                            return
+                        asyncio.ensure_future(database.default_push(self.bot.client, MessageRoleData))
+                        continue
                     embed.add_field(
                         name=f"<#{channel_id}>", value=f"判定メッセージ:`{channel_setting[0]}`\nロール:<@&{channel_setting[2]}>を{(lambda x: '付与' if x else '剥奪')(channel_setting[1])}します。")
                 await ctx.reply(embed=embed)
                 return
 
         elif command_type == "db":
-            if ctx.author.id not in n_fc.py_admin:
+            if not await self.bot.is_owner(ctx.author):
                 await ctx.reply(embed=nextcord.Embed(title="Forbidden", description="このコマンドの使用には、BOTのオーナー権限が必要です。", color=0xff0000))
                 return
             if len(args) != 1:
@@ -262,29 +267,28 @@ class MessageRole(commands.Cog):
                 return
             if args[0] == "pull":
                 try:
-                    MESSAGE_ROLE_SETTINGS = dict_list.listToDict(await self.client.get("message_role"))
+                    await database.default_pull(self.bot.client, MessageRoleData)
                 except Exception:
-                    MESSAGE_ROLE_SETTINGS = {}
+                    MessageRoleData.value = {}
                 await ctx.reply(embed=nextcord.Embed(title="OK", description=f"Pulled from database.", color=0x00ff00))
             elif args[0] == "push":
                 try:
-                    await self.client.post("message_role", dict_list.dictToList(MESSAGE_ROLE_SETTINGS))
+                    await database.default_push(self.bot.client, MessageRoleData)
                 except Exception as err:
                     await ctx.reply(embed=nextcord.Embed(title="Internal Server Error", description=f"An error has occurred.\n```sh\n{err}```", color=0xff0000))
                     return
                 await ctx.reply(embed=nextcord.Embed(title="OK", description=f"Pushed to database.", color=0x00ff00))
             elif args[0] == "server":
                 try:
-                    await ctx.reply(embed=nextcord.Embed(title="OK", description=f"Server\n```py\n{dict_list.listToDict(await self.client.get('message_role'))}```", color=0x00ff00))
+                    await ctx.reply(embed=nextcord.Embed(title="OK", description=f"Server\n```py\n{dict_list.listToDict(await self.bot.client.get(MessageRoleData.name))}```", color=0x00ff00))
                 except Exception as err:
                     await ctx.reply(embed=nextcord.Embed(title="Internal Server Error", description=f"An error has occurred.\n```sh\n{err}```", color=0xff0000))
             elif args[0] == "client":
-                await ctx.reply(embed=nextcord.Embed(title="OK", description=f"Client\n```py\n{MESSAGE_ROLE_SETTINGS}```", color=0x00ff00))
+                await ctx.reply(embed=nextcord.Embed(title="OK", description=f"Client\n```py\n{MessageRoleData.value}```", color=0x00ff00))
             else:
                 await ctx.reply(embed=nextcord.Embed(title="Bad Request", description=f"渡された引数が異常です。\n```sh\npull: pull from database\npush: push to database\nserver: check database's value\nclient: check current value```\nARGS:`{args}`", color=0xff0000))
                 return
 
 
-def setup(bot):
-    bot.add_cog(MessageRole(bot))
-    importlib.reload(dict_list)
+def setup(bot, **kwargs):
+    bot.add_cog(MessageRole(bot, **kwargs))

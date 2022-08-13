@@ -7,6 +7,7 @@ from nextcord import Interaction
 from nextcord.ext import commands
 
 from util import admin_check, n_fc, eh
+from util.nira import NIRA
 
 # embedを送信する機能
 
@@ -85,7 +86,7 @@ class EmbedMaker(nextcord.ui.Modal):
 
 
 class SendEmbed(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
 
     # @nextcord.message_command(name="Embedコンテンツの取得", guild_ids=n_fc.GUILD_IDS)
@@ -129,7 +130,7 @@ Embedの本文です。
         if ctx.message.content == f"{self.bot.command_prefix}embed":
             embed = nextcord.Embed(
                 title="Error", description=f"構文が間違っています。\n```{self.bot.command_prefix}embed [color(000000～ffffff)] [title]\n[description]```", color=0xff0000)
-            await ctx.message.reply(embed=embed)
+            await ctx.reply(embed=embed)
             return
         try:
             mes_ch = ctx.message.content.splitlines()
@@ -141,10 +142,10 @@ Embedの本文です。
                 title=emb_title, description=emb_desc, color=emb_clr)
             await ctx.send(embed=embed)
             return
-        except BaseException as err:
-            await ctx.message.reply(embed=eh.eh(err))
+        except Exception as err:
+            await ctx.reply(embed=eh.eh(self.bot.client, err))
             return
 
 
-def setup(bot):
-    bot.add_cog(SendEmbed(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(SendEmbed(bot, **kwargs))

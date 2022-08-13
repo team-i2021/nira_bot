@@ -16,6 +16,7 @@ from nextcord.ext import commands
 
 
 from util import admin_check, n_fc, eh
+from util.nira import NIRA
 
 # Translate
 
@@ -204,10 +205,10 @@ class TranslateModal(nextcord.ui.Modal):
 
 
 class Translate(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
         SETTING = json.load(open(f'{SYSDIR}/setting.json'))
-        if "translate" not in SETTING:
+        if "translate" not in SETTING or SETTING["translate"] == "":
             self.deepl_tr = None
             PROVIDER['DEEPL']['ACTIVE'] = False
             print(
@@ -306,8 +307,8 @@ Powered by DeepL Translate/Google Translate.""")
             )
         elif len(args) == 2:
             if args[1] == "provider":
-                if ctx.author.id not in n_fc.py_admin:
-                    raise Exception("Forbidden")
+                if not await self.bot.is_owner(ctx.author):
+                    raise NIRA.ForbiddenExpand()
                 message = await ctx.send("Please wait...")
                 await message.edit(content="", embed=nextcord.Embed(title="Provider Switch", description=f"DeepL Translate: `{(lambda x: 'Enable' if x else 'Disable')(PROVIDER['DEEPL']['ACTIVE'])}`\nGoogle Translate: `{(lambda x: 'Enable' if x else 'Disable')(PROVIDER['GOOGLE']['ACTIVE'])}`", color=0x00ff00), view=ProviderSwitch(message=message))
                 return
@@ -321,7 +322,7 @@ Powered by DeepL Translate/Google Translate.""")
                 await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"言語設定がおかしいです。\n英語:`en`/日本語:`jp`\n`{self.bot.command_prefix}translate [ja/en] [text]`", color=0xff0000))
                 return
             try:
-                async with ctx.message.channel.typing():
+                async with ctx.channel.typing():
                     result = await translation(self.bot, self.deepl_tr, self.google_tr, args[2], None, lang)
                     await ctx.reply(embed=make_embed(result[1], result[0], "...", lang))
                     return
@@ -331,6 +332,8 @@ Powered by DeepL Translate/Google Translate.""")
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
+        if isinstance(message.channel, nextcord.DMChannel):
+            return
         if not contentCheck(message):
             return
         if message.author.id == self.bot.user.id:
@@ -359,5 +362,5 @@ Powered by DeepL Translate/Google Translate.""")
                 await message.reply(embed=make_embed(result[1], result[0], "...", TARGET))
 
 
-def setup(bot):
-    bot.add_cog(Translate(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(Translate(bot, **kwargs))

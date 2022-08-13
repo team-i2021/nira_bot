@@ -87,7 +87,7 @@ def flat_playlist(url):
         with youtube_dlc.YoutubeDL(flat_list) as ydl:
             try:
                 info_dict = ydl.extract_info(url, download=False)
-            except BaseException as err:
+            except Exception as err:
                 return (err)
             o = json.loads(json.dumps(info_dict, ensure_ascii=False))
         urllist = []
@@ -110,7 +110,7 @@ async def end_mes(message: nextcord.Message, close_obj: niconico_dl.NicoNicoVide
         del music_list[message.guild.id]
         del music_f[message.guild.id]
         return await message.channel.send("すべての曲の再生が終わりました！")
-    except BaseException as err:
+    except Exception as err:
         logging.error(err)
 
 
@@ -124,7 +124,7 @@ async def play_source(message: nextcord.Message, bot: nextcord.ext.commands.bot)
         logging.info(f"Play source:{len(music_list[message.guild.id])} {music_f[message.guild.id][0]} {music_list[message.guild.id][0]}")
         message.guild.voice_client.play(nextcord.PCMVolumeTransformer(nextcord.FFmpegPCMAudio(music_list[message.guild.id][0], **options), volume=0.45), after = lambda e: bot.loop.create_task(end_mes(message, music_f[message.guild.id][0], bot)))
         await message.add_reaction("\U0001F197")
-    except BaseException as err:
+    except Exception as err:
         logging.error(err)
 
 
@@ -197,7 +197,7 @@ class music(commands.Cog):
                 await ctx.message.reply(embed=nextcord.Embed(title="Music Player",description="今はまだ、テスト中なので動作が不安定です！\n`n!play [URL]`/`n!pause`/`n!resume`/`n!stop`/`n!leave`",color=0x00ff00))
                 print(f"{datetime.datetime.now()} - {ctx.message.guild.name}でVCに接続")
                 return
-        except BaseException as err:
+        except Exception as err:
             await ctx.message.reply(embed=nextcord.Embed(title="エラー",description=f"```sh\n{sys.exc_info()}```",color=0xff0000))
             print(f"[VC接続時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
             return
@@ -229,7 +229,7 @@ class music(commands.Cog):
                                 with youtube_dlc.YoutubeDL(flat_list) as ydl:
                                     try:
                                         info_dict = ydl.extract_info(url, download=False)
-                                    except BaseException as err:
+                                    except Exception as err:
                                         await ctx.reply(f"エラーが発生しました。\n`{err}`")
                                     o = json.loads(json.dumps(info_dict, ensure_ascii=False))
                                 i = 0
@@ -278,7 +278,7 @@ class music(commands.Cog):
                                 with youtube_dlc.YoutubeDL(flat_list) as ydl:
                                     try:
                                         info_dict = ydl.extract_info(url, download=False)
-                                    except BaseException as err:
+                                    except Exception as err:
                                         await ctx.reply(f"エラーが発生しました。\n`{err}`")
                                     o = json.loads(json.dumps(info_dict, ensure_ascii=False))
                                 i = len(music_list[ctx.guild.id])+1
@@ -304,8 +304,8 @@ class music(commands.Cog):
                                 return
                             await ctx.reply(f"追加したよ！\nあなたの曲は`{len(music_list[ctx.guild.id])}`番目！")
                             return
-        except BaseException as err:
-            await ctx.reply(embed=eh.eh(err))
+        except Exception as err:
+            await ctx.reply(embed=eh.eh(self.bot.client, err))
             logging.error(f"[楽曲再生時or再生中のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
             return
 
@@ -324,7 +324,7 @@ class music(commands.Cog):
                 ctx.message.guild.voice_client.pause()
                 await ctx.message.reply("paused")
                 return
-            except BaseException as err:
+            except Exception as err:
                 await ctx.message.reply(embed=nextcord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
                 print(f"[楽曲中断時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
                 return
@@ -345,7 +345,7 @@ class music(commands.Cog):
                 ctx.message.guild.voice_client.resume()
                 await ctx.message.reply("resume!")
                 return
-            except BaseException as err:
+            except Exception as err:
                 await ctx.message.reply(embed=nextcord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
                 print(f"[楽曲中断時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
                 return
@@ -367,7 +367,7 @@ class music(commands.Cog):
                 ctx.guild.voice_client.stop()
                 await ctx.reply("曲をすべて止めました！ :eject:")
                 return
-            except BaseException as err:
+            except Exception as err:
                 await ctx.reply(embed=nextcord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
                 print(f"[楽曲停止時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
                 return
@@ -379,19 +379,19 @@ class music(commands.Cog):
         if len(ctx.message.content.split(" ",1)) > 1 and ctx.message.content.split(" ",1)[1] == "f":
             try:
                 del tts.tts_list[ctx.guild.id]
-            except BaseException:
+            except Exception:
                 pass
             try:
                 del music_list[ctx.guild.id]
-            except BaseException:
+            except Exception:
                 pass
             try:
                 del music_f[ctx.guild.id]
-            except BaseException:
+            except Exception:
                 pass
             try:
                 await ctx.guild.voice_client.disconnect()
-            except BaseException:
+            except Exception:
                 pass
             await ctx.reply("強制的に切断しました。")
             return
@@ -414,7 +414,7 @@ class music(commands.Cog):
                 else:
                     await ctx.reply(embed=nextcord.Embed(title="エラー",description="TTSで接続しています。`n!tts leave`と入力して切断してください。\n何が起きてるのかよくわからず、強制的に切断する必要がある場合は、`n!leave f`と入力してください。",color=0xff0000))
                     return
-        except BaseException as err:
+        except Exception as err:
             await ctx.message.reply(embed=nextcord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
             print(f"[VC切断時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
             return
@@ -438,7 +438,7 @@ class music(commands.Cog):
                     ctx.message.guild.voice_client.stop()
                     await ctx.message.reply("今のが最後の曲でした！ :stop_button:")
                 return
-            except BaseException as err:
+            except Exception as err:
                 await ctx.message.reply(embed=nextcord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
                 print(f"[楽曲停止時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
                 return
@@ -462,7 +462,7 @@ class music(commands.Cog):
                     music_list[ctx.guild.id].pop(-1)
                     await ctx.reply("プレイリストの最後の曲を削除しました！ :information_source:")
                 return
-            except BaseException as err:
+            except Exception as err:
                 await ctx.message.reply(embed=nextcord.Embed(title="エラー",description=f"```{err}```",color=0xff0000))
                 print(f"[楽曲停止時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
                 return
@@ -484,13 +484,13 @@ class music(commands.Cog):
                     await CHANNEL.send(f"なんでみんないなくなっちゃうの！！！！！！\n(一人になったため切断します。)")
                     del tts.tts_channel[member.guild.id]
                 await member.guild.voice_client.disconnect()
-        except BaseException as err:
+        except Exception as err:
             #logging.error(traceback.format_exc())
             #print(traceback.format_exc(),err)
             pass
         try:
             print(f"AFTER:{len(after.channel.members)}/{self.bot.user in after.channel.members}/{after.channel.voice_states[self.bot.user.id].mute}")
-        except BaseException as err:
+        except Exception as err:
             #logging.error(traceback.format_exc())
             #print(traceback.format_exc(),err)
             pass
@@ -501,7 +501,7 @@ class music(commands.Cog):
                 if member.guild.id in tts.tts_channel:
                     CHANNEL = await self.bot.fetch_channel(tts.tts_channel[member.guild.id])
                     await CHANNEL.send(f"....はぁっ！！！...はぁはぁ....\n呼吸できなくて死ぬかと思ったわ！！！\n(~~かわいそうなので~~喋れないのでミュートしないであげてください。)")
-            except BaseException as err:
+            except Exception as err:
                 print(err)
                 if member.guild.id in tts.tts_channel:
                     CHANNEL = await self.bot.fetch_channel(tts.tts_channel[member.guild.id])

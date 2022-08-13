@@ -14,3 +14,4 @@ cogs/tts_local.py
 sync.ffs_db
 util/gapi.json
 password
+test*.py

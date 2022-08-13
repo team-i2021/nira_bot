@@ -24,7 +24,7 @@ def notify_line(message: nextcord.Message, token):
             user = f"{message.author.name}@{message.author.discriminator}"
         else:
             user = f"{message.author.nick}"
-    except BaseException:
+    except Exception:
         user = f"{message.author.name}@{message.author.discriminator}"
     try:
         if message.author.bot:
@@ -52,7 +52,7 @@ def notify_line(message: nextcord.Message, token):
             payload = {'message' : mes, 'imageFullsize' : image, 'imageThumbnail': image}
         # print(payload)
         requests.post(lineNotify_url ,headers = headers ,params=payload)
-    except BaseException as err:
+    except Exception as err:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         print(f"大変申し訳ございません。エラーが発生しました。\n```{err}```\n```sh\n{sys.exc_info()}```\nfile:`{fname}`\nline:{exc_tb.tb_lineno}\n\n[サポートサーバー](https://nextcord.gg/awfFpCYTcP)")

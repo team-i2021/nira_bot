@@ -1,25 +1,36 @@
+import asyncio
 import datetime
 import logging
 import os
-import pickle
 import re
 import sys
 import traceback
 from os import getenv
 
+import HTTP_db
 import nextcord
 from nextcord import Interaction, SlashOption, Role
 from nextcord.ext import commands
-from nextcord.utils import get
 
-from util import n_fc, mc_status
+from util import n_fc, mc_status, database
 from util.admin_check import admin_check
+from util.nira import NIRA
 
 rolepanel_compile = re.compile(r"[0-9]+: <@&[0-9]+>")
 
-PersistentViews = []
+class RoleViews:
+    name = "roleviews"
+    value = []
+    default = []
+    value_type = database.SAME_VALUE
 
 # rolepanel
+
+async def pull(bot: commands.Bot, client: HTTP_db.Client) -> None:
+    await database.default_pull(client, RoleViews)
+    for i in RoleViews.value:
+        bot.add_view(RolePanelView(i))
+    return None
 
 
 class RolePanelSlashInput(nextcord.ui.Modal):
@@ -79,9 +90,8 @@ class RolePanelSlashInput(nextcord.ui.Modal):
             ViewArgs.append([i+1, role_id])
 
         self.bot.add_view(RolePanelView(ViewArgs))
-        PersistentViews.append(ViewArgs)
-        with open(f'{sys.path[0]}/PersistentViews.nira', 'wb') as f:
-            pickle.dump(PersistentViews, f)
+        RoleViews.value.append(ViewArgs)
+        await database.default_push(self.bot.client, RoleViews)
         embed_title = self.EmbedTitle.value
         if embed_title == "" or embed_title is None:
             embed_title = "にらBOTロールパネル"
@@ -144,13 +154,12 @@ class RolePanelEditModal(nextcord.ui.Modal):
             ViewArgs.append([i+1, role_id])
 
         self.bot.add_view(RolePanelView(ViewArgs))
-        PersistentViews.append(ViewArgs)
-        with open(f'{sys.path[0]}/PersistentViews.nira', 'wb') as f:
-            pickle.dump(PersistentViews, f)
+        RoleViews.value.append(ViewArgs)
+        await database.default_push(self.bot.client, RoleViews)
         EmbedTitle = self.message.embeds[0].title
         try:
             await self.message.edit(embed=nextcord.Embed(title=EmbedTitle, description=embed_content, color=0x00ff00), view=RolePanelView(ViewArgs))
-        except BaseException as err:
+        except Exception as err:
             await interaction.followup.send(f"エラー: `{err}`")
             return
 
@@ -180,13 +189,14 @@ class RolePanelButton(nextcord.ui.Button):
             await interaction.user.add_roles(role)
             await interaction.response.send_message(f"`{role.name}`を付与しました。", ephemeral=True)
             return
-        except BaseException as err:
+        except Exception as err:
             await interaction.response.send_message(f"ロール付与/剥奪時のエラー: {err}", ephemeral=True)
 
 
 class Rolepanel(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
+        asyncio.ensure_future(pull(self.bot, self.bot.client))
 
     @nextcord.message_command(name="ロールパネル編集", guild_ids=n_fc.GUILD_IDS)
     async def edit_rolepanel(self, interaction: Interaction, message: nextcord.Message):
@@ -273,10 +283,10 @@ n!rolepanel [*メッセージ内容]
         if ctx.message.content == f"{self.bot.command_prefix}rolepanel debug":
             await ctx.message.add_reaction('🐛')
             if await self.bot.is_owner(ctx.author):
-                await ctx.send(f"{ctx.message.author.mention}", embed=nextcord.Embed(title="Views", description=PersistentViews, color=0x00ff00))
+                await ctx.send(f"{ctx.author.mention}", embed=nextcord.Embed(title="Views", description=RoleViews.value, color=0x00ff00))
                 return
             else:
-                await ctx.send(f"{ctx.message.author.mention}", embed=nextcord.Embed(title="ERR", description="あなたは管理者ではありません。", color=0xff0000))
+                await ctx.send(f"{ctx.author.mention}", embed=nextcord.Embed(title="ERR", description="あなたは管理者ではありません。", color=0xff0000))
                 return
             return
         if admin_check(ctx.guild, ctx.author) == False:
@@ -316,9 +326,8 @@ n!rolepanel [*メッセージ内容]
             embed_content += f"{i}: <@&{role_id}>\n"
             ViewArgs.append([i, role_id])
         self.bot.add_view(RolePanelView(ViewArgs))
-        PersistentViews.append(ViewArgs)
-        with open(f'{sys.path[0]}/PersistentViews.nira', 'wb') as f:
-            pickle.dump(PersistentViews, f)
+        RoleViews.value.append(ViewArgs)
+        await database.default_push(self.bot.client, RoleViews)
         try:
             await ctx.send(embed=nextcord.Embed(title=f"{content}", description=embed_content, color=0x00ff00), view=RolePanelView(ViewArgs))
         except Exception:
@@ -329,9 +338,5 @@ n!rolepanel [*メッセージ内容]
 # args = [["ButtonLabel", "Role_Id"]]
 
 
-def setup(bot):
-    if os.path.exists(f'{sys.path[0]}/PersistentViews.nira'):
-        with open(f'{sys.path[0]}/PersistentViews.nira', 'rb') as f:
-            global PersistentViews
-            PersistentViews = pickle.load(f)
-    bot.add_cog(Rolepanel(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(Rolepanel(bot, **kwargs))

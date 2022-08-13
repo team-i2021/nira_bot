@@ -15,6 +15,7 @@ from nextcord import Interaction, SlashOption, ChannelType
 from nextcord.ext import commands
 
 from util import admin_check, n_fc, eh, database
+from util.nira import NIRA
 
 # pingを送信するだけ
 
@@ -73,7 +74,7 @@ async def base_ping(bot, client: HTTP_db.Client, adr, message: nextcord.Message 
         try:
             await asyncio.wait_for(ping_there(adr, message), timeout=8)
             return
-        except BaseException as err:
+        except Exception as err:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             logging.error(
@@ -83,10 +84,8 @@ async def base_ping(bot, client: HTTP_db.Client, adr, message: nextcord.Message 
 
 
 class Ping(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
-        datas = json.load(open(f'{SYSDIR}/setting.json', 'r'))["database_data"]
-        self.client = database.openClient()
 
     @nextcord.slash_command(name="ping", description="Discordサーバー又は、指定サーバーとのレイテンシを計測します。", guild_ids=n_fc.GUILD_IDS)
     async def ping_slash(
@@ -101,7 +100,7 @@ class Ping(commands.Cog):
         if address is None:
             address = DISCORD
         await interaction.send(embed=nextcord.Embed(title="Ping", description=f"Ping測定中...", color=0x00ff00))
-        await base_ping(self.bot, self.client, address, await interaction.original_message())
+        await base_ping(self.bot, self.bot.client, address, await interaction.original_message())
 
     @commands.command(name="ping", help="""\
 レイテンシを表示します。
@@ -116,10 +115,10 @@ IPアドレスまたはドメインの形で指定してください。""")
         message = await ctx.reply(embed=nextcord.Embed(title="Ping", description=f"Ping測定中...", color=0x00ff00))
         texts = ctx.message.content.split(" ", 1)
         if len(texts) == 1:
-            await base_ping(self.bot, self.client, DISCORD, message)
+            await base_ping(self.bot, self.bot.client, DISCORD, message)
         else:
-            await base_ping(self.bot, self.client, texts[1], message)
+            await base_ping(self.bot, self.bot.client, texts[1], message)
 
 
-def setup(bot):
-    bot.add_cog(Ping(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(Ping(bot, **kwargs))

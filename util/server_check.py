@@ -4,14 +4,21 @@ import logging
 import math
 import re
 import sys
+import traceback
 
 import a2s
 
 #from cogs.server_status import ss_pin
-from util import n_fc
+from util import database
 import util.web_api as web_api
 
 # 主にサーバーステータスを取得するコード
+
+class steam_server:
+    name = "steam_server"
+    value = {}
+    default = {}
+    value_type = database.CHANNEL_VALUE
 
 
 # ステータスチェック中にメッセージ返信ができないものを修正する(Created by tasuren)
@@ -25,10 +32,9 @@ async def RetryInfo(address: tuple, count: int) -> a2s.SourceInfo or None:
     """サーバーのステータスを取得しますが、その際`count`回リトライします。"""
     for _ in range(count):
         try:
-            info = a2s.info(address)
+            info = await a2s.ainfo(address)
             return info
         except Exception as err:
-            print(err)
             await asyncio.sleep(1)
     return None
 
@@ -37,21 +43,21 @@ async def RetryPlayers(address: tuple, count: int) -> a2s.Player or None:
     """サーバーのユーザー情報を取得しますが、その際`count`回リトライします。"""
     for _ in range(count):
         try:
-            players = a2s.players(address)
+            players = await a2s.aplayers(address)
             return players
         except Exception as err:
-            print(err)
             await asyncio.sleep(1)
     return None
 
 # サーバーのステータスをチェックする
 
 
-async def server_check(embed, type, g_id, n):
+async def server_check(client, embed, type, g_id, n):
     try:
-        sv_ad = n_fc.steam_server_list[g_id][f"{n}_ad"]
-        sv_nm = n_fc.steam_server_list[g_id][f"{n}_nm"]
-    except BaseException:
+        await database.default_pull(client, steam_server)
+        sv_ad = tuple(steam_server.value[g_id][f"{n}_ad"])
+        sv_nm = steam_server.value[g_id][f"{n}_nm"]
+    except Exception:
         embed.add_field(
             name=f"サーバーは{n}にはセットされていません。",
             value=f"`n!ss list`でサーバーリストを確認してみましょう！",
@@ -131,17 +137,18 @@ async def server_check(embed, type, g_id, n):
 # Bool返すタイプ
 
 
-def ss_bool(g_id, n):
-    sv_ad = n_fc.steam_server_list[g_id][f"{n}_ad"]
+async def ss_bool(client, g_id, n):
+    await database.default_pull(client, steam_server)
+    sv_ad = tuple(steam_server.value[g_id][f"{n}_ad"])
     for _ in range(3):
         try:
-            sv_dt = RetryInfo(sv_ad, 5)
+            sv_dt = await RetryInfo(sv_ad, 5)
             if sv_dt is None:
                 raise TimeoutError("timed out")
             sv_pl = RetryPlayers(sv_ad)
             if sv_pl is None:
                 raise TimeoutError("timed out")
-        except BaseException:
+        except Exception:
             pass
         else:
             return True
@@ -152,9 +159,10 @@ def ss_bool(g_id, n):
 # サーバーのステータスをチェックする
 
 
-async def ss_pin_embed(embed, g_id, n):
-    sv_ad = n_fc.steam_server_list[g_id][f"{n}_ad"]
-    sv_nm = n_fc.steam_server_list[g_id][f"{n}_nm"]
+async def ss_pin_embed(client, embed, g_id, n):
+    await database.default_pull(client, steam_server)
+    sv_ad = tuple(steam_server.value[g_id][f"{n}_ad"])
+    sv_nm = steam_server.value[g_id][f"{n}_nm"]
     sv_dt = await RetryInfo(sv_ad, 5)
     if sv_dt is None:
         embed.add_field(
