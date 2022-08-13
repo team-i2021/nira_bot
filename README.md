@@ -6,7 +6,7 @@
 
 ## 必要なもの
 
-- Python3.8 以上
+- Python3.10 以上
 - つよい（小並感）パソコン（Windows/Linux/macOSどれでも可）
 
 ## セットアップ
