@@ -15,7 +15,7 @@ from util.nira import NIRA
 sys.setrecursionlimit(10000)  # エラー回避
 print("モジュールインポート完了")
 
-import jishaku
+import onami
 
 # 設定読み込み
 if os.path.isfile(f'{sys.path[0]}/setting.json') == False:
@@ -73,7 +73,7 @@ bot = NIRA(
     client=CLIENT,
 )
 
-bot.load_extension("jishaku")
+bot.load_extension("onami")
 
 print("BOTの設定完了")
 

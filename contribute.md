@@ -19,7 +19,7 @@ NIRAオブジェクトは、`commands.Bot`を継承したクラスです。
 
 - `NIRA.client`  
     type: HTTP_db.client  
-    description: HTTP_db用のクライアントです。Cogの中で、`self.bot.client`みたいに引き出せたり、`jishaku`でも使えるので便利です。
+    description: HTTP_db用のクライアントです。Cogの中で、`self.bot.client`みたいに引き出せたり、`onami`でも使えるので便利です。
 
 ### Function
 - `NIRA.run`  
