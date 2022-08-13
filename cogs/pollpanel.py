@@ -273,9 +273,7 @@ class PollPanelEndConfirm(nextcord.ui.Button):
 
     async def callback(self, interaction: Interaction):
         await self.interaction.message.edit(content="投票終了！", view=None)
-        await interaction.response.send_message("投票は締め切られました。\n削除確認メッセージは削除しても構いません。", ephemeral=True)
-        return
-
+        await interaction.response.send_message("投票は締め切られました。\n削除確認メッセージは削除して構いません。", ephemeral=True)
 
 
 class PollPanelEnd(nextcord.ui.Button):
@@ -287,10 +285,8 @@ class PollPanelEnd(nextcord.ui.Button):
             view = nextcord.ui.View()
             view.add_item(PollPanelEndConfirm(interaction))
             await interaction.response.send_message("本当に投票を締め切ってもよろしいですか！？\nもう投票できなくなります！", view=view, ephemeral=True)
-            return
         else:
             await interaction.response.send_message("誰だおめぇ...？\n（投票製作者のみ締め切ることが出来ます！）", ephemeral=True)
-
 
 
 class Pollpanel(commands.Cog):
@@ -302,6 +298,9 @@ class Pollpanel(commands.Cog):
     async def edit_pollpanel(self, interaction: Interaction, message: nextcord.Message):
         if message.author.id != self.bot.user.id:
             await interaction.response.send_message(embed=nextcord.Embed(title="エラー", description=f"{self.bot.user.mention}が送信した投票パネルにのみこのコマンドを使用できます。", color=0xff0000), ephemeral=True)
+            return
+        if message.content == "投票終了！":
+            await interaction.response.send_message(embed=nextcord.Embed(title="エラー", description="投票は締め切られています。", color=0xff0000), ephemeral=True)
             return
         if (message.content == "" or message.content is None) or (message.embeds == [] or len(message.embeds) > 1) or re.fullmatch(pollpanel_title_compile, message.content) is None:
             await interaction.response.send_message(
