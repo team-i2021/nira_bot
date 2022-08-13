@@ -1,4 +1,3 @@
-
 import nextcord
 from nextcord.ext import commands
 
@@ -12,6 +11,7 @@ class NIRA(commands.Bot):
         self.debug: bool = debug
         self._token: str = token
         self.client: HTTP_db.Client = client
+        #self.main_prefix: str = (lambda x: x[0] if type(x) in [list, tuple, set] else x)(**kwargs[""])
         return super().__init__(*args, **kwargs)
 
     def run(self) -> None:
@@ -22,3 +22,9 @@ class NIRA(commands.Bot):
             return True
         else:
             return await super().is_owner(user)
+    
+    class Forbidden(Exception):
+        pass
+
+    class ForbiddenExpand(Exception):
+        pass

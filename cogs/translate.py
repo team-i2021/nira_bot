@@ -308,7 +308,7 @@ Powered by DeepL Translate/Google Translate.""")
         elif len(args) == 2:
             if args[1] == "provider":
                 if not await self.bot.is_owner(ctx.author):
-                    raise Exception("Forbidden")
+                    raise NIRA.ForbiddenExpand()
                 message = await ctx.send("Please wait...")
                 await message.edit(content="", embed=nextcord.Embed(title="Provider Switch", description=f"DeepL Translate: `{(lambda x: 'Enable' if x else 'Disable')(PROVIDER['DEEPL']['ACTIVE'])}`\nGoogle Translate: `{(lambda x: 'Enable' if x else 'Disable')(PROVIDER['GOOGLE']['ACTIVE'])}`", color=0x00ff00), view=ProviderSwitch(message=message))
                 return

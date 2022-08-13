@@ -267,7 +267,7 @@ class Debug(commands.Cog):
         if await self.bot.is_owner(interaction.user):
             await interaction.response.send_message(f"```py\n{list(dict(self.bot.cogs).keys())}```", ephemeral=True)
         else:
-            raise Exception("Forbidden")
+            raise NIRA.ForbiddenExpand()
 
     @extension_slash.subcommand(name="load", description="Load extension.")
     async def load_extension_slash(self, interaction: Interaction, cogname: str = SlashOption(name="cogname", description="Cog name.", required=True)):
@@ -279,7 +279,7 @@ class Debug(commands.Cog):
             except Exception as err:
                 await interaction.followup.send(f"Failed to load cog `{cogname}`.\n```py\n{err}```", ephemeral=True)
         else:
-            raise Exception("Forbidden")
+            raise NIRA.ForbiddenExpand()
 
     @extension_slash.subcommand(name="reload", description="Reload extension.")
     async def reload_extension_slash(self, interaction: Interaction, cogname: str = SlashOption(name="cogname", description="Cog name.", required=True)):
@@ -291,7 +291,7 @@ class Debug(commands.Cog):
             except Exception as err:
                 await interaction.followup.send(f"Failed to reload cog `{cogname}`.\n```py\n{err}```", ephemeral=True)
         else:
-            raise Exception("Forbidden")
+            raise NIRA.ForbiddenExpand()
 
     @extension_slash.subcommand(name="unload", description="Unload extension.")
     async def unload_extension_slash(self, interaction: Interaction, cogname: str = SlashOption(name="cogname", description="Cog name.", required=True)):
@@ -303,12 +303,12 @@ class Debug(commands.Cog):
             except Exception as err:
                 await interaction.followup.send(f"Failed to unload cog `{cogname}`.\n```py\n{err}```", ephemeral=True)
         else:
-            raise Exception("Forbidden")
+            raise NIRA.ForbiddenExpand()
 
     @debug_slash.subcommand(name="info", description="Show debug info.")
     async def info_slash(self, interaction: Interaction):
         if not (await self.bot.is_owner(interaction.user)):
-            raise Exception("Forbidden")
+            raise NIRA.ForbiddenExpand()
         await interaction.response.defer()
         os = platform.system()
         try:
@@ -362,7 +362,7 @@ class Debug(commands.Cog):
     @db.subcommand(name="get", description="Method POST:/get")
     async def db_get(self, interaction: Interaction, key: str = SlashOption(name="key", description="key", required=True)):
         if not (await self.bot.is_owner(interaction.user)):
-            raise Exception("Forbidden")
+            raise NIRA.ForbiddenExpand()
         await interaction.response.defer()
         try:
             key = eval(key)
@@ -374,7 +374,7 @@ class Debug(commands.Cog):
     @db.subcommand(name="get_all", description="Method POST:/get_all")
     async def db_get_all(self, interaction: Interaction):
         if not (await self.bot.is_owner(interaction.user)):
-            raise Exception("Forbidden")
+            raise NIRA.ForbiddenExpand()
         await interaction.response.defer()
         try:
             value = await self.bot.client.get_all()
@@ -385,7 +385,7 @@ class Debug(commands.Cog):
     @db.subcommand(name="post", description="Method POST:/post")
     async def db_post(self, interaction: Interaction, key: str = SlashOption(name="key", description="key", required=True), value: str = SlashOption(name="value", description="value", required=True)):
         if not (await self.bot.is_owner(interaction.user)):
-            raise Exception("Forbidden")
+            raise NIRA.ForbiddenExpand()
         await interaction.response.defer()
         try:
             key = eval(key)
@@ -398,7 +398,7 @@ class Debug(commands.Cog):
     @db.subcommand(name="exists", description="Method POST:/exists")
     async def db_exists(self, interaction: Interaction, key: str = SlashOption(name="key", description="key", required=True)):
         if not (await self.bot.is_owner(interaction.user)):
-            raise Exception("Forbidden")
+            raise NIRA.ForbiddenExpand()
         await interaction.response.defer()
         try:
             key = eval(key)
@@ -410,7 +410,7 @@ class Debug(commands.Cog):
     @db.subcommand(name="delete", description="Method POST:/delete")
     async def db_delete(self, interaction: Interaction, key: str = SlashOption(name="key", description="key", required=True)):
         if not (await self.bot.is_owner(interaction.user)):
-            raise Exception("Forbidden")
+            raise NIRA.ForbiddenExpand()
         await interaction.response.defer()
         try:
             key = eval(key)
@@ -423,7 +423,7 @@ class Debug(commands.Cog):
 #    @db.subcommand(name="delete_all", description="Method POST:/delete_all")
 #    async def db_delete_all(self, interaction: Interaction):
 #        if not (await self.bot.is_owner(interaction.user)):
-#            raise Exception("Forbidden")
+#            raise NIRA.ForbiddenExpand()
 #        await interaction.response.defer()
 #        try:
 #            await self.bot.client.delete_all()
@@ -434,7 +434,7 @@ class Debug(commands.Cog):
     @db.subcommand(name="info", description="Method GET:/info")
     async def db_info(self, interaction: Interaction):
         if not (await self.bot.is_owner(interaction.user)):
-            raise Exception("Forbidden")
+            raise NIRA.ForbiddenExpand()
         await interaction.response.defer()
         try:
             value = await self.bot.client.info()
@@ -445,7 +445,7 @@ class Debug(commands.Cog):
     @db.subcommand(name="ping", description="Method GET:/ping")
     async def db_ping(self, interaction: Interaction):
         if not (await self.bot.is_owner(interaction.user)):
-            raise Exception("Forbidden")
+            raise NIRA.ForbiddenExpand()
         await interaction.response.defer()
         try:
             value = await self.bot.client.ping()
@@ -456,7 +456,7 @@ class Debug(commands.Cog):
     @db.subcommand(name="reload", description="Reload databse module")
     async def db_reload(self, interaction: Interaction):
         if not (await self.bot.is_owner(interaction.user)):
-            raise Exception("Forbidden")
+            raise NIRA.ForbiddenExpand()
         await interaction.response.defer()
         try:
             importlib.reload(HTTP_db)
@@ -472,25 +472,28 @@ class Debug(commands.Cog):
     @command_slash.subcommand(name="list", description="List commands")
     async def command_slash_list(self, interaction: Interaction):
         if not (await self.bot.is_owner(interaction.user)):
-            raise Exception("Forbidden")
+            raise NIRA.ForbiddenExpand()
         await interaction.response.send_message(embed=nextcord.Embed(title="COMMANDS", description=f"```py\n{self.bot.all_commands.keys()}```", color=0x00ff00))
-        return
 
     @command_slash.subcommand(name="sync", description="sync application command")
     async def command_slash_sync(
         self,
         interaction: Interaction,
         guild_id: str = SlashOption(name="guild_id", description="Guild id", required=False),
+        associate_known: str = SlashOption(name="associate_known", description="associate_known", required=False),
+        delete_unknown: bool = SlashOption(name="delete_unknown", description="delete_unknown", required=False),
+        update_known: bool = SlashOption(name="update_known", description="update_known", required=False),
+        register_new: bool = SlashOption(name="register_new", description="register_new", required=False),
     ):
         if not (await self.bot.is_owner(interaction.user)):
-            raise Exception("Forbidden")
+            raise NIRA.ForbiddenExpand()
         await interaction.response.defer()
         try:
             if not guild_id:
                 guild_id = None
             else:
                 guild_id = eval(guild_id)
-            await self.bot.sync_application_commands(guild_id=guild_id)
+            await self.bot.sync_application_commands(guild_id=guild_id, associate_known=associate_known, delete_unknown=delete_unknown, update_known=update_known, register_new=register_new)
             await interaction.followup.send(embed=nextcord.Embed(title="SYNC", description=f"```\n{guild_id}```", color=0x00ff00))
         except Exception:
             await interaction.followup.send(embed=nextcord.Embed(title="SYNC", description=f"```\n{traceback.format_exc()}```", color=0xFF0000))
