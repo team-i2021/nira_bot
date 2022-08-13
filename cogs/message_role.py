@@ -107,11 +107,18 @@ class MessageRole(commands.Cog):
 
         if interaction.guild.id not in MessageRoleData.value:
             await interaction.followup.send(embed=nextcord.Embed(title="メッセージロールの設定", description="このサーバーにはメッセージロールの設定がありません。", color=0x00ff00))
-            return
         else:
             embed = nextcord.Embed(
                 title="メッセージロールの設定", description=interaction.guild.name, color=0x00ff00)
             for channel_id, channel_setting in MessageRoleData.value[interaction.guild.id].items():
+                if len(channel_setting) == 0:
+                    del MessageRoleData.value[interaction.guild.id][channel_id]
+                    if len(MessageRoleData.value[interaction.guild.id]) == 0:
+                        del MessageRoleData.value[interaction.guild.id]
+                        await interaction.send(embed=nextcord.Embed(title="メッセージロールの設定", description="このサーバーには設定がありません。", color=0x00ff00))
+                        return
+                    asyncio.ensure_future(database.default_push(self.bot.client, MessageRoleData))
+                    continue
                 embed.add_field(
                     name=(await self.bot.fetch_channel(channel_id)).name,
                     value=f"判定メッセージ:`{channel_setting[0]}`\nロール:<@&{channel_setting[2]}>\nロール{(lambda x: '付与' if x else '剥奪')(channel_setting[1])}をします。",
@@ -169,7 +176,7 @@ class MessageRole(commands.Cog):
 `n!mesrole add "You Tube"` add YouTubeの間に空白入れるタイプの人`
 `n!mesrole remove ([Nn][Ii][Rr][Aa]|[にニﾆ][らラﾗ]) remove にらと言ってない人`
 `n!mesrole list`""")
-    async def mesrole(self, ctx: commands.Context, command_type: str, *args):
+    async def mesrole(self, ctx: commands.Context, command_type: str = "list", *args):
         # regex: str, action_type: str, role: str or int
 
         if command_type not in ["set", "del", "list", "db"]:
@@ -211,7 +218,6 @@ class MessageRole(commands.Cog):
 
             await ctx.reply(embed=nextcord.Embed(title="メッセージロールの設定", description=f"チャンネル:<#{ctx.channel.id}>\n判定メッセージ:`{args[0]}`\nロール:<@&{role.id}>を{(lambda x: '付与' if x else '剥奪')(args[1])}します。", color=0x00ff00))
             await database.default_push(self.bot.client, MessageRoleData)
-            return
 
         elif command_type == "del":
             if not admin_check.admin_check(ctx.guild, ctx.author):
@@ -235,11 +241,18 @@ class MessageRole(commands.Cog):
         elif command_type == "list":
             if ctx.guild.id not in MessageRoleData.value:
                 await ctx.reply(embed=nextcord.Embed(title="メッセージロール", description="このサーバーには設定がありません。", color=0x00ff00))
-                return
             else:
                 embed = nextcord.Embed(
                     title="メッセージロールの設定", description=ctx.guild.name, color=0x00ff00)
                 for channel_id, channel_setting in MessageRoleData.value[ctx.guild.id].items():
+                    if len(channel_setting) == 0:
+                        del MessageRoleData.value[ctx.guild.id][channel_id]
+                        if len(MessageRoleData.value[ctx.guild.id]) == 0:
+                            del MessageRoleData.value[ctx.guild.id]
+                            await ctx.reply(embed=nextcord.Embed(title="メッセージロールの設定", description="このサーバーには設定がありません。", color=0x00ff00))
+                            return
+                        asyncio.ensure_future(database.default_push(self.bot.client, MessageRoleData))
+                        continue
                     embed.add_field(
                         name=f"<#{channel_id}>", value=f"判定メッセージ:`{channel_setting[0]}`\nロール:<@&{channel_setting[2]}>を{(lambda x: '付与' if x else '剥奪')(channel_setting[1])}します。")
                 await ctx.reply(embed=embed)

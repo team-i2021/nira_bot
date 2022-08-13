@@ -104,19 +104,25 @@ class MessageDM(commands.Cog):
 
             await interaction.followup.send(embed=nextcord.Embed(title="メッセージDMの設定", description=f"チャンネル:<#{interaction.channel.id}>\n`{regex}`の設定を削除しました。", color=0x00ff00))
             await database.default_push(self.bot.client, MessageDMData)
-            return
 
     @slash_message_dm.subcommand(name="list", description="メッセージDMの設定を表示します")
     async def slash_message_dm_list(self, interaction: Interaction):
         await interaction.response.defer(ephemeral=True)
         if interaction.guild.id not in MessageDMData.value:
             await interaction.followup.send(embed=nextcord.Embed(title="メッセージDMの設定", description="このサーバーにはメッセージDMの設定がありません。", color=0x00ff00))
-            return
         else:
             embed = nextcord.Embed(
                 title="メッセージDMの設定", description=interaction.guild.name, color=0x00ff00)
             for channel_id, channel_setting in MessageDMData.value[interaction.guild.id].items():
                 content = ""
+                if len(channel_setting) == 0:
+                    del MessageDMData.value[interaction.guild.id][channel_id]
+                    if len(MessageDMData.value[interaction.guild.id]) == 0:
+                        del MessageDMData.value[interaction.guild.id]
+                        await interaction.followup.send(embed=nextcord.Embed(title="メッセージDMの設定", description="このサーバーには設定がありません。", color=0x00ff00))
+                        return
+                    asyncio.ensure_future(database.default_push(self.bot.client, MessageDMData))
+                    continue
                 for settings in channel_setting:
                     content += f"判定メッセージ:`{settings[0]}`\n・メッセージ内容```\n{(lambda x: x if len(x) <= 100 else f'{x[:100]}...')(settings[1])}```"
                 embed.add_field(
@@ -170,7 +176,7 @@ class MessageDM(commands.Cog):
 `n!mesdm set ([Nn][Ii][Rr][Aa]|[にニﾆ][らラﾗ]) にらといってくれてありがとうね！！！！\nこれからもよろしく！`
 `n!mesdm del`
 `n!mesdm list`""")
-    async def mesdm(self, ctx: commands.Context, command_type: str, *args):
+    async def mesdm(self, ctx: commands.Context, command_type: str = "list", *args):
         # regex: str, action_type: str, role: str or int
 
         if command_type not in ["set", "del", "list", "db"]:
@@ -232,12 +238,10 @@ class MessageDM(commands.Cog):
 
             await ctx.reply(embed=nextcord.Embed(title="メッセージDMの設定", description=f"チャンネル:<#{ctx.channel.id}>での`{args[0]}`を削除しました。", color=0x00ff00))
             await database.default_push(self.bot.client, MessageDMData)
-            return
 
         elif command_type == "list":
             if ctx.guild.id not in MessageDMData.value:
                 await ctx.reply(embed=nextcord.Embed(title="メッセージDM", description="このサーバーには設定がありません。", color=0x00ff00))
-                return
             else:
                 embed = nextcord.Embed(
                     title="メッセージDMの設定",
@@ -246,15 +250,21 @@ class MessageDM(commands.Cog):
                 )
                 for channel_id, channel_setting in MessageDMData.value[ctx.guild.id].items():
                     content = ""
+                    if len(channel_setting) == 0:
+                        del MessageDMData.value[ctx.guild.id][channel_id]
+                        if len(MessageDMData.value[ctx.guild.id]) == 0:
+                            del MessageDMData.value[ctx.guild.id]
+                            await ctx.reply(embed=nextcord.Embed(title="メッセージDMの設定", description="このサーバーには設定がありません。", color=0x00ff00))
+                            return
+                        asyncio.ensure_future(database.default_push(self.bot.client, MessageDMData))
+                        continue
                     for settings in channel_setting:
                         content += f"判定メッセージ:`{settings[0]}`\n・メッセージ内容```\n{(lambda x: x if len(x) <= 100 else f'{x[:100]}...')(settings[1])}```\n"
-
                     embed.add_field(
                         name=(await self.bot.fetch_channel(channel_id)).name,
                         value=content
                     )
                 await ctx.reply(embed=embed)
-                return
 
         elif command_type == "db":
             if not await self.bot.is_owner(ctx.author):
@@ -285,7 +295,6 @@ class MessageDM(commands.Cog):
                 await ctx.reply(embed=nextcord.Embed(title="OK", description=f"Client\n```py\n{MessageDMData.value}```", color=0x00ff00))
             else:
                 await ctx.reply(embed=nextcord.Embed(title="Bad Request", description=f"渡された引数が異常です。\n```sh\npull: pull from database\npush: push to database\nserver: check database's value\nclient: check current value```\nARGS:`{args}`", color=0xff0000))
-                return
 
 
 def setup(bot, **kwargs):
