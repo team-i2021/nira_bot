@@ -206,11 +206,28 @@ async def ss_base(self, ctx: commands.Context):
             if ctx.guild.id not in steam_server.value:
                 await ctx.reply("`SteamDedicated`サーバーが登録されていません。")
                 return
-            mes_ss = await ctx.channel.send(f"Check your set message!")
-            autoss_list.value[ctx.guild.id] = [ctx.channel.id, mes_ss.id]
-            await database.default_push(self.bot.client, autoss_list)
-            asyncio.ensure_future(ss_force(self, mes_ss))
-            return
+            mes_ss = await ctx.channel.send(f"設定したメッセージをご確認ください！\n（メッセージが指定されていない場合はこのメッセージがすぐに切り替わります...）")
+            if ctx.message.content == f"{self.bot.command_prefix}ss auto on":
+                autoss_list.value[ctx.guild.id] = [ctx.channel.id, mes_ss.id]
+                await database.default_push(self.bot.client, autoss_list)
+                asyncio.ensure_future(ss_force(self, mes_ss))
+                return
+            else:
+                cl, ms = int(ctx.message.content[16:].split(" ", 1)[0]), int(ctx.message.content[16:].split(" ", 1)[1])
+                try:
+                    messs = await (await self.bot.fetch_channel(cl)).fetch_message(ms)
+                except Exception as err:
+                    logging.error(err)
+                    await ctx.reply("メッセージが見つかりませんでした。")
+                    return
+                await messs.edit(content="現在変更をしています...")
+                autoss_list.value[ctx.guild.id] = [
+                    int(ctx.message.content[16:].split(" ", 1)[0]),
+                    int(ctx.message.content[16:].split(" ", 1)[1])
+                ]
+                await database.default_push(self.bot.client, autoss_list)
+                asyncio.ensure_future(ss_force(self, messs))
+                return
 
         elif ctx.message.content[10:13] == "off":
             if ctx.guild.id not in autoss_list.value:
@@ -228,21 +245,6 @@ async def ss_base(self, ctx: commands.Context):
                 await ctx.reply(embed=eh.eh(self.bot.client, err))
                 return
 
-            else:
-                try:
-                    messs = await get_mes(self.bot, ctx.message.content[16:].split(" ", 1)[0], ctx.message.content[16:].split(" ", 1)[1])
-                except Exception as err:
-                    logging.error(err)
-                    await ctx.reply("メッセージが見つかりませんでした。")
-                    return
-                await messs.edit(content="現在変更をしています...")
-                autoss_list.value[ctx.guild.id] = [
-                    int(ctx.message.content[16:].split(" ", 1)[0]),
-                    int(ctx.message.content[16:].split(" ", 1)[1])
-                ]
-                await database.default_push(self.bot.client, autoss_list)
-                asyncio.ensure_future(ss_force(self, messs))
-                return
         else:
             if ctx.guild.id in autoss_list.value:
                 await ctx.reply(f"`{self.bot.command_prefix}ss auto [on/off]`\nAutoSSは有効になっています。")
@@ -365,6 +367,31 @@ async def ss_base(self, ctx: commands.Context):
             await asyncio.sleep(1)
             await ctx.reply(embed=embed)
             return
+
+    elif args[1] == "debug":
+        if not await self.bot.is_owner(ctx.author):
+            raise NIRA.Forbidden()
+        if len(args) == 2:
+            await ctx.reply("Missing Arguments...")
+        elif args[2] == "loop":
+            await ctx.reply(embed=nextcord.Embed(
+                title="Loop",
+                description=f"Running: `{self.check_status_pin_loop.is_running()}`\nFailed: `{self.check_status_pin_loop.failed()}`\nNext Iteration: `{self.check_status_pin_loop.next_iteration}`",
+                color=0x00ff00
+            ))
+        elif args[2] == "steam_server":
+            await ctx.reply(embed=nextcord.Embed(
+                title="Steam Server",
+                description=f"{steam_server.value}",
+                color=0x00ff00
+            ))
+        elif args[2] == "autoss_list":
+            await ctx.reply(embed=nextcord.Embed(
+                title="Auto Server Status List",
+                description=f"{autoss_list.value}",
+                color=0x00ff00
+            ))
+
 
     elif len(args) > 2:
         await ctx.reply(f"""\
