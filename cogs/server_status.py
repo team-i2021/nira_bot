@@ -447,6 +447,7 @@ class server_status(commands.Cog):
         self.bot = bot
         self.check_status_pin_loop.start()
         asyncio.ensure_future(database.default_pull(self.bot.client, steam_server))
+        asyncio.ensure_future(database.default_pull(self.bot.client, autoss_list))
 
     def cog_unload(self):
         self.check_status_pin_loop.stop()
@@ -806,6 +807,7 @@ Steam非公式サーバーのステータスを表示します
 
     @tasks.loop(minutes=5.0)
     async def check_status_pin_loop(self):
+        await self.bot.wait_until_ready()
         for CHANNEL, MESSAGE in autoss_list.value.values():
             try:
                 message: nextcord.PartialMessage = (self.bot.get_channel(CHANNEL)).get_partial_message(MESSAGE)
