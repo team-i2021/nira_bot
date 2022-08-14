@@ -17,7 +17,7 @@ SET, DEL, STATUS = (0, 1, 2)
 
 
 class RoleKeeper:
-    name = "role_kepper"
+    name = "role_keeper"
     value = {}
     default = {}
     value_type = database.CHANNEL_VALUE

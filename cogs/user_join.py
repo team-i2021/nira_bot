@@ -19,7 +19,7 @@ from util.nira import NIRA
 
 
 class RoleKeeper:
-    name = "role_kepper"
+    name = "role_keeper"
     value = {}
     default = {}
     value_type = database.CHANNEL_VALUE
