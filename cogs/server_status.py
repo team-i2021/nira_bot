@@ -837,7 +837,7 @@ Steam非公式サーバーのステータスを表示します
         await self.bot.wait_until_ready()
         for CHANNEL, MESSAGE in autoss_list.value.values():
             try:
-                message: nextcord.PartialMessage = (self.bot.get_channel(CHANNEL)).get_partial_message(MESSAGE)
+                message: nextcord.Message = await (await self.bot.fetch_channel(CHANNEL)).fetch_message(MESSAGE)
                 embed = nextcord.Embed(
                     title="ServerStatus Checker",
                     description=f"LastCheck:`{datetime.datetime.now()}`",
