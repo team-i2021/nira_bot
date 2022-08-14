@@ -34,7 +34,7 @@ class mod(commands.Cog):
         self.counter_reset.start()
 
     def cog_unload(self):
-        self.counter_reset.cancel()
+        self.counter_reset.stop()
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):

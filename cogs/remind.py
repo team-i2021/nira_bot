@@ -124,7 +124,7 @@ class Remind(commands.Cog):
         self.sendReminds.start()
 
     def cog_unload(self):
-        self.sendReminds.cancel()
+        self.sendReminds.stop()
 
     @commands.command(name="remind", aliases=("Remind", "りまいんど", "めざまし", "アラーム"), help="""\
 毎日指定時間にメッセージを送信する
@@ -359,4 +359,3 @@ def setup(bot, **kwargs):
 
 def teardown(bot):
     logging.info(f"Pin teardown")
-    Remind.sendReminds.cancel()

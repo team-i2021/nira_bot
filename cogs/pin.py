@@ -75,7 +75,7 @@ class Bottomup(commands.Cog):
             self.checkPin.start()
 
     def cog_unload(self):
-        self.checkPin.cancel()
+        self.checkPin.stop()
 
     @commands.command(name="pin", aliases=("Pin", "bottomup", "ピン留め", "ピン"), help="""\
 特定のメッセージを一番下に持ってくることで、いつでもみれるようにする、ピン留めの改良版。
@@ -135,7 +135,7 @@ offにするには、`n!pin off`と送信してください。
                     await ctx.reply("start")
                     return
                 elif args[2] == "stop":
-                    self.checkPin.cancel()
+                    self.checkPin.stop()
                     await ctx.reply("stop")
                     return
                 elif args[2] == "get":

@@ -449,7 +449,7 @@ class server_status(commands.Cog):
         asyncio.ensure_future(database.default_pull(self.bot.client, steam_server))
 
     def cog_unload(self):
-        self.check_status_pin_loop.cancel()
+        self.check_status_pin_loop.stop()
 
     @nextcord.message_command(name="AutoSSのスタート", guild_ids=n_fc.GUILD_IDS)
     async def start_auto_ss(self, interaction: Interaction, message: nextcord.Message):
@@ -808,7 +808,7 @@ Steam非公式サーバーのステータスを表示します
     async def check_status_pin_loop(self):
         for CHANNEL, MESSAGE in autoss_list.value.values():
             try:
-                message: nextcord.PartialMessage = await (self.bot.get_channel(CHANNEL)).get_partial_message(MESSAGE)
+                message: nextcord.PartialMessage = (self.bot.get_channel(CHANNEL)).get_partial_message(MESSAGE)
                 embed = nextcord.Embed(
                     title="ServerStatus Checker",
                     description=f"LastCheck:`{datetime.datetime.now()}`",
