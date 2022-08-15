@@ -181,7 +181,8 @@ class user_join(commands.Cog):
                 if member.roles[i].id != member.guild.id:
                     role_text = role_text + f" <@&{member.roles[i].id}> "
                     role_ids.append(member.roles[i].id)
-            embed.add_field(name="付与されていたロール", value=f"{role_text}")
+            if role_text != "":
+                embed.add_field(name="付与されていたロール", value=f"{role_text}")
             if time_diff <= 100:
                 embed.add_field(name="即抜けRTA記録", value=f"`{round(time_diff, 4)}`秒")
             if channel is not None:
