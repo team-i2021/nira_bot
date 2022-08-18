@@ -70,6 +70,7 @@ class BottomModal(nextcord.ui.Modal):
 class Bottomup(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
+        self._queue = {}
         asyncio.ensure_future(database.default_pull(self.bot.client, pin_message))
         if not self.checkPin.is_running():
             self.checkPin.start()
@@ -140,6 +141,8 @@ offにするには、`n!pin off`と送信してください。
                     return
                 elif args[2] == "get":
                     await ctx.reply(self.checkPin.get_task())
+                elif args[2] == "queue":
+                    await ctx.reply(embed=nextcord.Embed(title="Queue", description=str(self._queue)))
             else:
                 await ctx.reply(f"・エラー\n使い方が違います。\n`{self.bot.command_prefix}pin on [メッセージ内容]`または`{self.bot.command_prefix}pin off`")
                 return
@@ -200,7 +203,21 @@ offにするには、`n!pin off`と送信してください。
                 return
         else:
             await interaction.followup.send("あなたには管理者権限がありません。", ephemeral=True)
+
+
+    @commands.Cog.listener()
+    async def on_message(self, message: nextcord.Message):
+        if message.author.id == self.bot.user.id:
             return
+        if isinstance(message.channel, nextcord.DMChannel):
+            return
+        if isinstance(message.channel, nextcord.GroupChannel):
+            return
+        if message.guild.id not in pin_message.value:
+            return
+        self._queue[message.channel.id] = message
+
+
 
     @tasks.loop(seconds=3)
     async def checkPin(self):
