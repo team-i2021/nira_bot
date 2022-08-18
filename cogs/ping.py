@@ -80,20 +80,22 @@ async def base_ping(bot, client: HTTP_db.Client, adr, message: nextcord.Message 
             logging.error(
                 f"大変申し訳ございません。エラーが発生しました。\n```{err}```\n```sh\n{sys.exc_info()}```\nfile:`{fname}`\nline:{exc_tb.tb_lineno}")
             await message.edit(embed=nextcord.Embed(title="Ping", description=f"内部エラーが発生しました。\n```py\n{traceback.format_exc()}```", color=0xff0000))
-        return
 
 
 class Ping(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
 
-    @nextcord.slash_command(name="ping", description="Discordサーバー又は、指定サーバーとのレイテンシを計測します。", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="ping", description="Display latency of servers", description_localizations={nextcord.Locale.ja: "Discordサーバー又は、指定サーバーとのレイテンシを計測します。"}, guild_ids=n_fc.GUILD_IDS)
     async def ping_slash(
         self,
         interaction: Interaction,
         address: str = SlashOption(
             name="address",
-            description="アドレス。指定しないとDiscordサーバーとのRTTを表示します。",
+            description="Address of the server to ping (if not specified, ping Discord server)",
+            description_localizations={
+                nextcord.Locale.ja: "アドレス。指定しないとDiscordサーバーとのRTTを表示します。"
+            },
             required=False,
         )
     ):

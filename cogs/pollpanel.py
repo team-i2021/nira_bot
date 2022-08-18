@@ -294,7 +294,7 @@ class Pollpanel(commands.Cog):
         self.bot = bot
         asyncio.ensure_future(pull(self.bot, self.bot.client))
 
-    @nextcord.message_command(name="投票パネルの編集", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.message_command(name="Edit Pollpanel", name_localizations={nextcord.Locale.ja: "投票パネル編集"}, guild_ids=n_fc.GUILD_IDS)
     async def edit_pollpanel(self, interaction: Interaction, message: nextcord.Message):
         if message.author.id != self.bot.user.id:
             await interaction.response.send_message(embed=nextcord.Embed(title="エラー", description=f"{self.bot.user.mention}が送信した投票パネルにのみこのコマンドを使用できます。", color=0xff0000), ephemeral=True)
@@ -344,14 +344,15 @@ class Pollpanel(commands.Cog):
             polltype = 1
         await interaction.response.send_modal(PollPanelEditModal(self.bot, message, options, polltype))
 
-    @nextcord.slash_command(name="pollpanel", description="投票パネルを設置します", guild_ids=n_fc.GUILD_IDS)
+
+    @nextcord.slash_command(name="pollpanel", description="Create pollpanel", description_localizations={nextcord.Locale.ja: "投票パネルを設置します"}, guild_ids=n_fc.GUILD_IDS)
     async def pollpanel_slash(
         self,
         interaction: Interaction
     ):
         modal = PollPanelSlashInput(self.bot)
         await interaction.response.send_modal(modal=modal)
-        return
+
 
     @commands.command(name="pollpanel", aliases=["ポールパネル", "pp", "poll", "投票"], help="""\
 投票パネル機能

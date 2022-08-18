@@ -128,7 +128,7 @@ class Remind(commands.Cog):
 
     @commands.command(name="remind", aliases=("Remind", "りまいんど", "めざまし", "アラーム"), help="""\
 毎日指定時間にメッセージを送信する
-毎日（平日だろうが休日だろうが、雨の日だろうが落ち込んだ日だろうが）指定時間になったら、チャンネルに特定のメッセージを送信します。
+毎日（平日だろうが休日だろうが、雨の日だろうが落ち込んだ日だろうが（にらBOTが落ちてなければ））指定時間になったら、チャンネルに特定のメッセージを送信します。
 
 ・使い方
 `n!remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`
@@ -275,7 +275,7 @@ pull - pull data from server to device```""")
     async def remind_slash(self, interaction: Interaction):
         pass
 
-    @remind_slash.subcommand(name="on", description="リマインドメッセージの設定")
+    @remind_slash.subcommand(name="on", description="Setting of Remind Message", description_localizations={nextcord.Locale.ja: "リマインドメッセージの設定"})
     async def on_remind_slash(self, interaction: Interaction):
         if admin_check.admin_check(interaction.guild, interaction.user):
             modal = RemindMaker()
@@ -285,7 +285,7 @@ pull - pull data from server to device```""")
             await interaction.response.send_text("管理者権限がありません。")
             return
 
-    @remind_slash.subcommand(name="off", description="リマインドメッセージの削除")
+    @remind_slash.subcommand(name="off", description="Delete Remind Message Setting", description_localizations={nextcord.Locale.ja: "リマインドメッセージの削除"})
     async def off_remind_slash(self, interaction: Interaction, time: str = SlashOption(name="time", description="リマインドの時間", required=True)):
         if admin_check.admin_check(interaction.guild, interaction.user):
             await interaction.response.defer()
@@ -320,7 +320,7 @@ pull - pull data from server to device```""")
             await interaction.response.send_text("管理者権限がありません。")
             return
 
-    @remind_slash.subcommand(name="list", description="リマインドメッセージ一覧")
+    @remind_slash.subcommand(name="list", description="List Remind Messages", description_localizations={nextcord.Locale.ja: "リマインドメッセージ一覧"})
     async def list_remind_slash(self, interaction: Interaction):
         await interaction.response.defer()
 

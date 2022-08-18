@@ -198,7 +198,7 @@ class Rolepanel(commands.Cog):
         self.bot = bot
         asyncio.ensure_future(pull(self.bot, self.bot.client))
 
-    @nextcord.message_command(name="ロールパネル編集", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.message_command(name="Edit Rolepanel", name_localizations={nextcord.Locale.ja: "ロールパネル編集"}, guild_ids=n_fc.GUILD_IDS)
     async def edit_rolepanel(self, interaction: Interaction, message: nextcord.Message):
         if message.author.id != self.bot.user.id:
             await interaction.response.send_message(embed=nextcord.Embed(title="エラー", description=f"{self.bot.user.mention}が送信したロールパネルにのみこのコマンドを使用できます。", color=0xff0000), ephemeral=True)
@@ -255,7 +255,7 @@ class Rolepanel(commands.Cog):
             )
         await interaction.response.send_modal(RolePanelEditModal(self.bot, message, roles))
 
-    @nextcord.slash_command(name="rolepanel", description="ロールパネルを設置します", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="rolepanel", description="Create rolepanel", description_localizations={nextcord.Locale.ja: "ロールパネルを設置します"}, guild_ids=n_fc.GUILD_IDS)
     async def rolepanel_slash(
         self,
         interaction: Interaction

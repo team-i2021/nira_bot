@@ -65,18 +65,19 @@ class user(commands.Cog):
 
         return embed
 
-    @nextcord.user_command(name="ユーザー情報表示", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.user_command(name="Display user info", name_localizations={nextcord.Locale.ja: "ユーザー情報表示"}, guild_ids=n_fc.GUILD_IDS)
     async def member_info(self, interaction: Interaction, member: nextcord.Member):
         await interaction.response.send_message(embed=self.UserInfoEmbed(member))
 
 
-    @nextcord.slash_command(name="user", description="ユーザー情報表示", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="user", description="Display user info", description_localizations={nextcord.Locale.ja: "ユーザー情報表示"}, guild_ids=n_fc.GUILD_IDS)
     async def user_slash(
         self,
         interaction: Interaction,
         user: nextcord.User = SlashOption(
             name="user",
-            description="情報を表示するユーザー",
+            description="User of want to display",
+            description_localizations={nextcord.Locale.ja: "表示したいユーザー"},
             required=False
         )
     ):
@@ -171,13 +172,15 @@ class user(commands.Cog):
                         await ctx.reply(embed=nextcord.Embed(title="Error", description="ユーザー、チャンネル、またはサーバーのデータが取得できませんでした。", color=0xff0000))
                         return
 
-    @nextcord.slash_command(name="rk", description="ロールキーパー機能の設定", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="rk", description="Setting of role-keeper", description_localizations={nextcord.Locale.ja: "ロールキーパーの設定"}, guild_ids=n_fc.GUILD_IDS)
     async def rk_slash(
         self,
         interaction: Interaction,
         SettingValue: int = SlashOption(
             name="setting_value",
-            description="設定値",
+            name_localizations={nextcord.Locale.ja: "設定値"},
+            description="Value of setting",
+            description_localizations={nextcord.Locale.ja: "設定値"},
             required=True,
             choices={"有効にする": 1, "無効にする": 0}
         )
@@ -269,17 +272,20 @@ class user(commands.Cog):
             return
         await database.default_push(client, WelcomeInfo)
 
-    @nextcord.slash_command(name="ui", description="サーバー加入/離脱した場合にそのユーザーの情報を表示します", guild_ids=n_fc.GUILD_IDS)
+
+    @nextcord.slash_command(name="ui", description="Send a message when user join/leave", guild_ids=n_fc.GUILD_IDS)
     async def ui_slash(self, interaction):
         pass
 
-    @ui_slash.subcommand(name="set", description="ユーザー表示チャンネルをセットします")
+
+    @ui_slash.subcommand(name="set", description="Set channel of sent user info", description_localizations={nextcord.Locale.ja: "ユーザー表示チャンネルをセットします"})
     async def set_slash(
         self,
         interaction: Interaction,
         channel: nextcord.abc.GuildChannel = SlashOption(
             name="channel",
-            description="メッセージを送信するチャンネルです",
+            description="Channel of sent user info",
+            description_localizations={nextcord.Locale.ja: "メッセージを送信するチャンネルです"},
             required=True
         )
     ):
@@ -288,7 +294,8 @@ class user(commands.Cog):
         else:
             await interaction.response.send_message("管理者権限がありません。", ephemeral=True)
 
-    @ui_slash.subcommand(name="del", description="ユーザー表示チャンネル設定を削除します")
+
+    @ui_slash.subcommand(name="del", description="Delete channel of sent user info", description_localizations={nextcord.Locale.ja: "ユーザー表示チャンネル設定を削除します"})
     async def del_slash(
         self,
         interaction: Interaction
@@ -299,7 +306,7 @@ class user(commands.Cog):
             await interaction.response.send_message("管理者権限がありません。", ephemeral=True)
 
 
-    @ui_slash.subcommand(name="status", description="ユーザー表示チャンネル設定を確認します")
+    @ui_slash.subcommand(name="status", description="Check channel of sent user info", description_localizations={nextcord.Locale.ja: "ユーザー表示チャンネル設定を確認します"})
     async def status_slash(
         self,
         interaction: Interaction

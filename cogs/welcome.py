@@ -144,30 +144,34 @@ n!welcome leave off
             await ctx.reply(embed=nextcord.Embed(title=f"Welcomeメッセージ設定: `{args[1]}`", description=args[2], color=0x00ff00))
             return
 
-    @nextcord.slash_command(name="welcome", description="誰かがサーバーに加入/離脱した時にメッセージを送信します。", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="welcome", description="WelcomeMessage command", guild_ids=n_fc.GUILD_IDS)
     async def welcome_slash(self, interaction: Interaction):
         pass
 
-    @welcome_slash.subcommand(name="set", description="サーバー加入/離脱時のメッセージを指定します")
+    @welcome_slash.subcommand(name="set", description="Set WelcomeMessage", description_localizations={"ja": "ウェルカムメッセージを設定する"})
     async def set_slash(
         self,
         interaction: Interaction,
         MessageType: str = SlashOption(
             name="message_type",
-            description="サーバー参加時か離脱時かを選択してください",
+            name_localizations={"ja": "メッセージの種類"},
+            description="Select the type of message to set",
+            description_localizations={nextcord.Locale.ja: "サーバー参加時か離脱時かを選択してください"},
             required=True,
             choices={"参加時": "join", "離脱時": "leave"}
         )
     ):
         await interaction.response.send_modal(WelcomeMaker(MessageType, self.bot.client))
 
-    @welcome_slash.subcommand(name="del", description="サーバー加入/離脱時のメッセージ設定を削除します")
+    @welcome_slash.subcommand(name="del", description="Unset WelcomeMessage", description_localizations={"ja": "ウェルカムメッセージの設定を解除する"})
     async def del_slash(
         self,
         interaction: Interaction,
         MessageType: str = SlashOption(
             name="message_type",
-            description="サーバー参加時か離脱時かを選択してください",
+            name_localizations={"ja": "メッセージの種類"},
+            description="Select the type of message to delete",
+            description_localizations={nextcord.Locale.ja: "サーバー参加時か離脱時かを選択してください"},
             required=True,
             choices={"参加時": "join", "離脱時": "leave"}
         )
@@ -187,7 +191,7 @@ n!welcome leave off
             await interaction.followup.send("コマンド実行時にエラーが発生しました。", embed=nextcord.Embed(title=f"An error has occurred during `/welcome del`", description=f"```py\n{err}```\n```py\n{traceback.format_exc()}```", color=0xff0000))
             return
 
-    @welcome_slash.subcommand(name="status", description="サーバー加入/離脱時のメッセージ設定を表示します")
+    @welcome_slash.subcommand(name="status", description="Status of WelcomeMessage", description_localizations={"ja": "サーバー加入/離脱時のメッセージ設定を表示します"})
     async def status_slash(
         self,
         interaction: Interaction

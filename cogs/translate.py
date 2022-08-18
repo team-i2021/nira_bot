@@ -198,10 +198,8 @@ class TranslateModal(nextcord.ui.Modal):
                 if self._source_lang is None:
                     self._source_lang = "..."
                 await interaction.followup.send(embed=make_embed(result[1], result[0], self._source_lang, self._target_lang))
-                return
         except Exception as err:
             await interaction.followup.send(embed=nextcord.Embed(title="エラー", description=f"エラー。\n```\n{err}```", color=0xFF0000))
-        return
 
 
 class Translate(commands.Cog):
@@ -217,14 +215,27 @@ class Translate(commands.Cog):
             self.deepl_tr = deepl.Translator(SETTING["translate"])
         self.google_tr = Translator()
 
-    @nextcord.slash_command(name="translate", description="翻訳します", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="translate", description="Translate.", description_localizations={nextcord.Locale.ja: "翻訳します"}, guild_ids=n_fc.GUILD_IDS)
     async def slash_genshin(
         self,
         interaction: Interaction,
         target_lang: str = SlashOption(
-            description="翻訳先の言語",
+            description="Language of Target.",
+            description_localizations={nextcord.Locale.ja: "翻訳先の言語"},
             required=True,
             choices={
+                "Japanese": "JA",
+                "English (US)": "EN-US",
+                "English (UK)": "EN-GB",
+                "Spanish": "ES",
+                "French": "FR",
+                "German": "DE",
+                "Italy": "IT",
+                "Russian": "RU",
+                "Dutch": "NL",
+                "Chinese": "ZH"
+            },
+            choice_localizations={
                 "日本語": "JA",
                 "英語（米国）": "EN-US",
                 "英語（英国）": "EN-GB",
@@ -241,6 +252,17 @@ class Translate(commands.Cog):
             description="翻訳元の言語",
             required=False,
             choices={
+                "Japanese": "JA",
+                "English": "EN",
+                "Spanish": "ES",
+                "French": "FR",
+                "German": "DE",
+                "Italy": "IT",
+                "Russian": "RU",
+                "Dutch": "NL",
+                "Chinese": "ZH"
+            },
+            choice_localizations={
                 "日本語": "JA",
                 "英語": "EN",
                 "スペイン語": "ES",

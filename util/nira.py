@@ -22,9 +22,9 @@ class NIRA(commands.Bot):
             return True
         else:
             return await super().is_owner(user)
-    
+
     class Forbidden(Exception):
-        pass
+        """Exception of default Forbidden (not Server Admin)"""
 
     class ForbiddenExpand(Exception):
-        pass
+        """Exception of expanded Forbidden (not Bot Admin)"""
