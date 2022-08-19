@@ -586,7 +586,7 @@ Steam非公式サーバーのステータスを表示します
         ServerID: int = SlashOption(
             name="server_id",
             name_localizations={
-                nextcord.Locale.ja: "サーバーID"
+                nextcord.Locale.ja: "サーバーid"
             },
             description="Server ID of want to delete",
             description_localizations={
@@ -658,7 +658,7 @@ Steam非公式サーバーのステータスを表示します
         SortSource: int = SlashOption(
             name="source",
             name_localizations={
-                nextcord.Locale.ja: "置き替え元のサーバーID"
+                nextcord.Locale.ja: "置き替え元のサーバーid"
             },
             description="Source server ID",
             description_localizations={
@@ -669,7 +669,7 @@ Steam非公式サーバーのステータスを表示します
         SortDestination: int = SlashOption(
             name="destination",
             name_localizations={
-                nextcord.Locale.ja: "置き替え先のサーバーID"
+                nextcord.Locale.ja: "置き替え先のサーバーid"
             },
             description="Destination server ID",
             description_localizations={
@@ -717,7 +717,7 @@ Steam非公式サーバーのステータスを表示します
         EditSource: int = SlashOption(
             name="server_id",
             name_localizations={
-                nextcord.Locale.ja: "編集するサーバーID"
+                nextcord.Locale.ja: "編集するサーバーid"
             },
             description="Server ID of want to edit",
             description_localizations={
