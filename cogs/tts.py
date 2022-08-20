@@ -97,20 +97,19 @@ class tts(commands.Cog):
         self.VOICEVOX_VERSION = "0.12.5"
 
 
-    @nextcord.slash_command(name="tts", description="テキストチャンネルの内容をVCで読み上げます", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="tts", description="Text-To-Speech", guild_ids=n_fc.GUILD_IDS)
     async def tts_slash(self, interaction: Interaction):
         pass
 
-    @tts_slash.subcommand(name="join", description="BOTをVCに参加させます")
+    @tts_slash.subcommand(name="join", description="Join VC (for TTS)", description_localizations={nextcord.Locale.ja: "BOTを読み上げ用にVCに参加させます"})
     async def join_slash(self, interaction: Interaction):
         if not Effective:
             await interaction.response.send_message(embed=nextcord.Embed(title="エラー", description="管理者にお伝えください。\n`VOICEVOX API Key doesn't exist.`\nVOICEVOX WebAPIのキーが存在しません。\n`setting.json`の`voicevox`欄にAPIキーを入力してから、`cogs/tts.py`をリロードしてください。", color=0xff0000))
             return
         if interaction.user.voice is None:
             await interaction.response.send_message(embed=nextcord.Embed(title="TTSエラー", description="先にVCに接続してください。", color=0xff0000), ephemeral=True)
-            return
         else:
-            if not interaction.guild.voice_client is None:
+            if interaction.guild.voice_client is not None:
                 await interaction.response.send_message(embed=nextcord.Embed(title="TTSエラー", description=f"既にVCに入っています。\n音楽再生から切り替える場合は、`{self.bot.command_prefix}leave`->`{self.bot.command_prefix}tts join`の順に入力してください。", color=0xff0000), ephemeral=True)
                 return
             await interaction.user.voice.channel.connect()
@@ -128,14 +127,12 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                 ),
                     volume=0.5)
             )
-            return
-        return
 
-    @tts_slash.subcommand(name="leave", description="BOTからVCを離脱させます")
+
+    @tts_slash.subcommand(name="leave", description="Leave from VC", description_localizations={nextcord.Locale.ja: "BOTからVCを離脱させます"})
     async def leave_slash(self, interaction: Interaction):
         if interaction.user.voice is None:
             await interaction.response.send_message(embed=nextcord.Embed(title="TTSエラー", description="先にボイスチャンネルに接続してください。", color=0xff0000), ephemeral=True)
-            return
         else:
             if interaction.guild.voice_client is None:
                 await interaction.response.send_message(embed=nextcord.Embed(title="TTSエラー", description="そもそも入ってないっす...(´・ω・｀)", color=0xff0000), ephemeral=True)
@@ -144,25 +141,25 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
             del tts_channel.value[interaction.guild.id]
             await database.default_push(self.bot.client, tts_channel)
             await interaction.response.send_message(embed=nextcord.Embed(title="TTS", description="あっ...ばいばーい...", color=0x00ff00))
-            return
-        return
 
-    @tts_slash.subcommand(name="voice", description="読み上げの声の種類を変更します")
+
+    @tts_slash.subcommand(name="voice", description="Change TTS Voice", description_localizations={nextcord.Locale.ja: "読み上げの声の種類を変更します"})
     async def voice_slash(self, interaction: Interaction):
         view = nextcord.ui.View(timeout=None)
         view.add_item(VoiceSelect(self.bot.client))
         await interaction.response.send_message(f"下のプルダウンから声を選択してください。\n選択可能声種類: `v{self.VOICEVOX_VERSION}`基準", view=view, ephemeral=True)
-        return
 
-    @tts_slash.subcommand(name="reload", description="Reload TTS modules.")
+
+
+    @tts_slash.subcommand(name="reload", description="Reload Modules for TTS")
     async def reload_slash(self, interaction: Interaction):
         if await self.bot.is_owner(interaction.user):
             importlib.reload(tts_convert)
             importlib.reload(tts_dict)
             await interaction.response.send_message(nextcord.Embed(title="Reloaded.", description="TTS modules were reloaded.", color=0x00ff00), ephemeral=True)
         else:
-            await interaction.response.send_message(nextcord.Embed(title="Error", description=f"You don't have the required permissio{self.bot.command_prefix}", color=0xff0000), ephemeral=True)
-        return
+            raise NIRA.ForbiddenExpand()
+
 
     @commands.command(name='tts', aliases=("読み上げ", "よみあげ"), help="""\
 VCに乱入して、代わりに読み上げてくれる機能。
@@ -192,7 +189,7 @@ API制限などが来た場合はご了承ください。許せ。""")
                     await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description="先にボイスチャンネルに接続してください。", color=0xff0000))
                     return
                 else:
-                    if not ctx.guild.voice_client is None:
+                    if ctx.guild.voice_client is not None:
                         await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description=f"既にVCに入っています。\n音楽再生から切り替える場合は、`{self.bot.command_prefix}leave`->`{self.bot.command_prefix}tts join`の順に入力してください。", color=0xff0000))
                         return
                     await ctx.author.voice.channel.connect()

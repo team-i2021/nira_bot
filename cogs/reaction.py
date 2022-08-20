@@ -231,23 +231,35 @@ class reaction(commands.Cog):
         return
 
 
-    @nextcord.slash_command(name="er", description="追加反応設定", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="er", description="Extended Reaction Setting", guild_ids=n_fc.GUILD_IDS)
     async def er_slash(self, interaction: Interaction):
         pass
 
 
-    @er_slash.subcommand(name="add", description="追加反応の設定追加")
+    @er_slash.subcommand(name="add", description="Add Extended Reaction Setting", description_localizations={nextcord.Locale.ja: "追加反応の設定追加"})
     async def add_er_slash(
         self,
         interaction: Interaction,
         triggerMessage: str = SlashOption(
             name="trigger_message",
-            description="トリガー",
+            name_localizations={
+                nextcord.Locale.ja: "トリガーメッセージ"
+            },
+            description="Trigger message",
+            description_localizations={
+                nextcord.Locale.ja: "反応する部分です"
+            },
             required=True
         ),
         returnMessage: str = SlashOption(
             name="return_message",
-            description="返答文",
+            name_localizations={
+                nextcord.Locale.ja: "返信メッセージ"
+            },
+            description="Return message",
+            description_localizations={
+                nextcord.Locale.ja: "返信するメッセージ内容です"
+            },
             required=True
         )
     ):
@@ -267,16 +279,14 @@ class reaction(commands.Cog):
             except Exception as err:
                 await interaction.response.send_message(embed=eh.eh(self.bot.client, err))
         else:
-            await interaction.response.send_message("管理者権限がありません。", ephemeral=True)
-            return
+            raise NIRA.Forbidden()
 
 
-    @er_slash.subcommand(name="list", description="追加反応の一覧")
+    @er_slash.subcommand(name="list", description="List of Extended Reaction List", description_localizations={nextcord.Locale.ja: "追加反応の一覧"})
     async def list_er_slash(self, interaction: Interaction):
         await database.default_pull(self.bot.client, reaction_datas.ex_reaction_list)
         if interaction.guild.id not in reaction_datas.ex_reaction_list.value or changeSetting(STATUS, ER, interaction, key="value") == 0:
             await interaction.response.send_message("追加返答は設定されていません。")
-            return
         else:
             await interaction.response.defer()
             embed = nextcord.Embed(title="追加返答リスト", description=f"にらBOT - {interaction.guild.name}", color=0x00ff00)
@@ -290,13 +300,19 @@ class reaction(commands.Cog):
             return
 
 
-    @er_slash.subcommand(name="del", description="追加反応の削除")
+    @er_slash.subcommand(name="del", description="Delete Extended Reaction Setting", description_localizations={nextcord.Locale.ja: "追加反応の削除"})
     async def del_er_slash(
         self,
         interaction: Interaction,
         triggerMessage: str = SlashOption(
             name="trigger_message",
-            description="トリガー。「all」と入力するとすべての反応を削除します。",
+            name_localizations={
+                nextcord.Locale.ja: "トリガーメッセージ"
+            },
+            description="Trigger message. (if you want to delete all, please input 'all')",
+            description_localizations={
+                nextcord.Locale.ja: "トリガー。「all」と入力するとすべての反応を削除します。"
+            },
             required=True
         )
     ):
@@ -317,7 +333,6 @@ class reaction(commands.Cog):
                         if changeSetting(STATUS, ER, interaction, key=f"{i+1}_tr") == trigger:
                             result = i
                             break
-                        continue
                     if result == None:
                         await interaction.followup.send(f"`{trigger}`というトリガーが見つかりませんでした。\n不具合がある場合は全消しするか、サポートサーバーへご連絡ください。", ephemeral=True)
                         return
@@ -333,24 +348,34 @@ class reaction(commands.Cog):
                     reaction_datas.ex_reaction_list.value[interaction.guild.id]["value"] -= 1
                     await database.default_push(self.bot.client, reaction_datas.ex_reaction_list)
                     await interaction.followup.send(f"`{trigger}`を削除しました。")
-                    return
         else:
-            await interaction.response.send_message("管理者権限がありません。", ephemeral=True)
-            return
+            raise NIRA.Forbidden()
 
 
-    @er_slash.subcommand(name="edit", description="追加反応の編集")
+    @er_slash.subcommand(name="edit", description="Edit Extended Reaction Setting", description_localizations={nextcord.Locale.ja: "追加反応の編集"})
     async def edit_er_slash(
         self,
         interaction: Interaction,
         triggerMessage: str = SlashOption(
             name="trigger_message",
-            description="トリガー",
+            name_localizations={
+                nextcord.Locale.ja: "トリガーメッセージ"
+            },
+            description="Trigger message",
+            description_localizations={
+                nextcord.Locale.ja: "反応する部分です"
+            },
             required=True
         ),
         returnMessage: str = SlashOption(
             name="return_message",
-            description="返答文",
+            name_localizations={
+                nextcord.Locale.ja: "返信メッセージ"
+            },
+            description="Return message",
+            description_localizations={
+                nextcord.Locale.ja: "返信するメッセージ内容です"
+            },
             required=True
         )
     ):
@@ -445,19 +470,28 @@ class reaction(commands.Cog):
             return
 
 
-    @nextcord.slash_command(name="nr", description="通常反応設定", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="nr", description="Normal Reaction Setting", guild_ids=n_fc.GUILD_IDS)
     async def nr_slash(self, interaction):
         pass
 
 
-    @nr_slash.subcommand(name="channel", description="チャンネルでの通常反応設定")
+    @nr_slash.subcommand(name="channel", description="Setting of Normal Reaction in Channel", description_localizations={nextcord.Locale.ja: "チャンネルでの通常反応設定"})
     async def channel_nr_slash(
         self,
         interaction: Interaction,
         setting: int = SlashOption(
             name="setting",
-            description="チャンネルでの通常設定の有効化/無効化",
-            choices={"有効": 1, "無効": 0}
+            name_localizations={
+                nextcord.Locale.ja: "設定"
+            },
+            description="Value of Setting Normal Reaction in Channel",
+            description_localizations={
+                nextcord.Locale.ja: "チャンネルでの通常設定の有効化/無効化"
+            },
+            choices={"Enable": 1, "Disable": 0},
+            choice_localizations={
+                nextcord.Locale.ja: {"有効": 1, "無効": 0}
+            }
         )
     ):
         if admin_check.admin_check(interaction.guild, interaction.user):
@@ -473,14 +507,23 @@ class reaction(commands.Cog):
             return
 
 
-    @nr_slash.subcommand(name="server", description="サーバーでの通常反応設定")
+    @nr_slash.subcommand(name="server", description="Setting of Normal Reaction in Server", description_localizations={nextcord.Locale.ja: "サーバーでの通常反応設定"})
     async def server_nr_slash(
         self,
         interaction: Interaction,
         setting: int = SlashOption(
             name="setting",
-            description="サーバーでの通常設定の有効化/無効化",
-            choices={"有効": 1, "無効": 0}
+            name_localizations={
+                nextcord.Locale.ja: "設定"
+            },
+            description="Value of Setting Normal Reaction in Server",
+            description_localizations={
+                nextcord.Locale.ja: "サーバーでの通常設定の有効化/無効化"
+            },
+            choices={"Enable": 1, "Disable": 0},
+            choice_localizations={
+                nextcord.Locale.ja: {"有効": 1, "無効": 0}
+            }
         )
     ):
         if admin_check.admin_check(interaction.guild, interaction.user):
@@ -548,8 +591,17 @@ class reaction(commands.Cog):
         interaction: Interaction,
         setting: int = SlashOption(
             name="setting",
-            description="チャンネルでの全体設定の有効化/無効化",
-            choices={"有効": 1, "無効": 0}
+            name_localizations={
+                nextcord.Locale.ja: "設定"
+            },
+            description="Value of Setting All Reaction in Channel",
+            description_localizations={
+                nextcord.Locale.ja: "チャンネルでの全体設定の有効化/無効化"
+            },
+            choices={"Enable": 1, "Disable": 0},
+            choice_localizations={
+                nextcord.Locale.ja: {"有効": 1, "無効": 0}
+            }
         )
     ):
         if admin_check.admin_check(interaction.guild, interaction.user):
@@ -563,7 +615,6 @@ class reaction(commands.Cog):
             await interaction.send(embed=nextcord.Embed(title="All Reaction Setting", description=f"チャンネル <#{interaction.channel.id}> での全体反応を変更しました。", color=0x00ff00), ephemeral=True)
         else:
             await interaction.send(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000), ephemeral=True)
-            return
 
 
     @commands.command(name="line", help="""\
@@ -581,18 +632,18 @@ TOKENとは簡単に言えばパスワードです。LINE Notifyのページか�
 
 
     # 今だけGuild指定しない...
-    @nextcord.slash_command(name="line", description="LINE Notifyの設定")
+    @nextcord.slash_command(name="line", description="Setting of Line Notify")
     async def line_slash(self, interaction: Interaction):
         pass
 
 
-    @line_slash.subcommand(name="set", description="LINE Notifyのトークンを設定します。")
+    @line_slash.subcommand(name="set", description="Set LINE Notify's TOKEN", description_localizations={nextcord.Locale.ja: "LINE Notifyのトークンを設定します。"})
     async def line_set_slash(self, interaction: Interaction):
         modal = NotifyTokenSet()
         await interaction.response.send_modal(modal=modal)
 
 
-    @line_slash.subcommand(name="del", description="LINE Notifyのトークンを削除します。")
+    @line_slash.subcommand(name="del", description="Delete LINE Notify's TOKEN", description_localizations={nextcord.Locale.ja: "LINE Notifyのトークンを削除します。"})
     async def line_del_slash(self, interaction: Interaction):
         if admin_check.admin_check(interaction.guild, interaction.user) == False:
             await interaction.send("あなたにはサーバーの管理権限がないため実行できません。", ephemeral=True)

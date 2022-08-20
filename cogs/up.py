@@ -61,7 +61,7 @@ async def ErrorSend(interaction):
 class UpNotify(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
-        
+
     @commands.command(name="up", aliases=["アップ", "あっぷ", "dissoku"], help="""\
 DissokuのUp通知を行います
 
@@ -153,35 +153,36 @@ read - read Upper.value from server to device```""")
             await ctx.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
             return
 
-    @nextcord.slash_command(name="up", description="Dissoku通知", guild_ids=GUILD_IDS)
+    @nextcord.slash_command(name="up", description="Dissoku notification", guild_ids=GUILD_IDS)
     async def up_slash(self, interaction: Interaction):
         pass
 
-    @up_slash.subcommand(name="on", description="Dissoku通知を有効にします")
+    @up_slash.subcommand(name="on", description="Turn ON notification of Dissoku", description_localizations={nextcord.Locale.ja: "Dissoku通知を有効にします"})
     async def up_slash_on(
         self,
         interaction: Interaction,
         role: nextcord.Role = SlashOption(
             name="role",
-            description="メンションするロールです",
+            description="Role of mention",
+            description_localizations={nextcord.Locale.ja: "メンションするロールです"},
             required=False
         )
     ):
         if admin_check.admin_check(interaction.guild, interaction.user):
-            if not role is None:
+            if role is not None:
                 role = role.id
             await (await UpNotifyConfig(self.bot, self.bot.client, interaction, SET, role))
         else:
             await interaction.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
 
-    @up_slash.subcommand(name="off", description="Dissoku通知を無効にします")
+    @up_slash.subcommand(name="off", description="Turn OFF notification of Dissoku", description_localizations={nextcord.Locale.ja: "Dissoku通知を無効にします"})
     async def up_slash_off(self, interaction: Interaction):
         if admin_check.admin_check(interaction.guild, interaction.user):
             await (await UpNotifyConfig(self.bot, self.bot.client, interaction, DEL, None))
         else:
             await interaction.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
 
-    @up_slash.subcommand(name="status", description="Dissoku通知の状態を確認します")
+    @up_slash.subcommand(name="status", description="Status of notification of Dissoku", description_localizations={nextcord.Locale.ja: "Dissoku通知の状態を確認します"})
     async def up_slash_status(self, interaction: Interaction):
         await (await UpNotifyConfig(self.bot, self.bot.client, interaction, STATUS, None))
 

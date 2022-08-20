@@ -27,7 +27,7 @@ class Siritori(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
 
-    @nextcord.slash_command(name="srtr", description="しりとり", guild_ids=GUILD_IDS)
+    @nextcord.slash_command(name="srtr", description="Siritori", guild_ids=GUILD_IDS)
     async def srtr(self):
         pass
 
@@ -101,27 +101,26 @@ class Siritori(commands.Cog):
             )
 
         await ctx.reply(embed=embed)
-        return
 
-    @srtr.subcommand(name="start", description="しりとり風のゲームで遊びます")
+
+    @srtr.subcommand(name="start", description="Start Siritori game", description_localizations={nextcord.Locale.ja: "しりとり風のゲームで遊びます"})
     async def srtr_start(self, interaction: nextcord.Interaction):
         await interaction.response.send_message(embed=(await self.srtr_control(True, interaction.guild, interaction.channel)))
-        return
 
-    @srtr.subcommand(name="stop", description="チャンネルのしりとりゲームを終了します")
+
+    @srtr.subcommand(name="stop", description="Stop Siritori game", description_localizations={nextcord.Locale.ja: "しりとり風のゲームを終了します"})
     async def srtr_stop(self, interaction: nextcord.Interaction):
         await interaction.response.send_message(embed=(await self.srtr_control(False, interaction.guild, interaction.channel)))
-        return
+
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
-        if isinstance(message.channel, nextcord.DMChannel):
-            return
-        await database.default_pull(self.bot.client, srtr_data)
-        if message.guild.id in srtr_data.value:
-            if message.channel.id in srtr_data.value[message.guild.id]:
-                await srtr.on_srtr(message, self.bot.client)
-                return
+        if not isinstance(message.channel, nextcord.DMChannel):
+            await database.default_pull(self.bot.client, srtr_data)
+            if message.guild.id in srtr_data.value:
+                if message.channel.id in srtr_data.value[message.guild.id]:
+                    await srtr.on_srtr(message, self.bot.client)
+
 
 
 def setup(bot, **kwargs):

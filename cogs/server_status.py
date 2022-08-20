@@ -479,7 +479,7 @@ class server_status(commands.Cog):
     def cog_unload(self):
         self.check_status_pin_loop.stop()
 
-    @nextcord.message_command(name="AutoSSのスタート", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.message_command(name="Start AutoSS", name_localizations={nextcord.Locale.ja: "AutoSSのスタート"}, guild_ids=n_fc.GUILD_IDS)
     async def start_auto_ss(self, interaction: Interaction, message: nextcord.Message):
         await interaction.response.defer(ephemeral=True)
         try:
@@ -518,23 +518,41 @@ Steam非公式サーバーのステータスを表示します
     async def ss_slash(self, interaction: Interaction):
         pass
 
-    @ss_slash.subcommand(name="add", description="Steam非公式サーバーを追加します")
+    @ss_slash.subcommand(name="add", description="Add Steam Dedicated Server", description_localizations={nextcord.Locale.ja: "Steam非公式サーバーを追加します"})
     async def add_slash(
         self,
         interaction: Interaction,
         ServerName: str = SlashOption(
             name="name",
-            description="オフライン時に表示されるサーバーの名前",
+            name_localizations={
+                nextcord.Locale.ja: "サーバー名"
+            },
+            description="Name of server (if server is offline, it shows.)",
+            description_localizations={
+                nextcord.Locale.ja: "オフライン時に表示されるサーバーの名前"
+            },
             required=True
         ),
         ServerAddress: str = SlashOption(
             name="address",
-            description="サーバーのIPアドレスまたはドメイン名",
+            name_localizations={
+                nextcord.Locale.ja: "サーバーアドレス"
+            },
+            description="Address of server",
+            description_localizations={
+                nextcord.Locale.ja: "サーバーのIPアドレスまたはドメイン名"
+            },
             required=True
         ),
         ServerPort: int = SlashOption(
             name="port",
-            description="サーバーのポート番号",
+            name_localizations={
+                nextcord.Locale.ja: "サーバーポート"
+            },
+            description="Port of server",
+            description_localizations={
+                nextcord.Locale.ja: "サーバーのポート番号"
+            },
             required=True
         )
     ):
@@ -561,13 +579,19 @@ Steam非公式サーバーのステータスを表示します
             await interaction.followup.send(f"サーバー追加時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
-    @ss_slash.subcommand(name="del", description="Steam非公式サーバーを削除します")
+    @ss_slash.subcommand(name="del", description="Delete Steam Dedicated Server", description_localizations={nextcord.Locale.ja: "Steam非公式サーバーを削除します"})
     async def del_slash(
         self,
         interaction: Interaction,
         ServerID: int = SlashOption(
             name="server_id",
-            description="削除するサーバーのID",
+            name_localizations={
+                nextcord.Locale.ja: "サーバーid"
+            },
+            description="Server ID of want to delete",
+            description_localizations={
+                nextcord.Locale.ja: "削除するサーバーのID"
+            },
             required=True
         )
     ):
@@ -599,7 +623,7 @@ Steam非公式サーバーのステータスを表示します
             await interaction.followup.send(f"サーバー削除時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
-    @ss_slash.subcommand(name="list", description="Steam非公式サーバーの一覧を表示します")
+    @ss_slash.subcommand(name="list", description="Show list of Steam Dedicated Server", description_localizations={nextcord.Locale.ja: "Steam非公式サーバーの一覧を表示します"})
     async def list_slash(self, interaction: Interaction):
         await interaction.response.defer(ephemeral=True)
         try:
@@ -627,18 +651,30 @@ Steam非公式サーバーのステータスを表示します
             await interaction.followup.send(f"サーバー一覧表示時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
-    @ss_slash.subcommand(name="sort", description="Steam非公式サーバーの一覧をソートします")
+    @ss_slash.subcommand(name="sort", description="Replace servers", description_localizations={nextcord.Locale.ja: "Steam非公式サーバーの一覧を入れ替えます"})
     async def sort_slash(
         self,
         interaction: Interaction,
         SortSource: int = SlashOption(
             name="source",
-            description="置き換え元のサーバーID",
+            name_localizations={
+                nextcord.Locale.ja: "置き替え元のサーバーid"
+            },
+            description="Source server ID",
+            description_localizations={
+                nextcord.Locale.ja: "置き換え元のサーバーID"
+            },
             required=True
         ),
         SortDestination: int = SlashOption(
             name="destination",
-            description="置き換え先のサーバーID",
+            name_localizations={
+                nextcord.Locale.ja: "置き替え先のサーバーid"
+            },
+            description="Destination server ID",
+            description_localizations={
+                nextcord.Locale.ja: "置き換え先のサーバーID"
+            },
             required=True
         )
     ):
@@ -674,28 +710,52 @@ Steam非公式サーバーのステータスを表示します
             await interaction.followup.send(f"ソート時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
-    @ss_slash.subcommand(name="edit", description="Steam非公式サーバーの一覧を編集します")
+    @ss_slash.subcommand(name="edit", description="Edit Steam Dedicated Server Setting", description_localizations={nextcord.Locale.ja: "Steam非公式サーバーの設定を編集します"})
     async def edit_slash(
         self,
         interaction: Interaction,
         EditSource: int = SlashOption(
             name="server_id",
-            description="編集するサーバーID",
+            name_localizations={
+                nextcord.Locale.ja: "編集するサーバーid"
+            },
+            description="Server ID of want to edit",
+            description_localizations={
+                nextcord.Locale.ja: "編集するサーバーID"
+            },
             required=True
         ),
         ServerName: str = SlashOption(
             name="name",
-            description="サーバー名",
+            name_localizations={
+                nextcord.Locale.ja: "サーバー名"
+            },
+            description="Name of server (if server is offline, it shows.)",
+            description_localizations={
+                nextcord.Locale.ja: "オフライン時に表示されるサーバーの名前"
+            },
             required=True
         ),
         ServerAddress: str = SlashOption(
             name="address",
-            description="サーバーアドレス",
+            name_localizations={
+                nextcord.Locale.ja: "サーバーアドレス"
+            },
+            description="Address of server",
+            description_localizations={
+                nextcord.Locale.ja: "サーバーのIPアドレスまたはドメイン名"
+            },
             required=True
         ),
         ServerPort: int = SlashOption(
             name="port",
-            description="サーバーポート",
+            name_localizations={
+                nextcord.Locale.ja: "サーバーポート"
+            },
+            description="Port of server",
+            description_localizations={
+                nextcord.Locale.ja: "サーバーのポート番号"
+            },
             required=True
         )
     ):
@@ -732,7 +792,7 @@ Steam非公式サーバーのステータスを表示します
     async def auto_slash(self, interaction: Interaction):
         pass
 
-    @auto_slash.subcommand(name="on", description="鯖のステータスをリアルタイム表示します")
+    @auto_slash.subcommand(name="on", description="Enable to display Steam Dedicated Server's Realtime Status", description_localizations={nextcord.Locale.ja: "鯖のステータスをリアルタイム表示します"})
     async def auto_on_slash(
         self,
         interaction: Interaction
@@ -753,7 +813,7 @@ Steam非公式サーバーのステータスを表示します
         await database.default_push(self.bot.client, autoss_list)
         await interaction.followup.send("AutoSSを開始しました。")
 
-    @auto_slash.subcommand(name="off", description="鯖のリアルタイムステータス表示をオフにします")
+    @auto_slash.subcommand(name="off", description="Disable to display Steam Dedicated Server's Realtime Status", description_localizations={nextcord.Locale.ja: "鯖のステータスをリアルタイム表示を無効にします。"})
     async def auto_off_slash(
         self,
         interaction: Interaction
@@ -772,7 +832,7 @@ Steam非公式サーバーのステータスを表示します
             await interaction.followup.send(embed=eh.eh(self.bot.client, err), ephemeral=True)
             return
 
-    @ss_slash.subcommand(name="status", description="Steam非公式サーバーのステータスを表示します")
+    @ss_slash.subcommand(name="status", description="Display Steam Dedicated Server's Status", description_localizations={nextcord.Locale.ja: "Steam非公式サーバーのステータスを表示します"})
     async def status_slash(
         self,
         interaction: Interaction,
@@ -821,16 +881,16 @@ Steam非公式サーバーのステータスを表示します
             await interaction.followup.send(f"ステータス取得時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
-    @ss_slash.subcommand(name="reload", description="AutoSSを更新します。")
+
+    @ss_slash.subcommand(name="reload", description="Reload AutoSS Status", description_localizations={nextcord.Locale.ja: "AutoSSを更新します。"})
     async def reload(self, interaction: Interaction):
         if interaction.guild.id not in autoss_list.value:
             await interaction.response.send_message(f"{interaction.guild.name}では、AutoSSは実行されていません。", ephemeral=True)
-            return
         else:
             message = await (await self.bot.fetch_channel(autoss_list.value[interaction.guild.id][0])).fetch_message(autoss_list.value[interaction.guild.id][1])
             asyncio.ensure_future(ss_force(self, message))
             await interaction.response.send_message("リロードしました。", ephemeral=True)
-            return
+
 
     @tasks.loop(minutes=5.0)
     async def check_status_pin_loop(self):

@@ -150,7 +150,7 @@ offにするには、`n!pin off`と送信してください。
             await ctx.reply("あなたには権限がありません。")
             return
 
-    @nextcord.message_command(name="下部ピン留めする", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.message_command(name="Set BottomPin", name_localizations={nextcord.Locale.ja: "下部ピン留めする"} ,guild_ids=n_fc.GUILD_IDS)
     async def pin_message_command(self, interaction: Interaction, message: nextcord.Message):
         if not admin_check.admin_check(interaction.guild, interaction.user):
             await interaction.response.send_message("あなたには管理者権限がありません。", ephemeral=True)
@@ -164,11 +164,11 @@ offにするには、`n!pin off`と送信してください。
         await database.default_push(self.bot.client, pin_message)
         await interaction.response.send_message(f"ピン留めを保存しました。", embed=nextcord.Embed(title="ピン留め", description=message.content), ephemeral=True)
 
-    @nextcord.slash_command(name="pin", description="メッセージ下部ピン留め機能", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="pin", description="BottomUp command", guild_ids=n_fc.GUILD_IDS)
     async def pin_slash(self, interaction: Interaction):
         pass
 
-    @pin_slash.subcommand(name="on", description="メッセージ下部ピン留め機能をONにする")
+    @pin_slash.subcommand(name="on", description="Turn ON the bottom pin message", description_localizations={nextcord.Locale.ja: "下部ピン留めをONにする"})
     async def on_slash(
         self,
         interaction: Interaction
@@ -179,7 +179,7 @@ offにするには、`n!pin off`と送信してください。
             await interaction.response.send_message("あなたには管理者権限がありません。", ephemeral=True)
             return
 
-    @pin_slash.subcommand(name="off", description="メッセージ下部ピン留め機能をOFFにする")
+    @pin_slash.subcommand(name="off", description="Turn OFF the bottom pin message", description_localizations={nextcord.Locale.ja: "下部ピン留めをOFFにする"})
     async def off_slash(
         self,
         interaction: Interaction,
