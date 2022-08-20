@@ -243,6 +243,8 @@ offにするには、`n!pin off`と送信してください。
                         logging.error(traceback.format_exc())
                         continue
                     messages = await CHANNEL.history(limit=10).flatten()
+                    if messages[0].content == pin_message.value[i][j] and messages[0].author.id == self.bot.user.id:
+                        continue
                     for message in messages:
                         if message.content == pin_message.value[i][j] and message.author.id == self.bot.user.id:
                             try:
