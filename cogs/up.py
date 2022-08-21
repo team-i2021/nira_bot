@@ -61,6 +61,7 @@ async def ErrorSend(interaction):
 class UpNotify(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
+        asyncio.ensure_future(database.default_pull(self.bot.client, Upper))
 
     @commands.command(name="up", aliases=["アップ", "あっぷ", "dissoku"], help="""\
 DissokuのUp通知を行います
