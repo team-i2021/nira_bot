@@ -200,6 +200,9 @@ class Rolepanel(commands.Cog):
 
     @nextcord.message_command(name="Edit Rolepanel", name_localizations={nextcord.Locale.ja: "ロールパネル編集"}, guild_ids=n_fc.GUILD_IDS)
     async def edit_rolepanel(self, interaction: Interaction, message: nextcord.Message):
+        if not admin_check(interaction.guild, interaction.user):
+            await interaction.response.send_message(embed=nextcord.Embed(title="エラー", description=f"管理者の方のみがこのコマンドを使用できます。", color=0xff0000), ephemeral=True)
+            return
         if message.author.id != self.bot.user.id:
             await interaction.response.send_message(embed=nextcord.Embed(title="エラー", description=f"{self.bot.user.mention}が送信したロールパネルにのみこのコマンドを使用できます。", color=0xff0000), ephemeral=True)
             return
@@ -260,6 +263,9 @@ class Rolepanel(commands.Cog):
         self,
         interaction: Interaction
     ):
+        if not admin_check(interaction.guild, interaction.user):
+            await interaction.response.send_message(embed=nextcord.Embed(title="エラー", description=f"管理者のみがこのコマンドを使用できます。", color=0xff0000), ephemeral=True)
+            return
         modal = RolePanelSlashInput(self.bot)
         await interaction.response.send_modal(modal=modal)
         return
