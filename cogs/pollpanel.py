@@ -317,6 +317,16 @@ class Pollpanel(commands.Cog):
                 ephemeral=True
             )
             return
+        if message.content.split(":")[1] != interaction.user.mention:
+            await interaction.response.send_message(
+                embed=nextcord.Embed(
+                    title="エラー",
+                    description="このロールパネルは本当にあなたが作成したものですか？\nもしあなたが作成したのにこのメッセージが表示される場合はお問い合わせください。",
+                    color=0xff0000
+                ),
+                ephemeral=True
+            )
+            return
         # await interaction.response.defer(ephemeral=True)
         options = {}
         for i in range(len(message.embeds[0].description.splitlines()[1:])):
