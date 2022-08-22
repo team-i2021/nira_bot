@@ -56,7 +56,7 @@ class mod(commands.Cog):
                     await message.author.remove_roles(*message.author.roles[1:], reason="にらBOTの荒らし対策機能")
                 role = message.guild.get_role(mod_list.value[message.guild.id]["role"])
                 await message.author.add_roles(role, reason="にらBOTの荒らし対策機能")
-                await message.channel.send(f"{message.author.mention}は、メッセージ数が規定オーバーのため、ミュート用ロールを付与しました。\n{(lambda x: 'なお、ミュート用ロール以外の全ロールを剥奪しました。' if x else '')(mod_list.value[message.guild.id]['remove_role'])}")
+                await message.channel.send(f"{message.author.mention}は、メッセージ数が規定オーバーのため、ミュート用ロールを付与しました。\n{'なお、ミュート用ロール以外の全ロールを剥奪しました。' if mod_list.value[message.guild.id]['remove_role'] else ''}")
                 return
             except Exception as err:
                 await message.channel.send(f"{message.author.name}をミュートしようとしましたがエラーが発生しました。\n```sh\n{err}```")
