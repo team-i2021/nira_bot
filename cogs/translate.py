@@ -216,7 +216,7 @@ class Translate(commands.Cog):
         self.google_tr = Translator()
 
     @nextcord.slash_command(name="translate", description="Translate.", description_localizations={nextcord.Locale.ja: "翻訳します"}, guild_ids=n_fc.GUILD_IDS)
-    async def slash_genshin(
+    async def slash_translate(
         self,
         interaction: Interaction,
         target_lang: str = SlashOption(
