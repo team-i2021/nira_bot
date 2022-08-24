@@ -143,6 +143,7 @@ offにするには、`n!pin off`と送信してください。
                     await ctx.reply(self.checkPin.get_task())
                 elif args[2] == "queue":
                     await ctx.reply(embed=nextcord.Embed(title="Queue", description=str(self._queue)))
+                    logging.info(self._queue)
             else:
                 await ctx.reply(f"・エラー\n使い方が違います。\n`{self.bot.command_prefix}pin on [メッセージ内容]`または`{self.bot.command_prefix}pin off`")
                 return
@@ -232,7 +233,7 @@ offにするには、`n!pin off`と送信してください。
                         continue
                     continue
                 if j not in self._queue:
-                    self._queue[j] = CHANNEL.last_message
+                    self._queue[j] = await CHANNEL.fetch_message(CHANNEL.last_message_id)
 
                 if self._queue is not None:
                     try:
