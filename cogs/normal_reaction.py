@@ -54,7 +54,7 @@ nira_hantei = r'にら|ニラ|nira|garlic|韮|Chinese chives|Allium tuberosum|�
 reaction_list = [
     r"(?:(。∀ ﾟ))",
     r"(´・ω・｀)",
-    r'草',
+    r'^(?=.*草)(?!.*元素).*$',
     r'https://www.nicovideo.jp',
     r'https://www.youtube.com',
     r'https://twitter.com',
