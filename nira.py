@@ -107,6 +107,16 @@ COMMANDS: {[i.name for i in list(bot.commands)]}
 """)
 
 
+# 暫定: 元のエラーハンドラが反応して標準エラーにスタックトレースを出力してしまうので
+#       bot.event で上書きして強制的に消えてもらう (nextcord が対応したら削除する)
+async def on_application_command_error(interaction, exception):
+    pass
+
+
+# 非デバッグモードでのみイベント登録する
+if not bot.debug:
+    bot.event(on_application_command_error)
+
 # load extensions
 cogs_dir = HOME + "/cogs"
 cogs_num = len(os.listdir(cogs_dir))
