@@ -46,12 +46,12 @@ class error(commands.Cog):
                 close_command = get_close_matches(word=error.command_name, possibilities=command_list, n=1, cutoff=0)[0]
                 close_description = [i.help for i in list(self.bot.commands) if i.name == close_command][0]
                 close_oneline = ("(ヘルプがないコマンド)" if close_description is None else close_description.splitlines()[0])
-                suggestion = f"\n\nもしかして：\n`{self.bot.command_prefix}{close_command}`: {close_oneline}"
+                suggestion = f"\n\nもしかして：\n`{ctx.prefix}{close_command}`: {close_oneline}"
             except Exception:
                 logging.exception("コマンド検索中のエラー")
 
             code = Codes.NOT_FOUND
-            description = f"`{self.bot.command_prefix}{error.command_name}`というコマンドはありません。\n`{self.bot.command_prefix}help`でコマンドを確認してください。{suggestion}"
+            description = f"`{ctx.prefix}{error.command_name}`というコマンドはありません。\n`{ctx.prefix}help`でコマンドを確認してください。{suggestion}"
         elif isinstance(error, commands.CommandOnCooldown):
             code = Codes.TOO_MANY_REQUESTS
             description = f"このコマンドは現在クールタイム中です。\n残り：**{error.retry_after:.2f}**秒"
@@ -161,9 +161,9 @@ class error(commands.Cog):
         if add_trace:
             trace = "".join(traceback.TracebackException.from_exception(error).format())
             description += f"\n```py\n{trace.replace(self.bot.client.url, '[URL]')}```"
-        if add_help:
-            name = ctx.message.content.split(" ", 1)[0].lstrip(self.bot.command_prefix)
-            description += f"\n`{self.bot.command_prefix}help {name}`でヘルプを表示できます。"
+        # Context.command は Optional[Command]
+        if add_help and (command := ctx.command):
+            description += f"\n`{ctx.prefix}help {command.name}`でヘルプを表示できます。"
         if add_support:
             description += "\n[サポートサーバー](https://discord.gg/awfFpCYTcP)"
 
@@ -233,7 +233,7 @@ class error(commands.Cog):
         if add_trace:
             trace = "".join(traceback.TracebackException.from_exception(error).format())
             description += f"\n```py\n{trace.replace(self.bot.client.url, '[URL]')}```"
-        # interaction.application_command は Optional[ApplicationCommand]
+        # Interaction.application_command は Optional[ApplicationCommand]
         if add_help and (command := interaction.application_command):
             description += f"\n`/help {command.name}`でヘルプを表示できます。"
         if add_support:
