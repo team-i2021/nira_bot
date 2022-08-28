@@ -20,7 +20,6 @@ from util.nira import NIRA
 
 GenshinClients: dict[int, genshin.Client] = {}
 
-# TODO: 出来ることなら全部日本語化したいけどどうすればいいんだろ（いやまぁ英語でもよくね？（まって、Clientかどっかのインスタンスに`lang`みたいなキーワード引数があった気がする.......））
 COLOR_PAD = {
     "Pyro":0xef7a35, #火
     "Hydro":0x4bc3f1, #水
@@ -80,7 +79,7 @@ class TokenSend(nextcord.ui.Modal):
         if len(code := self.connect_code.value.strip().split("/", 1)) != 2:
             await interaction.send(embed=nextcord.Embed(title="エラー", description=f"入力された接続コードは無効です。\nこの形式は接続コードではありません。", color=0xff0000), ephemeral=True)
             return
-        GenshinClients[interaction.user.id] = genshin.Client({"ltuid": code[0], "ltoken": code[1]}, game=genshin.Game.GENSHIN)
+        GenshinClients[interaction.user.id] = genshin.Client({"ltuid": code[0], "ltoken": code[1]}, game=genshin.Game.GENSHIN, lang="ja-jp")
         try:
             UID = await get_uid(GenshinClients[interaction.user.id])
         except genshin.errors.InvalidCookies as err:
@@ -170,7 +169,7 @@ async def GetClient(client: HTTP_db.Client):
     global GenshinClients
     await database.default_pull(client, ClientData)
     for key, value in ClientData.value.items():
-        GenshinClients[key] = genshin.Client({"ltuid": value[0], "ltoken": value[1]}, game=genshin.Game.GENSHIN)
+        GenshinClients[key] = genshin.Client({"ltuid": value[0], "ltoken": value[1]}, game=genshin.Game.GENSHIN, lang="ja-jp")
 
 
 class Genshin(commands.Cog):
@@ -178,7 +177,7 @@ class Genshin(commands.Cog):
         self.bot = bot
         SETTING = json.load(open(f"{sys.path[0]}/setting.json", "r"))
         cookie = {"ltuid": SETTING["ltuid"], "ltoken": SETTING["ltoken"]}
-        self.base_client = genshin.Client(cookie, game=genshin.Game.GENSHIN) # TODO: ベースクライアントを設定しない/設定されていなかった場合...
+        self.base_client = genshin.Client(cookie, game=genshin.Game.GENSHIN, lang="ja-jp") # TODO: ベースクライアントを設定しない/設定されていなかった場合...
         asyncio.ensure_future(GetClient(self.bot.client))
 
 
