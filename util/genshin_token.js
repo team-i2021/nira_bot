@@ -10,11 +10,11 @@ const main = () => {
     }
 
     const cookies = document.cookie.split("; ");
-    var ltuid = "";
-    var ltoken = "";
+    let ltuid = "";
+    let ltoken = "";
 
     cookies.forEach(function(cookie){
-        data = cookie.split("=");
+        const data = cookie.split("=");
         if (data[0] == "ltuid"){
             ltuid = data[1];
         } else if (data[0] == "ltoken"){
@@ -32,30 +32,28 @@ const main = () => {
 
     document.write(`
 <html>
-<head><title>にらBOT</title></head>
-<body>
-<h1>下をコピー</h1>
-<textarea id="target" style="width: 80%; height: 30%" readonly>
-` + ltuid + `/` + ltoken + `
-</textarea><br>
-<button onclick="clipCopy()">コピー</button>
-<h1>絶対にこの画面のスクリーンショットなどを他の人に見せないで下さい。</h1>
-<div>HoyoLabに戻るにはページを更新するか<a href="https://www.hoyolab.com/">こちらからHoYoLABトップページに戻る</a></div>
-<script>
-const clipCopy = () => {
-    var target = document.getElementById("target");
-    target.select();
-    document.execCommand("Copy");
-    return;
-}
-</script>
-</body>
+    <head><title>にらBOT</title></head>
+    <body>
+        <h1>下をコピー</h1>
+        <textarea id="target" style="width: 80%; height: 30%" readonly>` + ltuid + `/` + ltoken + `</textarea><br>
+        <button onclick="clipCopy()">コピー</button>
+        <h1>絶対にこの画面のスクリーンショットなどを他の人に見せないで下さい。</h1>
+        <div>HoyoLabに戻るにはページを更新するか<a href="https://www.hoyolab.com/">こちらからHoYoLABトップページに戻る</a></div>
+        <script>
+            const clipCopy = () => {
+                var target = document.getElementById("target");
+                target.select();
+                document.execCommand("Copy");
+                return;
+            }
+        </script>
+    </body>
 </html>`);
 }
 
 main();
 
-/* iOS Share Script用終了処理 */
+/* iOS Share Extension用 終了処理 */
 try{
     completion();
 } catch {
