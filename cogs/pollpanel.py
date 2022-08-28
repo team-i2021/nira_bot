@@ -273,8 +273,8 @@ class PollPanelEndConfirm(nextcord.ui.Button):
 
     async def callback(self, interaction: Interaction):
         await self.interaction.message.edit(content="投票終了！", view=None)
-        await interaction.response.send_message("投票は締め切られました。\n削除確認メッセージは削除して構いません。", ephemeral=True)
-
+        await interaction.response.send_message("投票は締め切られました。", ephemeral=True)
+        self.stop()
 
 class PollPanelEnd(nextcord.ui.Button):
     def __init__(self):
