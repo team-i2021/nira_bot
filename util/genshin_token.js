@@ -1,5 +1,5 @@
 const main = () => {
-    const domain = (new URL(location.href)).hostname.replace("www.", "").replace("act.", "");
+    const domain = (new URL(location.href)).hostname.replace("www.", "").replace("act.", "").replace("m.", "");
 
     if (domain != "hoyolab.com") {
         if(confirm("HoYoLABのページにアクセスし直してからこのスクリプトを実行してください。\nHoyoLABにアクセスしますか？\nスクリプトは実行し直す必要があります。")){
