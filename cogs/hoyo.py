@@ -20,6 +20,16 @@ from util.nira import NIRA
 
 GenshinClients: dict[int, genshin.Client] = {}
 
+MAP_ELEMENT = {
+    1: "Anemo",
+    2: "Geo",
+    3: "Cryo",
+    4: "Electro",
+    5: None,
+    6: None,
+    7: None,
+    8: "Dendro",
+}
 COLOR_PAD = {
     "Pyro":0xef7a35, #火
     "Hydro":0x4bc3f1, #水
@@ -38,6 +48,7 @@ ARTIFACT_POS = {
 } # 場所に対応した聖遺物表
 STAT, CHARA = range(2) # マジックナンバー対策
 AMERICA, EUROPE, ASIA, TAIWAN = "os_usa", "os_euro", "os_asia", "os_cht" # America/Europe/Asia/TW,HK,MO
+REPU = "Reputation"
 
 class ClientData:
     name = "genshin_client"
@@ -102,36 +113,60 @@ async def get_uid(client: genshin.Client) -> int:
 
 def getEmbed(content_type: int, uid: int, user: genshin.models.FullGenshinUserStats) -> list[nextcord.Embed]:
     if content_type == STAT:
-        embed = nextcord.Embed(
+        embeds = []
+        main_embed = nextcord.Embed(
             title=f"戦績",
             description=f"UID:`{uid}`",
             color=0x00ff00
         )
-        embed.add_field(
+        main_embed.add_field(
             name="活動日数",
             value=f"`{user.stats.days_active}`日"
         )
-        embed.add_field(
+        main_embed.add_field(
             name="アチーブメント",
             value=f"`{user.stats.achievements}`個"
         )
-        embed.add_field(
+        main_embed.add_field(
             name="総キャラクター数",
             value=f"`{user.stats.characters}`人"
         )
-        embed.add_field(
+        main_embed.add_field(
             name="解放済みワープポイント",
-            value=f"`{user.stats.unlocked_waypoints}`"
+            value=f"`{user.stats.unlocked_waypoints}`個"
         )
-        embed.add_field(
+        main_embed.add_field(
             name="深境螺旋",
-            value=user.abyss.current.max_floor
+            value=f"`{user.abyss.current.max_floor}`"
         )
-        embed.add_field(
-            name="宝箱(普通,精巧,貴重,豪華,珍奇)",
-            value=f"`{(user.stats.common_chests, user.stats.exquisite_chests, user.stats.precious_chests, user.stats.luxurious_chests, user.stats.remarkable_chests)}`"
+        main_embed.add_field(
+            name="宝箱",
+            value="```\n" + "\n".join([
+                f"普通:{user.stats.common_chests}個",
+                f"精巧:{user.stats.exquisite_chests}個",
+                f"貴重:{user.stats.precious_chests}個",
+                f"豪華:{user.stats.luxurious_chests}個",
+                f"珍奇:{user.stats.remarkable_chests}個"
+            ]) + "```"
         )
-        return [embed]
+        embeds.append(main_embed)
+        for exploration in user.explorations:
+            embed = nextcord.Embed(
+                title=exploration.name,
+                description=f"""\
+探索レベル:{(explore := exploration.raw_explored / 10 if exploration.raw_explored != 0 else 0.0)}%
+`[{'#' * math.floor(explore/10)}{'_' * (10 - math.floor(explore/10))}]`
+
+{f'評判レベル:{[i for i in exploration.offerings if i.name == REPU][0].level}' if exploration.type == REPU else ''}
+{(f"{offer[0].name}:Lv{offer[0].level}" if len(offer := [i for i in exploration.offerings if i.name != REPU]) > 0 else '')}
+""",
+                color=COLOR_PAD[MAP_ELEMENT[exploration.id]]
+            )
+            # embed.set_image(exploration.background_image)
+            embed.set_thumbnail(exploration.inner_icon)
+            embed.set_author(name=f"MAPはこちら ({exploration.name})", url=exploration.map_url)
+            embeds.append(embed)
+        return embeds
     elif content_type == CHARA:
         embeds = []
         main_embed = nextcord.Embed(
@@ -236,20 +271,22 @@ class Genshin(commands.Cog):
                 required=False,
             )
         ):
-        await interaction.response.defer(ephemeral=True)
         if uid is None:
             if interaction.user.id not in GenshinClients:
                 await interaction.send(embed=nextcord.Embed(title="エラー", description="ユーザー情報の取得で、UIDを指定しない場合は先に原神アカウントをBOTと接続する必要があります。"), ephemeral=True)
             else:
+                await interaction.response.defer(ephemeral=False)
                 UID = await get_uid(GenshinClients[interaction.user.id])
                 user = await GenshinClients[interaction.user.id].get_full_genshin_user(UID)
                 await interaction.send(embeds=getEmbed(STAT, UID, user), ephemeral=False)
         else:
             try:
                 if interaction.user.id not in GenshinClients:
+                    await interaction.response.defer(ephemeral=False)
                     user = await self.base_client.get_full_genshin_user(uid)
                     await interaction.send(embeds=getEmbed(STAT, uid, user), ephemeral=False)
                 else:
+                    await interaction.response.defer(ephemeral=False)
                     user = await GenshinClients[interaction.user.id].get_full_genshin_user(uid)
                     await interaction.send(embeds=getEmbed(STAT, uid, user), ephemeral=False)
             except genshin.errors.AccountNotFound:
