@@ -146,7 +146,7 @@ def getEmbed(content_type: int, uid: int, user: genshin.models.FullGenshinUserSt
         embeds.append(main_embed)
         for chara in user.characters:
             embed = nextcord.Embed(
-                title=f"{'★' * chara.rarity} {chara.name}",
+                title=f"{'★' * chara.rarity} {chara.name} ({chara.constellation})",
                 description=f"レベル: {chara.level}\n好感度: {chara.friendship}",
                 color=COLOR_PAD[chara.element]
             )
