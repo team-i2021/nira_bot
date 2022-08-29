@@ -334,9 +334,9 @@ class Genshin(commands.Cog):
         return
 
 
-def setup(bot, **kwargs):
-    # bot.add_cog(Genshin(bot, **kwargs))
-    return
+def setup(bot: NIRA, **kwargs):
+    if bot.debug:
+        bot.add_cog(Genshin(bot, **kwargs))
 
 # await GenshinClients[interaction.user.id].genshin_accounts()
 # [GenshinAccount(game_biz=????(str), uid=UID, level=冒険者ランク, nickname=ユーザー名, server="os_asia", server_name="Asia Server")]
