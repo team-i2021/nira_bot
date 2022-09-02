@@ -57,6 +57,45 @@ class ClientData:
     default = {}
     value_type = database.GUILD_VALUE
 
+
+class PageLeft(nextcord.ui.Button):
+    def __init__(self, embeds, page_id):
+        super().__init__(label="<-", style=nextcord.ButtonStyle.green)
+        self.embeds = embeds
+        self._page = page_id
+
+    async def callback(self, interaction: Interaction):
+        if self._page == 0:
+            return
+        message = interaction.message
+        self._page -= 1
+        await message.edit(embed=self.embeds[self._page], view=Pagination(self.embeds, self._page))
+
+
+class PageRight(nextcord.ui.Button):
+    def __init__(self, embeds, page_id):
+        super().__init__(label="->", style=nextcord.ButtonStyle.green)
+        self.embeds = embeds
+        self._page = page_id
+
+    async def callback(self, interaction: Interaction):
+        if (self._page + 1) == len(self.embeds):
+            return
+        message = interaction.message
+        self._page += 1
+        await message.edit(embed=self.embeds[self._page], view=Pagination(self.embeds, self._page))
+
+
+class Pagination(nextcord.ui.View):
+    def __init__(self, embeds, page_id: int = 0):
+        super().__init__(timeout=None)
+        self.embeds = embeds
+        self._page = page_id
+        self.add_item(PageLeft(self.embeds, self._page))
+        self.add_item(nextcord.ui.Button(label=f"{self._page+1}/{len(embeds)}", disabled=True, style=nextcord.ButtonStyle.gray))
+        self.add_item(PageRight(self.embeds, self._page))
+
+
 class ModalButton(nextcord.ui.View):
     def __init__(self, bot: commands.Bot):
         super().__init__(timeout=None)
@@ -279,17 +318,20 @@ class Genshin(commands.Cog):
                 await interaction.response.defer(ephemeral=False)
                 UID = await get_uid(GenshinClients[interaction.user.id])
                 user = await GenshinClients[interaction.user.id].get_full_genshin_user(UID)
-                await interaction.send(embeds=getEmbed(STAT, UID, user), ephemeral=False)
+                embeds = getEmbed(STAT, UID, user)
+                await interaction.send(embed=embeds[0], view=Pagination(embeds), ephemeral=False)
         else:
             try:
                 if interaction.user.id not in GenshinClients:
                     await interaction.response.defer(ephemeral=False)
                     user = await self.base_client.get_full_genshin_user(uid)
-                    await interaction.send(embeds=getEmbed(STAT, uid, user), ephemeral=False)
+                    embeds = getEmbed(STAT, uid, user)
+                    await interaction.send(embed=embeds[0], view=Pagination(embeds), ephemeral=False)
                 else:
                     await interaction.response.defer(ephemeral=False)
                     user = await GenshinClients[interaction.user.id].get_full_genshin_user(uid)
-                    await interaction.send(embeds=getEmbed(STAT, uid, user), ephemeral=False)
+                    embeds = getEmbed(STAT, uid, user)
+                    await interaction.send(embed=embeds[0], view=Pagination(embeds), ephemeral=False)
             except genshin.errors.AccountNotFound:
                 await interaction.send(embed=nextcord.Embed(title="エラー", description=f"UID:`{uid}`の原神アカウントが見つかりませんでした。", color=0xff0000), ephemeral=True)
             except genshin.errors.DataNotPublic:
@@ -313,33 +355,24 @@ class Genshin(commands.Cog):
                 await interaction.response.defer()
                 UID = await get_uid(GenshinClients[interaction.user.id])
                 user = await GenshinClients[interaction.user.id].get_full_genshin_user(UID)
-                if len(embeds := getEmbed(CHARA, UID, user)) > 10:
-                    for i in range(math.ceil(len(embeds)/10)):
-                        await interaction.send(embeds=embeds[i*10:(i+1)*10], ephemeral=False)
-                else:
-                    await interaction.send(embeds=embeds, ephemeral=True)
+                embeds = getEmbed(CHARA, UID, user)
+                await interaction.send(embed=embeds[0], view=Pagination(embeds), ephemeral=True)
         else:
             try:
                 if interaction.user.id not in GenshinClients:
                     await interaction.response.defer()
                     user = await self.base_client.get_full_genshin_user(uid)
-                    if len(embeds := getEmbed(CHARA, uid, user)) > 10:
-                        for i in range(math.ceil(len(embeds)/10)):
-                            await interaction.send(embeds=embeds[i*10:(i+1)*10], ephemeral=False)
-                    else:
-                        await interaction.send(embeds=embeds, ephemeral=True)
+                    embeds = getEmbed(CHARA, uid, user)
+                    await interaction.send(embed=embeds[0], view=Pagination(embeds), ephemeral=True)
                 else:
                     await interaction.response.defer()
                     user = await GenshinClients[interaction.user.id].get_full_genshin_user(uid)
-                    if len(embeds := getEmbed(CHARA, uid, user)) > 10:
-                        for i in range(math.ceil(len(embeds)/10)):
-                            await interaction.send(embeds=embeds[i*10:(i+1)*10], ephemeral=False)
-                    else:
-                        await interaction.send(embeds=embeds, ephemeral=True)
+                    embeds = getEmbed(CHARA, uid, user)
+                    await interaction.send(embed=embeds[0], view=Pagination(embeds), ephemeral=True)
             except genshin.errors.AccountNotFound:
                 await interaction.send(embed=nextcord.Embed(title="エラー", description=f"UID:`{uid}`の原神アカウントが見つかりませんでした。", color=0xff0000))
             except genshin.errors.DataNotPublic:
-                # TODO: 公開設定にしてるキャラクターの情報は見れるはずだからその処理を...
+                # TODO: 公開設定にしてるキャラクターの情報は見れるはずだからその処理を...(fullじゃなくてなんかぱーしゃるとかそっちのほう...)
                 await interaction.send(embed=nextcord.Embed(title="エラー", description=f"UID:`{uid}`の原神アカウントはデータがパブリックになっていません。", color=0xff0000))
 
 
