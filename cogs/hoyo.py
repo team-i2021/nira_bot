@@ -38,15 +38,8 @@ COLOR_PAD = {
     "Cryo": 0xa0d7e4, # 氷
     "Dendro": 0xa6c938, # 草
     "Anemo": 0x75c3a9, # 風
-    "Geo": 0xfab72e # 岩
+    "Geo": 0xfab72e, # 岩
 } # 元素に対応した色表
-ARTIFACT_POS = {
-    1: "生の花",
-    2: "死の羽",
-    3: "時の砂",
-    4: "空の杯",
-    5: "理の冠"
-} # 場所に対応した聖遺物表
 STAT, CHARA = range(2) # マジックナンバー対策
 AMERICA, EUROPE, ASIA, TAIWAN = "os_usa", "os_euro", "os_asia", "os_cht" # America/Europe/Asia/TW,HK,MO
 REPU = "Reputation"
