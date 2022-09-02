@@ -44,7 +44,7 @@ class tts_channel:
     value_type = database.GUILD_VALUE
 
 class VoiceSelect(nextcord.ui.Select):
-    def __init__(self, client):
+    def __init__(self, client, author: nextcord.Member | nextcord.User):
 
         options = [
             nextcord.SelectOption(label='四国めたん/あまあま', value=0),
@@ -80,8 +80,12 @@ class VoiceSelect(nextcord.ui.Select):
         )
 
         self.client = client
+        self.author = author
 
     async def callback(self, interaction: nextcord.Interaction):
+        if self.author.id != interaction.user.id:
+            await interaction.send("あなたが送信した声選択メニューではありません。\n`/tts voice`と送信して、声選択メニューを表示してください。", ephemeral=True)
+            return
         speaker_author.value[interaction.user.id] = self.values[0]
         try:
             await interaction.message.channel.send(f'{interaction.user.mention}、設定しました。')
@@ -146,7 +150,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
     @tts_slash.subcommand(name="voice", description="Change TTS Voice", description_localizations={nextcord.Locale.ja: "読み上げの声の種類を変更します"})
     async def voice_slash(self, interaction: Interaction):
         view = nextcord.ui.View(timeout=None)
-        view.add_item(VoiceSelect(self.bot.client))
+        view.add_item(VoiceSelect(self.bot.client, interaction.user))
         await interaction.response.send_message(f"下のプルダウンから声を選択してください。\n選択可能声種類: `v{self.VOICEVOX_VERSION}`基準", view=view, ephemeral=True)
 
 
@@ -174,23 +178,23 @@ VCに乱入して、代わりに読み上げてくれる機能。
 
 TTSは、(暫定的だけど)[WEB版VOICEVOX](https://voicevox.su-shiki.com/)のAPIを使用させていただいております。
 API制限などが来た場合はご了承ください。許せ。""")
-    async def tts(self, ctx: commands.Context):
+    async def tts(self, ctx: commands.Context, action: str = None):
         if not Effective:
             await ctx.reply(embed=nextcord.Embed(title="エラー", description="管理者にお伝えください。\n`VOICEVOX API Key doesn't exist.`\nVOICEVOX WebAPIのキーが存在しません。\n`setting.json`の`voicevox`欄にAPIキーを入力してから、`cogs/tts.py`をリロードしてください。", color=0xff0000))
             return
-        args = ctx.message.content.split(" ", 2)
-        if len(args) != 2:
-            await ctx.reply(f"・読み上げ機能\nエラー：書き方が間違っています。\n\n{self.bot.command_prefix}tts join`: 参加\n`{self.bot.command_prefix}tts leave`: 退出")
+
+        if action is None:
+            await ctx.reply(f"・読み上げ機能 `VOICEVOX: v{self.VOICEVOX_VERSION}`\nエラー：書き方が間違っています。\n\n`{ctx.prefix}tts join`: 参加\n`{ctx.prefix}tts leave`: 退出\n`{ctx.prefix}tts voice`: 声選択")
             return
 
-        if args[1] == "join":
+        if action == "join":
             try:
                 if ctx.author.voice is None:
                     await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description="先にボイスチャンネルに接続してください。", color=0xff0000))
                     return
                 else:
                     if ctx.guild.voice_client is not None:
-                        await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description=f"既にVCに入っています。\n音楽再生から切り替える場合は、`{self.bot.command_prefix}leave`->`{self.bot.command_prefix}tts join`の順に入力してください。", color=0xff0000))
+                        await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description=f"既にVCに入っています。\n音楽再生から読み上げに切り替える場合は、`{ctx.prefix}leave`->`{ctx.prefix}tts join`の順に入力してください。", color=0xff0000))
                         return
                     await ctx.author.voice.channel.connect()
                     tts_channel.value[ctx.guild.id] = ctx.channel.id
@@ -214,7 +218,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                 logging.error(traceback.format_exc())
                 return
 
-        elif args[1] == "leave":
+        elif action == "leave":
             try:
                 if ctx.author.voice is None:
                     await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description="先にボイスチャンネルに接続してください。", color=0xff0000))
@@ -235,7 +239,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                     f"[TTS切断時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
                 return
 
-        elif args[1] == "voice":
+        elif action == "voice":
             try:
                 if ctx.author.voice is None:
                     await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description="先にボイスチャンネルに接続してください。", color=0xff0000))
@@ -245,8 +249,8 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                         await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description="僕...入ってないっす...(´・ω・｀)", color=0xff0000))
                         return
                     view = nextcord.ui.View(timeout=None)
-                    view.add_item(VoiceSelect(self.bot.client))
-                    await ctx.reply(f"下のプルダウンから声を選択してください。\n選択可能声種類: `v{self.VOICEVOX_VERSION}`基準", view=view)
+                    view.add_item(VoiceSelect(self.bot.client, ctx.author))
+                    await ctx.reply(f"{ctx.author.mention}下のプルダウンから声を選択してください。\n選択可能声種類: `v{self.VOICEVOX_VERSION}`基準", view=view)
                     logging.info(f"Change TTS {ctx.author.name}'s Voice at {ctx.guild.name}")
                     return
             except Exception as err:
@@ -255,14 +259,14 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                     f"[TTS voice change時のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
                 return
 
-        elif args[1] == "reload" and await self.bot.is_owner(ctx.author):
+        elif action == "reload" and await self.bot.is_owner(ctx.author):
             importlib.reload(tts_convert)
             importlib.reload(tts_dict)
             await ctx.reply("Reloaded.")
 
         else:
-            await ctx.reply(f"・読み上げ機能\nエラー：書き方が間違っています。\n\n`{self.bot.command_prefix}tts join`: 参加\n`{self.bot.command_prefix}tts leave`: 退出\n`{self.bot.command_prefix}tts voice`: 声選択")
-            return
+            await ctx.reply(f"・読み上げ機能\nエラー：書き方が間違っています。\n\n`{ctx.prefix}tts join`: 参加\n`{ctx.prefix}tts leave`: 退出\n`{ctx.prefix}tts voice`: 声選択")
+
 
     #@nextcord.message_command(name="メッセージを読み上げる", guild_ids=n_fc.GUILD_IDS)
     async def speak_message(self, interaction: Interaction, message: nextcord.Message):
