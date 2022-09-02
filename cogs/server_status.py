@@ -142,7 +142,7 @@ async def ss_base(self, ctx: commands.Context):
             for i in map(str, range(1, int(steam_server.value[ctx.guild.id]["value"])+1)):
                 await server_check.server_check(self.bot.client, embed, 0, ctx.guild.id, i)
             await asyncio.sleep(1)
-            await ctx.reply(embed=embed, view=Recheck_SS_Embed())
+            await ctx.reply(embed=embed, view=Recheck_SS_Embed(self.bot))
         return
     args = ctx.message.content.split(" ")
 
@@ -447,8 +447,9 @@ class Reload_SS_Auto(nextcord.ui.View):
 
 
 class Recheck_SS_Embed(nextcord.ui.View):
-    def __init__(self):
+    def __init__(self, bot: NIRA):
         super().__init__(timeout=None)
+        self.bot = bot
 
     @nextcord.ui.button(label='もう一度チェックする', style=nextcord.ButtonStyle.green)
     async def recheck(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
@@ -461,7 +462,7 @@ class Recheck_SS_Embed(nextcord.ui.View):
             )
             for i in map(str, range(1, int(steam_server.value[interaction.guild.id]["value"])+1)):
                 await server_check.server_check(self.bot.client, embed, 0, interaction.guild.id, i)
-            await interaction.followup.send(f'{interaction.user.mention} - Server Status', embed=embed, view=Recheck_SS_Embed())
+            await interaction.followup.send(f'{interaction.user.mention} - Server Status', embed=embed, view=Recheck_SS_Embed(self.bot))
             logging.info("rechecked")
 
         except Exception:
@@ -874,7 +875,7 @@ Steam非公式サーバーのステータスを表示します
                     title="Server Status Checker", description=f"{interaction.user.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
                 for i in map(str, range(1, int(steam_server.value[interaction.guild.id]["value"])+1)):
                     await server_check.server_check(self.bot.client, embed, 0, interaction.guild.id, i)
-                await interaction.followup.send(embed=embed, view=Recheck_SS_Embed())
+                await interaction.followup.send(embed=embed, view=Recheck_SS_Embed(self.bot))
                 return
 
         except Exception as err:
