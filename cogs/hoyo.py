@@ -137,7 +137,7 @@ def getEmbed(content_type: int, uid: int, user: genshin.models.FullGenshinUserSt
         )
         main_embed.add_field(
             name="深境螺旋",
-            value=f"`{user.abyss.current.max_floor}`"
+            value=f"`{user.stats.spiral_abyss}`"
         )
         main_embed.add_field(
             name="宝箱",
