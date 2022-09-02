@@ -21,23 +21,24 @@ from util.nira import NIRA
 GenshinClients: dict[int, genshin.Client] = {}
 
 MAP_ELEMENT = {
-    1: "Anemo",
-    2: "Geo",
-    3: "Cryo",
-    4: "Electro",
-    5: None,
-    6: None,
-    7: None,
-    8: "Dendro",
+    1: "Anemo", #モンド
+    2: "Geo", #璃月
+    3: "Cryo", #ドラゴンスパイン
+    4: "Electro", #稲妻
+    5: "Electro", #淵下宮
+    6: "Geo", #層岩巨淵
+    7: "Geo", #層岩巨淵・地下鉱区
+    8: "Dendro", #スメール
 }
 COLOR_PAD = {
-    "Pyro":0xef7a35, #火
-    "Hydro":0x4bc3f1, #水
-    "Electro":0xb08fc2, #雷
-    "Cryo":0xa0d7e4, #氷
-    "Dendro":0xa6c938, #草
-    "Anemo":0x75c3a9, #風
-    "Geo":0xfab72e #岩
+    None: 0x000000, #未指定
+    "Pyro": 0xef7a35, #火
+    "Hydro": 0x4bc3f1, #水
+    "Electro": 0xb08fc2, #雷
+    "Cryo": 0xa0d7e4, #氷
+    "Dendro": 0xa6c938, #草
+    "Anemo": 0x75c3a9, #風
+    "Geo": 0xfab72e, #岩
 } # 元素に対応した色表
 ARTIFACT_POS = {
     1:"花",
@@ -66,7 +67,6 @@ class ModalButton(nextcord.ui.View):
     async def connect(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
         await interaction.response.send_modal(modal=TokenSend(self.bot))
         self.stop()
-
 
 
 class TokenSend(nextcord.ui.Modal):
@@ -160,7 +160,7 @@ def getEmbed(content_type: int, uid: int, user: genshin.models.FullGenshinUserSt
 {f'評判レベル:{[i for i in exploration.offerings if i.name == REPU][0].level}' if exploration.type == REPU else ''}
 {(f"{offer[0].name}:Lv{offer[0].level}" if len(offer := [i for i in exploration.offerings if i.name != REPU]) > 0 else '')}
 """,
-                color=COLOR_PAD[MAP_ELEMENT[exploration.id]]
+                color=COLOR_PAD[MAP_ELEMENT.get(exploration.id, None)]
             )
             # embed.set_image(exploration.background_image)
             embed.set_thumbnail(exploration.inner_icon)
