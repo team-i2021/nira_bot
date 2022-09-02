@@ -294,11 +294,11 @@ class music(commands.Cog):
                         else:
                             if re.search("nicovideo.jp",url) or re.search("nico.ms",url):
                                 music_f[ctx.guild.id].append(niconico_dl.NicoNicoVideo(url))
-                                music_f[ctx.guild.id][0].connect()
+                                music_f[ctx.guild.id][-1].connect()
                                 music_list[ctx.guild.id].append(music_f[ctx.guild.id].get_download_link())
                             elif re.search("youtube.com", url) or re.search("youtu.be", url):
                                 music_f[ctx.guild.id].append(await YTDLSource.from_url(url, stream=True))
-                                music_list[ctx.guild.id].append(music_f[ctx.guild.id][0].url)
+                                music_list[ctx.guild.id].append(music_f[ctx.guild.id][-1].url)
                             else:
                                 await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="ニコニコ動画かYouTubeのリンクを入れてね！",color=0xff0000))
                                 return
@@ -315,10 +315,8 @@ class music(commands.Cog):
     async def pause(self, ctx: commands.Context):
         if ctx.message.author.voice is None:
             await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
-            return
         elif ctx.message.guild.voice_client is None:
             await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="先に`n!join`でボイスチャンネルに入れてください！",color=0xff0000))
-            return
         else:
             try:
                 ctx.message.guild.voice_client.pause()
@@ -399,15 +397,15 @@ class music(commands.Cog):
             await ctx.reply("引数が不正です。切断するには`n!leave`と入力してください。")
             return
         try:
-            if ctx.message.author.voice is None:
+            if ctx.author.voice is None:
                 await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
                 return
-            elif ctx.message.guild.voice_client is None:
+            elif ctx.guild.voice_client is None:
                 await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="先に`n!join`でボイスチャンネルに入れてください！",color=0xff0000))
                 return
             else:
-                if ctx.guild.id not in tts.tts_channel:
-                    await ctx.message.guild.voice_client.disconnect()
+                if ctx.guild.id not in tts.tts_channel.value:
+                    await ctx.guild.voice_client.disconnect()
                     await ctx.message.reply(embed=nextcord.Embed(title="Music Player",description="切断しました。",color=0x00ff00))
                     print(f"{datetime.datetime.now()} - {ctx.message.guild.name}のVCから切断")
                     return
