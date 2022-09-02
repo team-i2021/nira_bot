@@ -21,31 +21,31 @@ from util.nira import NIRA
 GenshinClients: dict[int, genshin.Client] = {}
 
 MAP_ELEMENT = {
-    1: "Anemo", #モンド
-    2: "Geo", #璃月
-    3: "Cryo", #ドラゴンスパイン
-    4: "Electro", #稲妻
-    5: "Electro", #淵下宮
-    6: "Geo", #層岩巨淵
-    7: "Geo", #層岩巨淵・地下鉱区
-    8: "Dendro", #スメール
+    1: "Anemo", # モンド
+    2: "Geo", # 璃月
+    3: "Cryo", # ドラゴンスパイン
+    4: "Electro", # 稲妻
+    5: "Electro", # 淵下宮
+    6: "Geo", # 層岩巨淵
+    7: "Geo", # 層岩巨淵・地下鉱区
+    8: "Dendro", # スメール
 }
 COLOR_PAD = {
-    None: 0x000000, #未指定
-    "Pyro": 0xef7a35, #火
-    "Hydro": 0x4bc3f1, #水
-    "Electro": 0xb08fc2, #雷
-    "Cryo": 0xa0d7e4, #氷
-    "Dendro": 0xa6c938, #草
-    "Anemo": 0x75c3a9, #風
-    "Geo": 0xfab72e, #岩
+    None: 0x000000, # 未指定
+    "Pyro": 0xef7a35, # 火
+    "Hydro": 0x4bc3f1, # 水
+    "Electro": 0xb08fc2, # 雷
+    "Cryo": 0xa0d7e4, # 氷
+    "Dendro": 0xa6c938, # 草
+    "Anemo": 0x75c3a9, # 風
+    "Geo": 0xfab72e # 岩
 } # 元素に対応した色表
 ARTIFACT_POS = {
-    1:"花",
-    2:"羽",
-    3:"砂時計", # TODO: 「砂時計」じゃない別の1文字ぐらいの表記があれば楽だなって
-    4:"杯",
-    5:"冠"
+    1: "生の花",
+    2: "死の羽",
+    3: "時の砂",
+    4: "空の杯",
+    5: "理の冠"
 } # 場所に対応した聖遺物表
 STAT, CHARA = range(2) # マジックナンバー対策
 AMERICA, EUROPE, ASIA, TAIWAN = "os_usa", "os_euro", "os_asia", "os_cht" # America/Europe/Asia/TW,HK,MO
@@ -190,11 +190,12 @@ def getEmbed(content_type: int, uid: int, user: genshin.models.FullGenshinUserSt
                 value=chara.weapon.description,
                 inline=False
             )
-            for artifact in chara.artifacts:
-                embed.add_field(
-                    name=f"{ARTIFACT_POS[artifact.pos]}聖遺物",
-                    value=f"{'★' * artifact.rarity} {artifact.name} (+{artifact.level})"
-                )
+            artifact_value = "\n".join(
+                f"{artifact.pos_name}: {'★' * artifact.rarity} {artifact.name} (+{artifact.level})"
+                for artifact in chara.artifacts
+            )
+            if artifact_value:
+                embed.add_field(name="聖遺物", value=artifact_value)
             embed.set_thumbnail(url=chara.icon)
             embeds.append(embed)
         return embeds
