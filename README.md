@@ -28,12 +28,12 @@
 | キー                | 内容                                                                              | 例                                           | 変数型        |
 | ------------------- | --------------------------------------------------------------------------------- | -------------------------------------------- | ------------- |
 | `tokens`-`nira_bot` | Bot のトークン入れ                                                                | `"abcdefniofwpajrjr92.f3h208hfi0iffhifhihi"` | str           |
-| `py_admin`          | 再起動や Jishaku などの管理者コマンドを使用できるユーザーの DiscordID             | `[1234567989,987654321]`                     | list(int)     |
-| `voicevox`          | VOICEVOX WebAPI の API キー                                                       | `["abcdefg1234","1234abcdef"]`               | list(str)     |
+| `py_admin`          | 再起動や Jishaku などの管理者コマンドを使用できるユーザーの DiscordID             | `[1234567989,987654321]`                     | list[int]     |
+| `voicevox`          | VOICEVOX WebAPI の API キー                                                       | `["abcdefg1234","1234abcdef"]`               | list[str]     |
 | `prefix`            | コマンドのプレフィックス                                                          | `"n!"`                                       | str           |
-| `guild_ids`         | スラッシュコマンドを登録する GuildID。未指定で全サーバーに登録する。              | `[1234567989,987654321]`                     | list(int)     |
-| `unload_cogs`       | cogs フォルダにある Python ファイルで、Cog として読み込まないファイルを指定する。 | `["yabai.py","tondemonai.py"]`               | list(str)     |
-| `load_cogs`         | Debug モードで起動した際に読み込む Cog を指定する。                               | `["debug.py"]`                               | list(str)     |
+| `guild_ids`         | スラッシュコマンドを登録する GuildID。未指定で全サーバーに登録する。              | `[1234567989,987654321]`                     | list[int]    |
+| `unload_cogs`       | cogs フォルダにある Python ファイルで、Cog として読み込まないファイルを指定する。 | `["yabai.py","tondemonai.py"]`               | list[str]     |
+| `load_cogs`         | Debug モードで起動した際に読み込む Cog を指定する。                               | `["debug.py"]`                               | list[str]     |
 | `translate`         | DeepL API のキー（必須ではない）                                                  | `abcd1234-ab12-ab12-ab12-ab12ab12ab12`       | str           |
 | `database_url`     | HTTP_dbのデータベースのURL                                                  | `http://127.0.0.1:9090`       | str |
 

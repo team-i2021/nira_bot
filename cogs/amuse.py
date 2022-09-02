@@ -25,42 +25,21 @@ class Amuse(commands.Cog):
 
     @commands.command(name="dice", help="""\
 指定した最大目のダイスを振ります。
-数値以外(マイナスとか文字とか)は無視されます。
-例:`n!dice 10`(1-10のダイス)
-例:`n!dice a12aaa 2`(2-12のダイス)
-例:`n!dice -290 -13`(13-290のダイス)
+例: `n!dice 10` (1-10のダイス)
+例: `n!dice 12 2` (2-12のダイス)
 
-引数1:int
+引数1: int
 ダイスの最大値。
 
-引数2:int（省略可能）
+引数2: int（省略可能）
 ダイスの最小値
-デフォルト:1""")
-    async def dice_ctx(self, ctx: commands.context):
-        if ctx.message.content == f"{self.bot.command_prefix}dice":
-            await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"サイコロだよ！\n`{self.bot.command_prefix}dice [最大値] [最小値]`", color=0xff0000))
-            return
-        args = ctx.message.content.split(" ", 2)
-        max_count, min_count = (0, 0)
-        if len(args) == 3:
-            if "".join(re.findall(r'[0-9]', args[2])) != "":
-                min_count = int("".join(re.findall(r'[0-9]', args[2])))
-            else:
-                await ctx.reply(embed=nextcord.Embed(title="エラー", description="数字を入力してね！", color=0xff0000))
-                return
-        else:
-            min_count = 1
-        if "".join(re.findall(r'[0-9]', args[1])) != "":
-            max_count = int("".join(re.findall(r'[0-9]', args[1])))
-        else:
-            await ctx.reply(embed=nextcord.Embed(title="エラー", description="数字を入力してね！", color=0xff0000))
-            return
+デフォルト: 1""")
+    async def dice_ctx(self, ctx: commands.context, max_count: int, min_count: int = 1):
         if max_count < min_count:
             await ctx.reply(embed=nextcord.Embed(title="エラー", description="最大値が最小値より小さいよ！", color=0xff0000))
             return
         rnd_ex = random.randint(min_count, max_count)
         await ctx.reply(embed=nextcord.Embed(title=f"サイコロ\n`{min_count}-{max_count}`", description=f"```{rnd_ex}```", color=0x00ff00))
-        return
 
     @nextcord.slash_command(name="amuse", description="The command of amuse", guild_ids=GUILD_IDS)
     async def amuse(self, interaction: Interaction):
@@ -91,7 +70,6 @@ class Amuse(commands.Cog):
             return
         rnd_ex = random.randint(min_count, max_count)
         await messages.mreply(interaction, "", embed=nextcord.Embed(title=f"サイコロ\n`{min_count}-{max_count}`", description=f"```{rnd_ex}```", color=0x00ff00))
-        return
 
     @dice.subcommand(name="trpg", description="TRPG用のサイコロ「nDr」を振ります")
     async def trpg(
