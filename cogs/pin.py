@@ -142,8 +142,8 @@ offにするには、`n!pin off`と送信してください。
                 elif args[2] == "get":
                     await ctx.reply(self.checkPin.get_task())
                 elif args[2] == "queue":
-                    await ctx.reply(embed=nextcord.Embed(title="Queue", description=str(self._queue)))
                     logging.info(self._queue)
+                    await ctx.reply(embed=nextcord.Embed(title="Queue", description=str(self._queue)))
             else:
                 await ctx.reply(f"・エラー\n使い方が違います。\n`{self.bot.command_prefix}pin on [メッセージ内容]`または`{self.bot.command_prefix}pin off`")
                 return
@@ -256,6 +256,10 @@ offにするには、`n!pin off`と送信してください。
                     await CHANNEL.send(pin_message.value[i][j])
                     self._queue[j] = None
 
+    @checkPin.error
+    async def checkPin_error(self, error: Except):
+        logging.error(error, exc_info=True)
+        self.checkPin.restar()
 
 # logging.error(traceback.format_exc())
 

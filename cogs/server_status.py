@@ -429,7 +429,7 @@ async def ss_base(self, ctx: commands.Context):
 
 class Reload_SS_Auto(nextcord.ui.View):
     def __init__(self, bot: commands.Bot, message: nextcord.Message, client: HTTP_db.Client):
-        super().__init__(timeout=None)
+/bin/bash: 0$: コマンドが見つかりません
         self.bot = bot
         self.message = message
         self.client = client
@@ -916,6 +916,12 @@ Steam非公式サーバーのステータスを表示します
             except Exception as err:
                 logging.info(err, traceback.format_exc())
                 await message.edit(content=f"AutoSSのループ内でエラーが発生しました。\n`再読み込み`ボタン又は`/ss reload`コマンドでリロードしてください。\n```sh\n{traceback.format_exc()}```", embed=None)
+
+
+    @check_status_pin_loop.error
+    async def status_loop_error(self, error: Except):
+        logging.error(error, exc_info=True)
+        self.check_status_pin_loop.restart()
 
 
 def setup(bot, **kwargs):
