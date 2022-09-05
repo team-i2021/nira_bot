@@ -919,7 +919,7 @@ Steam非公式サーバーのステータスを表示します
 
 
     @check_status_pin_loop.error
-    async def status_loop_error(self, error: Except):
+    async def status_loop_error(self, error: Exception):
         logging.error(error, exc_info=True)
         self.check_status_pin_loop.restart()
 

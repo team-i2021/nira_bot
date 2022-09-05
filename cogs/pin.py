@@ -257,7 +257,7 @@ offにするには、`n!pin off`と送信してください。
                     self._queue[j] = None
 
     @checkPin.error
-    async def checkPin_error(self, error: Except):
+    async def checkPin_error(self, error: Exception):
         logging.error(error, exc_info=True)
         self.checkPin.restar()
 
