@@ -33,22 +33,22 @@ class autoss_list:
     default = {}
     value_type = database.GUILD_VALUE
 
-async def ss_force(self, message: nextcord.Message):
+async def ss_force(bot: NIRA, message: nextcord.Message):
     await message.edit(content="Loading status...", view=None)
     try:
         embed = nextcord.Embed(
             title="ServerStatus Checker", description=f"LastCheck:`{datetime.datetime.now()}`", color=0x00ff00)
         for i in range(int(steam_server.value[message.guild.id]["value"])):
-            await server_check.ss_pin_embed(self.bot.client, embed, message.guild.id, i + 1)
+            await server_check.ss_pin_embed(bot.client, embed, message.guild.id, i + 1)
         embed.set_footer(text="pingは参考値です")
         await message.edit(
-            f"AutoSS実行中\n止めるには`{self.bot.command_prefix}ss auto off`または`/ss off`\nリロードするには下の`再読み込み`ボタンか`/ss reload`\n止まった場合は一度オフにしてから再度オンにしてください",
+            f"AutoSS実行中\n止めるには`{bot.command_prefix}ss auto off`または`/ss off`\nリロードするには下の`再読み込み`ボタンか`/ss reload`\n止まった場合は一度オフにしてから再度オンにしてください",
             embed=embed,
-            view=Reload_SS_Auto(self.bot, message, self.bot.client)
+            view=Reload_SS_Auto(bot, message)
         )
         logging.info("Status loaded.(Not scheduled)")
     except Exception as err:
-        logging.info(err, traceback.format_exc())
+        logging.error(err, exc_info=True)
         await message.edit(content=f"err:{err}")
 
 
@@ -92,7 +92,7 @@ async def get_mes(bot, channel_id, message_id):
 async def launch_ss(self, channel_id, message_id):
     ch_obj = await self.bot.fetch_channel(channel_id)
     messs = await ch_obj.fetch_message(message_id)
-    await ss_force(self, messs)
+    await ss_force(self.bot, messs)
 
 
 # async def ss_loop_goes(self, ment_id, message):
@@ -226,7 +226,7 @@ async def ss_base(self, ctx: commands.Context):
                     int(ctx.message.content[16:].split(" ", 1)[1])
                 ]
                 await database.default_push(self.bot.client, autoss_list)
-                asyncio.ensure_future(ss_force(self, messs))
+                asyncio.ensure_future(ss_force(self.bot, messs))
                 return
 
         elif ctx.message.content[10:13] == "off":
@@ -391,6 +391,8 @@ async def ss_base(self, ctx: commands.Context):
                 description=f"{autoss_list.value}",
                 color=0x00ff00
             ))
+        elif args[2] == "class":
+            await ctx.reply("TEST", view=Reload_SS_Auto(self.bot, ctx.message))
 
 
     elif len(args) > 2:
@@ -428,16 +430,16 @@ async def ss_base(self, ctx: commands.Context):
 
 
 class Reload_SS_Auto(nextcord.ui.View):
-    def __init__(self, bot: commands.Bot, message: nextcord.Message, client: HTTP_db.Client):
+    def __init__(self, bot: NIRA, message: nextcord.Message):
+        super().__init__(timeout=None)
         self.bot = bot
         self.message = message
-        self.client = client
 
     @nextcord.ui.button(label='再読み込み', style=nextcord.ButtonStyle.green)
     async def reload(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
         await interaction.response.defer(ephemeral=True)
         try:
-            asyncio.ensure_future(ss_force(self, self.message))
+            asyncio.ensure_future(ss_force(self.bot, self.message))
             await interaction.followup.send('Reloaded!', ephemeral=True)
 
         except Exception as err:
@@ -499,7 +501,7 @@ class server_status(commands.Cog):
                 CHANNEL_ID,
                 MESSAGE_ID
             ]
-            asyncio.ensure_future(ss_force(self, message))
+            asyncio.ensure_future(ss_force(self.bot, message))
             await interaction.followup.send(f"指定されたメッセージでAutoSSをスタートしました。")
         except Exception as err:
             await interaction.followup.send(f"エラーが発生しました。\n```\n{err}```")
@@ -805,7 +807,7 @@ Steam非公式サーバーのステータスを表示します
             await interaction.followup.send("サーバーが登録されていません。", ephemeral=True)
             return
         mes_ss = await interaction.channel.send(f"AutoSSの準備をしています...")
-        asyncio.ensure_future(ss_force(self, mes_ss))
+        asyncio.ensure_future(ss_force(self.bot, mes_ss))
         autoss_list.value[interaction.guild.id] = [
             mes_ss.channel.id,
             mes_ss.id
@@ -883,12 +885,12 @@ Steam非公式サーバーのステータスを表示します
 
 
     @ss_slash.subcommand(name="reload", description="Reload AutoSS Status", description_localizations={nextcord.Locale.ja: "AutoSSを更新します。"})
-    async def reload(self, interaction: Interaction):
+    async def ss_reload(self, interaction: Interaction):
         if interaction.guild.id not in autoss_list.value:
             await interaction.response.send_message(f"{interaction.guild.name}では、AutoSSは実行されていません。", ephemeral=True)
         else:
             message = await (await self.bot.fetch_channel(autoss_list.value[interaction.guild.id][0])).fetch_message(autoss_list.value[interaction.guild.id][1])
-            asyncio.ensure_future(ss_force(self, message))
+            asyncio.ensure_future(ss_force(self.bot, message))
             await interaction.response.send_message("リロードしました。", ephemeral=True)
 
 
@@ -909,7 +911,7 @@ Steam非公式サーバーのステータスを表示します
                 await message.edit(
                     f"AutoSS実行中\n止めるには`{self.bot.command_prefix}ss auto off`または`/ss off`\nリロードするには下の`再読み込み`ボタンか`/ss reload`\n止まった場合は一度オフにしてから再度オンにしてください",
                     embed=embed,
-                    view=Reload_SS_Auto(self.bot, message, self.bot.client)
+                    view=Reload_SS_Auto(self.bot, message)
                 )
                 logging.info("Status loaded.(Scheduled)")
             except Exception as err:
