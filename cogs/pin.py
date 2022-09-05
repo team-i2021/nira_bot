@@ -261,7 +261,7 @@ offにするには、`n!pin off`と送信してください。
     @checkPin.error
     async def checkPin_error(self, error: Exception):
         logging.error(error, exc_info=True)
-        self.checkPin.restar()
+        self.checkPin.restart()
 
 # logging.error(traceback.format_exc())
 
