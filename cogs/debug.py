@@ -1,4 +1,5 @@
 import asyncio
+import distro
 import importlib
 import json
 import logging
@@ -26,6 +27,17 @@ from util.nira import NIRA
 SYSDIR = sys.path[0]
 
 # 管理者向けdebug
+
+def sysinfo() -> str:
+    if platform.system() == "Darwin":
+        return f"macOS {platform.release()}"
+    elif platform.system() == "Windows":
+        return f"Windows {platform.release()}"
+    elif platform.system() == "Linux":
+        return f"{distro.name()} {distro.version()}"
+    else:
+        return f"{platform.system()} {platform.release()}"
+
 
 
 class Debug(commands.Cog):
@@ -317,7 +329,7 @@ class Debug(commands.Cog):
             ping = "Connection Error"
         embed = nextcord.Embed(
             title="Debug info",
-            description=f"Hosting on {os} {(lambda x: platform.release() if x in ['Darwin', 'Windows'] else '')(platform.system())}",
+            description=f"Hosting on {sysinfo()}",
             color=0x363636
         )
         embed.add_field(
