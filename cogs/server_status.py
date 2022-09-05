@@ -429,7 +429,6 @@ async def ss_base(self, ctx: commands.Context):
 
 class Reload_SS_Auto(nextcord.ui.View):
     def __init__(self, bot: commands.Bot, message: nextcord.Message, client: HTTP_db.Client):
-/bin/bash: 0$: コマンドが見つかりません
         self.bot = bot
         self.message = message
         self.client = client
