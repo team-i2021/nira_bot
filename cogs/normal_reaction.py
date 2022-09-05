@@ -332,6 +332,8 @@ class normal_reaction(commands.Cog):
             sended_mes = ""
             try:
                 sended_mes = await n_reaction(message)
+            except TypeError:
+                pass
             except Exception as err:
                 logging.error(err, exc_info=True)
             if sended_mes != "" and sended_mes is not None:
