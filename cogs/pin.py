@@ -141,6 +141,8 @@ offにするには、`n!pin off`と送信してください。
                     return
                 elif args[2] == "get":
                     await ctx.reply(self.checkPin.get_task())
+                elif args[2] == "is":
+                    await ctx.reply(self.checkPin.is_running())
                 elif args[2] == "queue":
                     logging.info(self._queue)
                     await ctx.reply(embed=nextcord.Embed(title="Queue", description=str(self._queue)))
