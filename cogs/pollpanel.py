@@ -307,8 +307,8 @@ class Pollpanel(commands.Cog):
                 embed=nextcord.Embed(
                     title="エラー",
                     description=f"""\
-選択されたメッセージはロールパネルではないです。
-(ロールパネルであるにもかかわらずこのメッセージが表示される場合はお問い合わせください。)
+選択されたメッセージは投票パネルではないです。
+(投票パネルであるにもかかわらずこのメッセージが表示される場合はお問い合わせください。)
 
 ・エラーコード
 `Reject reason: E1-{(message.content == "") * 1 + (message.content is None) * 2 + (message.embeds == []) * 4 + (len(message.embeds) > 1) * 8 + (re.fullmatch(pollpanel_title_compile, message.content) is None) * 16}`""",
@@ -321,7 +321,7 @@ class Pollpanel(commands.Cog):
             await interaction.response.send_message(
                 embed=nextcord.Embed(
                     title="エラー",
-                    description="このロールパネルは本当にあなたが作成したものですか？\nもしあなたが作成したのにこのメッセージが表示される場合はお問い合わせください。",
+                    description="この投票パネルは本当にあなたが作成したものですか？\nもしあなたが作成したのにこのメッセージが表示される場合はお問い合わせください。",
                     color=0xff0000
                 ),
                 ephemeral=True
@@ -336,8 +336,8 @@ class Pollpanel(commands.Cog):
                     embed=nextcord.Embed(
                         title="エラー",
                         description=f"""\
-選択されたメッセージはロールパネルではないです。
-(ロールパネルであるにもかかわらずこのメッセージが表示される場合はお問い合わせください。)
+選択されたメッセージは投票パネルではないです。
+(投票パネルであるにもかかわらずこのメッセージが表示される場合はお問い合わせください。)
 
 ・エラーコード
 `Reject reason: E2-{i}`""",
