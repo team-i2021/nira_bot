@@ -316,7 +316,7 @@ n!rolepanel [*メッセージ内容]
                 continue
             role_id = None
             try:
-                role_id = int(re.search(r"[0-9]+", ctx.message.content.splitlines()[i]).group())
+                role_id = int(ctx.message.content.splitlines()[i])
             except ValueError:
                 roles = ctx.guild.roles
                 for j in range(len(roles)):
