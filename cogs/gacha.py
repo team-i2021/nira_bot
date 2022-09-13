@@ -37,7 +37,7 @@ class Gacha(commands.Cog):
     async def gacha(self, interaction: Interaction):
         pass
 
-    @gacha.subcommand(name="india", description="古代インドピックアップ確定ガチャ")
+    @gacha.subcommand(name="india", description="インド神話ピックアップ確定ガチャ")
     async def normal(
             self,
             interaction: Interaction,
@@ -65,7 +65,7 @@ class Gacha(commands.Cog):
             else:
                 rare_text = 1
             text += f"{'★' * rare_text} - {item}\n"
-        embed = nextcord.Embed(title=f"古代インドピックアップ確定ガチャ {count}連分", description=text, color=0x333333)
+        embed = nextcord.Embed(title=f"インド神話ピックアップ確定ガチャ {count}連分", description=text, color=0x333333)
         await interaction.send(embed=embed)
 
 
