@@ -12,8 +12,7 @@ import nextcord
 from nextcord import Interaction, SlashOption, ChannelType
 from nextcord.ext import commands
 
-
-from util import admin_check, n_fc, eh, database
+from util import admin_check, n_fc, eh, database, pagination
 from util.nira import NIRA
 
 # Genshin...
@@ -30,6 +29,8 @@ MAP_ELEMENT = {
     7: "Geo", # 層岩巨淵・地下鉱区
     8: "Dendro", # スメール
 }
+
+# 元素に対応した色表
 COLOR_PAD = {
     None: 0x000000, # 未指定
     "Pyro": 0xef7a35, # 火
@@ -39,9 +40,19 @@ COLOR_PAD = {
     "Dendro": 0xa6c938, # 草
     "Anemo": 0x75c3a9, # 風
     "Geo": 0xfab72e, # 岩
-} # 元素に対応した色表
+}
+
+# サーバーリスト
+SERVER = {
+    "cn_gf01": "天空岛",  # 中国本土版公式サーバー
+    "cn_qd01": "世界树",  # 中国本土版提携サーバー
+    "os_usa": "America",
+    "os_euro": "Europe",
+    "os_asia": "Asia",
+    "os_cht": "TW, HK, MO",
+}
+
 STAT, CHARA = range(2) # マジックナンバー対策
-AMERICA, EUROPE, ASIA, TAIWAN = "os_usa", "os_euro", "os_asia", "os_cht" # America/Europe/Asia/TW,HK,MO
 REPU = "Reputation"
 
 class ClientData:
@@ -49,44 +60,6 @@ class ClientData:
     value = {}
     default = {}
     value_type = database.GUILD_VALUE
-
-
-class PageLeft(nextcord.ui.Button):
-    def __init__(self, embeds, page_id):
-        super().__init__(label="<-", style=nextcord.ButtonStyle.green)
-        self.embeds = embeds
-        self._page = page_id
-
-    async def callback(self, interaction: Interaction):
-        if self._page == 0:
-            return
-        message = interaction.message
-        self._page -= 1
-        await message.edit(embed=self.embeds[self._page], view=Pagination(self.embeds, self._page))
-
-
-class PageRight(nextcord.ui.Button):
-    def __init__(self, embeds, page_id):
-        super().__init__(label="->", style=nextcord.ButtonStyle.green)
-        self.embeds = embeds
-        self._page = page_id
-
-    async def callback(self, interaction: Interaction):
-        if (self._page + 1) == len(self.embeds):
-            return
-        message = interaction.message
-        self._page += 1
-        await message.edit(embed=self.embeds[self._page], view=Pagination(self.embeds, self._page))
-
-
-class Pagination(nextcord.ui.View):
-    def __init__(self, embeds, page_id: int = 0):
-        super().__init__(timeout=None)
-        self.embeds = embeds
-        self._page = page_id
-        self.add_item(PageLeft(self.embeds, self._page))
-        self.add_item(nextcord.ui.Button(label=f"{self._page+1}/{len(embeds)}", disabled=True, style=nextcord.ButtonStyle.gray))
-        self.add_item(PageRight(self.embeds, self._page))
 
 
 class ModalButton(nextcord.ui.View):
@@ -143,84 +116,115 @@ async def get_uid(client: genshin.Client) -> int:
         await client._update_cached_uids()
     return client.uids[genshin.Game.GENSHIN]
 
-def getEmbed(content_type: int, uid: int, user: genshin.models.FullGenshinUserStats) -> list[nextcord.Embed]:
+def create_paginator(
+        content_type: int,
+        uid: int,
+        user: genshin.models.FullGenshinUserStats,
+) -> pagination.Paginator:
+    pages: list[pagination.Page] = []
+
     if content_type == STAT:
-        embeds = []
-        main_embed = nextcord.Embed(
+        info_embed = nextcord.Embed(
             title=f"戦績",
-            description=f"UID:`{uid}`",
-            color=0x00ff00
+            description=f"{SERVER.get(user.info.server, 'Unknown')} Server Lv.{user.info.level}",
+            color=0x00ff00,
         )
-        main_embed.add_field(
+        info_embed.add_field(
             name="活動日数",
-            value=f"`{user.stats.days_active}`日"
+            value=f"`{user.stats.days_active}`日",
         )
-        main_embed.add_field(
+        info_embed.add_field(
             name="アチーブメント",
-            value=f"`{user.stats.achievements}`個"
+            value=f"`{user.stats.achievements}`個",
         )
-        main_embed.add_field(
-            name="総キャラクター数",
-            value=f"`{user.stats.characters}`人"
+        info_embed.add_field(
+            name="所持キャラクター",
+            value=f"`{user.stats.characters}`人",
         )
-        main_embed.add_field(
-            name="解放済みワープポイント",
-            value=f"`{user.stats.unlocked_waypoints}`個"
+        info_embed.add_field(
+            name="開放済みワープポイント",
+            value=f"`{user.stats.unlocked_waypoints}`個",
         )
-        main_embed.add_field(
+        info_embed.add_field(
             name="深境螺旋",
-            value=f"`{user.stats.spiral_abyss}`"
+            value=f"`{user.stats.spiral_abyss}`",
         )
-        main_embed.add_field(
+        info_embed.add_field(
             name="宝箱",
             value="```\n" + "\n".join([
-                f"普通:{user.stats.common_chests}個",
-                f"精巧:{user.stats.exquisite_chests}個",
-                f"貴重:{user.stats.precious_chests}個",
-                f"豪華:{user.stats.luxurious_chests}個",
-                f"珍奇:{user.stats.remarkable_chests}個"
-            ]) + "```"
+                f"普通: {user.stats.common_chests}個",
+                f"精巧: {user.stats.exquisite_chests}個",
+                f"貴重: {user.stats.precious_chests}個",
+                f"豪華: {user.stats.luxurious_chests}個",
+                f"珍奇: {user.stats.remarkable_chests}個",
+            ]) + "```",
         )
-        embeds.append(main_embed)
-        for exploration in user.explorations:
-            embed = nextcord.Embed(
-                title=exploration.name,
-                description=f"""\
-探索レベル:{(explore := exploration.raw_explored / 10 if exploration.raw_explored != 0 else 0.0)}%
-`[{'#' * math.floor(explore/10)}{'_' * (10 - math.floor(explore/10))}]`
+        pages.append(pagination.Page("基本情報", embeds=[info_embed]))
 
-{f'評判レベル:{[i for i in exploration.offerings if i.name == REPU][0].level}' if exploration.type == REPU else ''}
-{(f"{offer[0].name}:Lv{offer[0].level}" if len(offer := [i for i in exploration.offerings if i.name != REPU]) > 0 else '')}
-""",
-                color=COLOR_PAD[MAP_ELEMENT.get(exploration.id, None)]
+        expl_embeds: dict[int, nextcord.Embed] = {}
+        description_idx: dict[int, int] = {}
+        for expl in reversed(user.explorations):
+            if expl.raw_explored:
+                explored = expl.explored
+                description = f"""\
+{expl.name} 探索度: {explored:.1f}% ([テイワットマップ]({expl.map_url}))
+`[{'#' * math.floor(explored / 10)}{'_' * (10 - math.floor(explored / 10))}]`
+
+"""
+                description_idx[expl.id] = len(description)
+
+                if expl.parent_id:
+                    old_description = expl_embeds[expl.parent_id].description
+                    idx = description_idx[expl.parent_id]
+
+                    description = f"{old_description[:idx]}{description}"
+                    description_idx[expl.parent_id] = len(description) - 2
+
+                    expl_embeds[expl.parent_id].description = f"{description}{old_description[idx:]}"
+                    continue
+
+                for offer in expl.offerings:
+                    if offer.name == REPU:
+                        description += f"評判レベル: Lv.{offer.level}\n"
+                    elif offer.level:
+                        description += f"{offer.name}: Lv.{offer.level}\n"
+            else:
+                description = f"未探索 ([テイワットマップ]({expl.map_url}))"
+
+            embed = nextcord.Embed(
+                title=expl.name,
+                description=description.rstrip(),
+                color=COLOR_PAD[MAP_ELEMENT.get(expl.id, None)],
             )
-            # embed.set_image(exploration.background_image)
-            embed.set_thumbnail(exploration.inner_icon)
-            embed.set_author(name=f"MAPはこちら ({exploration.name})", url=exploration.map_url)
-            embeds.append(embed)
-        return embeds
+            embed.set_thumbnail(expl.inner_icon)
+            expl_embeds[expl.id] = embed
+
+        pages.extend(pagination.Page(e.title, embeds=[e]) for e in reversed(expl_embeds.values()))
+
     elif content_type == CHARA:
-        embeds = []
-        main_embed = nextcord.Embed(
+        info_embed = nextcord.Embed(
             title="キャラクター",
-            description=f"UID:`{uid}`",
-            color=0x00ff00
+            color=0x00ff00,
         )
-        main_embed.add_field(
-            name=f"総キャラクター数",
-            value=f"`{user.stats.characters}`人"
+        info_embed.add_field(
+            name="所持キャラクター",
+            value=f"`{user.stats.characters}`人",
         )
-        embeds.append(main_embed)
+        pages.append(pagination.Page("概要", embeds=[info_embed]))
+
+        chara_embeds: list[tuple[str, nextcord.Embed]] = []
+        per_page = 6 if len(user.characters) > 96 else 4
         for chara in user.characters:
             embed = nextcord.Embed(
                 title=f"{'★' * chara.rarity} {chara.name} ({chara.constellation})",
-                description=f"レベル: {chara.level}\n好感度: {chara.friendship}",
-                color=COLOR_PAD[chara.element]
+                description=f"キャラクターLv: {chara.level}\n好感度Lv: {chara.friendship}",
+                color=COLOR_PAD[chara.element],
             )
             embed.add_field(
-                name=f"武器: {'★' * chara.weapon.rarity} {chara.weapon.name} (Lv.{chara.weapon.level})",
+                name=f"武器: {'★' * chara.weapon.rarity} {chara.weapon.name}"
+                     f" (Lv.{chara.weapon.level} / 精錬ランク{chara.weapon.refinement})",
                 value=chara.weapon.description,
-                inline=False
+                inline=False,
             )
             artifact_value = "\n".join(
                 f"{artifact.pos_name}: {'★' * artifact.rarity} {artifact.name} (+{artifact.level})"
@@ -229,8 +233,28 @@ def getEmbed(content_type: int, uid: int, user: genshin.models.FullGenshinUserSt
             if artifact_value:
                 embed.add_field(name="聖遺物", value=artifact_value)
             embed.set_thumbnail(url=chara.icon)
-            embeds.append(embed)
-        return embeds
+
+            chara_embeds.append((chara.name, embed))
+            if len(chara_embeds) >= per_page or chara.id == user.characters[-1].id:
+                pages.append(pagination.Page(
+                    f"ページ{len(pages)}",
+                    description="、".join(embed[0] for embed in chara_embeds),
+                    embeds=[embed[1] for embed in chara_embeds],
+                ))
+                chara_embeds = []
+
+    pages[0].embeds[0].set_author(
+        name=f"{user.info.nickname} ({uid})",
+        icon_url=user.info.icon or nextcord.Embed.Empty,
+    )
+
+    return pagination.Paginator(
+        pages,
+        show_menu=True,
+        menu_placeholder="ページを選択...",
+        author_check=False,
+        loop_pages=True,
+    )
 
 
 async def GetClient(client: HTTP_db.Client):
@@ -311,20 +335,17 @@ class Genshin(commands.Cog):
                 await interaction.response.defer(ephemeral=False)
                 UID = await get_uid(GenshinClients[interaction.user.id])
                 user = await GenshinClients[interaction.user.id].get_full_genshin_user(UID)
-                embeds = getEmbed(STAT, UID, user)
-                await interaction.send(embed=embeds[0], view=Pagination(embeds), ephemeral=False)
+                await create_paginator(STAT, UID, user).respond(interaction)
         else:
             try:
                 if interaction.user.id not in GenshinClients:
                     await interaction.response.defer(ephemeral=False)
                     user = await self.base_client.get_full_genshin_user(uid)
-                    embeds = getEmbed(STAT, uid, user)
-                    await interaction.send(embed=embeds[0], view=Pagination(embeds), ephemeral=False)
+                    await create_paginator(STAT, uid, user).respond(interaction)
                 else:
                     await interaction.response.defer(ephemeral=False)
                     user = await GenshinClients[interaction.user.id].get_full_genshin_user(uid)
-                    embeds = getEmbed(STAT, uid, user)
-                    await interaction.send(embed=embeds[0], view=Pagination(embeds), ephemeral=False)
+                    await create_paginator(STAT, uid, user).respond(interaction)
             except genshin.errors.AccountNotFound:
                 await interaction.send(embed=nextcord.Embed(title="エラー", description=f"UID:`{uid}`の原神アカウントが見つかりませんでした。", color=0xff0000), ephemeral=True)
             except genshin.errors.DataNotPublic:
@@ -348,20 +369,17 @@ class Genshin(commands.Cog):
                 await interaction.response.defer()
                 UID = await get_uid(GenshinClients[interaction.user.id])
                 user = await GenshinClients[interaction.user.id].get_full_genshin_user(UID)
-                embeds = getEmbed(CHARA, UID, user)
-                await interaction.send(embed=embeds[0], view=Pagination(embeds), ephemeral=True)
+                await create_paginator(CHARA, UID, user).respond(interaction)
         else:
             try:
                 if interaction.user.id not in GenshinClients:
                     await interaction.response.defer()
                     user = await self.base_client.get_full_genshin_user(uid)
-                    embeds = getEmbed(CHARA, uid, user)
-                    await interaction.send(embed=embeds[0], view=Pagination(embeds), ephemeral=True)
+                    await create_paginator(CHARA, uid, user).respond(interaction)
                 else:
                     await interaction.response.defer()
                     user = await GenshinClients[interaction.user.id].get_full_genshin_user(uid)
-                    embeds = getEmbed(CHARA, uid, user)
-                    await interaction.send(embed=embeds[0], view=Pagination(embeds), ephemeral=True)
+                    await create_paginator(CHARA, uid, user).respond(interaction)
             except genshin.errors.AccountNotFound:
                 await interaction.send(embed=nextcord.Embed(title="エラー", description=f"UID:`{uid}`の原神アカウントが見つかりませんでした。", color=0xff0000))
             except genshin.errors.DataNotPublic:
