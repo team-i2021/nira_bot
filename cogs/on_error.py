@@ -167,8 +167,24 @@ class error(commands.Cog):
         if add_support:
             description += "\n[サポートサーバー](https://discord.gg/awfFpCYTcP)"
 
-        title = f"{code.value} - {code.phrase}"
-        await ctx.reply(embed=nextcord.Embed(title=title, description=description, color=0xff0000))
+        embed = nextcord.Embed(
+            title=f"{code.value} - {code.phrase}",
+            description=description,
+            color=0xff0000,
+        )
+
+        try:
+            for method in (ctx.reply, ctx.send):
+                try:
+                    await method(embed=embed)
+                except nextcord.Forbidden:
+                    continue
+                else:
+                    break
+            else:
+                await ctx.author.send(embed=embed)
+        except (nextcord.Forbidden, nextcord.HTTPException):
+            logging.exception("エラーメッセージを送信できませんでした")
 
     @commands.Cog.listener()
     async def on_application_command_error(self, interaction: nextcord.Interaction, error: nextcord.ApplicationError):
@@ -239,8 +255,22 @@ class error(commands.Cog):
         if add_support:
             description += "\n[サポートサーバー](https://discord.gg/awfFpCYTcP)"
 
-        title = f"{code.value} - {code.phrase}"
-        await interaction.send(embed=nextcord.Embed(title=title, description=description, color=0xff0000), ephemeral=True)
+        embed = nextcord.Embed(
+            title=f"{code.value} - {code.phrase}",
+            description=description,
+            color=0xff0000,
+        )
+
+        try:
+            try:
+                await interaction.send(embed=embed, ephemeral=True)
+            except (nextcord.NotFound, nextcord.Forbidden):
+                if interaction.user:
+                    await interaction.user.send(embed=embed)
+                else:
+                    raise
+        except (nextcord.HTTPException, nextcord.NotFound, nextcord.Forbidden):
+            logging.exception("エラーメッセージを送信できませんでした")
 
 
 def setup(bot, **kwargs):
