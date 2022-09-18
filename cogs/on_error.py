@@ -107,10 +107,10 @@ class error(commands.Cog):
 
         # CheckFailure
         elif isinstance(error, commands.PrivateMessageOnly):
-            description = "このコマンドはDM、またはプライベートチャンネル内でのみ実行できます。"
+            description = "このコマンドはダイレクトメッセージでのみ実行できます。"
             add_help = True
         elif isinstance(error, commands.NoPrivateMessage):
-            description = "このコマンドはDM、またはプライベートチャンネル内では実行できません。"
+            description = "このコマンドはダイレクトメッセージからは実行できません。"
             add_help = True
         elif isinstance(error, commands.NotOwner | NIRA.ForbiddenExpand):
             description = "このコマンドはBot管理者専用です。"
