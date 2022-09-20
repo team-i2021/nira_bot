@@ -162,8 +162,9 @@ class error(commands.Cog):
             trace = "".join(traceback.TracebackException.from_exception(error).format())
             description += f"\n```py\n{trace.replace(self.bot.client.url, '[URL]')}```"
         # Context.command は Optional[Command]
-        if add_help and (command := ctx.command):
-            description += f"\n`{ctx.prefix}help {command.name}`でヘルプを表示できます。"
+        if add_help and ctx.command:
+            name = ctx.invoked_parents[0]
+            description += f"\n`{ctx.prefix}help {name}`でヘルプを表示できます。"
         if add_support:
             description += "\n[サポートサーバー](https://discord.gg/awfFpCYTcP)"
 
@@ -251,6 +252,8 @@ class error(commands.Cog):
             description += f"\n```py\n{trace.replace(self.bot.client.url, '[URL]')}```"
         # Interaction.application_command は Optional[ApplicationCommand]
         if add_help and (command := interaction.application_command):
+            while getattr(command, "parent_cmd", None) is not None:
+                command = command.parent_cmd
             description += f"\n`/help {command.name}`でヘルプを表示できます。"
         if add_support:
             description += "\n[サポートサーバー](https://discord.gg/awfFpCYTcP)"
