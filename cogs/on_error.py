@@ -201,10 +201,10 @@ class error(commands.Cog):
 
         # ApplicationCheckFailure
         if isinstance(error, application_checks.ApplicationPrivateMessageOnly):
-            description = "このコマンドはDM、またはプライベートチャンネル内でのみ実行できます。"
+            description = "このコマンドはダイレクトメッセージでのみ実行できます。"
             add_help = True
         elif isinstance(error, application_checks.ApplicationNoPrivateMessage):
-            description = "このコマンドはDM、またはプライベートチャンネル内では実行できません。"
+            description = "このコマンドはダイレクトメッセージからは実行できません。"
             add_help = True
         elif isinstance(error, application_checks.ApplicationNotOwner | NIRA.ForbiddenExpand):
             description = "このコマンドはBot管理者専用です。"
