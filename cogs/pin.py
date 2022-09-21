@@ -208,7 +208,8 @@ class BottomUp(commands.Cog):
                 if guild.id not in PinData.value or channel.id not in PinData.value[guild.id]:
                     return (None, err_embed("このチャンネルにはメッセージが設定されていません。"))
 
-                async with self._get_lock(channel.id).save:
+                lock = self._get_lock(channel.id)
+                async with lock.save:
                     last_id = PinData.value[guild.id][channel.id][1]
                     failed = False
                     await update(self.bot.client, channel, None)
@@ -219,6 +220,7 @@ class BottomUp(commands.Cog):
                             pass
                         except nextcord.Forbidden:
                             failed = True
+                    lock.sleep_unlock()
                     del self._locks[channel.id]
 
                 return (
