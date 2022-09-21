@@ -50,6 +50,8 @@ class PinLock:
     async def _run(self, delay: int, next_delay: int) -> None:
         try:
             await asyncio.sleep(delay)
+        except asyncio.CancelledError:
+            self.callback = None
         finally:
             if self.count < SLEEP_COUNT:
                 self.sleep.release()
