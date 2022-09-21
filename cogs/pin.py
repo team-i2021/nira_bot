@@ -57,8 +57,10 @@ class PinLock:
                 self.sleep.release()
                 self.count = 0
                 if self.callback:
-                    await self.callback[0](*self.callback[1])
-                    self.callback = None
+                    try:
+                        await self.callback[0](*self.callback[1])
+                    finally:
+                        self.callback = None
             else:
                 self.count = SLEEP_COUNT - 1
                 self._task = asyncio.create_task(self._run(next_delay, next_delay))
