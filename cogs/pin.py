@@ -181,7 +181,6 @@ class BottomUp(commands.Cog):
     async def _pin(
             self,
             mode: Mode,
-            author: nextcord.Member | nextcord.User,
             channel: MessageableGuildChannel,
             message: str | None = None,
     ) -> tuple[str | None, nextcord.Embed | None]:
@@ -258,7 +257,7 @@ offにするには、`n!pin off`と送信してください。
     @admin_check.admin_only_cmd()
     @commands.guild_only()
     async def pin_on_c(self, ctx: commands.Context, *, message: str) -> None:
-        res = await self._pin(Mode.ON, ctx.author, ctx.channel, message)
+        res = await self._pin(Mode.ON, ctx.channel, message)
         if res[0] is not None:
             res = (res[0], None)
         await ctx.reply(res[0], embed=res[1])
@@ -267,7 +266,7 @@ offにするには、`n!pin off`と送信してください。
     @admin_check.admin_only_cmd()
     @commands.guild_only()
     async def pin_off_c(self, ctx: commands.Context) -> None:
-        res = await self._pin(Mode.OFF, ctx.author, ctx.channel)
+        res = await self._pin(Mode.OFF, ctx.channel)
         await ctx.reply(res[0], embed=res[1])
 
     @pin_c.group(name="debug", invoke_without_command=True)
@@ -337,7 +336,7 @@ offにするには、`n!pin off`と送信してください。
     @application_checks.guild_only()
     async def pin_m(self, interaction: Interaction, message: nextcord.Message) -> None:
         await interaction.response.defer(ephemeral=True)
-        res = await self._pin(Mode.ON, interaction.user, interaction.channel, message.content)
+        res = await self._pin(Mode.ON, interaction.channel, message.content)
         await interaction.send(res[0], embed=res[1], ephemeral=True)
         if res[0] is not None:
             await self._refresh_channel(interaction.channel)
@@ -367,7 +366,7 @@ offにするには、`n!pin off`と送信してください。
     @application_checks.guild_only()
     async def pin_off_s(self, interaction: Interaction) -> None:
         await interaction.response.defer(ephemeral=True)
-        res = await self._pin(Mode.OFF, interaction.user, interaction.channel)
+        res = await self._pin(Mode.OFF, interaction.channel)
         await interaction.send(res[0], embed=res[1], ephemeral=True)
 
     def _get_lock(self, ch_id: int) -> PinLock:
@@ -503,7 +502,7 @@ class BottomModal(nextcord.ui.Modal):
 
     async def callback(self, interaction: Interaction) -> None:
         await interaction.response.defer(ephemeral=True)
-        res = await self.cog._pin(Mode.ON, interaction.user, interaction.channel, self.mes.value)
+        res = await self.cog._pin(Mode.ON, interaction.channel, self.mes.value)
         await interaction.send(res[0], embed=res[1], ephemeral=True)
         if res[0] is not None:
             await self.cog._refresh_channel(interaction.channel)
