@@ -94,7 +94,9 @@ async def update(
         except KeyError:
             pass
     else:
-        PinData.value.update({guild.id: {channel.id: data}})
+        if guild.id not in PinData.value:
+            PinData.value[guild.id] = {}
+        PinData.value[guild.id][channel.id] = data
 
     await database.default_push(client, PinData)
 
