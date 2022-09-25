@@ -287,17 +287,29 @@ offにするには、`n!pin off`と送信してください。
     async def pin_debug_refresh_c(
             self,
             ctx: commands.Context,
-            ch: nextcord.abc.GuildChannel | None = None,
+            ch_id: int | None = None,
     ) -> None:
+        ch: nextcord.abc.GuildChannel | None = None
+        if ch_id is not None:
+            if (ch := self.bot.get_channel(ch_id)) is None:
+                try:
+                    ch = await self.bot.fetch_channel(ch_id)
+                except nextcord.NotFound:
+                    await ctx.reply(f"Channel not found")
+                    return
+                except nextcord.Forbidden:
+                    await ctx.reply(f"Permission denied")
+                    return
+
         if isinstance(ch, nextcord.abc.Messageable):
             if ch.guild.id in PinData.value and ch.id in PinData.value[ch.guild.id]:
                 msg = await ctx.reply(f"Refreshing {ch.id}...")
                 await self._refresh_channel(ch)
                 await msg.edit("Refresh finished.")
             else:
-                await ctx.reply(f"{ch.id}: Not configured")
+                await ctx.reply(f"Not configured")
         elif ch:
-            await ctx.reply(f"{ch.id}: Not messageable")
+            await ctx.reply(f"Not messageable")
         else:
             msg = await ctx.reply("Refreshing...")
             await self._refresh_messages()
@@ -308,29 +320,25 @@ offにするには、`n!pin off`と送信してください。
     async def pin_debug_lock_c(
             self,
             ctx: commands.Context,
-            ch: nextcord.abc.GuildChannel | None = None,
+            ch_id: int | None = None,
             force_unlock: bool = False,
     ) -> None:
-        if isinstance(ch, nextcord.abc.Messageable):
-            if ch.id in self._locks:
-                lock = self._locks[ch.id]
-                await ctx.reply(
-                    f"ID {ch.id}\n"
-                    f"Save: {lock.save.locked()}\n"
-                    f"Sleep: {lock.sleep.locked()}\n"
-                    f"Count: {lock.count}\n"
-                    f"Callback: {'Set' if lock.callback else 'None'}",
-                )
-                if force_unlock:
-                    lock.sleep_unlock()
-            else:
-                await ctx.reply(f"{ch.id}: Not set")
-        elif ch:
-            await ctx.reply(f"{ch.id}: Not messageable")
-        else:
+        if ch_id is None:
             await ctx.reply(f"glock: {glock.locked()}")
             if force_unlock and glock.locked():
                 glock.release()
+        elif ch_id in self._locks:
+            lock = self._locks[ch_id]
+            await ctx.reply(
+                f"Save: {lock.save.locked()}\n"
+                f"Sleep: {lock.sleep.locked()}\n"
+                f"Count: {lock.count}\n"
+                f"Callback: {'Set' if lock.callback else 'None'}",
+            )
+            if force_unlock:
+                lock.sleep_unlock()
+        else:
+            await ctx.reply(f"Not set")
 
         if force_unlock:
             await ctx.reply("Unlocked.")
