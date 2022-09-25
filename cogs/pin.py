@@ -258,8 +258,13 @@ offにするには、`n!pin off`と送信してください。
                     await CHANNEL.send(pin_message.value[i][j])
                     self._queue[j] = None
 
+    @checkPin.after_loop
+    async def checkPin_finished(self):
+        logging.info(self.checkPin.get_task().exception())
+
     @checkPin.error
     async def checkPin_error(self, error: Exception):
+        logging.error(self.checkPin.get_task().exception())
         logging.error(error, exc_info=True)
         self.checkPin.restart()
 
