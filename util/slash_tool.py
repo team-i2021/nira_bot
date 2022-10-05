@@ -22,14 +22,13 @@ class messages:
         elif type(message) == nextcord.Interaction:
             # InteractionResponse.send_message は embed=None すると例外を吐く
             if kwargs["embed"] is None:
-                return message.response.send_message(reply_message, ephemeral=kwargs["ephemeral"])
+                return message.send(reply_message, ephemeral=kwargs["ephemeral"])
             else:
-                return message.response.send_message(reply_message, embed=kwargs["embed"], ephemeral=kwargs["ephemeral"])
+                return message.send(reply_message, embed=kwargs["embed"], ephemeral=kwargs["ephemeral"])
         elif type(message) == nextcord.ext.commands.Context:
             return message.reply(reply_message, embed=kwargs["embed"])
         else:
             raise TypeError
-            return
 
     def content_check(message):
         if type(message) == nextcord.Message:
@@ -38,4 +37,3 @@ class messages:
             return message.message.content
         else:
             raise TypeError
-            return

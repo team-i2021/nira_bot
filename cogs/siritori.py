@@ -105,12 +105,14 @@ class Siritori(commands.Cog):
 
     @srtr.subcommand(name="start", description="Start Siritori game", description_localizations={nextcord.Locale.ja: "しりとり風のゲームで遊びます"})
     async def srtr_start(self, interaction: nextcord.Interaction):
-        await interaction.response.send_message(embed=(await self.srtr_control(True, interaction.guild, interaction.channel)))
+        await interaction.response.defer()
+        await interaction.send(embed=(await self.srtr_control(True, interaction.guild, interaction.channel)))
 
 
     @srtr.subcommand(name="stop", description="Stop Siritori game", description_localizations={nextcord.Locale.ja: "しりとり風のゲームを終了します"})
     async def srtr_stop(self, interaction: nextcord.Interaction):
-        await interaction.response.send_message(embed=(await self.srtr_control(False, interaction.guild, interaction.channel)))
+        await interaction.response.defer()
+        await interaction.send(embed=(await self.srtr_control(False, interaction.guild, interaction.channel)))
 
 
     @commands.Cog.listener()
