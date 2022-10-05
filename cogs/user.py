@@ -268,7 +268,7 @@ class user(commands.Cog):
             if guild_id not in WelcomeInfo.value:
                 await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"サーバーで設定は`無効`です", color=0x00ff00), ephemeral=True)
             else:
-                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"サーバーで設定は`有効`です\n設定チャンネル: <#{n_fc.welcome_id_list[guild_id]}>", color=0x00ff00), ephemeral=True)
+                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"サーバーで設定は`有効`です\n設定チャンネル: <#{WelcomeInfo.value[guild_id]}>", color=0x00ff00), ephemeral=True)
             return
         await database.default_push(client, WelcomeInfo)
 
