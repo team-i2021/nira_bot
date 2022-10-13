@@ -152,16 +152,21 @@ class music(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
+    async def rm_youtube(self, ctx: commands.Context):
+        await ctx.reply("エラー。", embed=nextcord.Embed(title="YouTubeはサポートされなくなりました。", description="""\
+Discord及びGoogleは、DiscordのボイスチャンネルでのYouTube再生BOTの摘発を開始しました。
+現状、大半のBOTがYouTubeの再生機能の削除又は隠蔽を余儀なくされています。
+そのため、にらBOTからもYouTubeの再生機能を削除します。
+引き続きDiscordでYouTubeを再生したい場合は、`Watch Together`を使用してください。（モバイル版Discordのサポートは後日になる可能性があります。）""", color=0xff0000))
+
     @commands.command(name="list", help="""\
     音楽のプレイリスをと表示します。
     音楽系のコマンドの詳細は[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)からご確認ください。""")
     async def show_list(self, ctx: commands.Context):
         if ctx.guild.id not in music_list or len(music_list[ctx.guild.id]) == 0:
             await ctx.reply("音楽はないです！\n`n!play [URL]`で曲をじゃんじゃん再生しましょう！\n（本音：サーバー負荷やばいからな...うぅ...）")
-            return
         else:
             await ctx.reply(f"プレイリストの曲数:`{len(music_list[ctx.guild.id])}`曲\n\n(あとはここに曲の題名とかを...ふっふっふっ...(未完成))")
-            return
 
     @commands.command(name="music_debug", help="""\
     Show song list
@@ -187,7 +192,7 @@ class music(commands.Cog):
                 await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="先にボイスチャンネルに接続してください。",color=0xff0000))
                 return
             else:
-                if not ctx.guild.voice_client is None:
+                if ctx.guild.voice_client is not None:
                     if ctx.guild.id not in tts.tts_channel:
                         await ctx.message.reply(embed=nextcord.Embed(title="エラー",description="既にVCに入っています。",color=0xff0000))
                         return
@@ -204,7 +209,7 @@ class music(commands.Cog):
 
     @commands.command(name="play", help="""\
     VCににらBOTが入っている場合は音楽を再生することが出来ます。
-    再生できるのは「YouTubeの動画またはプレイリスト」「ニコニコ動画の動画」のみです。
+    再生できるのは「ニコニコ動画の動画」のみです。
     音楽系のコマンドの詳細は[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)からご確認ください。""")
     async def play(self, ctx: commands.Context):
         try:
@@ -226,6 +231,9 @@ class music(commands.Cog):
                         if re.search("playlist", url) or re.search("mylist", url):
                             await ctx.reply("曲を追加しています。しばらくお待ちください。\n（プレイリストの曲が多い場合は時間がかかることがあります。エラーの場合はエラーが表示されるのでしばらくお待ちください。）")
                             if url_search(url) == "yt":
+                                await self.rm_youtube(ctx)
+                                return
+
                                 with youtube_dlc.YoutubeDL(flat_list) as ydl:
                                     try:
                                         info_dict = ydl.extract_info(url, download=False)
@@ -239,14 +247,17 @@ class music(commands.Cog):
                                     i = i + 1
                                 await ctx.reply(f"曲を追加しました。プレイリストには全部で`{len(music_list[ctx.guild.id])}`曲あります。)")
                             else:
-                                await ctx.reply("YouTube以外のプレイリストはまだ対応してないんだよ...")
+                                await ctx.reply("プレイリスト及びマイリストの再生には現在対応しておりません。")
                                 return
                         else:
                             if re.search("nicovideo.jp",url) or re.search("nico.ms",url):
                                 music_f[ctx.guild.id].append(niconico_dl.NicoNicoVideo(url))
                                 music_f[ctx.guild.id][0].connect()
-                                music_list[ctx.guild.id].append(music_f[ctx.guild.id].get_download_link())
+                                music_list[ctx.guild.id].append(music_f[ctx.guild.id][0].get_download_link())
                             elif re.search("youtube.com", url) or re.search("youtu.be", url):
+                                await self.rm_youtube(ctx)
+                                return
+
                                 music_f[ctx.guild.id].append(await YTDLSource.from_url(url, stream=True))
                                 music_list[ctx.guild.id].append(music_f[ctx.guild.id][0].url)
                             else:
@@ -275,6 +286,9 @@ class music(commands.Cog):
                         if re.search("playlist", url) or re.search("mylist", url):
                             await ctx.reply("曲を追加しています。しばらくお待ちください。\n（プレイリストの曲が多い場合は時間がかかることがあります。エラーの場合はエラーが表示されるのでしばらくお待ちください。）")
                             if url_search(url) == "yt":
+                                await self.rm_youtube(ctx)
+                                return
+
                                 with youtube_dlc.YoutubeDL(flat_list) as ydl:
                                     try:
                                         info_dict = ydl.extract_info(url, download=False)
@@ -289,14 +303,17 @@ class music(commands.Cog):
                                 await ctx.reply(f"曲を追加しました。プレイリストには全部で`{len(music_list[ctx.guild.id])}`曲あります。")
                                 return
                             else:
-                                await ctx.reply("YouTube以外のプレイリストはまだ対応してないんだよ...")
+                                await ctx.reply("プレイリスト及びマイリストの再生には現在対応しておりません。")
                                 return
                         else:
                             if re.search("nicovideo.jp",url) or re.search("nico.ms",url):
                                 music_f[ctx.guild.id].append(niconico_dl.NicoNicoVideo(url))
                                 music_f[ctx.guild.id][-1].connect()
-                                music_list[ctx.guild.id].append(music_f[ctx.guild.id].get_download_link())
+                                music_list[ctx.guild.id].append(music_f[ctx.guild.id][-1].get_download_link())
                             elif re.search("youtube.com", url) or re.search("youtu.be", url):
+                                await self.rm_youtube(ctx)
+                                return
+
                                 music_f[ctx.guild.id].append(await YTDLSource.from_url(url, stream=True))
                                 music_list[ctx.guild.id].append(music_f[ctx.guild.id][-1].url)
                             else:
