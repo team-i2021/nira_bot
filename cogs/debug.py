@@ -30,7 +30,7 @@ SYSDIR = sys.path[0]
 
 def sysinfo() -> str:
     if platform.system() == "Darwin":
-        return f"macOS {platform.release()}"
+        return f"macOS {platform.mac_ver()[0}"
     elif platform.system() == "Windows":
         return f"Windows {platform.release()}"
     elif platform.system() == "Linux":
