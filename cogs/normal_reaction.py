@@ -142,7 +142,7 @@ reaction_files = {
     30: [4, 3, "sarmon"],
     31: [6, 0, "<:natsu:908565532268179477>"],
     32: [4, 1, "12pp"],
-    33: [5, 2, "https://twitter.com/namae_1216", ":heart: by apple"],
+    33: [0, 1, None],
     34: [1, 1, "mike"],
     35: [4, 1, "au"],
     36: [1, 1, "serori"],
