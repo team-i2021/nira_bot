@@ -69,6 +69,24 @@ class user(commands.Cog):
     async def member_info(self, interaction: Interaction, member: nextcord.Member):
         await interaction.response.send_message(embed=self.UserInfoEmbed(member))
 
+    @nextcord.slash_command(name="afk", description="Change afk status.", guild_ids=n_fc.GUILD_IDS)
+    async def afk_turn(self, interaction: Interaction):
+        await interaction.response.defer(ephemeral=True)
+        nick = interaction.user.display_name
+        if interaction.user.display_name[-5:] == "[AFK]":
+            nick = nick[:-5]
+            AFK = False
+        else:
+            nick = nick + "[AFK]"
+            AFK = True
+        try:
+            await interaction.user.edit(nick=nick)
+            if AFK:
+                await interaction.send("AFKを有効にしたよ。\n戻すにはもっかい`/afk`ってやればいいと思うよ。")
+            else:
+                await interaction.send("AFKを無効にしたよ。\n有効にするにはもっかい`/afk`ってやればいいと思うよ。")
+        except Exception as err:
+            await interaction.send(f"BOTにあなたのニックネームを変更できる権限がないなどの理由で、コマンドを実行できませんでした。\nサーバーの管理者にお問い合わせください。\nERR: `{err}`")
 
     @nextcord.slash_command(name="user", description="Display user info", description_localizations={nextcord.Locale.ja: "ユーザー情報表示"}, guild_ids=n_fc.GUILD_IDS)
     async def user_slash(
