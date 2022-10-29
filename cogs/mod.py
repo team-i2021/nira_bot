@@ -158,7 +158,7 @@ remove: ロールの剥奪を行うかどうか（`on`/`off`）（指定され�
             name="remove_role",
             description="付与されている全てのロールを剥奪するかどうか",
             required=False,
-            default=0
+            default=False
         )
     ):
         if admin_check.admin_check(interaction.guild, interaction.user):
