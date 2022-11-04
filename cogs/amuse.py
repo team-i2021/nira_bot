@@ -18,6 +18,56 @@ from util.nira import NIRA
 
 MESSAGE, SLASH = [0, 1]
 
+DICE_ID_PREFIX = "cogs.amuse.dice"
+DICE_ID_NORMAL = "normal"
+DICE_ID_TRPG = "diceroll"
+
+
+def _get_dice_result(dice_id: str, value_a: int, value_b: int) -> nextcord.Embed:
+    if dice_id == DICE_ID_NORMAL:
+        min_value, max_value = value_a, value_b
+
+        if max_value < min_value:
+            return nextcord.Embed(title="エラー", description="最大値が最小値より小さいよ！", color=0xff0000)
+
+        value = random.randint(min_value, max_value)
+        return nextcord.Embed(title=f"サイコロ\n`{min_value}-{max_value}`", description=f"```{value}```", color=0x00ff00)
+
+    elif dice_id == DICE_ID_TRPG:
+        number_dice, max_value = value_a, value_b
+
+        results = [random.randint(1, max_value) for _ in range(number_dice)]
+
+        embed = nextcord.Embed(
+            title=f"サイコロ\n`{number_dice}D{max_value}`",
+            description=f"```{sum(results)}```",
+            color=0x00ff00,
+        )
+
+        results_str = str(results)
+        if len(results_str) > 1000:
+            results_str = f"{results_str[:1000]}..."
+        embed.add_field(name="ダイスの目の詳細", value=f"```{results_str}```", inline=False)
+
+        return embed
+
+    else:
+        raise ValueError(f"Unknown dice id: {dice_id}")
+
+
+class _DiceRetryButtonView(nextcord.ui.View):
+    def __init__(self, dice_id: str, value_a: int, value_b: int):
+        super().__init__(timeout=None)
+
+        self.add_item(nextcord.ui.Button(
+            style=nextcord.ButtonStyle.green,
+            label="もう一度",
+            emoji="\N{Rightwards Arrow with Hook}",
+            custom_id=f"{DICE_ID_PREFIX}:{dice_id}:{value_a},{value_b}",
+        ))
+
+        self.stop()
+
 
 class Amuse(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs):
@@ -35,11 +85,10 @@ class Amuse(commands.Cog):
 ダイスの最小値
 デフォルト: 1""")
     async def dice_ctx(self, ctx: commands.context, max_count: int, min_count: int = 1):
-        if max_count < min_count:
-            await ctx.reply(embed=nextcord.Embed(title="エラー", description="最大値が最小値より小さいよ！", color=0xff0000))
-            return
-        rnd_ex = random.randint(min_count, max_count)
-        await ctx.reply(embed=nextcord.Embed(title=f"サイコロ\n`{min_count}-{max_count}`", description=f"```{rnd_ex}```", color=0x00ff00))
+        await ctx.reply(
+            embed=_get_dice_result(DICE_ID_NORMAL, min_count, max_count),
+            view=_DiceRetryButtonView(DICE_ID_NORMAL, min_count, max_count),
+        )
 
     @nextcord.slash_command(name="amuse", description="The command of amuse", guild_ids=GUILD_IDS)
     async def amuse(self, interaction: Interaction):
@@ -65,11 +114,10 @@ class Amuse(commands.Cog):
             default=1
         ),
     ):
-        if max_count < min_count:
-            await messages.mreply(interaction, "", embed=nextcord.Embed(title="エラー", description="最大値が最小値より小さいよ！", color=0xff0000))
-            return
-        rnd_ex = random.randint(min_count, max_count)
-        await messages.mreply(interaction, "", embed=nextcord.Embed(title=f"サイコロ\n`{min_count}-{max_count}`", description=f"```{rnd_ex}```", color=0x00ff00))
+        await interaction.send(
+            embed=_get_dice_result(DICE_ID_NORMAL, min_count, max_count),
+            view=_DiceRetryButtonView(DICE_ID_NORMAL, min_count, max_count),
+        )
 
     @dice.subcommand(name="trpg", description="TRPG用のサイコロ「nDr」を振ります")
     async def trpg(
@@ -91,23 +139,10 @@ class Amuse(commands.Cog):
         ),
     ):
         await interaction.response.defer()
-
-        dices = []
-        diceAllCount = 0
-        for _ in range(number_dice):
-            Num = random.randint(1, dice_count)
-            dices.append(Num)
-            diceAllCount += Num
-
-        embed = nextcord.Embed(
-            title=f"サイコロ\n`{number_dice}D{dice_count}`", description=f"```{diceAllCount}```", color=0x00ff00)
-
-        dice_numbers = str(dices)
-        if len(dice_numbers) > 1000:
-            dice_numbers = dice_numbers[:1000] + "..."
-        embed.add_field(name="ダイスの目の詳細",
-                        value=f"```\n{dice_numbers}```", inline=False)
-        await interaction.followup.send(embed=embed)
+        await interaction.send(
+            embed=_get_dice_result(DICE_ID_TRPG, number_dice, dice_count),
+            view=_DiceRetryButtonView(DICE_ID_TRPG, number_dice, dice_count),
+        )
 
     def jankenEmbed(self, content, type):
         if type == MESSAGE and content == f"{self.bot.command_prefix}janken":
@@ -373,6 +408,29 @@ https://discord.gg/awfFpCYTcP"""
         await message.delete()
         await msg.channel.send(content=None, embed=embed)
         return
+
+    @commands.Cog.listener()
+    async def on_interaction(self, interaction: Interaction) -> None:
+        if interaction.type is not nextcord.InteractionType.component:
+            return
+
+        button_id = interaction.data.get("custom_id")
+        if button_id is None or not button_id.startswith(f"{DICE_ID_PREFIX}:"):
+            return
+
+        dice_id, value_a, value_b = None, None, None
+        try:
+            _, dice_id, values = button_id.split(":", 2)
+            a, b = values.split(",", 1)
+            value_a, value_b = int(a), int(b)
+        except ValueError:
+            return
+
+        await interaction.response.defer()
+        await interaction.send(
+            embed=_get_dice_result(dice_id, value_a, value_b),
+            view=_DiceRetryButtonView(dice_id, value_a, value_b),
+        )
 
 
 def setup(bot, **kwargs):
