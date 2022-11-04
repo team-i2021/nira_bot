@@ -84,7 +84,7 @@ class Amuse(commands.Cog):
 引数2: int（省略可能）
 ダイスの最小値
 デフォルト: 1""")
-    async def dice_ctx(self, ctx: commands.context, max_count: int, min_count: int = 1):
+    async def dice_ctx(self, ctx: commands.Context, max_count: int, min_count: int = 1):
         await ctx.reply(
             embed=_get_dice_result(DICE_ID_NORMAL, min_count, max_count),
             view=_DiceRetryButtonView(DICE_ID_NORMAL, min_count, max_count),
@@ -219,7 +219,7 @@ class Amuse(commands.Cog):
 
 引数1:str
 「グー」または「チョキ」または「パー」の手。""")
-    async def janken_ctx(self, ctx: commands.context):
+    async def janken_ctx(self, ctx: commands.Context):
         await ctx.reply(embed=self.jankenEmbed(ctx.message.content, MESSAGE))
         return
 
@@ -292,7 +292,7 @@ class Amuse(commands.Cog):
 ただ、これであなたの運勢が決まるわけではありません。
 あなたの行いが良くなれば、自然と運勢も上がっていきますし、行いが悪くなれば、自然と運勢が下がっていきます。
 自分の運勢を上げたいと思うなら、人に優しくしたり、人のことを思った行動をしてみてください。""")
-    async def uranai(self, ctx: commands.context):
+    async def uranai(self, ctx: commands.Context):
         await ctx.reply(embed=self.uranaiEmbed())
         return
 
