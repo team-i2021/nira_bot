@@ -427,10 +427,12 @@ https://discord.gg/awfFpCYTcP"""
             return
 
         await interaction.response.defer()
-        await interaction.send(
-            embed=_get_dice_result(dice_id, value_a, value_b),
-            view=_DiceRetryButtonView(dice_id, value_a, value_b),
-        )
+
+        embed = _get_dice_result(dice_id, value_a, value_b)
+        if (user := interaction.user):
+            embed.set_author(name=user.display_name, icon_url=user.display_avatar.url)
+
+        await interaction.send(embed=embed, view=_DiceRetryButtonView(dice_id, value_a, value_b))
 
 
 def setup(bot, **kwargs):
