@@ -186,6 +186,14 @@ class _DiceRetryButtonView(nextcord.ui.View):
         self.stop()
 
 
+def _get_retry_button(dice_id: DiceId, value_a: int, value_b: int) -> _DiceRetryButtonView | None:
+    return (
+        _DiceRetryButtonView(dice_id, value_a, value_b)
+        if dice_id is not DiceId.NORMAL or value_a < value_b
+        else nextcord.utils.MISSING
+    )
+
+
 class Amuse(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
@@ -204,7 +212,7 @@ class Amuse(commands.Cog):
     async def dice_ctx(self, ctx: commands.Context, max_count: int, min_count: int = 1):
         await ctx.reply(
             embed=_get_dice_result(DiceId.NORMAL, min_count, max_count),
-            view=_DiceRetryButtonView(DiceId.NORMAL, min_count, max_count),
+            view=_get_retry_button(DiceId.NORMAL, min_count, max_count),
         )
 
     @nextcord.slash_command(name="amuse", description="The command of amuse", guild_ids=GUILD_IDS)
@@ -233,7 +241,7 @@ class Amuse(commands.Cog):
     ):
         await interaction.send(
             embed=_get_dice_result(DiceId.NORMAL, min_count, max_count),
-            view=_DiceRetryButtonView(DiceId.NORMAL, min_count, max_count),
+            view=_get_retry_button(DiceId.NORMAL, min_count, max_count),
         )
 
     @dice.subcommand(name="trpg", description="TRPG用のサイコロ「nDr」を振ります")
@@ -258,7 +266,7 @@ class Amuse(commands.Cog):
         await interaction.response.defer()
         await interaction.send(
             embed=_get_dice_result(DiceId.TRPG, number_dice, dice_count),
-            view=_DiceRetryButtonView(DiceId.TRPG, number_dice, dice_count),
+            view=_get_retry_button(DiceId.TRPG, number_dice, dice_count),
         )
 
     @commands.command(name="janken", help=f"""\
@@ -450,7 +458,7 @@ https://discord.gg/awfFpCYTcP"""
         if (user := interaction.user):
             embed.set_author(name=user.display_name, icon_url=user.display_avatar.url)
 
-        await interaction.send(embed=embed, view=_DiceRetryButtonView(dice_id, value_a, value_b))
+        await interaction.send(embed=embed, view=_get_retry_button(dice_id, value_a, value_b))
 
 
 def setup(bot, **kwargs):
