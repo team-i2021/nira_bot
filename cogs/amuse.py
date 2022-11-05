@@ -173,6 +173,7 @@ class _DiceRetryButtonView(nextcord.ui.View):
 
         self.stop()
 
+
 class Amuse(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
