@@ -52,6 +52,21 @@ JANKEN_RESULTS = {
     JankenResult.WIN: ":laughing: 私の勝ちです！！",
 }
 
+DIVINATION_STAR = "★"
+DIVINATION_MESSAGES = [
+    "きっといいことあるよ...(`5%`)",
+    "まぁ星0よりはマシだし...？(`7%`)",
+    "まぁ、大抵の人はそんなもんじゃね？(`10%`)",
+    "ほら、星みっつぅ～！w(`13%`)",
+    "ガルパとかプロセカとかならいい方じゃん？(`15%`)",
+    "中途半端っすね。うん。(`19%`)",
+    "おお、ええやん。(`13%`)",
+    "ラッキーセブンやん！すごいなぁ！(`7%`)",
+    "星8でも十分すごいやん！！(`6%`)",
+    "いや、ここまで来たら星10出しなよwwwwwwwwwwwww(`4%`)",
+    "星10は神の領域(当社調べ)だよ！！！！！凄い！！！(`1%`)",
+]
+
 
 def _get_dice_result(dice_id: str, value_a: int, value_b: int) -> nextcord.Embed:
     if dice_id == DICE_ID_NORMAL:
@@ -105,6 +120,46 @@ def _get_janken_result(player_hand: JankenHand) -> nextcord.Embed:
     return embed
 
 
+def _get_divination_result() -> nextcord.Embed:
+    value = random.randint(1, 100)
+    star_num = 1
+
+    # TODO: もう少しスマートにしたい
+    if 1 <= value <= 5:
+        star_num = 0
+    elif 5 < value <= 12:
+        star_num = 1
+    elif 12 < value <= 22:
+        star_num = 2
+    elif 22 < value <= 35:
+        star_num = 3
+    elif 35 < value <= 50:
+        star_num = 4
+    elif 50 < value <= 69:
+        star_num = 5
+    elif 69 < value <= 82:
+        star_num = 6
+    elif 82 < value <= 89:
+        star_num = 7
+    elif 89 < value <= 95:
+        star_num = 8
+    elif 95 < value <= 99:
+        star_num = 9
+    else:
+        star_num = 10
+
+    embed = nextcord.Embed(
+        title="うらない",
+        description=f"**{DIVINATION_STAR * star_num}**",
+        color=0x00ff00,
+    )
+    embed.add_field(
+        name=f"あなたの運勢は**星10個中の{star_num}個**です！",
+        value=f"> {DIVINATION_MESSAGES[star_num]}",
+    )
+    return embed
+
+
 class _DiceRetryButtonView(nextcord.ui.View):
     def __init__(self, dice_id: str, value_a: int, value_b: int):
         super().__init__(timeout=None)
@@ -117,7 +172,6 @@ class _DiceRetryButtonView(nextcord.ui.View):
         ))
 
         self.stop()
-
 
 class Amuse(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs):
@@ -241,72 +295,20 @@ class Amuse(commands.Cog):
             embed=_get_janken_result(JankenHand(player_hand_id)),
         )
 
-    def uranaiEmbed(self):
-        rnd_uranai = random.randint(1, 100)
-        if rnd_uranai >= 1 and rnd_uranai <= 5:
-            ur_w = 0
-            stars = ""
-            ur_m = "きっといいことあるよ...(`5%`)"
-        elif rnd_uranai >= 6 and rnd_uranai <= 12:
-            ur_w = 1
-            stars = "**★**"
-            ur_m = "まぁ星0よりはマシだし...？(`7%`)"
-        elif rnd_uranai >= 13 and rnd_uranai <= 22:
-            ur_w = 2
-            stars = "**★★**"
-            ur_m = "まぁ、大抵の人はそんなもんじゃね？(`10%`)"
-        elif rnd_uranai >= 23 and rnd_uranai <= 35:
-            ur_w = 3
-            stars = "**★★★**"
-            ur_m = "ほら、星みっつぅ～！w(`13%`)"
-        elif rnd_uranai >= 36 and rnd_uranai <= 50:
-            ur_w = 4
-            stars = "**★★★★**"
-            ur_m = "ガルパとかプロセカとかならいい方じゃん？(`15%`)"
-        elif rnd_uranai >= 51 and rnd_uranai <= 69:
-            ur_w = 5
-            stars = "**★★★★★**"
-            ur_m = "中途半端っすね。うん。(`19%`)"
-        elif rnd_uranai >= 70 and rnd_uranai <= 82:
-            ur_w = 6
-            stars = "**★★★★★★**"
-            ur_m = "おお、ええやん。(`13%`)"
-        elif rnd_uranai >= 83 and rnd_uranai <= 89:
-            ur_w = 7
-            stars = "**★★★★★★★**"
-            ur_m = "ラッキーセブンやん！すごいなぁ！(`7%`)"
-        elif rnd_uranai >= 90 and rnd_uranai <= 95:
-            ur_w = 8
-            stars = "**★★★★★★★★**"
-            ur_m = "星8でも十分すごいやん！！(`6%`)"
-        elif rnd_uranai >= 96 and rnd_uranai <= 99:
-            ur_w = 9
-            stars = "**★★★★★★★★★**"
-            ur_m = "いや、ここまで来たら星10出しなよwwwwwwwwwwwww(`4%`)"
-        elif rnd_uranai == 100:
-            ur_w = 10
-            stars = "**★★★★★★★★★★**"
-            ur_m = "星10は神の領域(当社調べ)だよ！！！！！凄い！！！(`1%`)"
-        embed = nextcord.Embed(
-            title="うらない", description=f"{stars}", color=0x00ff00)
-        embed.add_field(name=f"あなたの運勢は**星10個中の{ur_w}個**です！", value=f"> {ur_m}")
-        return embed
-
-    @commands.command(name="uranai", help="""\
+    @commands.command(name="divination", aliases=("uranai",) help="""\
 占いで遊びます。いや、ちゃんと占います。
 ただ、これであなたの運勢が決まるわけではありません。
 あなたの行いが良くなれば、自然と運勢も上がっていきますし、行いが悪くなれば、自然と運勢が下がっていきます。
 自分の運勢を上げたいと思うなら、人に優しくしたり、人のことを思った行動をしてみてください。""")
-    async def uranai(self, ctx: commands.Context):
-        await ctx.reply(embed=self.uranaiEmbed())
-        return
+    async def divination_ctx(self, ctx: commands.Context):
+        await ctx.reply(embed=_get_divination_result())
 
-    @amuse.subcommand(name="uranai", description="占いをします")
-    async def uranai_slash(
-            self,
-            interaction=Interaction):
-        await messages.mreply(interaction, "占い", embed=self.uranaiEmbed())
-        return
+    @amuse.subcommand(name="divination", description="占いをします")
+    async def divination(
+        self,
+        interaction=Interaction,
+    ):
+        await interaction.send("占い", embed=_get_divination_result())
 
     @commands.command(name="wordle", help="""\
 Wordleという、単語あてゲームです。
