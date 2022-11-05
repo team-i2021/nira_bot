@@ -296,7 +296,7 @@ class Amuse(commands.Cog):
             embed=_get_janken_result(JankenHand(player_hand_id)),
         )
 
-    @commands.command(name="divination", aliases=("uranai",) help="""\
+    @commands.command(name="divination", aliases=("uranai",), help="""\
 占いで遊びます。いや、ちゃんと占います。
 ただ、これであなたの運勢が決まるわけではありません。
 あなたの行いが良くなれば、自然と運勢も上がっていきますし、行いが悪くなれば、自然と運勢が下がっていきます。
