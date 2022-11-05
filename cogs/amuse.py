@@ -305,10 +305,7 @@ class Amuse(commands.Cog):
         await ctx.reply(embed=_get_divination_result())
 
     @amuse.subcommand(name="divination", description="占いをします")
-    async def divination(
-        self,
-        interaction=Interaction,
-    ):
+    async def divination(self, interaction: Interaction):
         await interaction.send("占い", embed=_get_divination_result())
 
     @commands.command(name="wordle", help="""\
