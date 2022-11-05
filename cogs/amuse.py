@@ -19,6 +19,11 @@ from util.nira import NIRA
 # 娯楽系
 
 
+class DiceId(Enum):
+    NORMAL = "normal"
+    TRPG = "diceroll"
+
+
 class JankenHand(Enum):
     ROCK = 1
     SCISSORS = 2
@@ -32,8 +37,6 @@ class JankenResult(Enum):
 
 
 DICE_ID_PREFIX = "cogs.amuse.dice"
-DICE_ID_NORMAL = "normal"
-DICE_ID_TRPG = "diceroll"
 
 JANKEN_RULES_URL = r"https://ja.wikipedia.org/wiki/%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93#%E3%83%AB%E3%83%BC%E3%83%AB"
 JANKEN_HAND_NAMES = {
@@ -68,50 +71,59 @@ DIVINATION_MESSAGES = [
 ]
 
 
-def _get_dice_result(dice_id: str, value_a: int, value_b: int) -> nextcord.Embed:
-    if dice_id == DICE_ID_NORMAL:
-        min_value, max_value = value_a, value_b
+def _get_dice_result(dice_id: DiceId, value_a: int, value_b: int) -> nextcord.Embed:
+    match dice_id:
+        case DiceId.NORMAL:
+            min_value, max_value = value_a, value_b
 
-        if max_value < min_value:
-            return nextcord.Embed(title="エラー", description="最大値が最小値より小さいよ！", color=0xff0000)
+            if max_value < min_value:
+                return nextcord.Embed(
+                    title="エラー",
+                    description="最大値が最小値より小さいよ！",
+                    color=0xff0000,
+                )
 
-        value = random.randint(min_value, max_value)
-        return nextcord.Embed(title=f"サイコロ\n`{min_value}-{max_value}`", description=f"```{value}```", color=0x00ff00)
+            value = random.randint(min_value, max_value)
+            return nextcord.Embed(
+                title=f"サイコロ\n`{min_value}-{max_value}`",
+                description=f"```{value}```",
+                color=0x00ff00,
+            )
 
-    elif dice_id == DICE_ID_TRPG:
-        number_dice, max_value = value_a, value_b
+        case DiceId.TRPG:
+            number_dice, max_value = value_a, value_b
 
-        results = [random.randint(1, max_value) for _ in range(number_dice)]
+            results = [random.randint(1, max_value) for _ in range(number_dice)]
 
-        embed = nextcord.Embed(
-            title=f"サイコロ\n`{number_dice}D{max_value}`",
-            description=f"```{sum(results)}```",
-            color=0x00ff00,
-        )
+            embed = nextcord.Embed(
+                title=f"サイコロ\n`{number_dice}D{max_value}`",
+                description=f"```{sum(results)}```",
+                color=0x00ff00,
+            )
 
-        results_str = str(results)
-        if len(results_str) > 1000:
-            results_str = f"{results_str[:1000]}..."
-        embed.add_field(name="ダイスの目の詳細", value=f"```{results_str}```", inline=False)
+            results_str = str(results)
+            if len(results_str) > 1000:
+                results_str = f"{results_str[:1000]}..."
+            embed.add_field(name="ダイスの目の詳細", value=f"```{results_str}```", inline=False)
 
-        return embed
+            return embed
 
-    else:
-        raise ValueError(f"Unknown dice id: {dice_id}")
+    raise ValueError(f"Unknown dice id: {dice_id}")
 
 
 def _get_janken_result(player_hand: JankenHand) -> nextcord.Embed:
     nira_hand = JankenHand(random.randint(1, 3))
     result = JankenResult.DRAW
 
-    if player_hand is nira_hand:
-        pass
-    elif player_hand is JankenHand.ROCK:
-        result = JankenResult.LOSE if nira_hand is JankenHand.SCISSORS else JankenResult.WIN
-    elif player_hand is JankenHand.SCISSORS:
-        result = JankenResult.LOSE if nira_hand is JankenHand.PAPER else JankenResult.WIN
-    elif player_hand is JankenHand.PAPER:
-        result = JankenResult.LOSE if nira_hand is JankenHand.ROCK else JankenResult.WIN
+    match player_hand:
+        case _ if player_hand is nira_hand:
+            pass
+        case JankenHand.ROCK:
+            result = JankenResult.LOSE if nira_hand is JankenHand.SCISSORS else JankenResult.WIN
+        case JankenHand.SCISSORS:
+            result = JankenResult.LOSE if nira_hand is JankenHand.PAPER else JankenResult.WIN
+        case JankenHand.PAPER:
+            result = JankenResult.LOSE if nira_hand is JankenHand.ROCK else JankenResult.WIN
 
     embed = nextcord.Embed(title="にらにらじゃんけん", color=0x00ff00)
     embed.add_field(name="あなた", value=JANKEN_HAND_NAMES[player_hand], inline=False)
@@ -161,14 +173,14 @@ def _get_divination_result() -> nextcord.Embed:
 
 
 class _DiceRetryButtonView(nextcord.ui.View):
-    def __init__(self, dice_id: str, value_a: int, value_b: int):
+    def __init__(self, dice_id: DiceId, value_a: int, value_b: int):
         super().__init__(timeout=None)
 
         self.add_item(nextcord.ui.Button(
             style=nextcord.ButtonStyle.green,
             label="もう一度",
             emoji="\N{Rightwards Arrow with Hook}",
-            custom_id=f"{DICE_ID_PREFIX}:{dice_id}:{value_a},{value_b}",
+            custom_id=f"{DICE_ID_PREFIX}:{dice_id.value}:{value_a},{value_b}",
         ))
 
         self.stop()
@@ -191,8 +203,8 @@ class Amuse(commands.Cog):
 デフォルト: 1""")
     async def dice_ctx(self, ctx: commands.Context, max_count: int, min_count: int = 1):
         await ctx.reply(
-            embed=_get_dice_result(DICE_ID_NORMAL, min_count, max_count),
-            view=_DiceRetryButtonView(DICE_ID_NORMAL, min_count, max_count),
+            embed=_get_dice_result(DiceId.NORMAL, min_count, max_count),
+            view=_DiceRetryButtonView(DiceId.NORMAL, min_count, max_count),
         )
 
     @nextcord.slash_command(name="amuse", description="The command of amuse", guild_ids=GUILD_IDS)
@@ -220,8 +232,8 @@ class Amuse(commands.Cog):
         ),
     ):
         await interaction.send(
-            embed=_get_dice_result(DICE_ID_NORMAL, min_count, max_count),
-            view=_DiceRetryButtonView(DICE_ID_NORMAL, min_count, max_count),
+            embed=_get_dice_result(DiceId.NORMAL, min_count, max_count),
+            view=_DiceRetryButtonView(DiceId.NORMAL, min_count, max_count),
         )
 
     @dice.subcommand(name="trpg", description="TRPG用のサイコロ「nDr」を振ります")
@@ -245,8 +257,8 @@ class Amuse(commands.Cog):
     ):
         await interaction.response.defer()
         await interaction.send(
-            embed=_get_dice_result(DICE_ID_TRPG, number_dice, dice_count),
-            view=_DiceRetryButtonView(DICE_ID_TRPG, number_dice, dice_count),
+            embed=_get_dice_result(DiceId.TRPG, number_dice, dice_count),
+            view=_DiceRetryButtonView(DiceId.TRPG, number_dice, dice_count),
         )
 
     @commands.command(name="janken", help=f"""\
@@ -426,6 +438,7 @@ https://discord.gg/awfFpCYTcP"""
         dice_id, value_a, value_b = None, None, None
         try:
             _, dice_id, values = button_id.split(":", 2)
+            dice_id = DiceId(dice_id)
             a, b = values.split(",", 1)
             value_a, value_b = int(a), int(b)
         except ValueError:
