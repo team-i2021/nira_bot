@@ -4,6 +4,8 @@ import random
 import re
 import sys
 import urllib.parse
+from enum import Enum, auto
+from typing import Literal
 
 import nextcord
 from nextcord import Interaction, SlashOption
@@ -16,11 +18,39 @@ from util.nira import NIRA
 
 # 娯楽系
 
-MESSAGE, SLASH = [0, 1]
+
+class JankenHand(Enum):
+    ROCK = 1
+    SCISSORS = 2
+    PAPER = 3
+
+
+class JankenResult(Enum):
+    DRAW = auto()
+    LOSE = auto()
+    WIN = auto()
+
 
 DICE_ID_PREFIX = "cogs.amuse.dice"
 DICE_ID_NORMAL = "normal"
 DICE_ID_TRPG = "diceroll"
+
+JANKEN_RULES_URL = r"https://ja.wikipedia.org/wiki/%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93#%E3%83%AB%E3%83%BC%E3%83%AB"
+JANKEN_HAND_NAMES = {
+    JankenHand.ROCK: ":fist: グー",
+    JankenHand.SCISSORS: ":v: チョキ",
+    JankenHand.PAPER: ":hand_splayed: パー",
+}
+JANKEN_REGEXES = {
+    JankenHand.ROCK: re.compile(r"(ぐ|グ|ｸﾞ)[うウｳぅゥｩーｰ―−-〜~]+|rock", re.I),
+    JankenHand.SCISSORS: re.compile(r"[ちチﾁ][ょョｮ][きキｷ]|scissors?", re.I),
+    JankenHand.PAPER: re.compile(r"(ぱ|パ|ﾊﾟ)[あアｱぁァｧーｰ―−-〜~]+|paper", re.I),
+}
+JANKEN_RESULTS = {
+    JankenResult.DRAW: ":thinking: あいこですね...",
+    JankenResult.LOSE: ":pensive: あなたの勝ちですね...",
+    JankenResult.WIN: ":laughing: 私の勝ちです！！",
+}
 
 
 def _get_dice_result(dice_id: str, value_a: int, value_b: int) -> nextcord.Embed:
@@ -53,6 +83,26 @@ def _get_dice_result(dice_id: str, value_a: int, value_b: int) -> nextcord.Embed
 
     else:
         raise ValueError(f"Unknown dice id: {dice_id}")
+
+
+def _get_janken_result(player_hand: JankenHand) -> nextcord.Embed:
+    nira_hand = JankenHand(random.randint(1, 3))
+    result = JankenResult.DRAW
+
+    if player_hand is nira_hand:
+        pass
+    elif player_hand is JankenHand.ROCK:
+        result = JankenResult.LOSE if nira_hand is JankenHand.SCISSORS else JankenResult.WIN
+    elif player_hand is JankenHand.SCISSORS:
+        result = JankenResult.LOSE if nira_hand is JankenHand.PAPER else JankenResult.WIN
+    elif player_hand is JankenHand.PAPER:
+        result = JankenResult.LOSE if nira_hand is JankenHand.ROCK else JankenResult.WIN
+
+    embed = nextcord.Embed(title="にらにらじゃんけん", color=0x00ff00)
+    embed.add_field(name="あなた", value=JANKEN_HAND_NAMES[player_hand], inline=False)
+    embed.add_field(name="にら", value=JANKEN_HAND_NAMES[nira_hand], inline=False)
+    embed.add_field(name="RESULT", value=JANKEN_RESULTS[result], inline=False)
+    return embed
 
 
 class _DiceRetryButtonView(nextcord.ui.View):
@@ -144,97 +194,52 @@ class Amuse(commands.Cog):
             view=_DiceRetryButtonView(DICE_ID_TRPG, number_dice, dice_count),
         )
 
-    def jankenEmbed(self, content, type):
-        if type == MESSAGE and content == f"{self.bot.command_prefix}janken":
-            return nextcord.Embed(title="Error", description=f"じゃんけんっていのは、「グー」「チョキ」「パー」のどれかを出して遊ぶゲームだよ。\n[ルール解説](https://ja.wikipedia.org/wiki/%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93#:~:text=%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93%E3%81%AF2%E4%BA%BA%E4%BB%A5%E4%B8%8A,%E3%81%A8%E6%95%97%E8%80%85%E3%82%92%E6%B1%BA%E5%AE%9A%E3%81%99%E3%82%8B%E3%80%82)\n```{self.bot.command_prefix}janken [グー/チョキ/パー]```", color=0xff0000)
-        mes_te = ""
-        try:
-            if type == MESSAGE:
-                mes_te = content.split(" ", 1)[1]
-            elif type == SLASH:
-                mes_te = content
-        except Exception as err:
-            return nextcord.Embed(title="Error", description=f"な、なんかエラー出たけど！？\n```{self.bot.command_prefix}janken [グー/チョキ/パー]```\n{err}", color=0xff0000)
-        if mes_te != "グー" and mes_te != "ぐー" and mes_te != "チョキ" and mes_te != "ちょき" and mes_te != "パー" and mes_te != "ぱー":
-            return nextcord.Embed(title="Error", description=f"じゃんけんっていのは、「グー」「チョキ」「パー」のどれかを出して遊ぶゲームだよ。\n[ルール解説](https://ja.wikipedia.org/wiki/%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93#:~:text=%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93%E3%81%AF2%E4%BA%BA%E4%BB%A5%E4%B8%8A,%E3%81%A8%E6%95%97%E8%80%85%E3%82%92%E6%B1%BA%E5%AE%9A%E3%81%99%E3%82%8B%E3%80%82)\n```{self.bot.command_prefix}janken [グー/チョキ/パー]```", color=0xff0000)
-        embed = nextcord.Embed(
-            title="にらにらじゃんけん", description=f"```{self.bot.command_prefix}janken [グー/チョキ/パー]```", color=0x00ff00)
-        if mes_te == "グー" or mes_te == "ぐー":
-            mes_te = "```グー```"
-            embed.add_field(name="あなた", value=mes_te, inline=False)
-            embed.set_image(
-                url="https://nattyan-tv.github.io/nira_bot/images/jyanken_gu.png")
-        elif mes_te == "チョキ" or mes_te == "ちょき":
-            mes_te = "```チョキ```"
-            embed.add_field(name="あなた", value=mes_te, inline=False)
-            embed.set_image(
-                url="https://nattyan-tv.github.io/nira_bot/images/jyanken_choki.png")
-        elif mes_te == "パー" or mes_te == "ぱー":
-            mes_te = "```パー```"
-            embed.add_field(name="あなた", value=mes_te, inline=False)
-            embed.set_image(
-                url="https://nattyan-tv.github.io/nira_bot/images/jyanken_pa.png")
-        rnd_jyanken = random.randint(1, 3)
-        if rnd_jyanken == 1:
-            mes_te_e = "```グー```"
-            embed.add_field(name="にら", value=mes_te_e, inline=False)
-            embed.set_image(
-                url="https://nattyan-tv.github.io/nira_bot/images/jyanken_gu.png")
-            if mes_te == "```グー```":
-                res_jyan = ":thinking: あいこですね..."
-            elif mes_te == "```チョキ```":
-                res_jyan = ":laughing: 私の勝ちです！！"
-            elif mes_te == "```パー```":
-                res_jyan = ":pensive: あなたの勝ちですね..."
-        elif rnd_jyanken == 2:
-            mes_te_e = "```チョキ```"
-            embed.add_field(name="にら", value=mes_te_e, inline=False)
-            embed.set_image(
-                url="https://nattyan-tv.github.io/nira_bot/images/jyanken_choki.png")
-            if mes_te == "```チョキ```":
-                res_jyan = ":thinking: あいこですね..."
-            elif mes_te == "```パー```":
-                res_jyan = ":laughing: 私の勝ちです！！"
-            elif mes_te == "```グー```":
-                res_jyan = ":pensive: あなたの勝ちですね..."
-        elif rnd_jyanken == 3:
-            mes_te_e = "```パー```"
-            embed.add_field(name="にら", value=mes_te_e, inline=False)
-            embed.set_image(
-                url="https://nattyan-tv.github.io/nira_bot/images/jyanken_pa.png")
-            if mes_te == "```パー```":
-                res_jyan = ":thinking: あいこですね..."
-            elif mes_te == "```グー```":
-                res_jyan = ":laughing: 私の勝ちです！！"
-            elif mes_te == "```チョキ```":
-                res_jyan = ":pensive: あなたの勝ちですね..."
-        embed.add_field(name="\n```RESULT```\n", value=res_jyan, inline=False)
-        return embed
-
-    @commands.command(name="janken", help="""\
+    @commands.command(name="janken", help=f"""\
 じゃんけんで遊びます。
-`n!janekn [グー/チョキ/パー]`
+`n!janken [グー/チョキ/パー]`
 グーかチョキかパー以外を出したりすると少し煽られます。
-[ルール解説](https://ja.wikipedia.org/wiki/%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93#:~:text=%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93%E3%81%AF2%E4%BA%BA%E4%BB%A5%E4%B8%8A,%E3%81%A8%E6%95%97%E8%80%85%E3%82%92%E6%B1%BA%E5%AE%9A%E3%81%99%E3%82%8B%E3%80%82)
+[ルール解説]({JANKEN_RULES_URL})
 
-引数1:str
+引数1: str
 「グー」または「チョキ」または「パー」の手。""")
-    async def janken_ctx(self, ctx: commands.Context):
-        await ctx.reply(embed=self.jankenEmbed(ctx.message.content, MESSAGE))
-        return
+    async def janken_ctx(self, ctx: commands.Context, player_hand_str: str):
+        player_hand: JankenHand | None = None
+        for hand, regex in JANKEN_REGEXES.items():
+            if regex.fullmatch(player_hand_str):
+                player_hand = hand
+                break
+
+        await ctx.reply(embed=(
+            nextcord.Embed(
+                title="Error",
+                description=f"じゃんけんっていうのは、「グー」「チョキ」「パー」のどれかを出して遊ぶゲームだよ。\n"
+                            f"[ルール解説]({JANKEN_RULES_URL})\n"
+                            f"```{ctx.prefix}janken [グー/チョキ/パー]```",
+                color=0xff0000,
+            )
+            if player_hand is None
+            else _get_janken_result(player_hand)
+        ))
 
     @amuse.subcommand(name="janken", description="じゃんけんをします！")
     async def janken(
-            self,
-            interaction=Interaction,
-            hand: str = SlashOption(
-                name="hand",
-                description="じゃんけんの手です。",
-                required=True,
-                choices={"グー": "グー", "チョキ": "チョキ", "パー": "パー"},
-            )):
-        await messages.mreply(interaction, "じゃんけん！", embed=self.jankenEmbed(hand, SLASH))
-        return
+        self,
+        interaction=Interaction,
+        player_hand_id: int = SlashOption(
+            name="hand",
+            description="じゃんけんの手です",
+            required=True,
+            choices={
+                "グー": JankenHand.ROCK.value,
+                "チョキ": JankenHand.SCISSORS.value,
+                "パー": JankenHand.PAPER.value,
+            },
+        ),
+    ):
+        await interaction.send(
+            "じゃんけん！",
+            embed=_get_janken_result(JankenHand(player_hand_id)),
+        )
 
     def uranaiEmbed(self):
         rnd_uranai = random.randint(1, 100)
