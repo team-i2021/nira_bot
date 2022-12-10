@@ -404,74 +404,60 @@ class reaction(commands.Cog):
                 await ctx.send(embed=embed)
 
 
+    @application_checks.has_permissions(manage_guild=True)
     @nextcord.slash_command(name="nr", description="Normal Reaction Setting", guild_ids=n_fc.GUILD_IDS)
     async def nr_slash(self, interaction):
         pass
 
 
+    @application_checks.has_permissions(manage_guild=True)
     @nr_slash.subcommand(name="channel", description="Setting of Normal Reaction in Channel", description_localizations={nextcord.Locale.ja: "チャンネルでの通常反応設定"})
     async def channel_nr_slash(
-        self,
-        interaction: Interaction,
-        setting: int = SlashOption(
-            name="setting",
-            name_localizations={
-                nextcord.Locale.ja: "設定"
-            },
-            description="Value of Setting Normal Reaction in Channel",
-            description_localizations={
-                nextcord.Locale.ja: "チャンネルでの通常設定の有効化/無効化"
-            },
-            choices={"Enable": 1, "Disable": 0},
-            choice_localizations={
-                nextcord.Locale.ja: {"有効": 1, "無効": 0}
-            }
-        )
-    ):
-        if admin_check.admin_check(interaction.guild, interaction.user):
-            await database.default_pull(self.bot.client, reaction_datas.reaction_bool_list)
-            if interaction.guild.id not in reaction_datas.reaction_bool_list.value:
-                reaction_datas.reaction_bool_list.value[interaction.guild.id] = {interaction.channel.id: setting}
-            else:
-                reaction_datas.reaction_bool_list.value[interaction.guild.id][interaction.channel.id] = setting
-            await interaction.send(embed=nextcord.Embed(title="Normal Reaction Setting", description=f"チャンネル <#{interaction.channel.id}> での通常反応を変更しました。", color=0x00ff00), ephemeral=True)
-            await database.default_push(self.bot.client, reaction_datas.reaction_bool_list)
-        else:
-            await interaction.send(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000), ephemeral=True)
-            return
+            self,
+            interaction: Interaction,
+            setting: bool = SlashOption(
+                name="setting",
+                name_localizations={
+                    nextcord.Locale.ja: "設定"
+                },
+                description="Value of Setting Normal Reaction in Channel",
+                description_localizations={
+                    nextcord.Locale.ja: "チャンネルでの通常設定の有効化/無効化"
+                },
+                choices={"Enable": True, "Disable": False},
+                choice_localizations={
+                    nextcord.Locale.ja: {"有効": False, "無効": True}
+                },
+                required=True
+            )
+        ):
+        await self.nr_collection.update_one({"guild_id": interaction.guild.id}, {"$set": {str(interaction.channel.id): setting}}, upsert=True)
+        await interaction.response.send_message(f"{interaction.channel.name}での通常反応を{'有効化' if setting else '無効化'}しました。\n※サーバーで反応が無効化されている場合は、個別で有効化しても反応しませんのでご注意ください。")
 
 
+    @application_checks.has_permissions(manage_guild=True)
     @nr_slash.subcommand(name="server", description="Setting of Normal Reaction in Server", description_localizations={nextcord.Locale.ja: "サーバーでの通常反応設定"})
     async def server_nr_slash(
-        self,
-        interaction: Interaction,
-        setting: int = SlashOption(
-            name="setting",
-            name_localizations={
-                nextcord.Locale.ja: "設定"
-            },
-            description="Value of Setting Normal Reaction in Server",
-            description_localizations={
-                nextcord.Locale.ja: "サーバーでの通常設定の有効化/無効化"
-            },
-            choices={"Enable": 1, "Disable": 0},
-            choice_localizations={
-                nextcord.Locale.ja: {"有効": 1, "無効": 0}
-            }
-        )
-    ):
-        if admin_check.admin_check(interaction.guild, interaction.user):
-            await database.default_pull(self.bot.client, reaction_datas.reaction_bool_list)
-            if interaction.guild.id not in reaction_datas.reaction_bool_list.value:
-                reaction_datas.reaction_bool_list.value[interaction.guild.id] = {
-                    "all": setting, interaction.channel.id: 1}
-            else:
-                reaction_datas.reaction_bool_list.value[interaction.guild.id]["all"] = setting
-            await interaction.send(embed=nextcord.Embed(title="Normal Reaction Setting", description=f"サーバー `{interaction.guild.name}` での通常反応を変更しました。", color=0x00ff00), ephemeral=True)
-            await database.default_push(self.bot.client, reaction_datas.reaction_bool_list)
-        else:
-            await interaction.send(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000), ephemeral=True)
-            return
+            self,
+            interaction: Interaction,
+            setting: int = SlashOption(
+                name="setting",
+                name_localizations={
+                    nextcord.Locale.ja: "設定"
+                },
+                description="Value of Setting Normal Reaction in Server",
+                description_localizations={
+                    nextcord.Locale.ja: "サーバーでの通常設定の有効化/無効化"
+                },
+                choices={"Enable": True, "Disable": False},
+                choice_localizations={
+                    nextcord.Locale.ja: {"有効": True, "無効": False}
+                },
+                required=True
+            )
+        ):
+        await self.nr_collection.update_one({"guild_id": interaction.guild.id}, {"$set": {"all": setting}}, upsert=True)
+        await interaction.response.send_message(f"サーバーでの通常反応を{'有効化' if setting else '無効化'}しました。")
 
 
     @commands.command(name="ar", help="""\
@@ -480,7 +466,7 @@ class reaction(commands.Cog):
 `n!ar off`:全反応を無効化
 `n!ar on`:全反応を有効化
 
-チャンネルトピックに`nira-off`と入れておくと、そのチャンネルでは反応を無効化します。""")
+チャンネルトピックに`nira-off`と入れておくと、そのチャンネルでは設定を無視して反応を無効化します。""")
     async def ar(self, ctx: commands.Context):
         try:
             await database.default_pull(self.bot.client, reaction_datas.all_reaction_list)
