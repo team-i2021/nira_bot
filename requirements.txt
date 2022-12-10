@@ -2,7 +2,7 @@ click==8.0.3
 jaconv==0.3
 onami==2.3.2
 listre==1.0.0
-mcstatus==6.5.0
+mcstatus>=10.0.0
 nextcord==2.1.0
 niconico-dl==2.2.7
 psutil==5.9.0
