@@ -3,7 +3,7 @@ import logging
 from util import admin_check, n_fc, eh, dict_list, database
 from util.nira import NIRA
 import asyncio
-from nextcord.ext import commands
+from nextcord.ext import commands, application_checks
 import nextcord
 import traceback
 import os
@@ -14,55 +14,45 @@ import HTTP_db
 import json
 import importlib
 
-ROLE_ID = re.compile(r"<@&[0-9]+?>")
+from motor import motor_asyncio
 
 # 特定のチャンネルにて特定のメッセージが送信された場合にDMを送信する
-# データ形式:HTTP_db
+# データ形式:MongoDB
 
 # loggingの設定
 SYSDIR = sys.path[0]
 
-class MessageDMData:
-    name = "message_dm"
-    value = {}
-    default = {}
-    value_type = database.CHANNEL_VALUE
 
 class MessageDM(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
-        asyncio.ensure_future(database.default_pull(self.bot.client, MessageDMData))
+        self.collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["message_dm"]
 
     @nextcord.slash_command(name="mesdm", description="Send DM when a set message is sent", guild_ids=n_fc.GUILD_IDS)
     async def slash_message_dm(self, interaction: Interaction):
         pass
 
+    @application_checks.has_permissions(manage_guild=True)
     @slash_message_dm.subcommand(name="set", description="チャンネルのメッセージDMの設定をします")
     async def slash_message_dm_set(
-        self,
-        interaction: Interaction,
-        regex: str = SlashOption(
-            required=True,
-            description="判定するメッセージです。正規表現型で書き込めます。"
-        ),
-        dm_message: str = SlashOption(
-            required=True,
-            description="送信したいDMのメッセージ本文です"
-        )
-    ):
+            self,
+            interaction: Interaction,
+            regex: str = SlashOption(
+                required=True,
+                description="判定するメッセージです。正規表現型で書き込めます。"
+            ),
+            dm_message: str = SlashOption(
+                required=True,
+                description="送信したいDMのメッセージ本文です"
+            )
+        ):
         await interaction.response.defer(ephemeral=True)
 
-        if interaction.guild.id not in MessageDMData.value:
-            MessageDMData.value[interaction.guild.id] = {
-                interaction.channel.id: [
-                    [regex, dm_message]
-                ]
-            }
-        else:
-            MessageDMData.value[interaction.guild.id][interaction.channel.id].append([
-                regex,
-                dm_message
-            ])
+        await self.collection.update_one(
+            {"guild_id": interaction.guild.id, "channel_id": interaction.channel.id, "regex": regex},
+            {"$set": {"message": dm_message}},
+            upsert=True
+        )
 
         await interaction.followup.send(
             embed=nextcord.Embed(
@@ -71,65 +61,46 @@ class MessageDM(commands.Cog):
                 color=0x00ff00
             )
         )
-        await database.default_push(self.bot.client, MessageDMData)
-        return
 
+    @application_checks.has_permissions(manage_guild=True)
     @slash_message_dm.subcommand(name="del", description="チャンネルのメッセージDMの設定を削除します")
     async def slash_message_dm_del(self, interaction: Interaction, regex: str = SlashOption(description="判定メッセージです", required=True)):
         await interaction.response.defer(ephemeral=True)
-        if not admin_check.admin_check(interaction.guild, interaction.user):
-            await interaction.followup.send(embed=nextcord.Embed(title="Error", description="あなたは管理者ではありません。", color=0xff0000))
-            return
 
-        if interaction.guild.id not in MessageDMData.value:
-            await interaction.followup.send(embed=nextcord.Embed(title="メッセージの設定", description="このサーバーにはメッセージDMの設定がありません。", color=0xff0000))
-            return
-        elif interaction.channel.id not in MessageDMData.value[interaction.guild.id]:
-            await interaction.followup.send(embed=nextcord.Embed(title="メッセージDMの設定", description="このチャンネルにはメッセージDMの設定がありません。", color=0xff0000))
-            return
+        result = await self.collection.delete_one({"guild_id": interaction.guild.id, "channel_id": interaction.channel.id, "regex": regex})
+
+        if result is None:
+            await interaction.followup.send(embed=nextcord.Embed(title="Error", description=f"このチャンネルには`{regex}`という判定メッセージは存在しません。", color=0xff0000))
         else:
-            if regex not in [i[0] for i in MessageDMData.value[interaction.guild.id][interaction.channel.id]]:
-                await interaction.followup.send(embed=nextcord.Embed(title="Error", description=f"このチャンネルには`{regex}`という判定メッセージは存在しません。", color=0xff0000))
-                return
-
-            for i in range(len(MessageDMData.value[interaction.guild.id][interaction.channel.id])):
-                if MessageDMData.value[interaction.guild.id][interaction.channel.id][i][0] == regex:
-                    del MessageDMData.value[interaction.guild.id][interaction.channel.id][i]
-
-            if len(MessageDMData.value[interaction.guild.id]) == 0:
-                del MessageDMData.value[interaction.guild.id][interaction.channel.id]
-
-            if len(MessageDMData.value[interaction.guild.id]) == 0:
-                del MessageDMData.value[interaction.guild.id]
-
             await interaction.followup.send(embed=nextcord.Embed(title="メッセージDMの設定", description=f"チャンネル:<#{interaction.channel.id}>\n`{regex}`の設定を削除しました。", color=0x00ff00))
-            await database.default_push(self.bot.client, MessageDMData)
 
+
+    @application_checks.has_permissions(manage_roles=True)
     @slash_message_dm.subcommand(name="list", description="メッセージDMの設定を表示します")
     async def slash_message_dm_list(self, interaction: Interaction):
         await interaction.response.defer(ephemeral=True)
-        if interaction.guild.id not in MessageDMData.value:
+        results = await self.collection.find({"guild_id": interaction.guild.id}).to_list(length=None)
+        if len(results) == 0:
             await interaction.followup.send(embed=nextcord.Embed(title="メッセージDMの設定", description="このサーバーにはメッセージDMの設定がありません。", color=0x00ff00))
         else:
             embed = nextcord.Embed(
-                title="メッセージDMの設定", description=interaction.guild.name, color=0x00ff00)
-            for channel_id, channel_setting in MessageDMData.value[interaction.guild.id].items():
-                content = ""
-                if len(channel_setting) == 0:
-                    del MessageDMData.value[interaction.guild.id][channel_id]
-                    if len(MessageDMData.value[interaction.guild.id]) == 0:
-                        del MessageDMData.value[interaction.guild.id]
-                        await interaction.followup.send(embed=nextcord.Embed(title="メッセージDMの設定", description="このサーバーには設定がありません。", color=0x00ff00))
-                        return
-                    asyncio.ensure_future(database.default_push(self.bot.client, MessageDMData))
-                    continue
-                for settings in channel_setting:
-                    content += f"判定メッセージ:`{settings[0]}`\n・メッセージ内容```\n{(lambda x: x if len(x) <= 100 else f'{x[:100]}...')(settings[1])}```"
+                title="メッセージDMの設定", description=interaction.guild.name, color=0x00ff00
+            )
+
+            contents = {}
+            for result in results:
+                if result["channel_id"] not in contents:
+                    contents[result["channel_id"]] = [f"判定メッセージ:`{result['regex']}`\n・メッセージ内容```\n{(lambda x: x if len(x) <= 100 else f'{x[:50]}...')(result['message'])}```"]
+                else:
+                    contents[result['channel_id']].append(f"判定メッセージ:`{result['regex']}`\n・メッセージ内容```\n{(lambda x: x if len(x) <= 100 else f'{x[:50]}...')(result['message'])}```")
+
+            for channel, config in contents.items():
                 embed.add_field(
-                    name=(await self.bot.fetch_channel(channel_id)).name,
-                    value=content,
+                    name=(await self.bot.fetch_channel(channel)).name,
+                    value="\n".join(config),
                     inline=False
                 )
+
             await interaction.followup.send(embed=embed)
 
     @commands.Cog.listener()
@@ -138,14 +109,13 @@ class MessageDM(commands.Cog):
             return
         if message.author.bot:
             return
-        if message.guild.id not in MessageDMData.value:
-            return
-        if message.channel.id not in MessageDMData.value[message.guild.id]:
+        results = await self.collection.find({"guild_id": message.guild.id, "channel_id": message.channel.id}).to_list(length=None)
+        if len(results) == 0:
             return
         SEND = False
-        for regex, content in MessageDMData.value[message.guild.id][message.channel.id]:
-            if re.search(regex, message.content) is not None:
-                await message.author.send(content)
+        for result in results:
+            if re.search(result["regex"], message.content) is not None:
+                await message.author.send(result["message"])
                 SEND = True
         if SEND:
             await message.add_reaction("\U0001F4E8")
@@ -190,57 +160,29 @@ class MessageDM(commands.Cog):
                 await ctx.reply(embed=nextcord.Embed(title="Error", description=f"コマンドが正しくありません。\n引数の数が不正です。\n`{self.bot.command_prefix}mesdm set [判定メッセージ] [送信するDMのメッセージ]`", color=0xff0000))
                 return
 
-            if ctx.guild.id not in MessageDMData.value:
-                MessageDMData.value[ctx.guild.id] = {
-                    ctx.channel.id: [
-                        [args[0], args[1]]
-                    ]
-                }
-            else:
-                MessageDMData.value[ctx.guild.id][ctx.channel.id].append(
-                    [args[0], args[1]]
-                )
+            await self.collection.update_one(
+                {"guild_id": ctx.guild.id, "channel_id": ctx.channel.id, "regex": args[0]},
+                {"$set": {"message": args[1]}},
+                upsert=True
+            )
 
             await ctx.reply(embed=nextcord.Embed(title="メッセージDMの設定", description=f"チャンネル:<#{ctx.channel.id}>\n判定メッセージ:`{args[0]}`\n・メッセージ内容```\n{(lambda x: x if len(x) <= 1000 else f'{x[:1000]}...')(args[1])}```", color=0x00ff00))
-            await database.default_push(self.bot.client, MessageDMData)
-            return
 
         elif command_type == "del":
             if not admin_check.admin_check(ctx.guild, ctx.author):
                 await ctx.reply(embed=nextcord.Embed(title="Error", description="あなたは管理者ではありません。", color=0xff0000))
                 return
 
-            if ctx.guild.id not in MessageDMData.value:
-                await ctx.reply(embed=nextcord.Embed(title="Error", description="このサーバーには設定がありません。", color=0xff0000))
-                return
+            result = await self.collection.delete_one({"guild_id": ctx.guild.id, "channel_id": ctx.channel.id, "regex": args[0]})
 
-            elif ctx.channel.id not in MessageDMData.value[ctx.guild.id]:
-                await ctx.reply(embed=nextcord.Embed(title="Error", description="このチャンネルには設定がありません。", color=0xff0000))
-                return
-
-            if len(args) != 1:
-                await ctx.reply(embed=nextcord.Embed(title="Error", description=f"コマンドが正しくありません。\n引数の数が不正です。\n`{self.bot.command_prefix}mesdm del [削除する判定メッセージ]`", color=0xff0000))
-                return
-
-            if args[0] not in [i[0] for i in MessageDMData.value[ctx.guild.id][ctx.channel.id]]:
+            if result is None:
                 await ctx.reply(embed=nextcord.Embed(title="Error", description=f"このチャンネルには`{args[0]}`という判定メッセージは存在しません。", color=0xff0000))
-                return
-
-            for i in range(len(MessageDMData.value[ctx.guild.id][ctx.channel.id])):
-                if MessageDMData.value[ctx.guild.id][ctx.channel.id][i][0] == args[0]:
-                    del MessageDMData.value[ctx.guild.id][ctx.channel.id][i]
-
-            if len(MessageDMData.value[ctx.guild.id]) == 0:
-                del MessageDMData.value[ctx.guild.id][ctx.channel.id]
-
-            if len(MessageDMData.value[ctx.guild.id]) == 0:
-                del MessageDMData.value[ctx.guild.id]
-
-            await ctx.reply(embed=nextcord.Embed(title="メッセージDMの設定", description=f"チャンネル:<#{ctx.channel.id}>での`{args[0]}`を削除しました。", color=0x00ff00))
-            await database.default_push(self.bot.client, MessageDMData)
+            else:
+                await ctx.reply(embed=nextcord.Embed(title="メッセージDMの設定", description=f"チャンネル:<#{ctx.channel.id}>での`{args[0]}`を削除しました。", color=0x00ff00))
 
         elif command_type == "list":
-            if ctx.guild.id not in MessageDMData.value:
+            results = await self.collection.find({"guild_id": ctx.guild.id}).to_list(length=None)
+            if len(results) == 0:
                 await ctx.reply(embed=nextcord.Embed(title="メッセージDM", description="このサーバーには設定がありません。", color=0x00ff00))
             else:
                 embed = nextcord.Embed(
@@ -248,54 +190,20 @@ class MessageDM(commands.Cog):
                     description=ctx.guild.name,
                     color=0x00ff00
                 )
-                for channel_id, channel_setting in MessageDMData.value[ctx.guild.id].items():
-                    content = ""
-                    if len(channel_setting) == 0:
-                        del MessageDMData.value[ctx.guild.id][channel_id]
-                        if len(MessageDMData.value[ctx.guild.id]) == 0:
-                            del MessageDMData.value[ctx.guild.id]
-                            await ctx.reply(embed=nextcord.Embed(title="メッセージDMの設定", description="このサーバーには設定がありません。", color=0x00ff00))
-                            return
-                        asyncio.ensure_future(database.default_push(self.bot.client, MessageDMData))
-                        continue
-                    for settings in channel_setting:
-                        content += f"判定メッセージ:`{settings[0]}`\n・メッセージ内容```\n{(lambda x: x if len(x) <= 100 else f'{x[:100]}...')(settings[1])}```\n"
+                contents = {}
+                for result in results:
+                    if result["channel_id"] not in contents:
+                        contents[result["channel_id"]] = [f"判定メッセージ:`{result['regex']}`\n・メッセージ内容```\n{(lambda x: x if len(x) <= 100 else f'{x[:50]}...')(result['message'])}```"]
+                    else:
+                        contents[result['channel_id']].append(f"判定メッセージ:`{result['regex']}`\n・メッセージ内容```\n{(lambda x: x if len(x) <= 100 else f'{x[:50]}...')(result['message'])}```")
+
+                for channel, config in contents.items():
                     embed.add_field(
-                        name=(await self.bot.fetch_channel(channel_id)).name,
-                        value=content
+                        name=(await self.bot.fetch_channel(channel)).name,
+                        value="\n".join(config),
+                        inline=False
                     )
                 await ctx.reply(embed=embed)
-
-        elif command_type == "db":
-            if not await self.bot.is_owner(ctx.author):
-                await ctx.reply(embed=nextcord.Embed(title="Forbidden", description="このコマンドの使用には、BOTのオーナー権限が必要です。", color=0xff0000))
-                return
-            if len(args) != 1:
-                await ctx.reply(embed=nextcord.Embed(title="Bad Request", description=f"渡された引数が異常です。\n```sh\npull: pull from database\npush: push to database\nserver: check database's value\nclient: check current value```\nARGS:`{args}`", color=0xff0000))
-                return
-            if args[0] == "pull":
-                try:
-                    await database.default_pull(self.bot.client, MessageDMData)
-                except Exception:
-                    MessageDMData.value = {}
-                await ctx.reply(embed=nextcord.Embed(title="OK", description=f"Pulled from database.", color=0x00ff00))
-            elif args[0] == "push":
-                try:
-                    await database.default_push(self.bot.client, MessageDMData)
-                except Exception as err:
-                    await ctx.reply(embed=nextcord.Embed(title="Internal Server Error", description=f"An error has occurred.\n```sh\n{err}```", color=0xff0000))
-                    return
-                await ctx.reply(embed=nextcord.Embed(title="OK", description=f"Pushed to database.", color=0x00ff00))
-            elif args[0] == "server":
-                try:
-                    await ctx.reply(embed=nextcord.Embed(title="OK", description=f"Server\n```py\n{dict_list.listToDict(await self.bot.client.get(MessageDMData.name))}```", color=0x00ff00))
-                except Exception as err:
-                    await ctx.reply(embed=nextcord.Embed(title="Internal Server Error", description=f"An error has occurred.\n```sh\n{err}```", color=0xff0000))
-            elif args[0] == "client":
-                await ctx.reply(embed=nextcord.Embed(title="OK", description=f"Client\n```py\n{MessageDMData.value}```", color=0x00ff00))
-            else:
-                await ctx.reply(embed=nextcord.Embed(title="Bad Request", description=f"渡された引数が異常です。\n```sh\npull: pull from database\npush: push to database\nserver: check database's value\nclient: check current value```\nARGS:`{args}`", color=0xff0000))
-
 
 def setup(bot, **kwargs):
     bot.add_cog(MessageDM(bot, **kwargs))
