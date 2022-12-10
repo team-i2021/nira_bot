@@ -7,7 +7,11 @@ from motor import motor_asyncio
 from util.n_fc import py_admin
 
 class NIRA(commands.Bot):
-    """I AM NIRA BOT!!!"""
+    """
+    I AM NIRA BOT!!!
+    
+    An object that extends `commands.Bot`.
+    """
     def __init__(
             self,
             debug: bool = False,
@@ -20,11 +24,11 @@ class NIRA(commands.Bot):
         ):
         self.debug: bool = debug
         self.__token: str = token
-        self.client = client # HTTP_dbとして呼び出す
+        self.client = client # HTTP_dbとして呼び出す（今まで通りself.client + database.default_pushとかで呼び出す）
 
-        self.__mongo: motor_asyncio.AsyncIOMotorClient = mongo
+        self.__mongo: motor_asyncio.AsyncIOMotorClient = mongo # おいてるだけだから使わない
 
-        self.database: motor_asyncio.AsyncIOMotorDatabase = self.__mongo[database_name] # MongoDBとして呼び出す
+        self.database: motor_asyncio.AsyncIOMotorDatabase = self.__mongo[database_name] # MongoDBとして呼び出す（self.database["collection_name"]として呼び出す）
         self.database_name: str = database_name
         #self.main_prefix: str = (lambda x: x[0] if type(x) in [list, tuple, set] else x)(**kwargs[""])
         return super().__init__(*args, **kwargs)
