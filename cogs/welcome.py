@@ -4,10 +4,11 @@ import os
 import sys
 import traceback
 
-import HTTP_db
 import nextcord
 from nextcord import Interaction, SlashOption, ChannelType
 from nextcord.ext import commands
+
+from motor import motor_asyncio
 
 from util import admin_check, n_fc, eh, database
 from util.nira import NIRA
@@ -28,42 +29,40 @@ class WelcomeMessage:
     default = {}
     value_type = database.CHANNEL_VALUE
 
-def editSetting(setting_type: int | None = None, guild_id: int | None = None, channel_id: int | None = None, value_type: str | int | None = None, value: str | None = None) -> int:
+async def editSetting(collection: motor_asyncio.AsyncIOMotorCollection, setting_type: int | None = None, guild_id: int | None = None, channel_id: int | None = None, value_type: str | int | None = None, value: str | None = None) -> int:
+    """Editとか書いてるけど別にEditだけじゃないですべいび"""
     if setting_type == SET:
-        if guild_id not in WelcomeMessage.value:
-            WelcomeMessage.value[guild_id] = {channel_id: (None, None) }
-        elif channel_id not in WelcomeMessage.value[guild_id]:
-            WelcomeMessage.value[guild_id][channel_id] = (None, None)
-        WelcomeMessage.value[guild_id][channel_id][VALUE_TYPE[value_type]] = value
+        await collection.update_one({"guild_id": str(guild_id), "channel_id": str(channel_id), "value_type": VALUE_TYPE[value_type]}, {"$set": {"message": value} }, upsert=True)
         return 0
     elif setting_type == DEL:
-        if guild_id not in WelcomeMessage.value:
-            return 1
-        elif channel_id not in WelcomeMessage.value[guild_id]:
-            return 2
-        WelcomeMessage.value[guild_id][channel_id][VALUE_TYPE[value_type]] = None
-        if list(WelcomeMessage.value[guild_id][channel_id]) == [None, None]:
-            del WelcomeMessage.value[guild_id][channel_id]
-            if len(WelcomeMessage.value[guild_id].keys()) == 0:
-                WelcomeMessage.value[guild_id]
+        await collection.delete_one({"guild_id": str(guild_id), "channel_id": str(channel_id), "value_type": VALUE_TYPE[value_type]})
         return 0
+        #if guild_id not in WelcomeMessage.value:
+        #    return 1
+        #elif channel_id not in WelcomeMessage.value[guild_id]:
+        #    return 2
+        #WelcomeMessage.value[guild_id][channel_id][VALUE_TYPE[value_type]] = None
+        #if list(WelcomeMessage.value[guild_id][channel_id]) == [None, None]:
+        #    del WelcomeMessage.value[guild_id][channel_id]
+        #    if len(WelcomeMessage.value[guild_id].keys()) == 0:
+        #        WelcomeMessage.value[guild_id]
+        #return 0
     elif setting_type == STATUS:
-        if guild_id not in WelcomeMessage.value:
-            return 1
-        elif channel_id not in WelcomeMessage.value[guild_id]:
+        result = await collection.find_one({"guild_id": str(guild_id), "channel_id": str(channel_id), "value_type": VALUE_TYPE[value_type]})
+        if result is None:
             return 2
-        return WelcomeMessage.value[guild_id][channel_id][VALUE_TYPE[value_type]]
+        return result["message"]
 
 
 class WelcomeMaker(nextcord.ui.Modal):
-    def __init__(self, message_type: str, client: HTTP_db.Client):
+    def __init__(self, message_type: str, collection):
         super().__init__(
             "Welcome Message Manage",
             timeout=None,
         )
 
         self.message_type = message_type
-        self.client = client
+        self.collection = collection
 
         self.main_content = nextcord.ui.TextInput(
             label="本文",
@@ -76,8 +75,7 @@ class WelcomeMaker(nextcord.ui.Modal):
     async def callback(self, interaction: nextcord.Interaction) -> None:
         try:
             await interaction.response.defer(ephemeral=True)
-            editSetting(SET, interaction.guild.id, interaction.channel.id, self.message_type, self.main_content.value)
-            await database.default_push(self.client, WelcomeMessage)
+            await editSetting(self.collection, SET, interaction.guild.id, interaction.channel.id, self.message_type, self.main_content.value)
             await interaction.followup.send(embed=nextcord.Embed(title=f"{self.message_type}メッセージ表示", description=self.main_content.value, color=0x00ff00), ephemeral=True)
             return
         except Exception as err:
@@ -88,7 +86,7 @@ class WelcomeMaker(nextcord.ui.Modal):
 class Welcome(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
-        asyncio.ensure_future(database.default_pull(self.bot.client, WelcomeMessage))
+        self.collection = self.bot.database["welcome_message"]
 
     @commands.command(name="welcome", aliases=("youkoso", "goodbye", "ようこそ", "Welcome"), help="""\
 ユーザーが加入/離脱したときに、特定のメッセージをこのチャンネルに送信するようにします。
@@ -117,31 +115,29 @@ n!welcome join off
 n!welcome leave off
 ```
 """)
-    async def welcome(self, ctx: commands.Context):
+    async def welcome(self, ctx: commands.Context, command: str = "", message: str = ""):
         if not admin_check.admin_check(ctx.guild, ctx.author):
-            await ctx.reply("・Welcomeメッセージコマンド\nエラー:権限がありません。")
+            await ctx.reply(f"・Welcomeメッセージコマンド\nエラー:権限がありません。")
             return
-        args = ctx.message.content.split(" ", 2)
-        if len(args) != 3:
+        if command == "":
             await ctx.reply(f"・Welcomeメッセージコマンド\nエラー:引数が少ないです。\n`{self.bot.command_prefix}welcome [join/leave] [メッセージ本文]`")
             return
-        if args[1] != "join" and args[1] != "leave":
-            await ctx.reply(f"・Welcomeメッセージコマンド\nエラー:第2引数の値が不正です。\n`join`または`leave`を指定しなければなりません。")
+        if command != "join" and command != "leave":
+            await ctx.reply(f"・Welcomeメッセージコマンド\nエラー:第2引数の値が不正です。\n`join`または`leave`を指定しなければなりません。\n（オフにする場合は`{ctx.prefix}[join/leave] off`としてください）")
             return
-        if args[2] == "off":
-            result = editSetting(DEL, ctx.guild.id, ctx.channel.id, args[1],)
+        if message == "off":
+            result = await editSetting(self.collection, DEL, ctx.guild.id, ctx.channel.id, command)
             if result == 1:
                 embed = nextcord.Embed(title=MESSAGES[0], description=MESSAGES[1], color=0xff0000)
             elif result == 2:
                 embed = nextcord.Embed(title=MESSAGES[0], description=MESSAGES[2], color=0xff0000)
             else:
-                embed = nextcord.Embed(title=MESSAGES[0], description=f"このチャンネルの{args[1]}のメッセージを削除しました。", color=0x00ff00)
+                embed = nextcord.Embed(title=MESSAGES[0], description=f"このチャンネルの{command}のメッセージを削除しました。", color=0x00ff00)
             await ctx.reply(embed=embed)
             return
         else:
-            editSetting(SET, ctx.guild.id, ctx.channel.id, args[1], args[2])
-            await database.default_push(self.bot.client, WelcomeMessage)
-            await ctx.reply(embed=nextcord.Embed(title=f"Welcomeメッセージ設定: `{args[1]}`", description=args[2], color=0x00ff00))
+            await editSetting(self.collection, SET, ctx.guild.id, ctx.channel.id, command, message)
+            await ctx.reply(embed=nextcord.Embed(title=f"Welcomeメッセージ設定: `{command}`", description=message, color=0x00ff00))
             return
 
     @nextcord.slash_command(name="welcome", description="WelcomeMessage command", guild_ids=n_fc.GUILD_IDS)
@@ -150,42 +146,42 @@ n!welcome leave off
 
     @welcome_slash.subcommand(name="set", description="Set WelcomeMessage", description_localizations={"ja": "ウェルカムメッセージを設定する"})
     async def set_slash(
-        self,
-        interaction: Interaction,
-        MessageType: str = SlashOption(
-            name="message_type",
-            name_localizations={"ja": "メッセージの種類"},
-            description="Select the type of message to set",
-            description_localizations={nextcord.Locale.ja: "サーバー参加時か離脱時かを選択してください"},
-            required=True,
-            choices={"参加時": "join", "離脱時": "leave"}
-        )
-    ):
-        await interaction.response.send_modal(WelcomeMaker(MessageType, self.bot.client))
+            self,
+            interaction: Interaction,
+            MessageType: str = SlashOption(
+                name="message_type",
+                name_localizations={"ja": "メッセージの種類"},
+                description="Select the type of message to set",
+                description_localizations={nextcord.Locale.ja: "サーバー参加時か離脱時かを選択してください"},
+                required=True,
+                choices={"参加時": "join", "離脱時": "leave"}
+            )
+        ):
+        await interaction.response.send_modal(WelcomeMaker(MessageType, self.collection))
 
     @welcome_slash.subcommand(name="del", description="Unset WelcomeMessage", description_localizations={"ja": "ウェルカムメッセージの設定を解除する"})
     async def del_slash(
-        self,
-        interaction: Interaction,
-        MessageType: str = SlashOption(
-            name="message_type",
-            name_localizations={"ja": "メッセージの種類"},
-            description="Select the type of message to delete",
-            description_localizations={nextcord.Locale.ja: "サーバー参加時か離脱時かを選択してください"},
-            required=True,
-            choices={"参加時": "join", "離脱時": "leave"}
-        )
-    ):
-        await interaction.response.defer()
+            self,
+            interaction: Interaction,
+            MessageType: str = SlashOption(
+                name="message_type",
+                name_localizations={"ja": "メッセージの種類"},
+                description="Select the type of message to delete",
+                description_localizations={nextcord.Locale.ja: "サーバー参加時か離脱時かを選択してください"},
+                required=True,
+                choices={"参加時": "join", "離脱時": "leave"}
+            )
+        ):
+        await interaction.response.defer(ephemeral=True)
         try:
-            result = editSetting(DEL, interaction.guild.id, interaction.channel.id, MessageType,)
+            result = await editSetting(self.collection, DEL, interaction.guild.id, interaction.channel.id, MessageType)
             if result == 1:
                 embed = nextcord.Embed(title=MESSAGES[0], description=MESSAGES[1], color=0xff0000)
             elif result == 2:
                 embed = nextcord.Embed(title=MESSAGES[0], description=MESSAGES[2], color=0xff0000)
             else:
                 embed = nextcord.Embed(title=MESSAGES[0], description=f"このチャンネルの{MessageType}のメッセージを削除しました。", color=0x00ff00)
-            await interaction.send(embed=embed)
+            await interaction.followup.send(embed=embed)
             return
         except Exception as err:
             await interaction.followup.send("コマンド実行時にエラーが発生しました。", embed=nextcord.Embed(title=f"An error has occurred during `/welcome del`", description=f"```py\n{err}```\n```py\n{traceback.format_exc()}```", color=0xff0000))
@@ -193,21 +189,16 @@ n!welcome leave off
 
     @welcome_slash.subcommand(name="status", description="Status of WelcomeMessage", description_localizations={"ja": "サーバー加入/離脱時のメッセージ設定を表示します"})
     async def status_slash(
-        self,
-        interaction: Interaction
-    ):
-        await interaction.response.defer()
+            self,
+            interaction: Interaction
+        ):
+        await interaction.response.defer(ephemeral=True)
         try:
-            result1 = editSetting(STATUS, interaction.guild.id, interaction.channel.id, "join")
-            result2 = editSetting(STATUS, interaction.guild.id, interaction.channel.id, "leave")
-            if result1 == 4 or result2 == 4:
-                embed = nextcord.Embed(title=MESSAGES[0], description=MESSAGES[1], color=0xff0000)
-            elif result1 == 8 or result2 == 8:
-                embed = nextcord.Embed(title=MESSAGES[0], description=MESSAGES[2], color=0xff0000)
-            else:
-                embed = nextcord.Embed(title=MESSAGES[0], description=f"{interaction.guid.name}/<#{interaction.channel.id}>", color=0x00ff00)
-                embed.add_field(name="joinメッセージ", value=(lambda x: "設定されていません。" if x is None else x)(result1), inline=False)
-                embed.add_field(name="leaveメッセージ", value=(lambda x: "設定されていません。" if x is None else x)(result2), inline=False)
+            embed = nextcord.Embed(title=MESSAGES[0], description=f"{interaction.guild.name}/<#{interaction.channel.id}>", color=0x00ff00)
+            result1 = await editSetting(self.collection, STATUS, interaction.guild.id, interaction.channel.id, "join")
+            result2 = await editSetting(self.collection, STATUS, interaction.guild.id, interaction.channel.id, "leave")
+            embed.add_field(name="joinメッセージ", value=("設定されていません。" if result1 == 2 else result1), inline=False)
+            embed.add_field(name="leaveメッセージ", value=("設定されていません。" if result2 == 2 else result2), inline=False)
             await interaction.send(embed=embed)
         except Exception as err:
             logging.error(err)
@@ -216,20 +207,19 @@ n!welcome leave off
 
     @commands.Cog.listener()
     async def on_member_join(self, member: nextcord.Member):
-        if member.guild.id not in WelcomeMessage.value:
+        result = await self.collection.find({"guild_id": str(member.guild.id), "value_type": 0}).to_list(length=None)
+        if len(result) == 0:
             return
-        for channel in WelcomeMessage.value[member.guild.id].keys():
-            if WelcomeMessage.value[member.guild.id][channel][0] is None:
-                continue
-            try:
-                CHANNEL = member.guild.get_channel(channel)
-            except Exception as err:
-                logging.error(err)
-                continue
+        for item in result:
+            channel = item["channel_id"]
+            CHANNEL = member.guild.get_channel(channel)
             if CHANNEL is None:
-                logging.info(f"join:{member.guild.id}に{channel}というチャンネルが見つかりませんでした。Skiped.")
-                continue
-            message = WelcomeMessage.value[member.guild.id][CHANNEL.id][0]
+                try:
+                    CHANNEL = await member.guild.fetch_channel(channel)
+                except Exception as err:
+                    logging.info(f"join:{member.guild.id}に{channel}というチャンネルが見つかりませんでした。\n{err}\nSkipped.")
+                    continue
+            message = item["message"]
             message = message.replace("%name%", member.name)
             message = message.replace("%count%", str(len(member.guild.members)))
             message = message.replace("%ment%", member.mention)
@@ -238,20 +228,19 @@ n!welcome leave off
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
-        if member.guild.id not in WelcomeMessage.value:
+        result = await self.collection.find({"guild_id": str(member.guild.id), "value_type": 1}).to_list(length=None)
+        if len(result) == 0:
             return
-        for channel in WelcomeMessage.value[member.guild.id].keys():
-            if WelcomeMessage.value[member.guild.id][channel][1] is None:
-                continue
-            try:
-                CHANNEL = member.guild.get_channel(channel)
-            except Exception as err:
-                logging.error(err)
-                continue
+        for item in result:
+            channel = item["channel_id"]
+            CHANNEL = member.guild.get_channel(channel)
             if CHANNEL is None:
-                logging.info(f"leave:{member.guild.id}に{channel}というチャンネルが見つかりませんでした。Skiped.")
-                continue
-            message = WelcomeMessage.value[member.guild.id][CHANNEL.id][1]
+                try:
+                    CHANNEL = await member.guild.fetch_channel(channel)
+                except Exception as err:
+                    logging.info(f"join:{member.guild.id}に{channel}というチャンネルが見つかりませんでした。\n{err}\nSkipped.")
+                    continue
+            message = item["message"]
             message = message.replace("%name%", member.name)
             message = message.replace("%count%", str(len(member.guild.members)))
             message = message.replace("%ment%", member.mention)
