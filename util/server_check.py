@@ -8,7 +8,6 @@ import traceback
 
 import a2s
 
-#from cogs.server_status import ss_pin
 from util import database
 import util.web_api as web_api
 

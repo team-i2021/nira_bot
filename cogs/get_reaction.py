@@ -6,7 +6,6 @@ import sys
 import nextcord
 from nextcord.ext import commands
 
-from cogs import server_status
 from util import admin_check, n_fc, eh
 from util.nira import NIRA
 

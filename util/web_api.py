@@ -8,10 +8,8 @@ import aiohttp
 import nextcord
 from nextcord.embeds import Embed
 
-tokens = {}
-
-lineNotify_url = 'https://notify-api.line.me/api/notify'
-lineTokenCheck_url = 'https://notify-api.line.me/api/status'
+NOTIFY_URL = 'https://notify-api.line.me/api/notify'
+TOKEN_CHECK = 'https://notify-api.line.me/api/status'
 
 server_req_url = 'http://api.steampowered.com/ISteamApps/GetServersAtAddress/v1/?format=json&addr='
 
@@ -19,7 +17,7 @@ image_4 = [".jpg", ".png", ".bmp"]
 image_5 = [".jpeg", ".jtif"]
 
 
-def notify_line(message: nextcord.Message, token):
+async def notify_line(message: nextcord.Message, token):
     channel = f"[{message.guild.name}]/[{message.channel.name}]"
     try:
         if message.author.nick == None:
@@ -53,31 +51,20 @@ def notify_line(message: nextcord.Message, token):
         else:
             payload = {'message' : mes, 'imageFullsize' : image, 'imageThumbnail': image}
         # print(payload)
-        requests.post(lineNotify_url ,headers = headers ,params=payload)
+        async with aiohttp.ClientSession() as session:
+            async with session.post(NOTIFY_URL, headers=headers, data=payload) as _:
+                return
     except Exception as err:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        print(f"大変申し訳ございません。エラーが発生しました。\n```{err}```\n```sh\n{sys.exc_info()}```\nfile:`{fname}`\nline:{exc_tb.tb_lineno}\n\n[サポートサーバー](https://nextcord.gg/awfFpCYTcP)")
+        logging.warn(f"大変申し訳ございません。エラーが発生しました。\n```{err}```\n```sh\n{sys.exc_info()}```\nfile:`{fname}`\nline:{exc_tb.tb_lineno}")
 
 
 async def line_token_check(token: str):
     headers = {'Authorization' : 'Bearer ' + token}
     async with aiohttp.ClientSession() as session:
-        async with session.get(lineTokenCheck_url, headers=headers) as response:
+        async with session.get(TOKEN_CHECK, headers=headers) as response:
             if response.status == 200:
                 return (True, await response.text())
             else:
                 return (False, await response.text())
-
-
-def server_status(ip, port):
-    option = ip + ":" + str(port)
-    url = server_req_url + option
-    req = requests.get(url)
-    server_list = req.json()
-    if "servers" not in server_list["response"]:
-        return False
-    if len(server_list["response"]["servers"]) >= 1:
-        return True
-    else:
-        return False
