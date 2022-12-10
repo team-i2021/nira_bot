@@ -1,7 +1,8 @@
 import asyncio
 import threading
+import mcstatus
 
-from mcstatus import MinecraftServer as mc, MinecraftBedrockServer as mcb
+from mcstatus import JavaServer, BedrockServer
 
 JAVA = 1
 BE = 2
@@ -10,38 +11,20 @@ BE = 2
 # JavaEdition default port:25565
 # BedrockEdition default port:19132
 
+async def java_status(host: str, port: int) -> mcstatus.pinger.PingResponse:
+    """Status checker of JAVA"""
+    try:
+        server = JavaServer(host=host, port=port)
+        status = await server.async_status()
+        return status
+    except Exception as err:
+        return err
 
-class minecraft_status:
-    """Minecraft server status"""
-
-    def error_check(arg):
-        """エラーの種類がネットワーク系のエラーかどうかを調べます。"""
-        return type(arg) == ConnectionRefusedError or type(arg) == OSError
-
-    async def java_unsync(loop, address):
-        return await loop.run_in_executor(
-            None, minecraft_status.java, address
-        )
-
-    async def bedrock_unsync(loop, address):
-        return await loop.run_in_executor(
-            None, minecraft_status.bedrock, address
-        )
-
-    def java(address):
-        """Minecraft:Java Edition"""
-        try:
-            server = mc.lookup(address)
-            status = server.status()
-            return status
-        except Exception as err:
-            return err
-
-    def bedrock(address):
-        """Minecraft:Bedrock Edition"""
-        try:
-            server = mcb.lookup(address)
-            status = server.status()
-            return status
-        except Exception as err:
-            return err
+async def bedrock_status(host: str, port: int) -> mcstatus.bedrock_status.BedrockStatusResponse:
+    """Status checker of BEDROCK"""
+    try:
+        server = BedrockServer(host=host, port=port)
+        status = await server.async_status()
+        return status
+    except Exception as err:
+        return err
