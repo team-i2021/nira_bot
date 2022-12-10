@@ -167,7 +167,7 @@ async def server_delete(bot: NIRA, collection: motor_asyncio.AsyncIOMotorCollect
         try:
             await collection.delete_one({"guild_id": ctx.guild.id, "server_id": select_id})
             await collection.update_many(
-                {"guild_id": ctx.guild.id, "server_id": {"$gte": select_id}},
+                {"guild_id": ctx.guild.id, "server_id": {"$gt": select_id}},
                 {"$inc": {"server_id": -1}}
             )
         except Exception:
