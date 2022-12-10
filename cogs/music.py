@@ -157,7 +157,7 @@ class music(commands.Cog):
 Discord及びGoogleは、DiscordのボイスチャンネルでのYouTube再生BOTの摘発を開始しました。
 現状、大半のBOTがYouTubeの再生機能の削除又は隠蔽を余儀なくされています。
 そのため、にらBOTからもYouTubeの再生機能を削除します。
-引き続きDiscordでYouTubeを再生したい場合は、`Watch Together`を使用してください。（モバイル版Discordのサポートは後日になる可能性があります。）""", color=0xff0000))
+引き続きDiscordでYouTubeを再生したい場合は、`Watch Together`を使用してください。""", color=0xff0000))
 
     @commands.command(name="list", help="""\
     音楽のプレイリスをと表示します。
