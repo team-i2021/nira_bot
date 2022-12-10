@@ -51,14 +51,13 @@ async def RetryPlayers(address: tuple, count: int) -> a2s.Player or None:
 # サーバーのステータスをチェックする
 
 
-async def server_check(client, embed, type, g_id, n):
+async def server_check(server: dict, embed, type):
     try:
-        await database.default_pull(client, steam_server)
-        sv_ad = tuple(steam_server.value[g_id][f"{n}_ad"])
-        sv_nm = steam_server.value[g_id][f"{n}_nm"]
+        sv_ad = tuple(server["sv_ad"])
+        sv_nm = server["sv_nm"]
     except Exception:
         embed.add_field(
-            name=f"サーバーは{n}にはセットされていません。",
+            name=f"サーバーはセットされていません。",
             value=f"`n!ss list`でサーバーリストを確認してみましょう！",
             inline=False
         )
@@ -121,16 +120,28 @@ async def server_check(client, embed, type, g_id, n):
                     us = us - 1
             if user != "":
                 embed.add_field(
-                    name="> Online Player", value=f"プレーヤー数:`{len(sv_us)+us}/{sv_dt.max_players}`人\n```{user}```\n==========", inline=False)
+                    name="> Online Player",
+                    value=f"プレーヤー数:`{len(sv_us)+us}/{sv_dt.max_players}`人\n```{user}```\n==========",
+                    inline=False
+                )
             else:
                 embed.add_field(
-                    name="> Online Player", value=":information_source:オンラインユーザーはいません。\n==========", inline=False)
+                    name="> Online Player",
+                    value=":information_source:オンラインユーザーはいません。\n==========",
+                    inline=False
+                )
         else:
             embed.add_field(
-                name="> Online Player", value=":information_source:オンラインユーザーはいません。\n==========", inline=False)
+                name="> Online Player",
+                value=":information_source:オンラインユーザーはいません。\n==========",
+                inline=False
+            )
     elif type == 1:
-        embed.add_field(name="> Online Player",
-                        value=f"```{sv_us}```", inline=False)
+        embed.add_field(
+            name="> Online Player",
+            value=f"```{sv_us}```",
+            inline=False
+        )
     return True
 
 # Bool返すタイプ
@@ -158,10 +169,9 @@ async def ss_bool(client, g_id, n):
 # サーバーのステータスをチェックする
 
 
-async def ss_pin_embed(client, embed, g_id, n):
-    await database.default_pull(client, steam_server)
-    sv_ad = tuple(steam_server.value[g_id][f"{n}_ad"])
-    sv_nm = steam_server.value[g_id][f"{n}_nm"]
+async def ss_pin_embed(server, embed):
+    sv_ad = tuple(server["sv_ad"])
+    sv_nm = server["sv_nm"]
     sv_dt = await RetryInfo(sv_ad, 5)
     if sv_dt is None:
         embed.add_field(
