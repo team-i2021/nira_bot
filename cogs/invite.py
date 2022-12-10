@@ -8,85 +8,86 @@ from re import compile
 
 import nextcord
 from nextcord import Interaction, SlashOption, ChannelType
-from nextcord.ext import commands, tasks
+from nextcord.ext import commands, tasks, application_checks
 
 from util import admin_check, n_fc, eh, database, dict_list
 from util.nira import NIRA
 
 import HTTP_db
 
+from motor import motor_asyncio
+
 inviteUrlTemplate = compile(r'https://discord.gg/([0-9a-zA-Z]+)')
 
 # inviter
 
-class InviteData:
-    name = "invite_data"
-    value = {}
-    default = {}
-    value_type = database.CHANNEL_VALUE
 
-async def fetch_invite(client: HTTP_db.Client, discord_invites: list, guild_id: int):
-    await database.default_pull(client, InviteData)
-    if guild_id not in InviteData.value.keys():
-        InviteData.value[guild_id] = {i.url: [None, i.uses] for i in discord_invites}
-    else:
-        for i in discord_invites:
-            if i.url not in InviteData.value[guild_id].keys():
-                InviteData.value[guild_id][i.url] = [None, i.uses]
-            if InviteData.value[guild_id][i.url][1] != i.uses:
-                InviteData.value[guild_id][i.url][1] = i.uses
-        tmp_dict = copy.deepcopy(InviteData.value)
-        for key in tmp_dict[guild_id].keys():
-            if key not in [i.url for i in discord_invites]:
-                del InviteData.value[guild_id][key]
-    await database.default_push(client, InviteData)
-    return
 
 class Invite(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
+        self.collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["invite_data"]
+
+    
+    async def fetch_invite(self, discord_invites: list, guild_id: int):
+        result = await self.collection.find_one({"guild_id": guild_id})
+        if result is None:
+            result = {invite.url: [None, invite.uses] for invite in discord_invites}
+        else:
+            for invite in discord_invites:
+                if invite.url not in result.keys():
+                    result[invite.url] = [None, invite.uses]
+                if result[invite.url][1] != invite.uses:
+                    result[invite.url][1] = invite.uses
+            tmp_dict = copy.deepcopy(result)
+            for key in tmp_dict.keys():
+                if key not in [invite.url for invite in discord_invites]:
+                    del result[key]
+
+        await self.collection.update_one({"guild_id": guild_id}, {"$set": result}, upsert=True)
+
 
     @commands.bot_has_permissions(manage_guild=True)
     @nextcord.slash_command(name="invite", description="Set alias for invite url.", guild_ids=n_fc.GUILD_IDS)
     async def invite_slash(
-        self,
-        interaction: Interaction
-    ):
+            self,
+            interaction: Interaction
+        ):
         pass
 
+
+    @application_checks.has_permissions(manage_guild=True)
     @invite_slash.subcommand(name="set", description="招待リンクに名前を付けます。")
     async def set_invite_slash(
-        self,
-        interaction: Interaction,
-        InviteAlias: str = SlashOption(
-            name="invite_alias",
-            description="招待リンクにつける名前です",
-            required=True
-        ),
-        InviteURL: str = SlashOption(
-            name="invite_url",
-            description="名前を付ける招待リンクまたは招待コードです [https://discord.gg/aBcD1234]or[aBcD1234]",
-            required=True
-        )
-    ):
+            self,
+            interaction: Interaction,
+            InviteAlias: str = SlashOption(
+                name="invite_alias",
+                description="招待リンクにつける名前です",
+                required=True
+            ),
+            InviteURL: str = SlashOption(
+                name="invite_url",
+                description="名前を付ける招待リンクまたは招待コードです [https://discord.gg/aBcD1234]or[aBcD1234]",
+                required=True
+            )
+        ):
         await interaction.response.defer()
-        if admin_check.admin_check(interaction.guild, interaction.member):
-            if inviteUrlTemplate.search(InviteURL) is None:
-                InviteURL = f"https://discord.gg/{InviteURL}"
-            else:
-                InviteURL = inviteUrlTemplate.search(InviteURL).group()
-            await fetch_invite(self.bot.client, await interaction.guild.invites(), interaction.guild.id)
-            await database.default_pull(self.bot.client, InviteData)
-            if InviteURL in InviteData.value[interaction.guild.id]:
-                InviteData.value[interaction.guild.id][InviteURL][0] = InviteAlias
-                await interaction.followup.send(embed=nextcord.Embed(title="InviteURL", description=f"招待リンク`{InviteURL}`を`{InviteAlias}`として設定しました。", color=0x00FF00))
-            else:
-                await interaction.followup.send(embed=nextcord.Embed(title="エラー", description=f"招待リンク`{InviteURL}`が見つかりませんでした。", color=0xFF0000))
-            await database.default_push(self.bot.client, InviteData)
+        if inviteUrlTemplate.search(InviteURL) is None:
+            InviteURL = f"https://discord.gg/{InviteURL}"
         else:
-            await interaction.followup.send(embed=nextcord.Embed(title="エラー", description=f"あなたは管理者ではありません。", color=0xFF0000))
-        return
+            InviteURL = inviteUrlTemplate.search(InviteURL).group()
+        await self.fetch_invite(await interaction.guild.invites(), interaction.guild.id)
+        InviteData = await self.collection.find_one({"guild_id": interaction.guild.id})
+        if InviteURL in InviteData:
+            InviteData[InviteURL][0] = InviteAlias
+            await interaction.send(embed=nextcord.Embed(title="InviteURL", description=f"招待リンク`{InviteURL}`を`{InviteAlias}`として設定しました。", color=0x00FF00))
+        else:
+            await interaction.send(embed=nextcord.Embed(title="エラー", description=f"招待リンク`{InviteURL}`が見つかりませんでした。", color=0xFF0000))
+        asyncio.ensure_future(self.collection.update_one({"guild_id": interaction.guild.id}, {"$set": InviteData}, upsert=True))
 
+
+    @application_checks.has_permissions(manage_guild=True)
     @invite_slash.subcommand(name="del", description="招待リンクの名前を削除します。")
     async def del_invite_slash(
         self,
@@ -98,22 +99,19 @@ class Invite(commands.Cog):
         )
     ):
         await interaction.response.defer()
-        if admin_check.admin_check(interaction.guild, interaction.member):
-            if inviteUrlTemplate.search(InviteURL) is None:
-                InviteURL = f"https://discord.gg/{InviteURL}"
-            else:
-                InviteURL = inviteUrlTemplate.search(InviteURL).group()
-            await fetch_invite(self.bot.client, await interaction.guild.invites(), interaction.guild.id)
-            await database.default_pull(self.bot.client, InviteData)
-            if InviteURL in InviteData.value[interaction.guild.id]:
-                InviteData.value[interaction.guild.id][InviteURL][0] = None
-                await interaction.followup.send(embed=nextcord.Embed(title="InviteURL", description=f"招待リンク`{InviteURL}`の名前を削除しました。", color=0x00FF00))
-            else:
-                await interaction.followup.send(embed=nextcord.Embed(title="エラー", description=f"招待リンク`{InviteURL}`が見つかりませんでした。", color=0xFF0000))
-            await database.default_push(self.bot.client, InviteData)
+        if inviteUrlTemplate.search(InviteURL) is None:
+            InviteURL = f"https://discord.gg/{InviteURL}"
         else:
-            await interaction.followup.send(embed=nextcord.Embed(title="エラー", description=f"あなたは管理者ではありません。", color=0xFF0000))
-        return
+            InviteURL = inviteUrlTemplate.search(InviteURL).group()
+        await self.fetch_invite(await interaction.guild.invites(), interaction.guild.id)
+        InviteData = await self.collection.find_one({"guild_id": interaction.guild.id})
+        if InviteURL in InviteData:
+            InviteData[InviteURL][0] = None
+            await interaction.send(embed=nextcord.Embed(title="InviteURL", description=f"招待リンク`{InviteURL}`の名前を削除しました。", color=0x00FF00))
+        else:
+            await interaction.send(embed=nextcord.Embed(title="エラー", description=f"招待リンク`{InviteURL}`が見つかりませんでした。", color=0xFF0000))
+        asyncio.ensure_future(self.collection.update_one({"guild_id": interaction.guild.id}, {"$set": InviteData}, upsert=True))
+
 
     @invite_slash.subcommand(name="list", description="招待リンクの一覧を表示します。")
     async def list_invite_slash(self, interaction: Interaction):
@@ -122,10 +120,10 @@ class Invite(commands.Cog):
         if len(Invites) == 0:
             await interaction.followup.send(embed=nextcord.Embed(title="招待リスト", description="このサーバーでは招待が作成されていません。", color=0x00ff00))
             return
-        await fetch_invite(self.bot.client, Invites, interaction.guild.id)
-        await database.default_pull(self.bot.client, InviteData)
+        await self.fetch_invite(Invites, interaction.guild.id)
+        InviteData = await self.collection.find_one({"guild_id": interaction.guild.id})
         EmbedDescription = ""
-        for key, value in InviteData.value[interaction.guild.id].items():
+        for key, value in InviteData.items():
             if value[0] is not None:
                 EmbedDescription += f"[{value[0]}]({key}) - `{value[1]}`回\n"
             else:
@@ -135,8 +133,7 @@ class Invite(commands.Cog):
             description=EmbedDescription,
             color=0x00FF00
         )
-        await interaction.followup.send(embed=embed)
-        return
+        await interaction.send(embed=embed)
 
     @commands.bot_has_permissions(manage_guild=True)
     @commands.command(name="invite", help="""\
@@ -154,17 +151,18 @@ class Invite(commands.Cog):
 ・例
 `n!invite set awfFpCYTcP めいん`
 `n!invite del https://discord.gg/awfFpCYTcP`""")
-    async def invite(self, ctx: commands.Context):
-        args = ctx.message.content.split(" ", 3) # n!invite set url aliase
+    async def invite(self, ctx: commands.Context, setting: str | None = None, InviteURL: str | None = None, aliase: str | None = None):
+
         Invites = await ctx.guild.invites()
-        if len(args) == 1:
+
+        if setting is None:
             if len(Invites) == 0:
                 await ctx.reply(embed=nextcord.Embed(title="招待リスト", description="このサーバーでは招待が作成されていません。", color=0x00ff00))
                 return
-            await fetch_invite(self.bot.client, Invites, ctx.guild.id)
-            await database.default_pull(self.bot.client, InviteData)
+            await self.fetch_invite(Invites, ctx.guild.id)
+            InviteData = await self.collection.find_one({"guild_id": ctx.guild.id})
             EmbedDescription = ""
-            for key, value in InviteData.value[ctx.guild.id].items():
+            for key, value in InviteData.items():
                 if value[0] is not None:
                     EmbedDescription += f"[{value[0]}]({key}) - `{value[1]}`回\n"
                 else:
@@ -175,82 +173,58 @@ class Invite(commands.Cog):
                 color=0x00FF00
             )
             await ctx.reply(embed=embed)
-            return
 
-        elif len(args) == 2:
-            if args[1] == "set":
-                await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"引数が足りません。\n`{self.bot.command_prefix}invite set [招待リンクまたは招待コード] [名前]`", color=0xFF0000))
-            elif args[1] == "del":
-                await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"引数が足りません。\n`{self.bot.command_prefix}invite del [招待リンクまたは招待コード]`", color=0xFF0000))
+        elif setting == "set":
+            if InviteURL is None or aliase is None:
+                await ctx.reply(embed=nextcord.Embed(title="エラー", description="引数が不足しています。", color=0xFF0000))
             else:
-                await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"不明な引数`{args[1]}`です。", color=0xFF0000))
-            return
-
-        elif len(args) == 3:
-            if args[1] == "del":
-                if admin_check.admin_check(ctx.guild, ctx.author):
-                    InviteURL = args[2]
-                    if inviteUrlTemplate.search(InviteURL) is None:
-                        InviteURL = f"https://discord.gg/{InviteURL}"
-                    else:
-                        InviteURL = inviteUrlTemplate.search(InviteURL).group()
-                    await fetch_invite(self.bot.client, Invites, ctx.guild.id)
-                    await database.default_pull(self.bot.client, InviteData)
-                    if InviteURL in InviteData.value[ctx.guild.id]:
-                        InviteData.value[ctx.guild.id][InviteURL][0] = None
-                        await ctx.reply(embed=nextcord.Embed(title="InviteURL", description=f"招待リンク`{InviteURL}`の名前を削除しました。", color=0x00FF00))
-                    else:
-                        await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"招待リンク`{InviteURL}`が見つかりませんでした。", color=0xFF0000))
-                    await database.default_push(self.bot.client, InviteData)
+                if inviteUrlTemplate.search(InviteURL) is None:
+                    InviteURL = f"https://discord.gg/{InviteURL}"
                 else:
-                    await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"あなたは管理者ではありません。", color=0xFF0000))
-            elif args[1] == "set":
-                await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"引数が足りません。\n`{self.bot.command_prefix}invite set [招待リンクまたは招待コード] [名前]`", color=0xFF0000))
-            else:
-                await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"不明な引数`{args[1]}`です。", color=0xFF0000))
-            return
-
-        elif len(args) == 4:
-            if args[1] == "set":
-                if admin_check.admin_check(ctx.guild, ctx.author):
-                    InviteURL = args[2]
-                    Alias = args[3]
-                    if inviteUrlTemplate.search(InviteURL) is None:
-                        InviteURL = f"https://discord.gg/{InviteURL}"
-                    else:
-                        InviteURL = inviteUrlTemplate.search(InviteURL).group()
-                    await fetch_invite(self.bot.client, Invites, ctx.guild.id)
-                    await database.default_pull(self.bot.client, InviteData)
-                    if InviteURL in InviteData.value[ctx.guild.id]:
-                        InviteData.value[ctx.guild.id][InviteURL][0] = Alias
-                        await ctx.reply(embed=nextcord.Embed(title="InviteURL", description=f"招待リンク`{InviteURL}`を`{Alias}`として設定しました。", color=0x00FF00))
-                    else:
-                        await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"招待リンク`{InviteURL}`が見つかりませんでした。", color=0xFF0000))
-                    await database.default_push(self.bot.client, InviteData)
+                    InviteURL = inviteUrlTemplate.search(InviteURL).group()
+                await self.fetch_invite(Invites, ctx.guild.id)
+                InviteData = await self.collection.find_one({"guild_id": ctx.guild.id})
+                if InviteURL in InviteData:
+                    InviteData[InviteURL][0] = aliase
+                    await ctx.reply(embed=nextcord.Embed(title="InviteURL", description=f"招待リンク`{InviteURL}`を`{aliase}`として設定しました。", color=0x00FF00))
                 else:
-                    await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"あなたは管理者ではありません。", color=0xFF0000))
-            elif args[1] == "del":
-                await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"引数が足りません。\n`{self.bot.command_prefix}invite del [招待リンクまたは招待コード]`", color=0xFF0000))
+                    await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"招待リンク`{InviteURL}`が見つかりませんでした。", color=0xFF0000))
+                asyncio.ensure_future(self.collection.update_one({"guild_id": ctx.guild.id}, {"$set": InviteData}))
+
+        elif setting == "del":
+            if InviteURL is None:
+                await ctx.reply(embed=nextcord.Embed(title="エラー", description="引数が不足しています。", color=0xFF0000))
             else:
-                await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"不明な引数`{args[1]}`です。", color=0xFF0000))
+                if inviteUrlTemplate.search(InviteURL) is None:
+                    InviteURL = f"https://discord.gg/{InviteURL}"
+                else:
+                    InviteURL = inviteUrlTemplate.search(InviteURL).group()
+                await self.fetch_invite(Invites, ctx.guild.id)
+                InviteData = await self.collection.find_one({"guild_id": ctx.guild.id})
+                if InviteURL in InviteData:
+                    InviteData[InviteURL][0] = None
+                    await ctx.reply(embed=nextcord.Embed(title="InviteURL", description=f"招待リンク`{InviteURL}`の名前を削除しました。", color=0x00FF00))
+                else:
+                    await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"招待リンク`{InviteURL}`が見つかりませんでした。", color=0xFF0000))
+                asyncio.ensure_future(self.collection.update_one({"guild_id": ctx.guild.id}, {"$set": InviteData}))
 
         else:
-            await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"多分引数が間違ってます。", color=0xFF0000))
+            await ctx.reply(embed=nextcord.Embed(title="エラー", description="引数が不正です。", color=0xFF0000))
 
     @commands.bot_has_permissions(manage_guild=True)
     @commands.Cog.listener()
     async def on_invite_create(self, invite: nextcord.Invite):
-        await fetch_invite(self.bot.client, await invite.guild.invites(), invite.guild.id)
+        asyncio.ensure_future(self.fetch_invite(await invite.guild.invites(), invite.guild.id))
 
 
     @commands.bot_has_permissions(manage_guild=True)
     @commands.Cog.listener()
     async def on_invite_delete(self, invite: nextcord.Invite):
-        await fetch_invite(self.bot.client, await invite.guild.invites(), invite.guild.id)
-        await database.default_pull(self.bot.client, InviteData)
-        if invite.url in InviteData.value[invite.guild.id]:
-            del InviteData.value[invite.guild.id][invite.url]
-        await database.default_push(self.bot.client, InviteData)
+        await self.fetch_invite(await invite.guild.invites(), invite.guild.id)
+        InviteData = await self.collection.find_one({"guild_id": invite.guild.id})
+        if invite.url in InviteData:
+            del InviteData[invite.url]
+        asyncio.ensure_future(self.collection.update_one({"guild_id": Interaction.guild.id}, {"$set": InviteData}))
 
 
 def setup(bot, **kwargs):
