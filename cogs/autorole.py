@@ -6,7 +6,9 @@ from re import compile
 import HTTP_db
 import nextcord
 from nextcord import Interaction, SlashOption, Role
-from nextcord.ext import commands
+from nextcord.ext import commands, application_checks
+
+from motor import motor_asyncio
 
 from util import admin_check, database, dict_list
 from util.n_fc import GUILD_IDS
@@ -19,16 +21,12 @@ MESSAGE, SLASH = (0, 1)
 STATUS, ON, OFF = (0, 1, 2)
 ROLE_ID = compile(r"<@&[0-9]+?>")
 
-class autorole_data:
-    name = "autorole"
-    value = {}
-    default = {}
-    value_type = database.GUILD_VALUE
+
 
 class autorole(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
-        asyncio.ensure_future(database.default_pull(self.bot.client, autorole_data))
+        self.collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["autorole"]
 
     @nextcord.slash_command(name="autorole", description="自動ロール", guild_ids=GUILD_IDS)
     async def autorole(self):
@@ -43,21 +41,20 @@ class autorole(commands.Cog):
                 return ("自動ロール\nエラー：@everyone は無効です。", None)
 
 
-            autorole_data.value[guild.id] = role.id
-            await database.default_push(self.bot.client, autorole_data)
+            await self.collection.update_one({"guild_id": guild.id}, {"$set": {"role_id": role.id}}, upsert=True)
             return (None, nextcord.Embed(title="自動ロール", description=f"設定完了：{role.mention}を自動的に付与します。", color=0x00ff00))
 
         elif mode == OFF:
-            if guild.id not in autorole_data.value:
+            result = await self.collection.delete_one({"guild_id": guild.id})
+            if result.deleted_count == 0:
                 return ("サーバーで自動ロールは設定されていません。", None)
             else:
-                del autorole_data.value[guild.id]
-                await database.default_push(self.bot.client, autorole_data)
                 return ("サーバーで自動ロールを無効にしました。", None)
 
         else:
-            if guild.id in autorole_data.value:
-                msg = f"自動ロールは有効です。\n自動付与されるロールは{guild.get_role(autorole_data.value[guild.id]).mention}です。"
+            result = await self.collection.delete_one({"guild_id": guild.id})
+            if result is not None:
+                msg = f"自動ロールは有効です。\n自動付与されるロールは{guild.get_role(result['role_id']).mention}です。"
             else:
                 msg = "自動ロールは無効です。"
 
@@ -68,6 +65,7 @@ class autorole(commands.Cog):
 
             return (None, nextcord.Embed(title="自動ロール", description=f"{msg}\n{usage}", color=0x00ff00))
 
+    @commands.has_permissions(manage_roles=True)
     @commands.command(name="autorole", aliases=("自動ロール", "オートロール"), help="""\
     ユーザーが加入したときに、指定したロールを自動的に付与することが出来ます。
     ・使い方
@@ -147,8 +145,8 @@ class autorole(commands.Cog):
             )
 
         await messages.mreply(ctx, msg[0], embed=msg[1])
-        return
 
+    @application_checks.has_permissions(manage_roles=True)
     @autorole.subcommand(name="off", description="自動ロールを無効にします")
     async def autorole_off(self, interaction: Interaction):
         msg = await self.autorole_message(
@@ -158,8 +156,8 @@ class autorole(commands.Cog):
             interaction.guild
         )
         await messages.mreply(interaction, msg[0], embed=msg[1], ephemeral=True)
-        return
 
+    @application_checks.has_permissions(manage_roles=True)
     @autorole.subcommand(name="on", description="ユーザーが加入したときに自動的にロールを付与します")
     async def autorole_on(
             self,
@@ -178,7 +176,6 @@ class autorole(commands.Cog):
             role
         )
         await messages.mreply(interaction, msg[0], embed=msg[1], ephemeral=True)
-        return
 
     @autorole.subcommand(name="status", description="自動ロールの設定状態を確認します")
     async def autorole_status(self, interaction: Interaction):
@@ -189,15 +186,13 @@ class autorole(commands.Cog):
             interaction.guild
         )
         await messages.mreply(interaction, msg[0], embed=msg[1], ephemeral=True)
-        return
 
     @commands.Cog.listener()
     async def on_member_join(self, member: nextcord.Member):
-        if member.guild.id in autorole_data.value:
-            role = member.guild.get_role(autorole_data.value[member.guild.id])
-            await member.add_roles(role, reason="nira-bot autorole service")
-            return
-        return
+        result = await self.collection.find_one({"guild_id": member.guild.id})
+        if result is not None:
+            role = member.guild.get_role(result["role_id"])
+            await member.add_roles(role, reason="NiraBOT AutoRole")
 
 
 def setup(bot, **kwargs):
