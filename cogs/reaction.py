@@ -14,63 +14,7 @@ from util.nira import NIRA
 
 DIR = sys.path[0]
 
-SET, DEL, STATUS = (0, 1, 2)
-AR, ER, NR = ("all_reaction_list", "ex_reaction_list", "reaction_bool_list")
-
 # 通常反応や追加反応の反応系
-
-class reaction_datas:
-    class all_reaction_list:
-        name = "all_reaction_list"
-        value = {}
-        default = {}
-        value_type = database.CHANNEL_VALUE
-
-    class ex_reaction_list:
-        name = "ex_reaction_list"
-        value = {}
-        default = {}
-        value_type = database.CHANNEL_VALUE
-
-    class reaction_bool_list:
-        name = "reaction_bool_list"
-        value = {}
-        default = {}
-        value_type = database.CHANNEL_VALUE
-
-
-class notify_token:
-    name = "notify_token"
-    value = {}
-    default = {}
-    value_type = database.CHANNEL_VALUE
-
-
-def changeSetting(
-    ActionType: int,
-    FunctionName: str,
-    interaction: Interaction or commands.Context,
-    **kwargs: dict
-):
-    """kwargs = {"key": key:str, "value": value:str}"""
-    if ActionType == SET:
-        try:
-            getattr(reaction_datas, FunctionName).value[interaction.guild.id][kwargs["key"]] = kwargs["value"]
-            return True
-        except Exception as err:
-            return [False, err]
-    elif ActionType == DEL:
-        try:
-            del getattr(reaction_datas, FunctionName).value[interaction.guild.id][kwargs["key"]]
-            return True
-        except Exception as err:
-            return [False, err]
-    elif ActionType == STATUS:
-        try:
-            return getattr(reaction_datas, FunctionName).value[interaction.guild.id][kwargs["key"]]
-        except Exception as err:
-            return [False, err]
-
 
 class NotifyTokenSet(nextcord.ui.Modal):
     def __init__(self, collection: motor_asyncio.AsyncIOMotorCollection):
