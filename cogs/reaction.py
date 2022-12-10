@@ -116,6 +116,7 @@ class reaction(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
         self.er_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["ex_reaction"]
+        self.nr_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["nr_setting"]
 
     @commands.has_permissions(manage_guild=True)
     @commands.group(name="er", help="""\
@@ -127,6 +128,8 @@ class reaction(commands.Cog):
 `n!er del [トリガー]`で削除できます。
 `n!er list`でリストを表示できます。
 `n!er edit [トリガー] [新反応]`でトリガーを編集できます。
+
+データベース接続への最適化のため、実際に反応が適応されるまでに最大で10秒ほどかかる場合があります。
 """)
     async def er_command(self, ctx):
         pass
@@ -345,64 +348,60 @@ class reaction(commands.Cog):
         else:
             await interaction.followup.send(embed=nextcord.Embed(title="Success", description=f"追加反応を編集しました。", color=0x00ff00))
 
-
+    @commands.has_permissions(manage_guild=True)
     @commands.command(name="nr", help="""\
 にらBOTの通常反応（にらとか）を無効にしたりすることが出来ます。
 `n!nr`:今の状態を表示
 `n!nr off`:通常反応を無効化
 `n!nr on`:通常反応を有効化
 `n!nr all off`:通常反応を**サーバーで**無効化
-`n!nr all on`:通常反応を**サーバーで**有効化""")
+`n!nr all on`:通常反応を**サーバーで**有効化
+
+データベース接続への最適化のため、実際に反応が適応されるまでに最大で10秒ほどかかる場合があります。
+
+※サーバーで反応が無効化された場合、チャンネルで有効化しても反応しません。""")
     async def nr(self, ctx: commands.Context):
-        try:
-            await database.default_pull(self.bot.client, reaction_datas.reaction_bool_list)
-            if ctx.guild.id not in reaction_datas.reaction_bool_list.value:  # 通常反応のブール値存在チェック
-                reaction_datas.reaction_bool_list.value[ctx.guild.id] = {}
-                reaction_datas.reaction_bool_list.value[ctx.guild.id][ctx.channel.id] = 1
-                reaction_datas.reaction_bool_list.value[ctx.guild.id]["all"] = 1
-                await database.default_push(self.bot.client, reaction_datas.reaction_bool_list)
-            if ctx.channel.id not in reaction_datas.reaction_bool_list.value[ctx.guild.id]:
-                reaction_datas.reaction_bool_list.value[ctx.guild.id][ctx.channel.id] = 1
-                await database.default_push(self.bot.client, reaction_datas.reaction_bool_list)
-            if ctx.message.content == f"{self.bot.command_prefix}nr":
-                if reaction_datas.reaction_bool_list.value[ctx.guild.id]["all"] == 0:
-                    setting = f"サーバーで無効になっている為、チャンネルごとの設定は無効です。\n(`{self.bot.command_prefix}help nr`でご確認ください。)"
-                elif reaction_datas.reaction_bool_list.value[ctx.guild.id][ctx.channel.id] == 1:
-                    setting = "有効"
-                elif reaction_datas.reaction_bool_list.value[ctx.guild.id][ctx.channel.id] == 0:
-                    setting = "無効"
-                else:
-                    setting = "読み込めませんでした。"
-                await database.default_push(self.bot.client, reaction_datas.reaction_bool_list)
-                await ctx.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description=f"通常反応の設定:{setting}\n\n`{self.bot.command_prefix}nr [on/off]`で変更できます。", color=0x00ff00))
-                return
-            if admin_check.admin_check(ctx.guild, ctx.author):
-                nr_setting = str((ctx.message.content).split(" ", 1)[1])
-                if nr_setting in n_fc.on_ali:
-                    reaction_datas.reaction_bool_list.value[ctx.guild.id][ctx.channel.id] = 1
-                    await ctx.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="チャンネルでの通常反応を有効にしました。", color=0x00ff00))
-                elif nr_setting in n_fc.off_ali:
-                    reaction_datas.reaction_bool_list.value[ctx.guild.id][ctx.channel.id] = 0
-                    await ctx.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="チャンネルでの通常反応を無効にしました。", color=0x00ff00))
-                elif nr_setting[:3] == "all":
-                    if nr_setting in n_fc.on_ali:
-                        reaction_datas.reaction_bool_list.value[ctx.guild.id]["all"] = 1
-                        await ctx.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="サーバーでの通常反応を有効にしました。", color=0x00ff00))
-                    elif nr_setting in n_fc.off_ali:
-                        reaction_datas.reaction_bool_list.value[ctx.guild.id]["all"] = 0
-                        await ctx.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="サーバーでの通常反応を無効にしました。", color=0x00ff00))
-                    else:
-                        await ctx.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description=f"コマンド使用方法:`{self.bot.command_prefix}nr [all] [on/off]`", color=0xff0000))
-                else:
-                    await ctx.reply(embed=nextcord.Embed(title="Normal Reaction Setting", description="コマンド使用方法:`{self.bot.command_prefix}nr [all] [on/off]`", color=0xff0000))
-                await database.default_push(self.bot.client, reaction_datas.reaction_bool_list)
-                return
+        setting = ctx.message.content.split(" ", 2)
+        if len(setting) == 3:
+            if setting[1] != "all":
+                await ctx.send(f"引数が不正です。\n`{ctx.prefix}nr [on/off]`または`{ctx.prefix}nr all [on/off]`")
             else:
-                await ctx.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
-                return
-        except Exception as err:
-            await ctx.reply(embed=eh.eh(self.bot.client, err))
-            return
+                if setting[2] in n_fc.on_ali:
+                    await self.nr_collection.update_one({"guild_id": ctx.guild.id}, {"$set": {"all": True}}, upsert=True)
+                    await ctx.send(f"サーバーでの通常反応を有効化しました。\n個別にチャンネルで無効化するには`{ctx.prefix}nr off`を設定したいチャンネルで実行してください。")
+                elif setting[2] in n_fc.off_ali:
+                    await self.nr_collection.update_one({"guild_id": ctx.guild.id}, {"$set": {"all": False}}, upsert=True)
+                    await ctx.send("サーバーでの通常反応を無効化しました。\n個別で有効化することは出来ませんので、個別設定をしたい場合はまず、サーバーでの通常反応を有効化してください。")
+                else:
+                    await ctx.send(f"引数が不正です。\n`{ctx.prefix}nr [on/off]`または`{ctx.prefix}nr all [on/off]`")
+        elif len(setting) == 2:
+            if setting[1] in n_fc.on_ali:
+                await self.nr_collection.update_one({"guild_id": ctx.guild.id}, {"$set": {str(ctx.channel.id): True}}, upsert=True)
+                await ctx.send("通常反応を有効化しました。\n※サーバーで反応が無効化されている場合は、個別で有効化しても反応しませんのでご注意ください。")
+            elif setting[1] in n_fc.off_ali:
+                await self.nr_collection.update_one({"guild_id": ctx.guild.id}, {"$set": {str(ctx.channel.id): False}}, upsert=True)
+                await ctx.send("通常反応を無効化しました。")
+            else:
+                await ctx.send(f"引数が不正です。\n`{ctx.prefix}nr [on/off]`または`{ctx.prefix}nr all [on/off]`")
+        elif len(setting) == 1:
+            nr_setting = await self.nr_collection.find_one({"guild_id": ctx.guild.id})
+            if nr_setting is None:
+                await self.nr_collection.update_one({"guild_id": ctx.guild.id}, {"$set": {str(ctx.channel.id): True, "all": True}}, upsert=True)
+                await ctx.send(embed=nextcord.Embed(title="通常反応", description="サーバーでの反応設定:`有効`\nチャンネルでの反応設定:`有効`", color=0x00ff00))
+            else:
+                # 存在しなかった場合の設定
+                if "all" not in nr_setting:
+                    await self.nr_collection.update_one({"guild_id": ctx.guild.id}, {"$set": {"all": True}}, upsert=True)
+                    nr_setting["all"] = True
+                if str(ctx.channel.id) not in nr_setting:
+                    await self.nr_collection.update_one({"guild_id": ctx.guild.id}, {"$set": {str(ctx.channel.id): True}}, upsert=True)
+                    nr_setting[str(ctx.channel.id)] = True
+
+                # 実際のチェック
+                embed = nextcord.Embed(title="通常反応", description=f"サーバーでの反応設定:`{'有効' if nr_setting['all'] else '無効'}`\nチャンネルでの反応設定:`{'有効' if nr_setting[str(ctx.channel.id)] else '無効'}`", color=0x00ff00)
+                if not nr_setting["all"]:
+                    embed.description += "\n※サーバーで反応が無効化されているため、個別で有効化しても反応しません。"
+                await ctx.send(embed=embed)
 
 
     @nextcord.slash_command(name="nr", description="Normal Reaction Setting", guild_ids=n_fc.GUILD_IDS)
