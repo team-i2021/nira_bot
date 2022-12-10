@@ -217,10 +217,9 @@ async def server_check(bot: NIRA, collection: motor_asyncio.AsyncIOMotorCollecti
             return
         server = None
         for s in servers:
-            if s.sever_id == serverid:
+            if s["server_id"] == serverid:
                 server = s
                 break
-            continue
         if server is None:
             await messages.mreply(ctx, f"サーバーID`{serverid}`が見つかりません。", ephemeral=True)
             return
@@ -285,11 +284,14 @@ class Minecraft(commands.Cog):
     @commands.group(name="mc")
     async def minecraft_maincommand(self, ctx: commands.Context):
         if ctx.invoked_subcommand is None:
-            print("check!")
+            async with ctx.typing():
+                if len(ctx.message.content.split(" ", 1)) == 1:
+                    await server_check(self.bot, self.collection, ctx, "status")
+                else:
+                    await server_check(self.bot, self.collection, ctx, ctx.message.content.split(" ", 1)[1])
             # await server_check(self.bot, self.collection, ctx, server_id)
             # check status
         else:
-            print("pass!")
             pass
 
     @minecraft_maincommand.command(name="add")
