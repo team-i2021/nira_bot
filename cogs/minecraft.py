@@ -137,7 +137,7 @@ async def server_add(bot: NIRA, collection: motor_asyncio.AsyncIOMotorCollection
 async def server_delete(bot: NIRA, collection: motor_asyncio.AsyncIOMotorCollection, ctx, select_id: str | None):
     servers = await collection.find({"guild_id": ctx.guild.id}).to_list(length=None)
 
-    if len(servers):
+    if len(servers) == 0:
         await messages.mreply(ctx, f"{ctx.guild.name}にはMinecraftのサーバーは追加されていません。")
         return
 
@@ -168,7 +168,7 @@ async def server_delete(bot: NIRA, collection: motor_asyncio.AsyncIOMotorCollect
             await collection.delete_one({"guild_id": ctx.guild.id, "server_id": select_id})
             await collection.update_many(
                 {"guild_id": ctx.guild.id, "server_id": {"$gte": select_id}},
-                {"$dec": {"server_id": 1}}
+                {"$inc": {"server_id": -1}}
             )
         except Exception:
             await messages.mreply(ctx, f"サーバー削除時にエラーが発生しました。", embed=nextcord.Embed(title="An error has occurred...", description=f"```sh\n{traceback.format_exc()}```", color=0xff0000), ephemeral=True)
@@ -388,6 +388,7 @@ class Minecraft(commands.Cog):
 
     @mc_slash.subcommand(name="list", description="Minecraftのサーバーのリストを表示します。")
     async def list_slash(self, interaction: Interaction):
+        await interaction.response.defer(ephemeral=True)
         await server_list(self.bot, self.collection, interaction)
 
     @mc_slash.subcommand(name="status", description="Minecraftのサーバーのステータスを表示します。")
