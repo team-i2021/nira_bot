@@ -1,21 +1,32 @@
 import nextcord
 from nextcord.ext import commands
 
-import HTTP_db
+import motor
+from motor import motor_asyncio
 
 from util.n_fc import py_admin
 
 class NIRA(commands.Bot):
     """I AM NIRA BOT!!!"""
-    def __init__(self, debug: bool = False, token: str = None, client: HTTP_db.Client = None, *args, **kwargs):
+    def __init__(
+            self,
+            debug: bool = False,
+            token: str = None,
+            client: motor.motor_asyncio.AsyncIOMotorClient = None,
+            database_name: str = "nira-bot",
+            *args,
+            **kwargs
+        ):
         self.debug: bool = debug
-        self._token: str = token
-        self.client: HTTP_db.Client = client
+        self.__token: str = token
+        self.client: motor_asyncio.AsyncIOMotorClient = client
+        self.database: motor_asyncio.AsyncIOMotorDatabase = self.client[database_name]
+        self.database_name: str = database_name
         #self.main_prefix: str = (lambda x: x[0] if type(x) in [list, tuple, set] else x)(**kwargs[""])
         return super().__init__(*args, **kwargs)
 
     def run(self) -> None:
-        super().run(self._token, reconnect=True)
+        super().run(self.__token, reconnect=True)
 
     async def is_owner(self, user: nextcord.User) -> bool:
         if user.id in py_admin:
