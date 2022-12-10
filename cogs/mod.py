@@ -8,6 +8,8 @@ import nextcord
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands, tasks
 
+from motor import motor_asyncio
+
 from util import admin_check, n_fc, eh, database
 from util.nira import NIRA
 
@@ -17,21 +19,26 @@ from util.nira import NIRA
 
 reset_time = ""
 
-class mod_list:
-    name = "mod_data"
-    value = {}
-    default = {}
-    value_type = database.CHANNEL_VALUE
+global MOD_LIST
+MOD_LIST = {}
 
 class counter:
     messageCounter = {}
 
 
-class mod(commands.Cog):
+class MessageModeration(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
-        asyncio.ensure_future(database.default_pull(self.bot.client, mod_list))
+        self.collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["message_mod"]
         self.counter_reset.start()
+        asyncio.ensure_future(self.__load_configs())
+
+    async def __load_configs(self):
+        """Load configs from database"""
+        global MOD_LIST
+        data = await self.collection.find().to_list(length=None)
+        for i in data:
+            MOD_LIST[i["guild_id"]] = i
 
     def cog_unload(self):
         self.counter_reset.stop()
@@ -42,21 +49,21 @@ class mod(commands.Cog):
             return
         if message.author.bot:
             return
-        if message.guild.id not in mod_list.value:
+        if message.guild.id not in MOD_LIST:
             return
         if message.author.id not in counter.messageCounter:
             counter.messageCounter[message.author.id] = 0
         counter.messageCounter[message.author.id] = counter.messageCounter[message.author.id] + 1
-        if counter.messageCounter[message.author.id] > mod_list.value[message.guild.id]["counter"] - 3 and counter.messageCounter[message.author.id] < mod_list.value[message.guild.id]["counter"]:
+        if counter.messageCounter[message.author.id] > MOD_LIST[message.guild.id]["counter"] - 3 and counter.messageCounter[message.author.id] < MOD_LIST[message.guild.id]["counter"]:
             await message.channel.send(f"{message.author.mention}\nメッセージ送信数が多いです。あまり多いとミュートされます。")
             return
-        if counter.messageCounter[message.author.id] >= mod_list.value[message.guild.id]["counter"]:
+        if counter.messageCounter[message.author.id] >= MOD_LIST[message.guild.id]["counter"]:
             try:
-                if mod_list.value[message.guild.id]["remove_role"]:
+                if MOD_LIST[message.guild.id]["remove_role"]:
                     await message.author.remove_roles(*message.author.roles[1:], reason="にらBOTの荒らし対策機能")
-                role = message.guild.get_role(mod_list.value[message.guild.id]["role"])
+                role = message.guild.get_role(MOD_LIST[message.guild.id]["role"])
                 await message.author.add_roles(role, reason="にらBOTの荒らし対策機能")
-                await message.channel.send(f"{message.author.mention}は、メッセージ数が規定オーバーのため、ミュート用ロールを付与しました。\n{'なお、ミュート用ロール以外の全ロールを剥奪しました。' if mod_list.value[message.guild.id]['remove_role'] else ''}")
+                await message.channel.send(f"{message.author.mention}は、メッセージ数が規定オーバーのため、ミュート用ロールを付与しました。\n{'なお、ミュート用ロール以外の全ロールを剥奪しました。' if MOD_LIST[message.guild.id]['remove_role'] else ''}")
                 return
             except Exception as err:
                 await message.channel.send(f"{message.author.name}をミュートしようとしましたがエラーが発生しました。\n```sh\n{err}```")
@@ -84,16 +91,16 @@ remove: ロールの剥奪を行うかどうか（`on`/`off`）（指定され�
     async def mod(self, ctx: commands.Context):
         args = ctx.message.content.split(" ", 4)
         if len(args) == 1:
-            if ctx.guild.id not in mod_list.value:
+            if ctx.guild.id not in MOD_LIST:
                 await ctx.reply(embed=nextcord.Embed(title="荒らし対策", description=f"サーバーで機能は`無効`になっています。\n\n・機能の有効化\n`{self.bot.command_prefix}mod on [規定メッセージ数] [付与するロール]`\n\n・機能の無効化\n`{self.bot.command_prefix}mod off`", color=0x00ff00))
             else:
-                counter = mod_list.value[ctx.guild.id]["counter"]
-                role = mod_list.value[ctx.guild.id]["role"]
+                counter = MOD_LIST[ctx.guild.id]["counter"]
+                role = MOD_LIST[ctx.guild.id]["role"]
                 await ctx.reply(embed=nextcord.Embed(title="荒らし対策", description=f"サーバーで機能は`有効`になっています。\nメッセージカウンター:`{counter}`\nミュート用ロール:<@&{role}>\n\n・機能の有効化\n`n!mod on [規定メッセージ数] [付与するロール]`\n\n・機能の無効化\n`{self.bot.command_prefix}mod off`", color=0x00ff00))
         elif args[1] == "off":
             if admin_check.admin_check(ctx.guild, ctx.author):
-                del mod_list.value[ctx.guild.id]
-                await database.default_push(self.bot.client, mod_list)
+                del MOD_LIST[ctx.guild.id]
+                await self.collection.delete_one({"guild_id": ctx.guild.id})
                 await ctx.reply("設定完了", embed=nextcord.Embed(title="荒らし対策", description=f"設定を削除しました。", color=0x00ff00))
             else:
                 await ctx.reply(embed=nextcord.Embed(title="荒らし対策", description="あなたは管理者ではありません。", color=0xff0000))
@@ -125,15 +132,18 @@ remove: ロールの剥奪を行うかどうか（`on`/`off`）（指定され�
                 if role_id == ctx.guild.id:
                     await ctx.reply(embed=nextcord.Embed(title="荒らし対策", description="@everyoneは使用できません。", color=0xff0000))
                     return
-                mod_list.value[ctx.guild.id] = {
-                    "counter": int(args[2]), "role": role_id, "remove_role": remove}
-                await database.default_push(self.bot.client, mod_list)
+                MOD_LIST[ctx.guild.id] = {
+                    "counter": int(args[2]),
+                    "role": role_id,
+                    "remove_role": remove
+                }
+                await self.collection.update_one({"guild_id": ctx.guild.id}, {"$set": {MOD_LIST[ctx.guild.id]}}, upsert=True)
                 await ctx.reply(f"設定完了", embed=nextcord.Embed(title="荒らし対策", description=f"メッセージカウンター:`{args[2]}`\nミュート用ロール:<@&{role_id}>\n付与されてたロールの剥奪:{remove}", color=0x00ff00))
             else:
                 await ctx.reply(embed=nextcord.Embed(title="荒らし対策", description="あなたは管理者ではありません。", color=0xff0000))
         elif ctx.message.content == f"{self.bot.command_prefix}mod debug":
             if (await self.bot.is_owner(ctx.author)):
-                await ctx.reply(f"messageCounter: `{counter.messageCounter}`\nmod_list: `{mod_list.value}`\nmod_check: `{counter.messageCounter[ctx.author.id] >= mod_list.value[ctx.guild.id]['counter']}`\nlast reset: `{reset_time}`")
+                await ctx.reply(f"messageCounter: `{counter.messageCounter}`\nmod_list: `{MOD_LIST}`\nmod_check: `{counter.messageCounter[ctx.author.id] >= MOD_LIST[ctx.guild.id]['counter']}`\nlast reset: `{reset_time}`")
 
 
     @nextcord.slash_command(name="mod", description="荒らし対策機能の設定を変更します。", guild_ids=n_fc.GUILD_IDS)
@@ -166,12 +176,12 @@ remove: ロールの剥奪を行うかどうか（`on`/`off`）（指定され�
                 await interaction.response.send_message(embed=nextcord.Embed(title="荒らし対策", description="@everyoneは指定できません。", color=0xff0000), ephemeral=True)
                 return
             try:
-                mod_list.value[interaction.guild.id] = {
+                MOD_LIST[interaction.guild.id] = {
                     "counter": counter,
                     "role": role.id,
                     "remove_role": remove_role
                 }
-                await database.default_push(self.bot.client, mod_list)
+                await self.collection.update_one({"guild_id": interaction.guild.id}, {"$set": {MOD_LIST[interaction.guild.id]}}, upsert=True)
             except Exception as err:
                 await interaction.response.send_message(embed=nextcord.Embed(title="荒らし対策", description=f"エラーが発生しました。\n```\n{err}```", color=0xff0000), ephemeral=True)
                 return
@@ -185,12 +195,12 @@ remove: ロールの剥奪を行うかどうか（`on`/`off`）（指定され�
         interaction: Interaction
     ):
         if admin_check.admin_check(interaction.guild, interaction.user):
-            if interaction.guild.id not in mod_list.value:
+            if interaction.guild.id not in MOD_LIST:
                 await interaction.response.send_message(embed=nextcord.Embed(title="荒らし対策", description="サーバーで機能は既に`無効`になっています。", color=0xff0000), ephemeral=True)
             else:
                 try:
-                    del mod_list.value[interaction.guild.id]
-                    await database.default_push(self.bot.client, mod_list)
+                    del MOD_LIST[interaction.guild.id]
+                    await self.collection.delete_one({"guild_id": interaction.guild.id})
                 except Exception as err:
                     await interaction.response.send_message(embed=nextcord.Embed(title="荒らし対策", description=f"エラーが発生しました。\n```\n{err}```", color=0xff0000), ephemeral=True)
                     return
@@ -204,10 +214,10 @@ remove: ロールの剥奪を行うかどうか（`on`/`off`）（指定され�
         self,
         interaction: Interaction
     ):
-        if interaction.guild.id not in mod_list.value:
+        if interaction.guild.id not in MOD_LIST:
             await interaction.response.send_message(embed=nextcord.Embed(title="荒らし対策", description="サーバーで機能は`無効`になっています。", color=0x00ff00), ephemeral=True)
         else:
-            await interaction.response.send_message(embed=nextcord.Embed(title="荒らし対策", description=f"サーバーで機能は`有効`になっています。\nメッセージカウンター:`{mod_list.value[interaction.guild.id]['counter']}`\nミュート用ロール:<@&{mod_list.value[interaction.guild.id]['role']}>", color=0x00ff00), ephemeral=True)
+            await interaction.response.send_message(embed=nextcord.Embed(title="荒らし対策", description=f"サーバーで機能は`有効`になっています。\nメッセージカウンター:`{MOD_LIST[interaction.guild.id]['counter']}`\nミュート用ロール:<@&{MOD_LIST[interaction.guild.id]['role']}>", color=0x00ff00), ephemeral=True)
 
 
     @tasks.loop(seconds=20.0)
@@ -216,4 +226,4 @@ remove: ロールの剥奪を行うかどうか（`on`/`off`）（指定され�
 
 
 def setup(bot, **kwargs):
-    bot.add_cog(mod(bot, **kwargs))
+    bot.add_cog(MessageModeration(bot, **kwargs))
