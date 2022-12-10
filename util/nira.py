@@ -12,15 +12,19 @@ class NIRA(commands.Bot):
             self,
             debug: bool = False,
             token: str = None,
-            client: motor.motor_asyncio.AsyncIOMotorClient = None,
+            client = None,
+            mongo: motor.motor_asyncio.AsyncIOMotorClient = None,
             database_name: str = "nira-bot",
             *args,
             **kwargs
         ):
         self.debug: bool = debug
         self.__token: str = token
-        self.client: motor_asyncio.AsyncIOMotorClient = client
-        self.database: motor_asyncio.AsyncIOMotorDatabase = self.client[database_name]
+        self.client = client # HTTP_dbとして呼び出す
+
+        self.__mongo: motor_asyncio.AsyncIOMotorClient = mongo
+
+        self.database: motor_asyncio.AsyncIOMotorDatabase = self.__mongo[database_name] # MongoDBとして呼び出す
         self.database_name: str = database_name
         #self.main_prefix: str = (lambda x: x[0] if type(x) in [list, tuple, set] else x)(**kwargs[""])
         return super().__init__(*args, **kwargs)

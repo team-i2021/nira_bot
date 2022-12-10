@@ -43,8 +43,9 @@ if len(sys.argv) > 1 and sys.argv[1] == "-d":
 
 
 ##### データベースの設定 #####
-CLIENT = motor_asyncio.AsyncIOMotorClient(SETTING["database_url"])
-# database.openClient()
+CLIENT = database.openClient()
+_MONGO_CLIENT = motor_asyncio.AsyncIOMotorClient(SETTING["database_url"])
+
 
 # for i in range(1, 4):
 #     print(f"データベース接続チェック {i}/3...")
@@ -73,7 +74,8 @@ bot = NIRA(
     status=nextcord.Status.dnd,
     debug=DEBUG,
     token=SETTING["tokens"]["nira_bot"],
-    client=CLIENT,
+    client=CLIENT, # http_db
+    mongo=_MONGO_CLIENT, # mongo_db
     database_name=SETTING["database_name"]
 )
 
