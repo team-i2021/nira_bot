@@ -73,13 +73,13 @@ def changeSetting(
 
 
 class NotifyTokenSet(nextcord.ui.Modal):
-    def __init__(self, client: HTTP_db.Client):
+    def __init__(self, collection: motor_asyncio.AsyncIOMotorCollection):
         super().__init__(
             "LINE Notify設定",
             timeout=None
         )
 
-        self.client = client
+        self.collection = collection
 
         self.token = nextcord.ui.TextInput(
             label="LINE Notify TOKEN",
@@ -93,30 +93,27 @@ class NotifyTokenSet(nextcord.ui.Modal):
 
     async def callback(self, interaction: Interaction) -> None:
         await interaction.response.defer()
-        await database.default_pull(self.client, notify_token)
         if self.token.value == "" or self.token.value is None:
             await interaction.send("トークンは必須です。", ephemeral=True)
             return
-        if admin_check.admin_check(interaction.guild, interaction.user) == False:
+        if not admin_check.admin_check(interaction.guild, interaction.user):
             await interaction.send("あなたにはサーバーの管理権限がないため実行できません。", ephemeral=True)
         else:
-            token_result = web_api.line_token_check(self.token.value)
+            token_result = await web_api.line_token_check(self.token.value)
             if token_result[0] == False:
                 await interaction.send(f"そのトークンは無効なようです。\n```sh\n{token_result[1]}```", ephemeral=True)
                 return
-            if interaction.guild.id not in notify_token.value:
-                notify_token.value[interaction.guild.id] = {interaction.channel.id: self.token.value}
-            else:
-                notify_token.value[interaction.guild.id][interaction.channel.id] = self.token.value
-            await database.default_push(self.client, notify_token)
+            await self.collection.update_one({"guild_id": interaction.guild.id}, {"$set": {"token": self.token.value}}, upsert=True)
             await interaction.send(f"{interaction.guild.name}/{interaction.channel.name}で`{self.token.value}`を保存します。\nトークンが他のユーザーに見られないようにしてください。", ephemeral=True)
 
 
-class reaction(commands.Cog):
+class Reaction(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
-        self.er_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["ex_reaction"]
+        self.er_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["er_setting"]
         self.nr_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["nr_setting"]
+        self.ar_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["ar_setting"]
+        self.line_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["notify_token"]
 
     @commands.has_permissions(manage_guild=True)
     @commands.group(name="er", help="""\
@@ -459,7 +456,7 @@ class reaction(commands.Cog):
         await self.nr_collection.update_one({"guild_id": interaction.guild.id}, {"$set": {"all": setting}}, upsert=True)
         await interaction.response.send_message(f"サーバーでの通常反応を{'有効化' if setting else '無効化'}しました。")
 
-
+    @commands.has_permissions(manage_guild=True)
     @commands.command(name="ar", help="""\
 にらBOTの通常反応及び追加反応(Bump通知および`n!`コマンド以外のすべて)を無効にしたりすることが出来ます。
 `n!ar`:今の状態を表示
@@ -467,74 +464,49 @@ class reaction(commands.Cog):
 `n!ar on`:全反応を有効化
 
 チャンネルトピックに`nira-off`と入れておくと、そのチャンネルでは設定を無視して反応を無効化します。""")
-    async def ar(self, ctx: commands.Context):
-        try:
-            await database.default_pull(self.bot.client, reaction_datas.all_reaction_list)
-            if ctx.guild.id not in reaction_datas.all_reaction_list.value:
-                print(reaction_datas.all_reaction_list.value)
-                reaction_datas.all_reaction_list.value[ctx.guild.id] = {}
-            if ctx.channel.id not in reaction_datas.all_reaction_list.value[ctx.guild.id]:
-                reaction_datas.all_reaction_list.value[ctx.guild.id][ctx.channel.id] = 1
-            if ctx.message.content == f"{self.bot.command_prefix}ar":
-                if reaction_datas.all_reaction_list.value[ctx.guild.id][ctx.channel.id] == 1:
-                    setting = "有効"
-                elif reaction_datas.all_reaction_list.value[ctx.guild.id][ctx.channel.id] == 0:
-                    setting = "無効"
-                else:
-                    setting = "読み込めませんでした。"
-                await database.default_push(self.bot.client, reaction_datas.all_reaction_list)
-                await ctx.reply(embed=nextcord.Embed(title="All Reaction Setting", description=f"「通常反応」及び「追加反応」（Bump通知および各種コマンドは除く）の設定:{setting}\n\n`{self.bot.command_prefix}ar [on/off]`で変更できます。", color=0x00ff00))
-                return
-            if admin_check.admin_check(ctx.guild, ctx.author):
-                ar_setting = str((ctx.message.content).split(" ", 1)[1])
-                if ar_setting in n_fc.on_ali:
-                    reaction_datas.all_reaction_list.value[ctx.guild.id][ctx.channel.id] = 1
-                    await ctx.reply(embed=nextcord.Embed(title="All Reaction Setting", description="チャンネルでの全反応を有効にしました。", color=0x00ff00))
-                elif ar_setting in n_fc.off_ali:
-                    reaction_datas.all_reaction_list.value[ctx.guild.id][ctx.channel.id] = 0
-                    await ctx.reply(embed=nextcord.Embed(title="All Reaction Setting", description="チャンネルでの全反応を無効にしました。", color=0x00ff00))
-                else:
-                    await ctx.reply(embed=nextcord.Embed(title="All Reaction Setting", description=f"コマンド使用方法:`{self.bot.command_prefix}ar [all] [on/off]`", color=0xff0000))
-                await database.default_push(self.bot.client, reaction_datas.all_reaction_list)
-                return
+    async def ar(self, ctx: commands.Context, setting: str | None = None):
+        if setting is None:
+            ar_setting = await self.ar_collection.find_one({"guild_id": ctx.guild.id})
+            if ar_setting is None:
+                await self.ar_collection.udpate_one({"guild_id": ctx.guild.id, "all": True}, upsert=True)
+                await ctx.send("このサーバーでの全体反応は有効です。")
             else:
-                await ctx.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
-                return
-        except Exception as err:
-            await ctx.reply(embed=eh.eh(self.bot.client, err))
-            return
+                if ar_setting["all"]:
+                    await ctx.send("このサーバーでの全体反応は有効です。")
+                else:
+                    await ctx.send("このサーバーでの全体反応は無効です。")
+        elif setting in n_fc.on_ali:
+            await self.ar_collection.update_one({"guild_id": ctx.guild.id}, {"$set": {"all": True}}, upsert=True)
+            await ctx.send("このサーバーでの全体反応を有効化しました。")
+        elif setting in n_fc.off_ali:
+            await self.ar_collection.update_one({"guild_id": ctx.guild.id}, {"$set": {"all": False}}, upsert=True)
+            await ctx.send("このサーバーでの全体反応を無効化しました。")
+        else:
+            await ctx.send(f"引数が不正です。\n`{ctx.prefix}ar [on/off]`")
 
 
+    @application_checks.has_permissions(manage_guild=True)
     @nextcord.slash_command(name="ar", description="チャンネル全体反応設定", guild_ids=n_fc.GUILD_IDS)
     async def ar_slash(
-        self,
-        interaction: Interaction,
-        setting: int = SlashOption(
-            name="setting",
-            name_localizations={
-                nextcord.Locale.ja: "設定"
-            },
-            description="Value of Setting All Reaction in Channel",
-            description_localizations={
-                nextcord.Locale.ja: "チャンネルでの全体設定の有効化/無効化"
-            },
-            choices={"Enable": 1, "Disable": 0},
-            choice_localizations={
-                nextcord.Locale.ja: {"有効": 1, "無効": 0}
-            }
-        )
-    ):
-        if admin_check.admin_check(interaction.guild, interaction.user):
-            await interaction.response.defer(ephemeral=True)
-            await database.default_pull(self.bot.client, reaction_datas.all_reaction_list)
-            if interaction.guild.id not in reaction_datas.all_reaction_list.value:
-                reaction_datas.all_reaction_list.value[interaction.guild.id] = {interaction.channel.id: setting}
-            else:
-                reaction_datas.all_reaction_list.value[interaction.guild.id][interaction.channel.id] = setting
-            await database.default_push(self.bot.client, reaction_datas.all_reaction_list)
-            await interaction.send(embed=nextcord.Embed(title="All Reaction Setting", description=f"チャンネル <#{interaction.channel.id}> での全体反応を変更しました。", color=0x00ff00), ephemeral=True)
-        else:
-            await interaction.send(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000), ephemeral=True)
+            self,
+            interaction: Interaction,
+            setting: int = SlashOption(
+                name="setting",
+                name_localizations={
+                    nextcord.Locale.ja: "設定"
+                },
+                description="Value of Setting All Reaction in Channel",
+                description_localizations={
+                    nextcord.Locale.ja: "チャンネルでの全体設定の有効化/無効化"
+                },
+                choices={"Enable": True, "Disable": False},
+                choice_localizations={
+                    nextcord.Locale.ja: {"有効": False, "無効": True}
+                }
+            )
+        ):
+        await self.ar_collection.update_one({"guild_id": interaction.guild.id}, {"$set": {"all": setting}}, upsert=True)
+        await interaction.response.send_message(f"チャンネルでの全体反応を{'有効化' if setting else '無効化'}しました。")
 
 
     @commands.command(name="line", help="""\
@@ -548,37 +520,28 @@ LINE Notifyという機能を用いて、DiscordのメッセージをLINEに送�
         embed.add_field(name="**TOKENって何？**", value="""\
 TOKENとは簡単に言えばパスワードです。LINE Notifyのページから発行してきてください。
 [TOKENの発行方法](https://qiita.com/nattyan_tv/items/33ac7a7269fe12e49198)""", inline=False)
+        embed.add_field(name="Q. LINEのオープンチャットで使えますか？", value="A. 申し訳ありませんができません。\n（もしLINEオープンチャットに関するAPIの新情報があったら教えてね）", inline=False)
         await ctx.reply(embed=embed)
 
 
-    # 今だけGuild指定しない...
-    @nextcord.slash_command(name="line", description="Setting of Line Notify")
+    @nextcord.slash_command(name="line", description="Setting of Line Notify", guild_ids=n_fc.GUILD_IDS)
     async def line_slash(self, interaction: Interaction):
         pass
 
 
+    @application_checks.has_permissions(manage_guild=True)
     @line_slash.subcommand(name="set", description="Set LINE Notify's TOKEN", description_localizations={nextcord.Locale.ja: "LINE Notifyのトークンを設定します。"})
     async def line_set_slash(self, interaction: Interaction):
-        modal = NotifyTokenSet()
+        modal = NotifyTokenSet(self.line_collection)
         await interaction.response.send_modal(modal=modal)
 
 
+    @application_checks.has_permissions(manage_guild=True)
     @line_slash.subcommand(name="del", description="Delete LINE Notify's TOKEN", description_localizations={nextcord.Locale.ja: "LINE Notifyのトークンを削除します。"})
     async def line_del_slash(self, interaction: Interaction):
-        if admin_check.admin_check(interaction.guild, interaction.user) == False:
-            await interaction.send("あなたにはサーバーの管理権限がないため実行できません。", ephemeral=True)
-        else:
-            await database.default_pull(self.bot.client, notify_token)
-            if interaction.guild.id not in notify_token.value:
-                await interaction.send(f"{interaction.guild.name}では、LINEトークンが設定されていません。", ephemeral=True)
-                return
-            if interaction.channel.id not in notify_token.value[interaction.guild.id]:
-                await interaction.send(f"{interaction.channel.name}では、LINEトークンが設定されていません。", ephemeral=True)
-                return
-            del notify_token.value[interaction.guild.id][interaction.channel.id]
-            await database.default_push(self.bot.client, notify_token)
-            await interaction.send(f"{interaction.channel.name}でのLINEトークンを削除しました。", ephemeral=True)
+        await self.line_collection.delete_one({"guild_id": interaction.guild.id})
+        await interaction.response.send_message("LINE Notifyのトークンを削除しました。")
 
 
 def setup(bot, **kwargs):
-    bot.add_cog(reaction(bot, **kwargs))
+    bot.add_cog(Reaction(bot, **kwargs))

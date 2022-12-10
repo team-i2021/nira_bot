@@ -3,6 +3,8 @@ import os
 import requests
 import sys
 
+import aiohttp
+
 import nextcord
 from nextcord.embeds import Embed
 
@@ -58,13 +60,14 @@ def notify_line(message: nextcord.Message, token):
         print(f"大変申し訳ございません。エラーが発生しました。\n```{err}```\n```sh\n{sys.exc_info()}```\nfile:`{fname}`\nline:{exc_tb.tb_lineno}\n\n[サポートサーバー](https://nextcord.gg/awfFpCYTcP)")
 
 
-def line_token_check(token):
+async def line_token_check(token: str):
     headers = {'Authorization' : 'Bearer ' + token}
-    rt = requests.get(lineTokenCheck_url ,headers = headers)
-    if rt.status_code == 200:
-        return (True, rt.text)
-    else:
-        return (False, rt.text)
+    async with aiohttp.ClientSession() as session:
+        async with session.get(lineTokenCheck_url, headers=headers) as response:
+            if response.status == 200:
+                return (True, await response.text())
+            else:
+                return (False, await response.text())
 
 
 def server_status(ip, port):
