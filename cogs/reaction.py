@@ -5,7 +5,9 @@ import sys
 import HTTP_db
 import nextcord
 from nextcord import Interaction, SlashOption
-from nextcord.ext import commands
+from nextcord.ext import commands, application_checks
+
+from motor import motor_asyncio
 
 from util import admin_check, n_fc, eh, web_api, slash_tool, database
 from util.nira import NIRA
@@ -113,129 +115,97 @@ class NotifyTokenSet(nextcord.ui.Modal):
 class reaction(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
+        self.er_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["ex_reaction"]
 
-    @commands.command(name="er", help="""\
+    @commands.has_permissions(manage_guild=True)
+    @commands.group(name="er", help="""\
 追加で新しいにらの反応を作り出すことが出来ます。
 オートリプライとかって呼ばれるんですかね？まぁ、トリガーとリターンを指定することで、トリガーが送信された際に指定したリターンを送信することが出来ます。
-トリガーには正規表現を使うことが出来ます。が、スペースを含むことはできませんのでご了承ください。""")
-    async def er(self, ctx: commands.Context):
-        args = ctx.message.content.split(" ", 3)
-        if args[1] == "add":
+トリガーには正規表現を使うことが出来ます。が、スペースを含むことはできませんのでご了承ください。
+
+`n!er add [トリガー] [返信文] [メンション]`で追加できます。
+`n!er del [トリガー]`で削除できます。
+`n!er list`でリストを表示できます。
+`n!er edit [トリガー] [新反応]`でトリガーを編集できます。
+""")
+    async def er_command(self, ctx):
+        pass
+
+    @commands.has_permissions(manage_guild=True)
+    @er_command.command(name="add")
+    async def er_add(self, ctx: commands.Context, trigger: str | None = None, return_text: str | None = None, mention: str = "False"):
+        if trigger is None or return_text is None:
+            await ctx.reply(f"構文が異なります。\n```{self.bot.command_prefix}er add [トリガー] [返信文] [メンション(True/False)]```")
+        else:
             if not admin_check.admin_check(ctx.guild, ctx.author):
                 await ctx.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
                 return
-            if  len(args) == 2:
-                await ctx.reply(f"構文が異なります。\n```{self.bot.command_prefix}er add [トリガー] [返信文]```")
-                return
-            try:
-                await database.default_pull(self.bot.client, reaction_datas.ex_reaction_list)
-                if ctx.guild.id not in reaction_datas.ex_reaction_list.value:
-                    reaction_datas.ex_reaction_list.value[ctx.guild.id] = {"value": 0}
-                value = int(changeSetting(STATUS, ER, ctx, key="value"))
-                ra = ctx.message.content[9:].split(" ", 1)
-                react_trigger = ra[0]
-                react_return = ra[1]
-                changeSetting(SET, ER, ctx, key="value", value=value+1)
-                changeSetting(SET, ER, ctx, key=f'{value+1}_tr', value=str(react_trigger))
-                changeSetting(SET, ER, ctx, key=f'{value+1}_re', value=str(react_return))
-                await database.default_push(self.bot.client, reaction_datas.ex_reaction_list)
-                await ctx.reply(embed=nextcord.Embed(title="完了", description=f"新しい反応を作成しました。\nトリガー:{ra[0]}\n返信内容:{ra[1]}", color=0x00ff00))
-                return
-            except Exception as err:
-                await ctx.reply(embed=eh.eh(self.bot.client, err))
-        elif args[1] == "list":
-            await database.default_pull(self.bot.client, reaction_datas.ex_reaction_list)
-            if ctx.guild.id not in reaction_datas.ex_reaction_list.value or changeSetting(STATUS, ER, ctx, key="value") == 0:
-                await ctx.reply("追加返答は設定されていません。")
-                return
+            if mention in n_fc.on_ali:
+                mention = True
+            elif mention in n_fc.off_ali:
+                mention = False
             else:
-                embed = nextcord.Embed(title="追加返答リスト", description="- にらBOT", color=0x00ff00)
-                for i in range(int(changeSetting(STATUS, ER, ctx, key="value"))):
-                    embed.add_field(name=f"トリガー：{changeSetting(STATUS, ER, ctx, key=f'{i+1}_tr')}",
-                                    value=f"リターン：{changeSetting(STATUS, ER, ctx, key=f'{i+1}_re')}",
-                                    inline=False)
-                await ctx.reply(embed=embed)
+                await ctx.reply(embed=nextcord.Embed(title="Error", description=f"返信に対するメンションの指定が不正です。\n`yes`や`True`又は、`off`や`False`で指定してください。", color=0xff0000))
                 return
-        elif args[1] == "edit":
+            await self.er_collection.update_one({"guild_id": ctx.guild.id, "trigger": trigger}, {"$set": {"return": return_text, "mention": mention}}, upsert=True)
+            await ctx.reply(embed=nextcord.Embed(title="Success", description=f"トリガー`{trigger}`を追加しました。\nメンションは{'有効' if mention else '無効'}です。", color=0x00ff00))
+
+    @commands.has_permissions(manage_guild=True)
+    @er_command.command(name="del")
+    async def er_del(self, ctx: commands.Context, trigger: str | None = None):
+        if trigger is None:
+            await ctx.reply(f"構文が異なります。\n```{self.bot.command_prefix}er del [トリガー]```")
+        else:
             if not admin_check.admin_check(ctx.guild, ctx.author):
                 await ctx.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
                 return
-            if len(args) != 4:
-                await ctx.reply(f"構文が異なります。\n```{self.bot.command_prefix}er edit [トリガー] [返信文]```")
-                return
-            await database.default_pull(self.bot.client, reaction_datas.ex_reaction_list)
-            if ctx.guild.id not in reaction_datas.ex_reaction_list.value:
-                await ctx.reply("追加反応は登録されていません。")
-                return
-            if changeSetting(STATUS, ER, ctx, key="value") == 0:
-                await ctx.reply("追加反応は登録されていません。")
-                return
-            b_tr = args[2]
-            b_re = args[3]
-            try:
-                rt_e = False
-                for i in range(math.floor((len(reaction_datas.ex_reaction_list.value[ctx.guild.id])-1)/2)):
-                    if changeSetting(STATUS, ER, ctx, key=f"{i+1}_tr") == b_tr:
-                        changeSetting(SET, ER, ctx, key=f"{i+1}_re", value=b_re)
-                        rt_e = True
-                        break
-                if rt_e:
-                    await database.default_push(self.bot.client, reaction_datas.ex_reaction_list)
-                    await ctx.reply(embed=nextcord.Embed(title="完了", description=f"反応を編集しました。\nトリガー:{b_tr}\n返信内容:{b_re}", color=0x00ff00))
-                else:
-                    await ctx.reply("そのトリガーは登録されていません！")
-                return
-            except Exception as err:
-                await ctx.reply(embed=eh.eh(self.bot.client, err))
-                return
-        elif args[1] == "del":
-            if not admin_check.admin_check(ctx.guild, ctx.author):
-                await ctx.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
-                return
-            await database.default_pull(self.bot.client, reaction_datas.ex_reaction_list)
-            if ctx.guild.id not in reaction_datas.ex_reaction_list.value:
-                await ctx.reply("追加返答は設定されていません。")
-                return
+            if trigger == "all":
+                await self.er_collection.delete_many({"guild_id": ctx.guild.id})
+                await ctx.reply(embed=nextcord.Embed(title="Success", description=f"全てのトリガーを削除しました。", color=0x00ff00))
             else:
-                if len(args) != 3:
-                    await ctx.reply(f"コマンドの引数が足りません。\n全削除:`{self.bot.command_prefix}er del all`\n特定の返答を削除:`{self.bot.command_prefix}er del [トリガー]`")
-                    return
-                elif args[2] == "all":
-                    del reaction_datas.ex_reaction_list.value[ctx.guild.id]
-                    await database.default_push(self.bot.client, reaction_datas.ex_reaction_list)
-                    await ctx.reply(f"`{ctx.guild.name}`での追加反応の設定を削除しました。")
-                    return
+                delete_status = await self.er_collection.delete_one({"guild_id": ctx.guild.id, "trigger": trigger})
+                if delete_status.deleted_count == 1:
+                    await ctx.reply(embed=nextcord.Embed(title="Success", description=f"トリガー`{trigger}`を削除しました。", color=0x00ff00))
                 else:
-                    result = None
-                    trigger = args[2]
-                    for i in range(math.floor((len(reaction_datas.ex_reaction_list.value[ctx.guild.id])-1)/2)):
-                        if changeSetting(STATUS, ER, ctx, key=f"{i+1}_tr") == trigger:
-                            result = i
-                            break
-                        continue
-                    if result == None:
-                        await ctx.reply(f"`{trigger}`というトリガーが見つかりませんでした。\n不具合がある場合は全消しするか、サポートサーバーへご連絡ください。")
-                        return
-                    for i in range(math.floor((len(reaction_datas.ex_reaction_list.value[ctx.guild.id])-1)/2)-(result+1)):
-                        for suf in ("tr", "re"):
-                            changeSetting(SET, ER, ctx,
-                                key=f"{result+i+1}_{suf}",
-                                value=changeSetting(STATUS, ER, ctx, key=f"{result+i+2}_{suf}")
-                            )
-                    for i in ("tr", "re"):
-                        del reaction_datas.ex_reaction_list.value[ctx.guild.id][f"{reaction_datas.ex_reaction_list.value[ctx.guild.id]['value']}_{i}"]
-                    reaction_datas.ex_reaction_list.value[ctx.guild.id]["value"] -= 1
-                    await database.default_push(self.bot.client, reaction_datas.ex_reaction_list)
-                    await ctx.reply(f"`{trigger}`を削除しました。")
-                    return
-        return
+                    await ctx.reply(embed=nextcord.Embed(title="Error", description=f"トリガー`{trigger}`は存在しませんでした。", color=0xff0000))
+
+    @commands.has_permissions(manage_guild=True)
+    @er_command.command(name="list")
+    async def er_list(self, ctx: commands.Context):
+        if not admin_check.admin_check(ctx.guild, ctx.author):
+            await ctx.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
+            return
+        er_list: list = await self.er_collection.find({"guild_id": ctx.guild.id}).to_list(length=None)
+        if len(er_list) == 0:
+            await ctx.reply(embed=nextcord.Embed(title="Error", description=f"追加反応が存在しません。", color=0xff0000))
+            return
+        embed = nextcord.Embed(title="追加反応リスト", description=f"追加反応のリストです。", color=0x00ff00)
+        for er in er_list:
+            embed.add_field(name=er["trigger"], value=f"- 返信文\n{er['return']}\n\n- メンション\n{'有効' if er['mention'] else '無効'}", inline=False)
+        await ctx.author.send(embed=embed)
+
+    @commands.has_permissions(manage_guild=True)
+    @er_command.command(name="edit")
+    async def er_edit(self, ctx: commands.Context, trigger: str | None = None, return_text: str | None = None):
+        if trigger is None or return_text is None:
+            await ctx.reply(f"構文が異なります。\n```{self.bot.command_prefix}er edit [トリガー] [新反応]```")
+        else:
+            if not admin_check.admin_check(ctx.guild, ctx.author):
+                await ctx.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
+                return
+            update_result = await self.er_collection.update_one({"guild_id": ctx.guild.id, "trigger": trigger}, {"$set": {"return": return_text}})
+            if update_result.modified_count == 0:
+                await ctx.reply(embed=nextcord.Embed(title="Error", description=f"トリガー`{trigger}`は存在しませんでした。", color=0xff0000))
+            else:
+                await ctx.reply(embed=nextcord.Embed(title="Success", description=f"トリガー`{trigger}`を編集しました。", color=0x00ff00))
 
 
+    @application_checks.has_permissions(manage_guild=True)
     @nextcord.slash_command(name="er", description="Extended Reaction Setting", guild_ids=n_fc.GUILD_IDS)
     async def er_slash(self, interaction: Interaction):
         pass
 
-
+    @application_checks.has_permissions(manage_guild=True)
     @er_slash.subcommand(name="add", description="Add Extended Reaction Setting", description_localizations={nextcord.Locale.ja: "追加反応の設定追加"})
     async def add_er_slash(
         self,
@@ -261,45 +231,57 @@ class reaction(commands.Cog):
                 nextcord.Locale.ja: "返信するメッセージ内容です"
             },
             required=True
+        ),
+        mention: bool = SlashOption(
+            name="mention",
+            name_localizations={
+                nextcord.Locale.ja: "メンション"
+            },
+            description="Mention",
+            description_localizations={
+                nextcord.Locale.ja: "メンションするかどうかです"
+            },
+            required=False,
+            choices={
+                "True": True,
+                "False": False
+            },
+            choice_localizations={
+                nextcord.Locale.ja: {
+                    "有効": True,
+                    "無効": False
+                }
+            },
+            default=False
         )
     ):
+        await interaction.response.defer(ephemeral=True)
         if admin_check.admin_check(interaction.guild, interaction.user):
-            try:
-                await database.default_pull(self.bot.client, reaction_datas.ex_reaction_list)
-                if interaction.guild.id not in reaction_datas.ex_reaction_list.value:
-                    reaction_datas.ex_reaction_list.value[interaction.guild.id] = {"value": 0}
-                value = int(changeSetting(STATUS, ER, interaction, key="value"))
-                react_trigger = triggerMessage
-                react_return = returnMessage
-                changeSetting(SET, ER, interaction, key="value", value=value+1)
-                changeSetting(SET, ER, interaction, key=f'{value+1}_tr', value=str(react_trigger))
-                changeSetting(SET, ER, interaction, key=f'{value+1}_re', value=str(react_return))
-                await interaction.response.send_message(embed=nextcord.Embed(title="完了", description=f"新しい反応を作成しました。\nトリガー:{react_trigger}\n返信内容:{react_return}", color=0x00ff00))
-                return
-            except Exception as err:
-                await interaction.response.send_message(embed=eh.eh(self.bot.client, err))
+            await self.er_collection.update_one({"guild_id": interaction.guild.id, "trigger": triggerMessage}, {"$set": {"return": returnMessage, "mention": mention}}, upsert=True)
+            await interaction.followup.send(embed=nextcord.Embed(title="Success", description=f"追加反応を追加しました。", color=0x00ff00))
         else:
             raise NIRA.Forbidden()
 
 
+    @application_checks.has_permissions(manage_guild=True)
     @er_slash.subcommand(name="list", description="List of Extended Reaction List", description_localizations={nextcord.Locale.ja: "追加反応の一覧"})
     async def list_er_slash(self, interaction: Interaction):
-        await database.default_pull(self.bot.client, reaction_datas.ex_reaction_list)
-        if interaction.guild.id not in reaction_datas.ex_reaction_list.value or changeSetting(STATUS, ER, interaction, key="value") == 0:
-            await interaction.response.send_message("追加返答は設定されていません。")
-        else:
-            await interaction.response.defer()
-            embed = nextcord.Embed(title="追加返答リスト", description=f"にらBOT - {interaction.guild.name}", color=0x00ff00)
-            embed.set_footer(text="不具合がある場合は全消しするか、サポートサーバーへご連絡ください。")
-            for i in range(int(changeSetting(STATUS, ER, interaction, key="value"))):
-                    embed.add_field(name=f"トリガー：{changeSetting(STATUS, ER, interaction, key=f'{i+1}_tr')}",
-                                    value=f"返信内容：{changeSetting(STATUS, ER, interaction, key=f'{i+1}_re')}",
-                                    inline=False)
-            await database.default_push(self.bot.client, reaction_datas.ex_reaction_list)
-            await interaction.followup.send(embed=embed)
+        if not admin_check.admin_check(interaction.guild, interaction.user):
+            await interaction.send(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
             return
+        await interaction.response.defer(ephemeral=True)
+        er_list: list = await self.er_collection.find({"guild_id": interaction.guild.id}).to_list(length=None)
+        if len(er_list) == 0:
+            await interaction.send(embed=nextcord.Embed(title="Error", description=f"追加反応が存在しません。", color=0xff0000), ephemeral=True)
+            return
+        embed = nextcord.Embed(title="追加反応リスト", description=f"追加反応のリストです。", color=0x00ff00)
+        for er in er_list:
+            embed.add_field(name=er["trigger"], value=f"- 返信文\n{er['return']}\n\n- メンション\n{'有効' if er['mention'] else '無効'}", inline=False)
+        await interaction.user.send(embed=embed)
+        await interaction.send("DMに送信しました。", ephemeral=True)
 
 
+    @application_checks.has_permissions(manage_guild=True)
     @er_slash.subcommand(name="del", description="Delete Extended Reaction Setting", description_localizations={nextcord.Locale.ja: "追加反応の削除"})
     async def del_er_slash(
         self,
@@ -316,42 +298,19 @@ class reaction(commands.Cog):
             required=True
         )
     ):
-        if admin_check.admin_check(interaction.guild, interaction.user):
-            await interaction.response.defer()
-            await database.default_pull(self.bot.client, reaction_datas.ex_reaction_list)
-            if interaction.guild.id not in reaction_datas.ex_reaction_list.value:
-                await interaction.followup.send(f"`{interaction.guild.name}`では追加返答は設定されていません。", ephemeral=True)
-            else:
-                if triggerMessage == "all":
-                    del reaction_datas.ex_reaction_list.value[interaction.guild.id]
-                    await database.default_push(self.bot.client, reaction_datas.ex_reaction_list)
-                    await interaction.followup.send(f"`{interaction.guild.name}`での追加反応の設定を削除しました。")
-                else:
-                    result = None
-                    trigger = triggerMessage
-                    for i in range(math.floor((len(reaction_datas.ex_reaction_list.value[interaction.guild.id])-1)/2)):
-                        if changeSetting(STATUS, ER, interaction, key=f"{i+1}_tr") == trigger:
-                            result = i
-                            break
-                    if result == None:
-                        await interaction.followup.send(f"`{trigger}`というトリガーが見つかりませんでした。\n不具合がある場合は全消しするか、サポートサーバーへご連絡ください。", ephemeral=True)
-                        return
-                    for i in range(math.floor((len(reaction_datas.ex_reaction_list.value[interaction.guild.id])-1)/2)-(result+1)):
-                        for suf in ("tr", "re"):
-                            changeSetting(
-                                SET, ER, interaction,
-                                key=f"{result+i+1}_{suf}",
-                                value=changeSetting(STATUS, ER, interaction, key=f"{result+i+2}_{suf}")
-                            )
-                    for i in ("tr", "re"):
-                        del reaction_datas.ex_reaction_list.value[interaction.guild.id][f"{reaction_datas.ex_reaction_list.value[interaction.guild.id]['value']}_{i}"]
-                    reaction_datas.ex_reaction_list.value[interaction.guild.id]["value"] -= 1
-                    await database.default_push(self.bot.client, reaction_datas.ex_reaction_list)
-                    await interaction.followup.send(f"`{trigger}`を削除しました。")
+        await interaction.response.defer(ephemeral=True)
+        if triggerMessage == "all":
+            await self.er_collection.delete_many({"guild_id": interaction.guild.id})
+            await interaction.followup.send(embed=nextcord.Embed(title="Success", description=f"追加反応をすべて削除しました。", color=0x00ff00))
         else:
-            raise NIRA.Forbidden()
+            delete_result = await self.er_collection.delete_one({"guild_id": interaction.guild.id, "trigger": triggerMessage})
+            if delete_result.deleted_count == 0:
+                await interaction.followup.send(embed=nextcord.Embed(title="Error", description=f"追加反応が存在しませんでした。", color=0xff0000))
+            else:
+                await interaction.followup.send(embed=nextcord.Embed(title="Success", description=f"追加反応を削除しました。", color=0x00ff00))
 
 
+    @application_checks.has_permissions(manage_guild=True)
     @er_slash.subcommand(name="edit", description="Edit Extended Reaction Setting", description_localizations={nextcord.Locale.ja: "追加反応の編集"})
     async def edit_er_slash(
         self,
@@ -379,36 +338,12 @@ class reaction(commands.Cog):
             required=True
         )
     ):
-        if admin_check.admin_check(interaction.guild, interaction.user):
-            await database.default_pull(self.bot.client, reaction_datas.ex_reaction_list)
-            if interaction.guild.id not in reaction_datas.ex_reaction_list.value:
-                await interaction.send("追加反応は登録されていません。", ephemeral=True)
-                return
-            if changeSetting(STATUS, ER, interaction, key="value") == 0:
-                await interaction.send("追加反応は登録されていません。", ephemeral=True)
-                return
-            await interaction.response.defer()
-            b_tr = triggerMessage
-            b_re = returnMessage
-            try:
-                rt_e = False
-                for i in range(math.floor((len(reaction_datas.ex_reaction_list.value[interaction.guild.id])-1)/2)):
-                    if changeSetting(STATUS, ER, interaction, key=f"{i+1}_tr") == b_tr:
-                        changeSetting(SET, ER, interaction, key=f"{i+1}_re", value=b_re)
-                        rt_e = True
-                        break
-                if rt_e:
-                    await database.default_push(self.bot.client, reaction_datas.ex_reaction_list)
-                    await interaction.send(embed=nextcord.Embed(title="完了", description=f"反応を編集しました。\nトリガー:{b_tr}\n返信内容:{b_re}", color=0x00ff00))
-                else:
-                    await interaction.send("そのトリガーは登録されていません！", ephemeral=True)
-                return
-            except Exception as err:
-                await interaction.send(embed=eh.eh(self.bot.client, err))
-                return
+        await interaction.response.defer(ephemeral=True)
+        edit_result = await self.er_collection.update_one({"guild_id": interaction.guild.id, "trigger": triggerMessage}, {"$set": {"return": returnMessage}})
+        if edit_result.modified_count == 0:
+            await interaction.followup.send(embed=nextcord.Embed(title="Error", description=f"追加反応が存在しませんでした。", color=0xff0000))
         else:
-            await interaction.send("管理者権限がありません。", ephemeral=True)
-            return
+            await interaction.followup.send(embed=nextcord.Embed(title="Success", description=f"追加反応を編集しました。", color=0x00ff00))
 
 
     @commands.command(name="nr", help="""\
