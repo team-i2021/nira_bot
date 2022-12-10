@@ -9,6 +9,8 @@ import time
 
 import nextcord
 
+from motor import motor_asyncio
+
 from util import n_fc, database
 from util.nira import NIRA
 
@@ -41,18 +43,19 @@ if len(sys.argv) > 1 and sys.argv[1] == "-d":
 
 
 ##### データベースの設定 #####
-CLIENT = database.openClient()
+CLIENT = motor_asyncio.AsyncIOMotorClient(SETTING["database_url"])
+# database.openClient()
 
-for i in range(1, 4):
-    print(f"データベース接続チェック {i}/3...")
-    result = requests.post(f"{CLIENT.url}/auth", json={"password": CLIENT.password})
-    if result.status_code != 200:
-        if i <= 2: print(f"データベースに接続できませんでした。\nステータスコード: {result.status_code}");
-        else: print("データベースに接続できませんでした。\nプログラムを終了します。"); os._exit(0)
-    else:
-        if result.json()["status"] == "success": print("データベースに接続できました。"); break
-        else: print("データベースのパスワードが違います。\nプログラムを終了します。"); os._exit(0)
-    time.sleep(1)
+# for i in range(1, 4):
+#     print(f"データベース接続チェック {i}/3...")
+#     result = requests.post(f"{CLIENT.url}/auth", json={"password": CLIENT.password})
+#     if result.status_code != 200:
+#         if i <= 2: print(f"データベースに接続できませんでした。\nステータスコード: {result.status_code}");
+#         else: print("データベースに接続できませんでした。\nプログラムを終了します。"); os._exit(0)
+#     else:
+#         if result.json()["status"] == "success": print("データベースに接続できました。"); break
+#         else: print("データベースのパスワードが違います。\nプログラムを終了します。"); os._exit(0)
+#     time.sleep(1)
 
 
 ##### BOTの設定 #####
@@ -71,6 +74,7 @@ bot = NIRA(
     debug=DEBUG,
     token=SETTING["tokens"]["nira_bot"],
     client=CLIENT,
+    database_name=SETTING["database_name"]
 )
 
 bot.load_extension("onami")
