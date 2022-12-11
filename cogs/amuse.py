@@ -299,7 +299,7 @@ class Amuse(commands.Cog):
     @amuse.subcommand(name="janken", description="じゃんけんをします！")
     async def janken(
         self,
-        interaction=Interaction,
+        interaction: Interaction,
         player_hand_id: int = SlashOption(
             name="hand",
             description="じゃんけんの手です",
