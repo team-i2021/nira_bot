@@ -18,7 +18,7 @@ from motor import motor_asyncio
 from util import admin_check, n_fc, eh, dict_list, database
 from util.nira import NIRA
 
-ROLE_ID = re.compile(r"<@&[0-9]+?>")
+ROLE_ID = re.compile(r"<@&[\d]+?>")
 
 # 特定のチャンネルにて特定のメッセージが送信された場合にロールをつけるそれ。
 # データ形式:MongoDB
