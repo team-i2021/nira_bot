@@ -7,7 +7,6 @@ import sys
 import traceback
 from os import getenv
 
-import HTTP_db
 import nextcord
 from nextcord import Interaction, SlashOption, Role
 from nextcord.ext import commands
@@ -18,20 +17,7 @@ from util.nira import NIRA
 
 rolepanel_compile = re.compile(r"[0-9]+: <@&[0-9]+>")
 
-class RoleViews:
-    name = "roleviews"
-    value = []
-    default = []
-    value_type = database.SAME_VALUE
-
-# rolepanel
-
-async def pull(bot: commands.Bot, client: HTTP_db.Client) -> None:
-    await database.default_pull(client, RoleViews)
-    for i in RoleViews.value:
-        bot.add_view(RolePanelView(i))
-    return None
-
+# RolePanel
 
 class RolePanelSlashInput(nextcord.ui.Modal):
     def __init__(self, bot):
@@ -89,9 +75,6 @@ class RolePanelSlashInput(nextcord.ui.Modal):
             embed_content += f"{i+1}: <@&{role_id}>\n"
             ViewArgs.append([i+1, role_id])
 
-        self.bot.add_view(RolePanelView(ViewArgs))
-        RoleViews.value.append(ViewArgs)
-        await database.default_push(self.bot.client, RoleViews)
         embed_title = self.EmbedTitle.value
         if embed_title == "" or embed_title is None:
             embed_title = "にらBOTロールパネル"
@@ -153,9 +136,6 @@ class RolePanelEditModal(nextcord.ui.Modal):
             embed_content += f"{i+1}: <@&{role_id}>\n"
             ViewArgs.append([i+1, role_id])
 
-        self.bot.add_view(RolePanelView(ViewArgs))
-        RoleViews.value.append(ViewArgs)
-        await database.default_push(self.bot.client, RoleViews)
         EmbedTitle = self.message.embeds[0].title
         try:
             await self.message.edit(embed=nextcord.Embed(title=EmbedTitle, description=embed_content, color=0x00ff00), view=RolePanelView(ViewArgs))
@@ -175,28 +155,15 @@ class RolePanelView(nextcord.ui.View):
 class RolePanelButton(nextcord.ui.Button):
     def __init__(self, arg):
         super().__init__(
-            label=arg[0], style=nextcord.ButtonStyle.green, custom_id=f"RolePanel:{arg[1]}")
-
-    async def callback(self, interaction: Interaction):
-        try:
-            role = interaction.guild.get_role(
-                int(self.custom_id.split(':')[1]))
-            for i in interaction.user.roles:
-                if i == role:
-                    await interaction.user.remove_roles(role)
-                    await interaction.response.send_message(f"`{role.name}`を剥奪しました。", ephemeral=True)
-                    return
-            await interaction.user.add_roles(role)
-            await interaction.response.send_message(f"`{role.name}`を付与しました。", ephemeral=True)
-            return
-        except Exception as err:
-            await interaction.response.send_message(f"ロール付与/剥奪時のエラー: {err}", ephemeral=True)
+            label=arg[0],
+            style=nextcord.ButtonStyle.green,
+            custom_id=f"RolePanel:{arg[1]}"
+        )
 
 
 class Rolepanel(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
-        asyncio.ensure_future(pull(self.bot, self.bot.client))
 
     @nextcord.message_command(name="Edit Rolepanel", name_localizations={nextcord.Locale.ja: "ロールパネル編集"}, guild_ids=n_fc.GUILD_IDS)
     async def edit_rolepanel(self, interaction: Interaction, message: nextcord.Message):
@@ -286,16 +253,7 @@ n!rolepanel [*メッセージ内容]
 ロールは最大で25個まで指定できます。
 ただ、重複してのロール指定はできません。""")
     async def rolepanel(self, ctx: commands.Context):
-        if ctx.message.content == f"{self.bot.command_prefix}rolepanel debug":
-            await ctx.message.add_reaction('🐛')
-            if await self.bot.is_owner(ctx.author):
-                await ctx.send(f"{ctx.author.mention}", embed=nextcord.Embed(title="Views", description=RoleViews.value, color=0x00ff00))
-                return
-            else:
-                await ctx.send(f"{ctx.author.mention}", embed=nextcord.Embed(title="ERR", description="あなたは管理者ではありません。", color=0xff0000))
-                return
-            return
-        if admin_check(ctx.guild, ctx.author) == False:
+        if not admin_check(ctx.guild, ctx.author):
             await ctx.send("あなたは管理者ではありません。")
             return
         if len(ctx.message.content.splitlines()) < 2:
@@ -331,14 +289,47 @@ n!rolepanel [*メッセージ内容]
                 return
             embed_content += f"{i}: <@&{role_id}>\n"
             ViewArgs.append([i, role_id])
-        self.bot.add_view(RolePanelView(ViewArgs))
-        RoleViews.value.append(ViewArgs)
-        await database.default_push(self.bot.client, RoleViews)
         try:
             await ctx.send(embed=nextcord.Embed(title=f"{content}", description=embed_content, color=0x00ff00), view=RolePanelView(ViewArgs))
         except Exception:
             await ctx.send(f"申し訳ございません。エラーが発生しました。\n```\n{traceback.format_exc()}```")
             return
+
+    @commands.Cog.listener()
+    async def on_interaction(self, interaction: Interaction) -> None:
+        # amuseから借りパク
+        if interaction.type is not nextcord.InteractionType.component:
+            return
+
+        custom_id = interaction.data.get("custom_id")
+        if custom_id is None or not custom_id.startswith(f"RolePanel:"):
+            return
+
+        role_id = None
+        try:
+            _, role_id = custom_id.split(":", 1)
+            RoleId = int(role_id)
+        except ValueError:
+            return
+
+        try:
+            await interaction.response.defer(ephemeral=True)
+        except Exception:
+            pass
+
+        try:
+            role = interaction.guild.get_role(RoleId)
+            for i in interaction.user.roles:
+                if i == role:
+                    await interaction.user.remove_roles(role)
+                    await interaction.send(f"`{role.name}`を剥奪しました。", ephemeral=True)
+                    return
+            await interaction.user.add_roles(role)
+            await interaction.send(f"`{role.name}`を付与しました。", ephemeral=True)
+            return
+        except Exception as err:
+            await interaction.send(f"ロール付与/剥奪時のエラー: {err}", ephemeral=True)
+
 
 
 # args = [["ButtonLabel", "Role_Id"]]
