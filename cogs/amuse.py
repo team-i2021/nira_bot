@@ -203,13 +203,14 @@ class Amuse(commands.Cog):
 例: `n!dice 10` (1-10のダイス)
 例: `n!dice 12 2` (2-12のダイス)
 
-引数1: int
+引数1: int（省略可能）
 ダイスの最大値。
+デフォルト: 6
 
 引数2: int（省略可能）
 ダイスの最小値
 デフォルト: 1""")
-    async def dice_ctx(self, ctx: commands.Context, max_count: int, min_count: int = 1):
+    async def dice_ctx(self, ctx: commands.Context, max_count: int = 6, min_count: int = 1):
         await ctx.reply(
             embed=_get_dice_result(DiceId.NORMAL, min_count, max_count),
             view=_get_retry_button(DiceId.NORMAL, min_count, max_count),
@@ -277,7 +278,7 @@ class Amuse(commands.Cog):
 
 引数1: str
 「グー」または「チョキ」または「パー」の手。""")
-    async def janken_ctx(self, ctx: commands.Context, player_hand_str: str):
+    async def janken_ctx(self, ctx: commands.Context, player_hand_str: str = ""):
         player_hand: JankenHand | None = None
         for hand, regex in JANKEN_REGEXES.items():
             if regex.fullmatch(player_hand_str):
