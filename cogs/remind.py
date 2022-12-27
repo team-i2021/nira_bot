@@ -7,10 +7,10 @@ import sys
 import traceback
 from re import compile
 
-import HTTP_db
 import nextcord
 from nextcord import Interaction, SlashOption, ChannelType
 from nextcord.ext import commands, tasks
+from motor import motor_asyncio
 
 from util import admin_check, n_fc, eh, database, dict_list
 from util.nira import NIRA
@@ -19,49 +19,9 @@ from util.nira import NIRA
 
 TIME_CHECK = compile(r"[0-9]{1,2}:[0-9]{1,2}")
 
-REMIND_DATA = {}
-DATABASE_KEY = "remind_data"
-
-# {channel_id:{"00:00":"message"}}
-# [[channel_id, ["00:00","message"]]]
-
-async def pullData(client: HTTP_db.Client):
-    global REMIND_DATA
-    if not await client.exists(DATABASE_KEY):
-        await client.post(DATABASE_KEY, [])
-    try:
-        TEMP_DATA = await client.get(DATABASE_KEY)
-        if TEMP_DATA == []:
-            REMIND_DATA = {}
-            return True
-        REMIND_DATA = {i[0]: {i[1][0]: i[1][1]} for i in TEMP_DATA}
-        return True
-    except Exception:
-        logging.error(traceback.format_exc())
-        REMIND_DATA = {}
-
-
-async def pushData(client: HTTP_db.Client):
-    global REMIND_DATA
-    if not await client.exists(DATABASE_KEY):
-        await client.post(DATABASE_KEY, [])
-        return True
-    try:
-        post_data = []
-        for key, value in REMIND_DATA.items():
-            tmp = [key]
-            for time, content in value.items():
-                tmp.append([time, content])
-            post_data.append(tmp)
-        await client.post(DATABASE_KEY, post_data)
-        return True
-    except Exception as err:
-        logging.error(traceback.format_exc())
-        raise err
-
 
 class RemindMaker(nextcord.ui.Modal):
-    def __init__(self):
+    def __init__(self, collection):
         super().__init__(
             "リマインドメッセージ設定",
             timeout=None,
@@ -84,6 +44,7 @@ class RemindMaker(nextcord.ui.Modal):
             required=True,
         )
         self.add_item(self.remind_content)
+        self.collection = collection
 
     async def callback(self, interaction: nextcord.Interaction) -> None:
         await interaction.response.defer()
@@ -103,16 +64,8 @@ class RemindMaker(nextcord.ui.Modal):
             return
 
         time = ":".join([f"0{i}"[-2:] for i in time.split(":", 1)])
-
-        if interaction.channel.id not in REMIND_DATA:
-            REMIND_DATA[interaction.channel.id] = {}
-
-        if time in REMIND_DATA[interaction.channel.id]:
-            await interaction.followup.send("・エラー\n指定時間には既にメッセージが設定されています。\n一度オフにしてから再度指定しなおしてください。\n", ephemeral=True)
-            return
-
-        REMIND_DATA[interaction.channel.id][time] = self.remind_content.value
-        await pushData(self.client)
+        
+        await self.collection.update_one({"channel_id": interaction.channel.id}, {"$set": {"message": self.remind_content.value, "time": time}}, upsert=True)
         await interaction.followup.send(embed=nextcord.Embed(title="設定完了", description=f"毎日`{time}`に <#{interaction.channel.id}> にリマインドメッセージを送信します。", color=0x00ff00))
         return
 
@@ -120,7 +73,7 @@ class RemindMaker(nextcord.ui.Modal):
 class Remind(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
-        asyncio.ensure_future(pullData(self.bot.client))
+        self.collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["remind_data"]
         self.sendReminds.start()
 
     def cog_unload(self):
@@ -128,7 +81,7 @@ class Remind(commands.Cog):
 
     @commands.command(name="remind", aliases=("Remind", "りまいんど", "めざまし", "アラーム"), help="""\
 毎日指定時間にメッセージを送信する
-毎日（平日だろうが休日だろうが、雨の日だろうが落ち込んだ日だろうが（にらBOTが落ちてなければ））指定時間になったら、チャンネルに特定のメッセージを送信します。
+毎日（平日だろうが休日だろうが、雨の日だろうが落ち込んだ日だろうが（BOTが落ちてなければ））指定時間になったら、チャンネルに特定のメッセージを送信します。
 
 ・使い方
 `n!remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`
@@ -175,15 +128,7 @@ n!remind on 8:25 おはようございます！
 
             time = ":".join([f"0{i}"[-2:] for i in time.split(":", 1)])
 
-            if ctx.channel.id not in REMIND_DATA:
-                REMIND_DATA[ctx.channel.id] = {}
-
-            if time in REMIND_DATA[ctx.channel.id]:
-                await ctx.reply(f"・エラー\n指定時間には既にメッセージが設定されています。\n一度オフにしてから再度指定しなおしてください。\n`{self.bot.command_prefix}remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`")
-                return
-
-            REMIND_DATA[ctx.channel.id][time] = args[3]
-            await pushData(self.bot.client)
+            await self.collection.update_one({"channel_id": ctx.channel.id}, {"$set": {"message": arg[3], "time": time}}, upsert=True)
             await ctx.reply(embed=nextcord.Embed(title="設定完了", description=f"毎日`{time}`に <#{ctx.channel.id}> にリマインドメッセージを送信します。", color=0x00ff00))
             return
 
@@ -206,69 +151,40 @@ n!remind on 8:25 おはようございます！
                 await ctx.reply(f"・エラー\n時間の入力が不正です。\n`{self.bot.command_prefix}remind off [時間(hh:mm)]`")
                 return
             time = ":".join([f"0{i}"[-2:] for i in time.split(":", 1)])
-
-            if ctx.channel.id not in REMIND_DATA:
-                await ctx.reply(f"・エラー\nこのチャンネル`{ctx.channel.name}`で設定されているリマインドメッセージはありません。\n`{self.bot.command_prefix}remind off [時間(hh:mm)]`")
-                return
-
-            if time not in REMIND_DATA[ctx.channel.id]:
+            
+            result = await self.collection.delete_one({"channel_id": ctx.channel.id, "time": time})
+            
+            if result is None!
                 await ctx.reply(f"・エラー\nこのチャンネル`{ctx.channel.name}`で`{time}`に送信されるリマインドメッセージはありません。\n`{self.bot.command_prefix}remind off [時間(hh:mm)]`")
-                return
-
-            del REMIND_DATA[ctx.channel.id][time]
-            if len(REMIND_DATA[ctx.channel.id]) == 0:
-                del REMIND_DATA[ctx.channel.id]
-            await pushData(self.bot.client)
-            await ctx.reply(embed=nextcord.Embed(title="削除完了", description=f"<#{ctx.channel.id}> での`{time}`のリマインドメッセージを削除しました。", color=0x00ff00))
-            return
+            else:
+                await ctx.reply(embed=nextcord.Embed(title="削除完了", description=f"<#{ctx.channel.id}> での`{time}`のリマインドメッセージを削除しました。", color=
 
         elif args[1] == "list":
-            if ctx.channel.id not in REMIND_DATA:
+            reminds = await self.collection.find({"channel_id": ctx.channel.id}).to_list(length=None)
+            if len(reminds) == 0:
                 await ctx.reply(f"・エラー\nこのチャンネル`{ctx.channel.name}`で設定されているリマインドメッセージはありません。\n`{self.bot.command_prefix}remind list`")
                 return
 
             embed = nextcord.Embed(
-                title="リマインドメッセージ一覧", description=f"<#{ctx.channel.id}>", color=0x00ff00)
-            for time in REMIND_DATA[ctx.channel.id]:
+                title="リマインドメッセージ一覧",
+                description=f"<#{ctx.channel.id}>",
+                color=0x00ff00
+            )
+            for remind in reminds:
                 embed.add_field(
-                    name=time, value=REMIND_DATA[ctx.channel.id][time], inline=False)
+                    name=remind["time"],
+                    value=remind["message"],
+                    inline=False
+                )
             await ctx.reply(embed=embed)
             return
 
-        elif args[1] == "db":
-            if await self.bot.is_owner(ctx.author):
-                command = args[2]
-                if command == "local":
-                    await ctx.reply(f"```py\n[SHOW] Local\n{REMIND_DATA}```")
-                    return
-                elif command == "remote":
-                    await ctx.reply(f"```py\n[SHOW] Remote\n{await self.bot.client.get(DATABASE_KEY)}```")
-                    return
-                elif command == "push":
-                    await pushData(self.bot.client)
-                    await ctx.reply(f"```py\n[PUSH] Push data to server.\nDevice -> Server\nSuccess.```")
-                    return
-                elif command == "pull":
-                    await pullData(self.bot.client)
-                    await ctx.reply(f"```py\n[PULL] Pull data from server.\nServer -> Device\nSuccess.```")
-                    return
-                else:
-                    await ctx.reply(f"""\
-```sh
-[HELP] Database Manager
-
-n!remind db [command]
-
-local - Show data of local
-remote - Show data of remote
-push - push data of device to server
-pull - pull data from server to device```""")
-                    return
-            else:
-                await ctx.reply("管理者権限がありません。")
-                return
         else:
-            await ctx.reply(embed=nextcord.Embed(title="使い方", description=f"`{self.bot.command_prefix}remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`\n`{self.bot.command_prefix}remind off [時間(hh:mm)]`\n`{self.bot.command_prefix}remind list`\n\n詳しくは`{self.bot.command_prefix}help remind`を参照してください。", color=0xff0000))
+            await ctx.reply(embed=nextcord.Embed(
+                title="使い方",
+                description=f"`{self.bot.command_prefix}remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`\n`{self.bot.command_prefix}remind off [時間(hh:mm)]`\n`{self.bot.command_prefix}remind list`\n\n詳しくは`{self.bot.command_prefix}help remind`を参照してください。",
+                color=0xff0000
+            ))
             return
 
     @nextcord.slash_command(name="remind", description="remind", guild_ids=n_fc.GUILD_IDS)
@@ -278,7 +194,7 @@ pull - pull data from server to device```""")
     @remind_slash.subcommand(name="on", description="Setting of Remind Message", description_localizations={nextcord.Locale.ja: "リマインドメッセージの設定"})
     async def on_remind_slash(self, interaction: Interaction):
         if admin_check.admin_check(interaction.guild, interaction.user):
-            modal = RemindMaker()
+            modal = RemindMaker(self.collection)
             await interaction.response.send_modal(modal=modal)
             return
         else:
@@ -288,51 +204,50 @@ pull - pull data from server to device```""")
     @remind_slash.subcommand(name="off", description="Delete Remind Message Setting", description_localizations={nextcord.Locale.ja: "リマインドメッセージの削除"})
     async def off_remind_slash(self, interaction: Interaction, time: str = SlashOption(name="time", description="リマインドの時間", required=True)):
         if admin_check.admin_check(interaction.guild, interaction.user):
-            await interaction.response.defer()
+            await interaction.response.defer(ephemeral=True)
 
             timeD = TIME_CHECK.fullmatch(time)
             if timeD is None:
-                await interaction.followup.send("・エラー\n時間の入力が不正です。\n`/remind off time:[時間(hh:mm)]`", ephemeral=True)
+                await interaction.send("・エラー\n時間の入力が不正です。\n`/remind off time:[時間(hh:mm)]`", ephemeral=True)
                 return
 
             timeB = timeD.group()
             if int(timeB.split(":")[0]) > 23 or int(timeB.split(":")[1]) > 59:
-                await interaction.followup.send("・エラー\n時間の入力が不正です。\n`/remind off time:[時間(hh:mm)]`", ephemeral=True)
+                await interaction.send("・エラー\n時間の入力が不正です。\n`/remind off time:[時間(hh:mm)]`", ephemeral=True)
                 return
 
             timeB = ":".join([f"0{i}"[-2:] for i in timeB.split(":", 1)])
+            
+            result = await self.collection.delete_one({"channel_id": interaction.channel.id, "time": timeB})
 
-            if interaction.channel.id not in REMIND_DATA:
-                await interaction.followup.send(f"・エラー\nこのチャンネル`{interaction.channel.name}`で設定されているリマインドメッセージはありません。\n`/remind off time:[時間(hh:mm)]`", ephemeral=True)
-                return
-
-            if timeB not in REMIND_DATA[interaction.channel.id]:
-                await interaction.followup.send(f"・エラー\nこのチャンネル`{interaction.channel.name}`で`{timeB}`に送信されるリマインドメッセージはありません。\n`/remind off time:[時間(hh:mm)]`", ephemeral=True)
-                return
-
-            del REMIND_DATA[interaction.channel.id][timeB]
-            if len(REMIND_DATA[interaction.channel.id]) == 0:
-                del REMIND_DATA[interaction.channel.id]
-            await pushData(self.bot.client)
-            await interaction.followup.send(embed=nextcord.Embed(title="削除完了", description=f"<#{interaction.channel.id}> での`{timeB}`のリマインドメッセージを削除しました。", color=0x00ff00))
-            return
+            if result is None:
+                await interaction.send(f"・エラー\nこのチャンネル`{interaction.channel.name}`で`{timeB}`に送信されるリマインドメッセージはありません。\n`/remind off time:[時間(hh:mm)]`", ephemeral=True)
+            else:
+                await interaction.send(embed=nextcord.Embed(title="削除完了", description=f"<#{interaction.channel.id}> での`{timeB}`のリマインドメッセージを削除しました。", color=0x00ff00))
         else:
-            await interaction.response.send_text("管理者権限がありません。")
+            await interaction.send("管理者権限がありません。", ephemeral=True)
             return
 
     @remind_slash.subcommand(name="list", description="List Remind Messages", description_localizations={nextcord.Locale.ja: "リマインドメッセージ一覧"})
     async def list_remind_slash(self, interaction: Interaction):
         await interaction.response.defer()
-
-        if interaction.channel.id not in REMIND_DATA:
+        reminds = await self.collection.find({"channel_id": ctx.channel.id}).find(length=None)
+        
+        if len(reminds) == 0:
             await interaction.followup.send(f"・エラー\nこのチャンネル`{interaction.channel.name}`で設定されているリマインドメッセージはありません。\n`/remind list`")
             return
 
         embed = nextcord.Embed(
-            title="リマインドメッセージ一覧", description=f"<#{interaction.channel.id}>", color=0x00ff00)
-        for time in REMIND_DATA[interaction.channel.id]:
+            title="リマインドメッセージ一覧",
+            description=f"<#{interaction.channel.id}>",
+            color=0x00ff00
+        )
+        for remind in reminds:
             embed.add_field(
-                name=time, value=REMIND_DATA[interaction.channel.id][time], inline=False)
+                name=remind["time"],
+                value=remind["message"],
+                inline=False
+            )
         await interaction.followup.send(embed=embed)
         return
 
@@ -341,16 +256,14 @@ pull - pull data from server to device```""")
         await self.bot.wait_until_ready()
         dt = datetime.datetime.now()
         now_time = dt.strftime("%H:%M")
-        for channel, messages in REMIND_DATA.items():
-            for time in messages.keys():
-                if time == now_time:
-                    try:
-                        message = REMIND_DATA[channel][time].replace(
-                            "%date%", dt.strftime("%m/%d"))
-                        Ch = await self.bot.fetch_channel(int(channel))
-                        await Ch.send(message)
-                    except Exception as err:
-                        logging.error(f"ERR:{err}\n{channel}")
+        reminds = await self.collection.delete_one({"time": now_time})
+        for remind in reminds:
+            try:
+                message = remind["message"].replace("%date%", dt.strftime("%m/%d"))
+                CHANNEL = await self.bot.fetch_channel(int(remind["channel_id"]))
+                await CHANNEL.send(message)
+            except Exception as err:
+                logging.error(f"ERR:{err}\n{remind['channel_id']}")
 
 
 def setup(bot, **kwargs):
