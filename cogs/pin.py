@@ -106,73 +106,6 @@ async def pull_data(client: HTTP_db.Client) -> None:
         await database.default_pull(client, PinData)
 
 
-async def update_database(bot: NIRA) -> None:
-    await glock.acquire()
-    await database.default_pull(bot.client, PinData)
-
-    await bot.wait_until_ready()
-    logging.info("Updating database format")
-
-    count = 0
-    new_data: dict[int, dict[int, list[str, int | None]]] = {}
-    for guild_id, _g in PinData.value.items():
-        new_data[guild_id] = {}
-        for ch_id, data in _g.items():
-            if type(data) is list:
-                new_data[guild_id][ch_id] = data
-                continue
-            elif type(data) is not str:
-                logging.info(f"Incorrect data found on channel {ch_id}")
-                continue
-
-            logging.debug(f"Updating data for channel: {ch_id}")
-
-            failed = True
-            ch = bot.get_channel(ch_id)
-            if ch is None:
-                try:
-                    ch = await bot.fetch_channel(ch_id)
-                except (nextcord.NotFound, nextcord.Forbidden):
-                    pass
-                except Exception:
-                    logging.exception("Error while searching for a channel")
-                else:
-                    failed = False
-            else:
-                failed = False
-
-            last_id: int | None = None
-            if not failed:
-                failed = True
-                try:
-                    async for msg in ch.history(limit=10):
-                        if msg.author.id == bot.user.id and msg.content == data:
-                            last_id = msg.id
-                            break
-                except nextcord.Forbidden:
-                    pass
-                except Exception:
-                    logging.exception("Error while fetching message history")
-                else:
-                    failed = False
-
-            new_data[guild_id][ch_id] = [data, None if failed else last_id]
-            count += 1
-
-        if not new_data[guild_id]:
-            del new_data[guild_id]
-
-    PinData.value = new_data
-    try:
-        await database.default_push(bot.client, PinData)
-    finally:
-        glock.release()
-
-    if count:
-        logging.info(f"Updated data for {count} channel(s)")
-    logging.info("Update successfully")
-
-
 def err_embed(description: str) -> nextcord.Embed:
     return nextcord.Embed(title="エラー", description=description, color=0xff0000)
 
@@ -181,8 +114,7 @@ class BottomUp(commands.Cog):
     def __init__(self, bot: NIRA):
         self.bot = bot
         self._locks: dict[int, PinLock] = {}
-        asyncio.ensure_future(update_database(bot))
-        # asyncio.ensure_future(pull_data(bot.client))
+        asyncio.ensure_future(pull_data(bot.client))
 
     async def _pin(
             self,
