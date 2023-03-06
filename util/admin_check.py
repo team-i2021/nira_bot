@@ -39,5 +39,5 @@ def admin_only_app():
             pass
         return (is_owner
                 or (intr.guild is not None and intr.user.id == intr.guild.owner_id)
-                or await application_checks.has_permissions(administrator=True).predicate(intr))
+                or application_checks.has_permissions(administrator=True).predicate(intr))
     return application_checks.check(extended_check)
