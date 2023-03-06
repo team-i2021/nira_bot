@@ -33,8 +33,6 @@ class Splatoon(commands.Cog):
             "locale_ja-JP": "https://splatoon3.ink/data/locale/ja-JP.json"
         }
         self.locale = {}
-
-    def cog_load(self):
         asyncio.ensure_future(self.refresh_locale())
 
     async def refresh_locale(self):
