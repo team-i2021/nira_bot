@@ -43,56 +43,80 @@ def sysinfo() -> str:
 class Debug(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
-        
-    async def ws(self, websocket, path):
-        async for message in websocket:
-            try:
-                if message == "exit":
-                    logging.info("Exit websocket...")
-                    await websocket.close()
-                    self.websocket_coro.cancel()
-                    break
-                    return
-                elif message == "guilds":
-                    await websocket.send(str(len(self.bot.guilds)))
-                elif message == "users":
-                    await websocket.send(str(len(self.bot.users)))
-                elif message == "voice_clients":
-                    await websocket.send(str(len(self.bot.voice_clients)))
-                elif message == "GetLaunchData":
-                    SETTING = json.load(
-                        open(f'{sys.path[0]}/setting.json', 'r'))
-                    TOKEN = SETTING["tokens"]["nira_bot"]
-                    PREFIX = SETTING["prefix"]
-                    await websocket.send(f"{PREFIX}@{TOKEN}")
-                else:
-                    rt = None
-                    if re.search("await", message):
-                        await exec(f"""{message}""")
-                    else:
-                        exec(f"""{message}""")
-                    await websocket.send(str(rt))
-            except Exception as err:
-                await websocket.send(f"An error has occured:{err}")
+        self.ws_task = None
+        self.ws_port = None
 
-    async def ws_main(self, port):
-        logging.info("Websocket....")
-        async with websockets.serve(self.ws, "0.0.0.0", int(port)):
-            await asyncio.Future()
+    def cog_unload(self):
+        if self.ws_task is not None:
+            self.ws_task.cancel()
+
+    async def ws_handler(self, websocket, path):
+        print(path)
+        async for message in websocket:
+            await websocket.send(f"にら「{message}」")
+
+    async def ws_main(self):
+        if self.ws_port is None:
+            raise ValueError("Port not set.")
+        logging.info(f"Start Websocket at {self.ws_port}....")
+        try:
+            async with websockets.serve(self.ws_handler, "0.0.0.0", self.ws_port):
+                await asyncio.Future()
+        except asyncio.CancelledError:
+            logging.info("WebSocket server task cancelled.")
 
     @commands.command()
-    async def websocket(self, ctx: commands.Context):
+    async def websocket(self, ctx: commands.Context, arg: str | None = None, port: int | None = 32568):
+        if arg is None:
+            await ctx.reply(embed=nextcord.Embed(
+                title="WebSocket Server Manager",
+                description=f"Argument is missing.\n`{ctx.prefix}websocket [start/stop] [*port]`"
+            ))
+            return
         if (await self.bot.is_owner(ctx.author)):
-            port = ctx.message.content.split(" ", 1)[1]
-            try:
-                await ctx.message.add_reaction("\U0001F310")
-                self.websocket_coro = asyncio.create_task(self.ws_main(port))
-                await self.websocket_coro
-            except Exception:
-                logging.info(traceback.format_exc())
-            await ctx.message.add_reaction("\U00002705")
+            if arg == "start":
+                if self.ws_task is None:
+                    try:
+                        self.ws_port = port
+                        self.ws_task = asyncio.create_task(
+                            self.ws_main()
+                        )
+                        await ctx.reply(embed=nextcord.Embed(
+                            title="WebSocket Server Manager",
+                            description=f"Started WebSocket Server on port {self.ws_port}"
+                        ))
+                    except Exception as err:
+                        await ctx.reply(embed=nextcord.Embed(
+                            title="WebSocket Server Manager",
+                            description=f"Err: `{err}` has occurred during starting server.\n```sh\n{traceback.format_exc()}```"
+                        ))
+                else:
+                    await ctx.reply(embed=nextcord.Embed(
+                        title="WebSocket Server Manager",
+                        description=f"WebSocket Server is currently running on port {self.ws_port}.\nIf you want to stop server, you can use following command: `{ctx.prefix}websocket stop`."
+                    ))
+            elif arg == "stop":
+                if self.ws_task is None:
+                    await ctx.reply(embed=nextcord.Embed(
+                        title="WebSocket Server Manager",
+                        description=f"WebSocket Server isn't running.\nIf you want to start server, you can use following command: `{ctx.prefix}websocket start [*port]`."
+                    ))
+                else:
+                    try:
+                        self.ws_task.cancel()
+                        self.ws_task = None
+                        self.ws_port = None
+                        await ctx.reply(embed=nextcord.Embed(
+                            title="WebSocket Server Manager",
+                            description="WebSocket Server stopped."
+                        ))
+                    except Exception as err:
+                        await ctx.reply(embed=nextcord.Embed(
+                            title="WebSocket Server Manager",
+                            description=f"Err: `{err}` has occurred during stopping server.\n```sh\n{traceback.format_exc()}```"
+                        ))
         else:
-            await ctx.reply(embed=nextcord.Embed(title="Error", description=f"You don't have the required permission.", color=0xff0000))
+            await ctx.reply(embed=nextcord.Embed(title="WebSocket Server Manager", description=f"Sorry. You don't have the required permission."))
 
     @commands.command()
     async def restart(self, ctx: commands.Context):
