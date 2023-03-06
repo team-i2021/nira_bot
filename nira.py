@@ -1,4 +1,5 @@
 # 沢山のインポート
+import asyncio
 import json
 import logging
 import os
@@ -37,6 +38,7 @@ n_fc.py_admin = SETTING["py_admin"]
 UNLOAD_COGS = SETTING["unload_cogs"]
 LOAD_COGS = SETTING["load_cogs"]
 DEBUG = False
+
 if len(sys.argv) > 1 and sys.argv[1] == "-d":
     DEBUG = True
     print(f"NIRA Bot Debug Mode\nThe following will be loaded... :{LOAD_COGS}")
@@ -60,23 +62,25 @@ _MONGO_CLIENT = motor_asyncio.AsyncIOMotorClient(SETTING["database_url"])
 
 
 ##### BOTの設定 #####
-intents = nextcord.Intents.all()  # 全部盛りのIntentsオブジェクトを生成
-intents.typing = False  # 流石に重くなりそう
-intents.presences = False
-intents.members = True
-intents.message_content = True
+intents = nextcord.Intents.all() # 全部のインテントが有効になる
+intents.typing = False # 重くなる可能性があるのでTypingを無効化
+intents.presences = False # 未認証なのでPresence Intentは無効化
+intents.members = True # Members Intentを有効化
+intents.message_content = True # Message Content Intentを有効化
 
 bot = NIRA(
     command_prefix=SETTING["prefix"],
     intents=intents,
     help_command=None,
-    activity=nextcord.Game(name="接続中...", type=1),
+    activity=nextcord.Game(name="Connecting...", type=1),
     status=nextcord.Status.dnd,
     debug=DEBUG,
     token=SETTING["tokens"]["nira_bot"],
     client=CLIENT, # http_db
     mongo=_MONGO_CLIENT, # mongo_db
-    database_name=SETTING["database_name"]
+    database_name=SETTING["database_name"],
+    shard_id=SETTING["shard_id"],
+    shard_count=SETTING["shard_count"]
 )
 
 bot.load_extension("onami")

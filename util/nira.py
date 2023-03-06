@@ -19,6 +19,8 @@ class NIRA(commands.Bot):
             client = None,
             mongo: motor.motor_asyncio.AsyncIOMotorClient = None,
             database_name: str = "nira-bot",
+            shard_id: int = 0,
+            shard_count: int = 1,
             *args,
             **kwargs
         ):
@@ -30,11 +32,18 @@ class NIRA(commands.Bot):
 
         self.database: motor_asyncio.AsyncIOMotorDatabase = self.__mongo[database_name] # MongoDBとして呼び出す（self.database["collection_name"]として呼び出す）
         self.database_name: str = database_name
+
+        self.shard_id = shard_id
+        self.shard_count = shard_count
         #self.main_prefix: str = (lambda x: x[0] if type(x) in [list, tuple, set] else x)(**kwargs[""])
         return super().__init__(*args, **kwargs)
 
     def run(self) -> None:
         super().run(self.__token, reconnect=True)
+
+    async def start(self) -> None:
+        # 非同期的にBOTを起動できる
+        await super().start(self.__token, reconnect=True)
 
     async def is_owner(self, user: nextcord.User) -> bool:
         if user.id in py_admin:
