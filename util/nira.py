@@ -41,10 +41,6 @@ class NIRA(commands.Bot):
     def run(self) -> None:
         super().run(self.__token, reconnect=True)
 
-    async def start(self) -> None:
-        # 非同期的にBOTを起動できる
-        await super().start(self.__token, reconnect=True)
-
     async def is_owner(self, user: nextcord.User) -> bool:
         if user.id in py_admin:
             return True
