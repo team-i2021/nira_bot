@@ -18,9 +18,7 @@ class NIRA(commands.Bot):
             token: str = None,
             client = None,
             mongo: motor.motor_asyncio.AsyncIOMotorClient = None,
-            database_name: str = "nira-bot",
-            shard_id: int = 0,
-            shard_count: int = 1,
+            database_name: str = "nira-bot"
             *args,
             **kwargs
         ):
@@ -33,8 +31,7 @@ class NIRA(commands.Bot):
         self.database: motor_asyncio.AsyncIOMotorDatabase = self.__mongo[database_name] # MongoDBとして呼び出す（self.database["collection_name"]として呼び出す）
         self.database_name: str = database_name
 
-        self.shard_id = shard_id
-        self.shard_count = shard_count
+        self.ready_shard = []
         #self.main_prefix: str = (lambda x: x[0] if type(x) in [list, tuple, set] else x)(**kwargs[""])
         return super().__init__(*args, **kwargs)
 
