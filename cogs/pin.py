@@ -227,10 +227,10 @@ offにするには、`n!pin off`と送信してください。
                 try:
                     ch = await self.bot.fetch_channel(ch_id)
                 except nextcord.NotFound:
-                    await ctx.reply(f"Channel not found")
+                    await ctx.reply("Channel not found")
                     return
                 except nextcord.Forbidden:
-                    await ctx.reply(f"Permission denied")
+                    await ctx.reply("Permission denied")
                     return
 
         if isinstance(ch, nextcord.abc.Messageable):
@@ -239,9 +239,9 @@ offにするには、`n!pin off`と送信してください。
                 await self._refresh_channel(ch)
                 await msg.edit("Refresh finished.")
             else:
-                await ctx.reply(f"Not configured")
+                await ctx.reply("Not configured")
         elif ch:
-            await ctx.reply(f"Not messageable")
+            await ctx.reply("Not messageable")
         else:
             msg = await ctx.reply("Refreshing...")
             await self._refresh_messages()
@@ -270,7 +270,7 @@ offにするには、`n!pin off`と送信してください。
             if force_unlock:
                 lock.sleep_unlock()
         else:
-            await ctx.reply(f"Not set")
+            await ctx.reply("Not set")
 
         if force_unlock:
             await ctx.reply("Unlocked.")
