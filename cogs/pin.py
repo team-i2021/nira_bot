@@ -17,7 +17,7 @@ from util.nira import NIRA
 
 # 下部ピン留め
 
-COLLECTION_NAME: Final = 'bottom_pin'
+COLLECTION_NAME: Final = "bottom_pin"
 CACHE_MAX_SIZE: Final = 1024
 CACHE_TTL: Final = 43200  # 12 hours
 
@@ -108,16 +108,16 @@ class StoredPin:
         doc = _StoredPinDocument(
             _id=self._channel.id,
             text=self._text,
-            last_message_id=getattr(self._last_message, 'id', None),
+            last_message_id=getattr(self._last_message, "id", None),
         )
 
-        await self._collection.replace_one({'_id': doc._id}, dataclasses.asdict(doc), upsert=True)
+        await self._collection.replace_one({"_id": doc._id}, dataclasses.asdict(doc), upsert=True)
         return self
 
     async def clear(self) -> Self:
         self._last_message = None
         if self._channel is not None:
-            await self._collection.delete_one({'_id': self._channel.id})
+            await self._collection.delete_one({"_id": self._channel.id})
 
         return self
 
@@ -142,7 +142,7 @@ class StoredPinCollection:
             return s
 
         doc = _StoredPinDocument.bind(
-            await self._collection.find_one({'_id': channel.id}),
+            await self._collection.find_one({"_id": channel.id}),
         )
 
         s = None if doc is None else await self._doc_to_storedpin(channel, doc)
@@ -150,7 +150,7 @@ class StoredPinCollection:
         return s
 
     async def get_all(self) -> AsyncGenerator[StoredPin | Exception, None]:
-        async for doc_raw in self._collection.find({'_id': {'$type': ['int', 'long']}}):
+        async for doc_raw in self._collection.find({"_id": {"$type": ["int", "long"]}}):
             doc = _StoredPinDocument.bind(doc_raw)
             assert doc is not None
 
