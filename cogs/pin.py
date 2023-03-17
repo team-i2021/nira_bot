@@ -3,7 +3,7 @@ import dataclasses
 import logging
 from collections.abc import Callable, Coroutine
 from enum import Enum, auto
-from typing import Any, AsyncGenerator, TypeGuard
+from typing import Any, AsyncGenerator, Final, TypeGuard
 from typing_extensions import Self
 
 import nextcord
@@ -15,13 +15,13 @@ from util.nira import NIRA
 
 # 下部ピン留め
 
-COLLECTION_NAME = 'bottom_pin'
+COLLECTION_NAME: Final = 'bottom_pin'
 
-FIRST_SLEEP = 3
-SECOND_SLEEP = 2
-SLEEP_COUNT = 2
+FIRST_SLEEP: Final = 3
+SECOND_SLEEP: Final = 2
+SLEEP_COUNT: Final = 2
 
-MAX_LENGTH = 2000
+MAX_LENGTH: Final = 2000
 
 AsyncIOMotorCollection = Any
 
