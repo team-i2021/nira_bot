@@ -570,4 +570,4 @@ def setup(bot: NIRA) -> None:
 
 
 def teardown(_) -> None:
-    print("Pin: teardown!")
+    logging.info("Tearing down bottom up")
