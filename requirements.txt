@@ -24,3 +24,5 @@ git+http://github.com/abosamoor/pycld2.git
 googletrans==4.0.0-rc1
 distro
 motor
+typing_extensions==4.5.0
+cachetools==5.3.0
