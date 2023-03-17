@@ -13,9 +13,9 @@ from nextcord.ext import application_checks, commands
 from util import admin_check, n_fc
 from util.nira import NIRA
 
-# ボトムアップ的な機能
+# 下部ピン留め
 
-COLLECTION_NAME = 'bottom_up'
+COLLECTION_NAME = 'bottom_pin'
 
 FIRST_SLEEP = 3
 SECOND_SLEEP = 2
@@ -217,7 +217,7 @@ def err_embed(description: str) -> Embed:
     return Embed(title="エラー", description=description, color=0xff0000)
 
 
-class BottomUp(commands.Cog):
+class BottomPin(commands.Cog):
     def __init__(self, bot: NIRA) -> None:
         self.bot = bot
         self.collection = StoredPinCollection(bot)
@@ -278,7 +278,7 @@ class BottomUp(commands.Cog):
 
     @commands.group(
         name="pin",
-        aliases=("Pin", "bottomup", "ピン留め", "ピン"),
+        aliases=("Pin", "bottomup", "bottompin", "ピン留め", "ピン"),
         help="""\
 特定のメッセージを一番下に持ってくることで、いつでも見られるようにする、ピン留めの改良版。
 
@@ -401,7 +401,7 @@ offにするには、`n!pin off`と送信してください。
             assert MessageableGuildChannel.isinstance(interaction.channel)
             await self._refresh_channel(interaction.channel)
 
-    @nextcord.slash_command(name="pin", description="BottomUp command", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="pin", description="BottomPin command", guild_ids=n_fc.GUILD_IDS)
     @admin_check.admin_only_app()
     @application_checks.guild_only()
     async def pin_s(self, _) -> None:
@@ -415,7 +415,7 @@ offにするには、`n!pin off`と送信してください。
     @admin_check.admin_only_app()
     @application_checks.guild_only()
     async def pin_on_s(self, interaction: Interaction) -> None:
-        await interaction.response.send_modal(BottomModal(self))
+        await interaction.response.send_modal(BottomPinModal(self))
 
     @pin_s.subcommand(
         name="off",
@@ -536,8 +536,8 @@ offにするには、`n!pin off`と送信してください。
                 await lock.sleep_lock(FIRST_SLEEP, SECOND_SLEEP)
 
 
-class BottomModal(nextcord.ui.Modal):
-    def __init__(self, cog: BottomUp) -> None:
+class BottomPinModal(nextcord.ui.Modal):
+    def __init__(self, cog: BottomPin) -> None:
         super().__init__("下部ピン留め", timeout=None)
 
         self.cog = cog
@@ -563,8 +563,8 @@ class BottomModal(nextcord.ui.Modal):
 
 
 def setup(bot: NIRA) -> None:
-    bot.add_cog(BottomUp(bot))
+    bot.add_cog(BottomPin(bot))
 
 
 def teardown(_) -> None:
-    logging.info("Tearing down bottom up")
+    logging.info("Tearing down bottom pin")
