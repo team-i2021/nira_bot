@@ -9,6 +9,8 @@ from typing_extensions import Self
 import nextcord
 from nextcord import Embed, Interaction, Message, Locale
 from nextcord.ext import application_checks, commands
+from nextcord.utils import MISSING
+from cachetools import TTLCache
 
 from util import admin_check, n_fc
 from util.nira import NIRA
@@ -16,6 +18,8 @@ from util.nira import NIRA
 # 下部ピン留め
 
 COLLECTION_NAME: Final = 'bottom_pin'
+CACHE_MAX_SIZE: Final = 1024
+CACHE_TTL: Final = 43200  # 12 hours
 
 FIRST_SLEEP: Final = 3
 SECOND_SLEEP: Final = 2
@@ -122,18 +126,28 @@ class StoredPinCollection:
     def __init__(self, bot: NIRA) -> None:
         self._bot = bot
         self._collection: AsyncIOMotorCollection = bot.database[COLLECTION_NAME]
+        self._cache: TTLCache[int, StoredPin | None] = TTLCache(CACHE_MAX_SIZE, CACHE_TTL)
+
+    @property
+    def cache(self) -> TTLCache[int, StoredPin | None]:
+        return self._cache
 
     def new(self, channel: MessageableGuildChannel, text: str) -> StoredPin:
-        return StoredPin(self._collection, channel, text, None)
+        s = StoredPin(self._collection, channel, text, None)
+        self._cache[channel.id] = s
+        return s
 
     async def get(self, channel: MessageableGuildChannel) -> StoredPin | None:
+        if (s := self._cache.get(channel.id, MISSING)) is not MISSING:
+            return s
+
         doc = _StoredPinDocument.bind(
             await self._collection.find_one({'_id': channel.id}),
         )
-        if doc is None:
-            return None
 
-        return await self._doc_to_storedpin(channel, doc)
+        s = None if doc is None else await self._doc_to_storedpin(channel, doc)
+        self._cache[channel.id] = s
+        return s
 
     async def get_all(self) -> AsyncGenerator[StoredPin | Exception, None]:
         async for doc_raw in self._collection.find({'_id': {'$type': ['int', 'long']}}):
@@ -153,7 +167,10 @@ class StoredPinCollection:
             if not MessageableGuildChannel.isinstance(channel):
                 continue
 
-            yield await self._doc_to_storedpin(channel, doc)
+            if (s := self._cache.get(channel.id, None)) is None:
+                s = await self._doc_to_storedpin(channel, doc)
+                self._cache[channel.id] = s
+            yield s
 
     async def _doc_to_storedpin(
             self,
@@ -171,6 +188,12 @@ class StoredPinCollection:
                 last_message = msg
 
         return StoredPin(self._collection, channel, text, last_message)
+
+    def uncache(self, channel_id: int | None = None) -> None:
+        if channel_id is None:
+            self._cache.clear()
+        elif channel_id in self._cache:
+            del self._cache[channel_id]
 
 
 class PinLock:
@@ -266,6 +289,7 @@ class BottomPin(commands.Cog):
                         except nextcord.Forbidden:
                             failed = True
                     await store.clear()
+                    self.collection.uncache(channel.id)
                     lock.sleep_unlock()
                     del self._locks[channel.id]
 
@@ -384,6 +408,42 @@ offにするには、`n!pin off`と送信してください。
 
         if force_unlock:
             await ctx.reply("Unlocked.")
+
+    @pin_debug_c.group(name="cache", invoke_without_command=True)
+    @commands.is_owner()
+    async def pin_debug_cache_c(self, ctx: commands.Context, *args) -> None:
+        await ctx.reply("Unknown operation" if args else "Operation not specified")
+
+    @pin_debug_cache_c.command(name="info")
+    @commands.is_owner()
+    async def pin_debug_cache_info_c(
+            self,
+            ctx: commands.Context,
+            channel_id: int | None = None,
+    ) -> None:
+        cache = self.collection.cache
+        if channel_id is None:
+            msg = (
+                f"Channels: {cache.currsize}\n"
+                f"Max: {cache.maxsize}\n"
+                f"TTL: {cache.ttl}s"
+            )
+        else:
+            msg = "Cached" if channel_id in cache else "Uncached"
+        await ctx.reply(msg)
+
+    @pin_debug_cache_c.command(name="clear")
+    @commands.is_owner()
+    async def pin_debug_cache_clear_c(
+            self,
+            ctx: commands.Context,
+            channel_id: int | None = None,
+    ) -> None:
+        msg = await ctx.reply(
+            f"Clearing cache{'' if channel_id is None else f' in {channel_id}'}...",
+        )
+        self.collection.uncache(channel_id)
+        await msg.edit(content="Cache cleared.")
 
     @nextcord.message_command(
         name="Set BottomPin",
