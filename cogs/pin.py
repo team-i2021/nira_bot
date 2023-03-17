@@ -7,7 +7,7 @@ from typing import Any, AsyncGenerator, TypeGuard
 from typing_extensions import Self
 
 import nextcord
-from nextcord import Interaction
+from nextcord import Embed, Interaction, Message, Locale
 from nextcord.ext import application_checks, commands
 
 from util import admin_check, n_fc
@@ -61,7 +61,7 @@ class StoredPin:
             collection: AsyncIOMotorCollection,
             channel: MessageableGuildChannel,
             text: str,
-            last_message: nextcord.Message | None = None,
+            last_message: Message | None = None,
     ) -> None:
         self._collection = collection
         self._channel = channel
@@ -85,18 +85,18 @@ class StoredPin:
         self.set_text(text)
 
     @property
-    def last_message(self) -> nextcord.Message | None:
+    def last_message(self) -> Message | None:
         return self._last_message
 
     @last_message.setter
-    def last_message_setter(self, message: nextcord.Message | None) -> None:
+    def last_message_setter(self, message: Message | None) -> None:
         self.set_last_message(message)
 
     def set_text(self, text: str) -> Self:
         self._text = text
         return self
 
-    def set_last_message(self, message: nextcord.Message | None) -> Self:
+    def set_last_message(self, message: Message | None) -> Self:
         self._last_message = message
         return self
 
@@ -161,7 +161,7 @@ class StoredPinCollection:
             doc: _StoredPinDocument,
     ) -> StoredPin:
         text = doc.text
-        last_message: nextcord.Message | None = None
+        last_message: Message | None = None
         if doc.last_message_id is not None:
             try:
                 msg = await channel.fetch_message(doc.last_message_id)
@@ -213,8 +213,8 @@ class PinLock:
         self.callback = (func, args)
 
 
-def err_embed(description: str) -> nextcord.Embed:
-    return nextcord.Embed(title="エラー", description=description, color=0xff0000)
+def err_embed(description: str) -> Embed:
+    return Embed(title="エラー", description=description, color=0xff0000)
 
 
 class BottomUp(commands.Cog):
@@ -230,7 +230,7 @@ class BottomUp(commands.Cog):
             | nextcord.PartialMessageable
             | nextcord.abc.Messageable,
             message: str | None = None,
-    ) -> tuple[str | None, nextcord.Embed | Any]:
+    ) -> tuple[str | None, Embed | Any]:
         async with glock:
             pass
 
@@ -247,10 +247,7 @@ class BottomUp(commands.Cog):
                 async with self._get_lock(channel.id).save:
                     await self.collection.new(channel, message).update()
 
-                return (
-                    "メッセージを設定しました。",
-                    nextcord.Embed(title="ピン留め", description=message),
-                )
+                return ("メッセージを設定しました。", Embed(title="ピン留め", description=message))
 
             case Mode.OFF:
                 lock = self._get_lock(channel.id)
@@ -390,12 +387,12 @@ offにするには、`n!pin off`と送信してください。
 
     @nextcord.message_command(
         name="Set BottomPin",
-        name_localizations={nextcord.Locale.ja: "下部ピン留めする"},
+        name_localizations={Locale.ja: "下部ピン留めする"},
         guild_ids=n_fc.GUILD_IDS,
     )
     @admin_check.admin_only_app()
     @application_checks.guild_only()
-    async def pin_m(self, interaction: Interaction, message: nextcord.Message) -> None:
+    async def pin_m(self, interaction: Interaction, message: Message) -> None:
         await interaction.response.defer(ephemeral=True)
         assert interaction.channel is not None
         res = await self._pin(Mode.ON, interaction.channel, message.content)
@@ -413,7 +410,7 @@ offにするには、`n!pin off`と送信してください。
     @pin_s.subcommand(
         name="on",
         description="Turn ON the bottom pin message",
-        description_localizations={nextcord.Locale.ja: "下部ピン留めをONにする"},
+        description_localizations={Locale.ja: "下部ピン留めをONにする"},
     )
     @admin_check.admin_only_app()
     @application_checks.guild_only()
@@ -423,7 +420,7 @@ offにするには、`n!pin off`と送信してください。
     @pin_s.subcommand(
         name="off",
         description="Turn OFF the bottom pin message",
-        description_localizations={nextcord.Locale.ja: "下部ピン留めをOFFにする"},
+        description_localizations={Locale.ja: "下部ピン留めをOFFにする"},
     )
     @admin_check.admin_only_app()
     @application_checks.guild_only()
@@ -510,7 +507,7 @@ offにするには、`n!pin off`と送信してください。
         await self._refresh_messages()
 
     @commands.Cog.listener()
-    async def on_message(self, message: nextcord.Message) -> None:
+    async def on_message(self, message: Message) -> None:
         async with glock:
             pass
 
