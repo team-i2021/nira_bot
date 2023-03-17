@@ -174,7 +174,7 @@ class StoredPinCollection:
 
 
 class PinLock:
-    def __init__(self):
+    def __init__(self) -> None:
         self.save = asyncio.Lock()
         self.sleep = asyncio.Lock()
         self.count = 0
@@ -218,7 +218,7 @@ def err_embed(description: str) -> nextcord.Embed:
 
 
 class BottomUp(commands.Cog):
-    def __init__(self, bot: NIRA):
+    def __init__(self, bot: NIRA) -> None:
         self.bot = bot
         self.collection = StoredPinCollection(bot)
         self._locks: dict[int, PinLock] = {}
@@ -226,13 +226,16 @@ class BottomUp(commands.Cog):
     async def _pin(
             self,
             mode: Mode,
-            channel: MessageableGuildChannel,
+            channel: nextcord.abc.GuildChannel
+            | nextcord.PartialMessageable
+            | nextcord.abc.Messageable,
             message: str | None = None,
-    ) -> tuple[str | None, nextcord.Embed | None]:
+    ) -> tuple[str | None, nextcord.Embed | Any]:
         async with glock:
             pass
 
-        guild = channel.guild
+        if not MessageableGuildChannel.isinstance(channel):
+            return (None, err_embed("下部ピン留めはスレッドでは使用できません。"))
 
         match mode:
             case Mode.ON:
@@ -394,15 +397,17 @@ offにするには、`n!pin off`と送信してください。
     @application_checks.guild_only()
     async def pin_m(self, interaction: Interaction, message: nextcord.Message) -> None:
         await interaction.response.defer(ephemeral=True)
+        assert interaction.channel is not None
         res = await self._pin(Mode.ON, interaction.channel, message.content)
         await interaction.send(res[0], embed=res[1], ephemeral=True)
         if res[0] is not None:
+            assert MessageableGuildChannel.isinstance(interaction.channel)
             await self._refresh_channel(interaction.channel)
 
     @nextcord.slash_command(name="pin", description="BottomUp command", guild_ids=n_fc.GUILD_IDS)
     @admin_check.admin_only_app()
     @application_checks.guild_only()
-    async def pin_s(self, interaction: Interaction) -> None:
+    async def pin_s(self, _) -> None:
         pass
 
     @pin_s.subcommand(
@@ -424,6 +429,7 @@ offにするには、`n!pin off`と送信してください。
     @application_checks.guild_only()
     async def pin_off_s(self, interaction: Interaction) -> None:
         await interaction.response.defer(ephemeral=True)
+        assert interaction.channel is not None
         res = await self._pin(Mode.OFF, interaction.channel)
         await interaction.send(res[0], embed=res[1], ephemeral=True)
 
@@ -534,7 +540,7 @@ offにするには、`n!pin off`と送信してください。
 
 
 class BottomModal(nextcord.ui.Modal):
-    def __init__(self, cog: BottomUp):
+    def __init__(self, cog: BottomUp) -> None:
         super().__init__("下部ピン留め", timeout=None)
 
         self.cog = cog
@@ -551,15 +557,17 @@ class BottomModal(nextcord.ui.Modal):
 
     async def callback(self, interaction: Interaction) -> None:
         await interaction.response.defer(ephemeral=True)
+        assert interaction.channel is not None
         res = await self.cog._pin(Mode.ON, interaction.channel, self.mes.value)
         await interaction.send(res[0], embed=res[1], ephemeral=True)
         if res[0] is not None:
+            assert MessageableGuildChannel.isinstance(interaction.channel)
             await self.cog._refresh_channel(interaction.channel)
 
 
-def setup(bot) -> None:
+def setup(bot: NIRA) -> None:
     bot.add_cog(BottomUp(bot))
 
 
-def teardown(bot) -> None:
+def teardown(_) -> None:
     print("Pin: teardown!")
