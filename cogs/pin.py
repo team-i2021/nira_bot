@@ -167,9 +167,8 @@ class StoredPinCollection:
             if not MessageableGuildChannel.isinstance(channel):
                 continue
 
-            if (s := self._cache.get(channel.id, None)) is None:
-                s = await self._doc_to_storedpin(channel, doc)
-                self._cache[channel.id] = s
+            s = await self._doc_to_storedpin(channel, doc)
+            self._cache[channel.id] = s
             yield s
 
     async def _doc_to_storedpin(
