@@ -12,7 +12,7 @@ from nextcord.ext import application_checks, commands
 from nextcord.utils import MISSING
 from cachetools import TTLCache
 
-from util import admin_check, n_fc
+from util import n_fc
 from util.nira import NIRA
 
 # 下部ピン留め
@@ -317,7 +317,7 @@ Webhookは使いたくない精神なので、にらBOTが直々に送ってあ�
 メッセージ履歴の閲覧が許可されているか確認してください。""",
         invoke_without_command=True,
     )
-    @admin_check.admin_only_cmd()
+    @commands.has_permissions(manage_messages=True)
     @commands.guild_only()
     async def pin_c(self, ctx: commands.Context, *args) -> None:
         await ctx.reply(embed=err_embed(
@@ -326,7 +326,7 @@ Webhookは使いたくない精神なので、にらBOTが直々に送ってあ�
         ))
 
     @pin_c.command(name="on")
-    @admin_check.admin_only_cmd()
+    @commands.has_permissions(manage_messages=True)
     @commands.guild_only()
     async def pin_on_c(self, ctx: commands.Context, *, message: str) -> None:
         res = await self._pin(Mode.ON, ctx.channel, message)
@@ -335,7 +335,7 @@ Webhookは使いたくない精神なので、にらBOTが直々に送ってあ�
         await ctx.reply(res[0], embed=res[1])
 
     @pin_c.command(name="off")
-    @admin_check.admin_only_cmd()
+    @commands.has_permissions(manage_messages=True)
     @commands.guild_only()
     async def pin_off_c(self, ctx: commands.Context) -> None:
         res = await self._pin(Mode.OFF, ctx.channel)
@@ -450,7 +450,7 @@ Webhookは使いたくない精神なので、にらBOTが直々に送ってあ�
         name_localizations={Locale.ja: "下部ピン留めする"},
         guild_ids=n_fc.GUILD_IDS,
     )
-    @admin_check.admin_only_app()
+    @application_checks.has_permissions(manage_messages=True)
     @application_checks.guild_only()
     async def pin_m(self, interaction: Interaction, message: Message) -> None:
         await interaction.response.defer(ephemeral=True)
@@ -462,7 +462,7 @@ Webhookは使いたくない精神なので、にらBOTが直々に送ってあ�
             await self._refresh_channel(interaction.channel)
 
     @nextcord.slash_command(name="pin", description="BottomPin command", guild_ids=n_fc.GUILD_IDS)
-    @admin_check.admin_only_app()
+    @application_checks.has_permissions(manage_messages=True)
     @application_checks.guild_only()
     async def pin_s(self, _) -> None:
         pass
@@ -472,7 +472,7 @@ Webhookは使いたくない精神なので、にらBOTが直々に送ってあ�
         description="Turn ON the bottom pin message",
         description_localizations={Locale.ja: "下部ピン留めをONにする"},
     )
-    @admin_check.admin_only_app()
+    @application_checks.has_permissions(manage_messages=True)
     @application_checks.guild_only()
     async def pin_on_s(self, interaction: Interaction) -> None:
         await interaction.response.send_modal(BottomPinModal(self))
@@ -482,7 +482,7 @@ Webhookは使いたくない精神なので、にらBOTが直々に送ってあ�
         description="Turn OFF the bottom pin message",
         description_localizations={Locale.ja: "下部ピン留めをOFFにする"},
     )
-    @admin_check.admin_only_app()
+    @application_checks.has_permissions(manage_messages=True)
     @application_checks.guild_only()
     async def pin_off_s(self, interaction: Interaction) -> None:
         await interaction.response.defer(ephemeral=True)
