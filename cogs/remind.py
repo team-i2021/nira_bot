@@ -1,18 +1,13 @@
-import asyncio
 import datetime
-import json
 import logging
-import os
-import sys
-import traceback
 from re import compile
 
 import nextcord
-from nextcord import Interaction, SlashOption, ChannelType
+from nextcord import Interaction, SlashOption
 from nextcord.ext import commands, tasks
 from motor import motor_asyncio
 
-from util import admin_check, n_fc, eh, database, dict_list
+from util import admin_check, n_fc
 from util.nira import NIRA
 
 # りまいんど
@@ -97,33 +92,30 @@ n!remind on 8:25 おはようございます！
 ```
 `n!remind off 08:25`
 `n!remind list`""")
+    @admin_check.admin_only_cmd()
     async def remind(self, ctx: commands.Context):
         args = ctx.message.content.split(" ", 3)
         if len(args) < 2:
-            await ctx.reply(embed=nextcord.Embed(title="使い方", description=f"`{self.bot.command_prefix}remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`\n`{self.bot.command_prefix}remind off [時間(hh:mm)]`\n`{self.bot.command_prefix}remind list`\n\n詳しくは`{self.bot.command_prefix}help remind`を参照してください。", color=0xff0000))
+            await ctx.reply(embed=nextcord.Embed(title="使い方", description=f"`{ctx.prefix}remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`\n`{ctx.prefix}remind off [時間(hh:mm)]`\n`{ctx.prefix}remind list`\n\n詳しくは`{ctx.prefix}help remind`を参照してください。", color=0xff0000))
             return
 
         if args[1] == "on":
-            if not admin_check.admin_check(ctx.guild, ctx.author):
-                await ctx.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
-                return
-
             if len(args) != 4:
-                await ctx.reply(f"・エラー\n引数が足りません。\n`{self.bot.command_prefix}remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`")
+                await ctx.reply(f"・エラー\n引数が足りません。\n`{ctx.prefix}remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`")
                 return
 
             if len(args[2]) > 5 or len(args[2]) < 3:
-                await ctx.reply(f"・エラー\n時間の入力が不正です。\n`{self.bot.command_prefix}remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`")
+                await ctx.reply(f"・エラー\n時間の入力が不正です。\n`{ctx.prefix}remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`")
                 return
 
             time = TIME_CHECK.fullmatch(args[2])
             if time is None:
-                await ctx.reply(f"・エラー\n時間の入力が不正です。\n`{self.bot.command_prefix}remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`")
+                await ctx.reply(f"・エラー\n時間の入力が不正です。\n`{ctx.prefix}remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`")
                 return
 
             time = time.group()
             if int(time.split(":")[0]) > 23 or int(time.split(":")[1]) > 59:
-                await ctx.reply(f"・エラー\n時間の入力が不正です。\n`{self.bot.command_prefix}remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`")
+                await ctx.reply(f"・エラー\n時間の入力が不正です。\n`{ctx.prefix}remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`")
                 return
 
             time = ":".join([f"0{i}"[-2:] for i in time.split(":", 1)])
@@ -133,36 +125,36 @@ n!remind on 8:25 おはようございます！
             return
 
         elif args[1] == "off":
-            if not admin_check.admin_check(ctx.guild, ctx.author):
-                await ctx.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
-                return
-
             if len(args) != 3:
-                await ctx.reply(f"・エラー\n引数が足りません。\n`{self.bot.command_prefix}remind off [時間(hh:mm)]`")
+                await ctx.reply(f"・エラー\n引数が足りません。\n`{ctx.prefix}remind off [時間(hh:mm)]`")
                 return
 
             time = TIME_CHECK.fullmatch(args[2])
             if time is None:
-                await ctx.reply(f"・エラー\n時間の入力が不正です。\n`{self.bot.command_prefix}remind off [時間(hh:mm)]`")
+                await ctx.reply(f"・エラー\n時間の入力が不正です。\n`{ctx.prefix}remind off [時間(hh:mm)]`")
                 return
 
             time = time.group()
             if int(time.split(":")[0]) > 23 or int(time.split(":")[1]) > 59:
-                await ctx.reply(f"・エラー\n時間の入力が不正です。\n`{self.bot.command_prefix}remind off [時間(hh:mm)]`")
+                await ctx.reply(f"・エラー\n時間の入力が不正です。\n`{ctx.prefix}remind off [時間(hh:mm)]`")
                 return
             time = ":".join([f"0{i}"[-2:] for i in time.split(":", 1)])
 
             result = await self.collection.delete_one({"channel_id": ctx.channel.id, "time": time})
 
             if result is None:
-                await ctx.reply(f"・エラー\nこのチャンネル`{ctx.channel.name}`で`{time}`に送信されるリマインドメッセージはありません。\n`{self.bot.command_prefix}remind off [時間(hh:mm)]`")
+                await ctx.reply(f"・エラー\nこのチャンネル`{ctx.channel.name}`で`{time}`に送信されるリマインドメッセージはありません。\n`{ctx.prefix}remind off [時間(hh:mm)]`")
             else:
-                await ctx.reply(embed=nextcord.Embed(title="削除完了", description=f"<#{ctx.channel.id}> での`{time}`のリマインドメッセージを削除しました。", color=0x00ff00))
+                await ctx.reply(embed=nextcord.Embed(
+                    title="削除完了",
+                    description=f"<#{ctx.channel.id}> での`{time}`のリマインドメッセージを削除しました。",
+                    color=0x00ff00
+                ))
 
         elif args[1] == "list":
             reminds = await self.collection.find({"channel_id": ctx.channel.id}).to_list(length=None)
             if len(reminds) == 0:
-                await ctx.reply(f"・エラー\nこのチャンネル`{ctx.channel.name}`で設定されているリマインドメッセージはありません。\n`{self.bot.command_prefix}remind list`")
+                await ctx.reply(f"・エラー\nこのチャンネル`{ctx.channel.name}`で設定されているリマインドメッセージはありません。\n`{ctx.prefix}remind list`")
                 return
 
             embed = nextcord.Embed(
@@ -182,7 +174,7 @@ n!remind on 8:25 おはようございます！
         else:
             await ctx.reply(embed=nextcord.Embed(
                 title="使い方",
-                description=f"`{self.bot.command_prefix}remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`\n`{self.bot.command_prefix}remind off [時間(hh:mm)]`\n`{self.bot.command_prefix}remind list`\n\n詳しくは`{self.bot.command_prefix}help remind`を参照してください。",
+                description="`{p}remind on [時間(hh:mm)] [メッセージ内容...(複数行可)]`\n`{p}remind off [時間(hh:mm)]`\n`{p}remind list`\n\n詳しくは`{p}help remind`を参照してください。".format(p=ctx.prefix),
                 color=0xff0000
             ))
             return
@@ -198,7 +190,7 @@ n!remind on 8:25 おはようございます！
             await interaction.response.send_modal(modal=modal)
             return
         else:
-            await interaction.response.send_text("管理者権限がありません。")
+            await interaction.send("管理者権限がありません。")
             return
 
     @remind_slash.subcommand(name="off", description="Delete Remind Message Setting", description_localizations={nextcord.Locale.ja: "リマインドメッセージの削除"})
@@ -231,8 +223,8 @@ n!remind on 8:25 おはようございます！
     @remind_slash.subcommand(name="list", description="List Remind Messages", description_localizations={nextcord.Locale.ja: "リマインドメッセージ一覧"})
     async def list_remind_slash(self, interaction: Interaction):
         await interaction.response.defer()
-        reminds = await self.collection.find({"channel_id": ctx.channel.id}).find(length=None)
-
+        reminds = await self.collection.find({"channel_id": interaction.channel.id}).find(length=None)
+        
         if len(reminds) == 0:
             await interaction.followup.send(f"・エラー\nこのチャンネル`{interaction.channel.name}`で設定されているリマインドメッセージはありません。\n`/remind list`")
             return
@@ -249,7 +241,7 @@ n!remind on 8:25 おはようございます！
                 inline=False
             )
         await interaction.followup.send(embed=embed)
-        return
+
 
     @tasks.loop(minutes=1)
     async def sendReminds(self):
@@ -266,9 +258,9 @@ n!remind on 8:25 おはようございます！
                 logging.error(f"ERR:{err}\n{remind['channel_id']}")
 
 
-def setup(bot, **kwargs):
+def setup(bot: NIRA, **kwargs):
     bot.add_cog(Remind(bot, **kwargs))
 
 
-def teardown(bot):
-    logging.info(f"Pin teardown")
+def teardown(bot: NIRA):
+    logging.info("Remind Cog Teardown.")
