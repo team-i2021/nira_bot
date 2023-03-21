@@ -293,6 +293,18 @@ class Debug(commands.Cog):
     async def debug_slash(self, interaction):
         pass
 
+    @debug_slash.subcommand(name="reaction", description="Reaction Debug")
+    async def reaction_debug_slash(self, interaction: Interaction):
+        await interaction.response.defer(ephemeral=True)
+        if await self.bot.is_owner(interaction.user):
+            cog = self.bot.get_cog("normal_reaction")
+            if cog is None:
+                await interaction.send(embed=nextcord.Embed(title="Error", description="`normal_reaction` cog not found.\nNot loaded?", color=0xff0000), ephemeral=True)
+            else:
+                await interaction.send(embed=nextcord.Embed(title="Success", description=f"`normal_reaction` cog found.\nLoaded.\nLast database update: `{cog.last_update}`", color=0x00ff00), ephemeral=True)
+        else:
+            raise NIRA.ForbiddenExpand()
+
     @debug_slash.subcommand(name="extension", description="Manage extensions")
     async def extension_slash(self, interaction):
         pass
