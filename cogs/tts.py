@@ -1,108 +1,101 @@
 import asyncio
 import datetime
 import importlib
-import json
 import logging
 import random
-import re
-import subprocess
 import sys
 import traceback
-from os import getenv
 
 import nextcord
-from nextcord import Interaction, SlashOption
+from nextcord import Interaction
 from nextcord.ext import commands
 
 from motor import motor_asyncio
 
-from util import n_fc, mc_status, tts_convert, tts_dict, database
+from util import n_fc, tts_convert, tts_dict
 from util.nira import NIRA
 
 # Text To Speech
 
-SYSDIR = sys.path[0]
-
-SETTING = json.load(open(f'{SYSDIR}/setting.json', 'r'))
-keys = SETTING["voicevox"]
-
-Effective = True
-if len(keys) == 0:
-    Effective = False
-
-global SPEAKER_AUTHOR, TTS_CHANNEL
-SPEAKER_AUTHOR = {}
-TTS_CHANNEL = {}
-
-class VoiceSelect(nextcord.ui.Select):
-    def __init__(self, collection: motor_asyncio.AsyncIOMotorCollection, author: nextcord.Member | nextcord.User):
-
-        options = [
-            nextcord.SelectOption(label='四国めたん/あまあま', value=0),
-            nextcord.SelectOption(label='四国めたん/ノーマル', value=2),
-            nextcord.SelectOption(label='四国めたん/セクシー', value=4),
-            nextcord.SelectOption(label='四国めたん/ツンツン', value=6),
-            nextcord.SelectOption(label='ずんだもん/あまあま', value=1),
-            nextcord.SelectOption(label='ずんだもん/ノーマル', value=3),
-            nextcord.SelectOption(label='ずんだもん/セクシー', value=5),
-            nextcord.SelectOption(label='ずんだもん/ツンツン', value=7),
-            nextcord.SelectOption(label='ずんだもん/ささやき', value=22),
-            nextcord.SelectOption(label='春日部つむぎ/ノーマル', value=8),
-            nextcord.SelectOption(label='波音リツ/ノーマル', value=9),
-            nextcord.SelectOption(label='雨晴はう/ノーマル', value=10),
-            nextcord.SelectOption(label='玄野武宏/ノーマル', value=11),
-            nextcord.SelectOption(label='白上虎太郎/ノーマル', value=12),
-            nextcord.SelectOption(label='青山龍星/ノーマル', value=13),
-            nextcord.SelectOption(label='冥鳴ひまり/ノーマル', value=14),
-            nextcord.SelectOption(label='九州そら/あまあま', value=15),
-            nextcord.SelectOption(label='九州そら/ノーマル', value=16),
-            nextcord.SelectOption(label='九州そら/セクシー', value=17),
-            nextcord.SelectOption(label='九州そら/ツンツン', value=18),
-            nextcord.SelectOption(label='九州そら/ささやき', value=19),
-            nextcord.SelectOption(label='もち子さん/ノーマル', value=20),
-            nextcord.SelectOption(label='剣崎雌雄/ノーマル', value=21),
-        ]
-
-        super().__init__(
-            placeholder='Please select voice type.',
-            min_values=1,
-            max_values=1,
-            options=options
-        )
-
-        self.collection = collection
-        self.author = author
-
-    async def callback(self, interaction: nextcord.Interaction):
-        if self.author.id != interaction.user.id:
-            await interaction.send("あなたが送信した声選択メニューではありません。\n`/tts voice`と送信して、声選択メニューを表示してください。", ephemeral=True)
-            return
-        SPEAKER_AUTHOR[interaction.user.id] = self.values[0]
-        try:
-            await self.collection.update_one({"user_id": interaction.user.id, "type": "speaker"}, {"$set": {"speaker": self.values[0]}}, upsert=True)
-            await interaction.message.channel.send(f'{interaction.user.mention}、設定しました。')
-            await interaction.message.delete()
-        except Exception as err:
-            logging.error(err)
-
-
-class tts(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs):
+class Text2Speech(commands.Cog):
+    def __init__(self, bot: NIRA):
         self.bot = bot
         self.VOICEVOX_VERSION = "0.12.5"
         self.collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["tts_database"]
+        self.keys: dict[str, str] | None = self.bot.settings["voicevox"]
+        self.Effective = True
+        if self.keys is None or len(self.keys) == 0:
+            self.Effective = False
+        self.SPEAKER_AUTHOR = {}
+        self.TTS_CHANNEL = {}
+
         asyncio.ensure_future(self.__recover_channel())
         asyncio.ensure_future(self.__recover_speaker())
+
+    class VoiceSelect(nextcord.ui.Select):
+        def __init__(self, parent, author: nextcord.Member | nextcord.User):
+            self.parent = parent
+
+            options = [
+                nextcord.SelectOption(label='四国めたん/あまあま', value=0),
+                nextcord.SelectOption(label='四国めたん/ノーマル', value=2),
+                nextcord.SelectOption(label='四国めたん/セクシー', value=4),
+                nextcord.SelectOption(label='四国めたん/ツンツン', value=6),
+                nextcord.SelectOption(label='ずんだもん/あまあま', value=1),
+                nextcord.SelectOption(label='ずんだもん/ノーマル', value=3),
+                nextcord.SelectOption(label='ずんだもん/セクシー', value=5),
+                nextcord.SelectOption(label='ずんだもん/ツンツン', value=7),
+                nextcord.SelectOption(label='ずんだもん/ささやき', value=22),
+                nextcord.SelectOption(label='春日部つむぎ/ノーマル', value=8),
+                nextcord.SelectOption(label='波音リツ/ノーマル', value=9),
+                nextcord.SelectOption(label='雨晴はう/ノーマル', value=10),
+                nextcord.SelectOption(label='玄野武宏/ノーマル', value=11),
+                nextcord.SelectOption(label='白上虎太郎/ノーマル', value=12),
+                nextcord.SelectOption(label='青山龍星/ノーマル', value=13),
+                nextcord.SelectOption(label='冥鳴ひまり/ノーマル', value=14),
+                nextcord.SelectOption(label='九州そら/あまあま', value=15),
+                nextcord.SelectOption(label='九州そら/ノーマル', value=16),
+                nextcord.SelectOption(label='九州そら/セクシー', value=17),
+                nextcord.SelectOption(label='九州そら/ツンツン', value=18),
+                nextcord.SelectOption(label='九州そら/ささやき', value=19),
+                nextcord.SelectOption(label='もち子さん/ノーマル', value=20),
+                nextcord.SelectOption(label='剣崎雌雄/ノーマル', value=21),
+            ]
+
+            super().__init__(
+                placeholder='Please select voice type.',
+                min_values=1,
+                max_values=1,
+                options=options
+            )
+
+            self.author = author
+
+        async def callback(self, interaction: nextcord.Interaction):
+            if self.author.id != interaction.user.id:
+                await interaction.send("あなたが送信した声選択メニューではありません。\n`/tts voice`と送信して、声選択メニューを表示してください。", ephemeral=True)
+                return
+            self.SPEAKER_AUTHOR[interaction.user.id] = self.values[0]
+            try:
+                await self.parent.collection.update_one({"user_id": interaction.user.id, "type": "speaker"}, {"$set": {"speaker": self.values[0]}}, upsert=True)
+                await interaction.message.channel.send(f'{interaction.user.mention}、設定しました。')
+                await interaction.message.delete()
+            except Exception as err:
+                logging.error(err)
+
+    @property
+    def key(self):
+        return self.keys[random.randint(0, len(self.keys) - 1)]
 
     async def __recover_channel(self):
         channels = await self.collection.find({"type":"channel"}).to_list(length=None)
         for channel in channels:
-            TTS_CHANNEL[channel['guild_id']] = channel['channel_id']
+            self.TTS_CHANNEL[channel['guild_id']] = channel['channel_id']
 
     async def __recover_speaker(self):
         speaker = await self.collection.find({"type": "speaker"}).to_list(length=None)
         for sp in speaker:
-            SPEAKER_AUTHOR[sp['user_id']] = sp['speaker']
+            self.SPEAKER_AUTHOR[sp['user_id']] = sp['speaker']
 
     @nextcord.slash_command(name="tts", description="Text-To-Speech", guild_ids=n_fc.GUILD_IDS)
     async def tts_slash(self, interaction: Interaction):
@@ -110,7 +103,7 @@ class tts(commands.Cog):
 
     @tts_slash.subcommand(name="join", description="Join VC (for TTS)", description_localizations={nextcord.Locale.ja: "BOTを読み上げ用にVCに参加させます"})
     async def join_slash(self, interaction: Interaction):
-        if not Effective:
+        if not self.Effective:
             await interaction.response.send_message(embed=nextcord.Embed(title="現在読み上げ機能は利用できません。", description="BOT管理者からの情報をご確認ください。\n`VOICEVOX API Key doesn't exist.`\nVOICEVOX WebAPIのキーが存在しません。\n`setting.json`の`voicevox`欄にAPIキーを入力してから、`cogs/tts.py`をリロードしてください。", color=0xff0000))
             return
         if interaction.user.voice is None:
@@ -124,7 +117,7 @@ class tts(commands.Cog):
                     await interaction.response.send_message(embed=nextcord.Embed(title="TTSエラー", description=f"BOTが別のVCに参加しています。\nBOTが参加しているVCに参加して、切断コマンドを実行してください。", color=0xff0000), ephemeral=True)
                     return
             await interaction.user.voice.channel.connect()
-            TTS_CHANNEL[interaction.guild.id] = interaction.channel.id
+            self.TTS_CHANNEL[interaction.guild.id] = interaction.channel.id
             asyncio.ensure_future(self.collection.update_one({"guild_id": interaction.guild.id, "type": "channel"}, {"$set": {"channel_id": interaction.channel.id}}, upsert=True))
             await interaction.response.send_message("接続しました", embed=nextcord.Embed(title="TTS", description="""\
 TTSの読み上げ音声には、VOICEVOXが使われています。  
@@ -134,7 +127,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
 また、音声生成には[WEB版VOICEVOX](https://voicevox.su-shiki.com/)のAPIを使用させていただいております。""", color=0x00ff00))
             interaction.guild.voice_client.play(
                 nextcord.PCMVolumeTransformer(nextcord.FFmpegPCMAudio(
-                    f"https://api.su-shiki.com/v2/voicevox/audio/?text=接続しました&key={keys[random.randint(0,len(keys)-1)]}&speaker=2"
+                    f"https://api.su-shiki.com/v2/voicevox/audio/?text=接続しました&key={self.key}&speaker=2"
                 ),
                     volume=0.5)
             )
@@ -149,7 +142,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                 await interaction.response.send_message(embed=nextcord.Embed(title="TTSエラー", description="そもそも入ってないっす...(´・ω・｀)", color=0xff0000), ephemeral=True)
                 return
             await interaction.guild.voice_client.disconnect()
-            del TTS_CHANNEL[interaction.guild.id]
+            del self.TTS_CHANNEL[interaction.guild.id]
             await self.collection.delete_one({"guild_id": interaction.guild.id, "type": "channel"})
             await interaction.response.send_message(embed=nextcord.Embed(title="TTS", description="あっ...ばいばーい...", color=0x00ff00))
 
@@ -157,7 +150,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
     @tts_slash.subcommand(name="voice", description="Change TTS Voice", description_localizations={nextcord.Locale.ja: "読み上げの声の種類を変更します"})
     async def voice_slash(self, interaction: Interaction):
         view = nextcord.ui.View(timeout=None)
-        view.add_item(VoiceSelect(self.bot.client, interaction.user))
+        view.add_item(self.VoiceSelect(self, interaction.user))
         await interaction.response.send_message(f"下のプルダウンから声を選択してください。\n選択可能声種類: `v{self.VOICEVOX_VERSION}`基準", view=view, ephemeral=True)
 
 
@@ -185,7 +178,7 @@ VCに乱入して、代わりに読み上げてくれる機能。
 TTSは、(暫定的だけど)[WEB版VOICEVOX](https://voicevox.su-shiki.com/)のAPIを使用させていただいております。
 API制限などが来た場合はご了承ください。許せ。""")
     async def tts(self, ctx: commands.Context, action: str = None):
-        if not Effective:
+        if not self.Effective:
             await ctx.reply(embed=nextcord.Embed(title="現在読み上げ機能は利用できません。", description="BOT管理者からの情報をご確認ください。\n`VOICEVOX API Key doesn't exist.`\nVOICEVOX WebAPIのキーが存在しません。\n`setting.json`の`voicevox`欄にAPIキーを入力してから、`cogs/tts.py`をリロードしてください。", color=0xff0000))
             return
 
@@ -203,7 +196,7 @@ API制限などが来た場合はご了承ください。許せ。""")
                         await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description=f"既にVCに入っています。\n音楽再生から読み上げに切り替える場合は、`{ctx.prefix}leave`->`{ctx.prefix}tts join`の順に入力してください。", color=0xff0000))
                         return
                     await ctx.author.voice.channel.connect()
-                    TTS_CHANNEL[ctx.guild.id] = ctx.channel.id
+                    self.TTS_CHANNEL[ctx.guild.id] = ctx.channel.id
                     await self.collection.update_one({"guild_id": ctx.guild.id, "type": "channel"}, {"$set": {"tts_channel": ctx.channel.id}}, upsert=True)
                     await ctx.reply("接続しました", embed=nextcord.Embed(title="TTS", description="""\
 TTSの読み上げ音声には、VOICEVOXが使われています。  
@@ -214,7 +207,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                     ctx.guild.voice_client.play(
                         nextcord.PCMVolumeTransformer(
                             nextcord.FFmpegPCMAudio(
-                                f"https://api.su-shiki.com/v2/voicevox/audio/?text=接続しました&key={keys[random.randint(0,len(keys)-1)]}&speaker=2"
+                                f"https://api.su-shiki.com/v2/voicevox/audio/?text=接続しました&key={self.key}&speaker=2"
                             ),
                             volume=0.5
                         )
@@ -236,7 +229,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                         await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description="そもそも入ってないっす...(´・ω・｀)", color=0xff0000))
                         return
                     await ctx.guild.voice_client.disconnect()
-                    del TTS_CHANNEL[ctx.guild.id]
+                    del self.TTS_CHANNEL[ctx.guild.id]
                     await self.collection.delete_one({"guild_id": ctx.guild.id, "type": "channel"})
                     await ctx.reply(embed=nextcord.Embed(title="TTS", description="あっ...ばいばーい...", color=0x00ff00))
                     logging.info(f"Leave TTS from {ctx.guild.name}")
@@ -258,7 +251,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                         await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description="僕...入ってないっす...(´・ω・｀)", color=0xff0000))
                         return
                     view = nextcord.ui.View(timeout=None)
-                    view.add_item(VoiceSelect(self.bot.client, ctx.author))
+                    view.add_item(self.VoiceSelect(self, ctx.author))
                     await ctx.reply(f"{ctx.author.mention}下のプルダウンから声を選択してください。\n選択可能声種類: `v{self.VOICEVOX_VERSION}`基準", view=view)
                     logging.info(f"Change TTS {ctx.author.name}'s Voice at {ctx.guild.name}")
                     return
@@ -293,8 +286,8 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                 if message.content == "" or message.content is None:
                     await interaction.followup.send(embed=nextcord.Embed(title="TTSエラー", description="メッセージが空です。", color=0xff0000))
                     return
-                if interaction.user.id not in SPEAKER_AUTHOR:
-                    SPEAKER_AUTHOR[interaction.user.id] = 2
+                if interaction.user.id not in self.SPEAKER_AUTHOR:
+                    self.SPEAKER_AUTHOR[interaction.user.id] = 2
                     asyncio.ensure_future(self.collection.update_one({"user_id": interaction.user.id, "type": "speaker"}, {"$set": {"speaker": 2}}, upsert=True))
                 if interaction.guild.voice_client.is_playing():
                     while True:
@@ -305,7 +298,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                 await interaction.followup.send(embed=nextcord.Embed(title="TTS", description=f"```\n{message.content}```\nを読み上げます...", color=0x00ff00))
                 interaction.guild.voice_client.play(
                     nextcord.PCMVolumeTransformer(nextcord.FFmpegPCMAudio(
-                        f"https://api.su-shiki.com/v2/voicevox/audio/?text={tts_convert.convert(message.content)}&key={keys[random.randint(0,len(keys)-1)]}&speaker={SPEAKER_AUTHOR[interaction.user.id]}"
+                        f"https://api.su-shiki.com/v2/voicevox/audio/?text={tts_convert.convert(message.content)}&key={self.key}&speaker={self.SPEAKER_AUTHOR[interaction.user.id]}"
                     ),
                         volume=0.5)
                 )
@@ -323,9 +316,9 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
             return
         if message.content is None or message.content == "":
             return
-        if message.guild.id not in TTS_CHANNEL:
+        if message.guild.id not in self.TTS_CHANNEL:
             return
-        if message.channel.id != TTS_CHANNEL[message.guild.id]:
+        if message.channel.id != self.TTS_CHANNEL[message.guild.id]:
             return
         if getattr(message.guild, 'voice_client', None) is None:
             return
@@ -333,8 +326,8 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
             return
 
         try:
-            if message.author.id not in SPEAKER_AUTHOR:
-                SPEAKER_AUTHOR[message.author.id] = 2
+            if message.author.id not in self.SPEAKER_AUTHOR:
+                self.SPEAKER_AUTHOR[message.author.id] = 2
                 asyncio.ensure_future(self.collection.update_one({"user_id": message.author.id, "type": "speaker"}, {"$set": {"speaker": 2}}, upsert=True))
             if message.guild.voice_client.is_playing():
                 while True:
@@ -344,7 +337,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                         break
             message.guild.voice_client.play(
                 nextcord.PCMVolumeTransformer(nextcord.FFmpegPCMAudio(
-                    f"https://api.su-shiki.com/v2/voicevox/audio/?text={tts_convert.convert(message.content)}&key={keys[random.randint(0,len(keys)-1)]}&speaker={SPEAKER_AUTHOR[message.author.id]}"
+                    f"https://api.su-shiki.com/v2/voicevox/audio/?text={tts_convert.convert(message.content)}&key={self.key}&speaker={self.SPEAKER_AUTHOR[message.author.id]}"
                 ),
                     volume=0.5)
             )
@@ -355,4 +348,4 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
 
 
 def setup(bot, **kwargs):
-    bot.add_cog(tts(bot, **kwargs))
+    bot.add_cog(Text2Speech(bot, **kwargs))
