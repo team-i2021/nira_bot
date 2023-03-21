@@ -1,6 +1,5 @@
 import logging
 import os
-import requests
 import sys
 
 import aiohttp
@@ -17,7 +16,7 @@ image_4 = [".jpg", ".png", ".bmp"]
 image_5 = [".jpeg", ".jtif"]
 
 
-async def notify_line(message: nextcord.Message, token):
+async def notify_line(session: aiohttp.ClientSession, message: nextcord.Message, token: str) -> None:
     channel = f"[{message.guild.name}]/[{message.channel.name}]"
     try:
         if message.author.nick == None:
@@ -51,20 +50,17 @@ async def notify_line(message: nextcord.Message, token):
         else:
             payload = {'message' : mes, 'imageFullsize' : image, 'imageThumbnail': image}
         # print(payload)
-        async with aiohttp.ClientSession() as session:
-            async with session.post(NOTIFY_URL, headers=headers, data=payload) as _:
-                return
+        await session.post(NOTIFY_URL, headers=headers, data=payload)
     except Exception as err:
-        exc_type, exc_obj, exc_tb = sys.exc_info()
+        _, _, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         logging.warn(f"大変申し訳ございません。エラーが発生しました。\n```{err}```\n```sh\n{sys.exc_info()}```\nfile:`{fname}`\nline:{exc_tb.tb_lineno}")
 
 
-async def line_token_check(token: str):
+async def line_token_check(session: aiohttp.ClientSession,token: str) -> tuple[bool, str]:
     headers = {'Authorization' : 'Bearer ' + token}
-    async with aiohttp.ClientSession() as session:
-        async with session.get(TOKEN_CHECK, headers=headers) as response:
-            if response.status == 200:
-                return (True, await response.text())
-            else:
-                return (False, await response.text())
+    async with session.get(TOKEN_CHECK, headers=headers) as response:
+        if response.status == 200:
+            return (True, await response.text())
+        else:
+            return (False, await response.text())
