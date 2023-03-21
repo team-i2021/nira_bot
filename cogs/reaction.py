@@ -1,15 +1,13 @@
-import math
-import os
+import aiohttp
 import sys
 
-import HTTP_db
 import nextcord
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands, application_checks
 
 from motor import motor_asyncio
 
-from util import admin_check, n_fc, eh, web_api, slash_tool, database
+from util import admin_check, n_fc, eh, web_api, slash_tool
 from util.nira import NIRA
 
 DIR = sys.path[0]
@@ -17,11 +15,12 @@ DIR = sys.path[0]
 # 通常反応や追加反応の反応系
 
 class NotifyTokenSet(nextcord.ui.Modal):
-    def __init__(self, collection: motor_asyncio.AsyncIOMotorCollection):
+    def __init__(self, collection: motor_asyncio.AsyncIOMotorCollection, session: aiohttp.ClientSession):
         super().__init__(
             "LINE Notify設定",
             timeout=None
         )
+        self.session = session
 
         self.collection = collection
 
@@ -43,7 +42,7 @@ class NotifyTokenSet(nextcord.ui.Modal):
         if not admin_check.admin_check(interaction.guild, interaction.user):
             await interaction.send("あなたにはサーバーの管理権限がないため実行できません。", ephemeral=True)
         else:
-            token_result = await web_api.line_token_check(self.token.value)
+            token_result = await web_api.line_token_check(self.session, self.token.value)
             if token_result[0] == False:
                 await interaction.send(f"そのトークンは無効なようです。\n```sh\n{token_result[1]}```", ephemeral=True)
                 return
@@ -402,7 +401,7 @@ class Reaction(commands.Cog):
 
     @commands.has_permissions(manage_guild=True)
     @commands.command(name="ar", help="""\
-にらBOTの通常反応及び追加反応(Bump通知および`n!`コマンド以外のすべて)を無効にしたりすることが出来ます。
+にらBOTの通常反応及び追加反応(Bump通知および`n!`コマンド以外のすべて)をこのサーバーで無効にしたりすることが出来ます。
 `n!ar`:今の状態を表示
 `n!ar off`:全反応を無効化
 `n!ar on`:全反応を有効化
@@ -430,7 +429,7 @@ class Reaction(commands.Cog):
 
 
     @application_checks.has_permissions(manage_guild=True)
-    @nextcord.slash_command(name="ar", description="チャンネル全体反応設定", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="ar", description="サーバー全体反応設定", guild_ids=n_fc.GUILD_IDS)
     async def ar_slash(
             self,
             interaction: Interaction,
@@ -439,9 +438,9 @@ class Reaction(commands.Cog):
                 name_localizations={
                     nextcord.Locale.ja: "設定"
                 },
-                description="Value of Setting All Reaction in Channel",
+                description="Value of Setting All Reaction in Guild",
                 description_localizations={
-                    nextcord.Locale.ja: "チャンネルでの全体設定の有効化/無効化"
+                    nextcord.Locale.ja: "サーバーでの全体設定の有効化/無効化"
                 },
                 choices={"Enable": True, "Disable": False},
                 choice_localizations={
@@ -450,7 +449,7 @@ class Reaction(commands.Cog):
             )
         ):
         await self.ar_collection.update_one({"guild_id": interaction.guild.id}, {"$set": {"all": setting}}, upsert=True)
-        await interaction.response.send_message(f"チャンネルでの全体反応を{'有効化' if setting else '無効化'}しました。")
+        await interaction.response.send_message(f"サーバーでの全体反応を{'有効化' if setting else '無効化'}しました。")
 
 
     @commands.command(name="line", help="""\
@@ -476,7 +475,7 @@ TOKENとは簡単に言えばパスワードです。LINE Notifyのページか�
     @application_checks.has_permissions(manage_guild=True)
     @line_slash.subcommand(name="set", description="Set LINE Notify's TOKEN", description_localizations={nextcord.Locale.ja: "LINE Notifyのトークンを設定します。"})
     async def line_set_slash(self, interaction: Interaction):
-        modal = NotifyTokenSet(self.line_collection)
+        modal = NotifyTokenSet(self.line_collection, self.bot.session)
         await interaction.response.send_modal(modal=modal)
 
 
