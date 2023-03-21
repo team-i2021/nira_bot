@@ -36,14 +36,12 @@ class Splatoon(commands.Cog):
         asyncio.ensure_future(self.refresh_locale())
 
     async def refresh_locale(self):
-        async with aiohttp.ClientSession() as session:
-            async with session.get(self.urls["locale_ja-JP"]) as resp:
-                self.locale = await resp.json()
+        async with self.bot.session.get(self.urls["locale_ja-JP"]) as resp:
+            self.locale = await resp.json()
 
     async def getSchedule(self):
-        async with aiohttp.ClientSession() as session:
-            async with session.get(self.urls["schedule"]) as resp:
-                return await resp.json()
+        async with self.bot.session.get(self.urls["schedule"]) as resp:
+            return await resp.json()
 
     async def scheduleEmbed(self, matchtype: MatchType, schedule):
         if matchtype == MatchType.RegularMatch:
