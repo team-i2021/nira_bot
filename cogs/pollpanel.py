@@ -1,45 +1,25 @@
 import asyncio
-import datetime
 import logging
-import os
 import re
-import sys
-from os import getenv
 import traceback
 
-import HTTP_db
 import nextcord
 from nextcord import Interaction
 from nextcord.ext import commands
 
-from util import n_fc, mc_status, database
+from util import n_fc
 from util.nira import NIRA
-
-class PollViews:
-    name = "pollviews"
-    value = []
-    default = []
-    value_type = database.SAME_VALUE
 
 # pollpanel v2
 pollpanel_title_compile = re.compile(r"作成者:<@[0-9]+>")
 pollpanel_value_compile = re.compile(r".+:`[0-9]+`票:.+")
 
-async def pull(bot: commands.Bot, client: HTTP_db.Client) -> None:
-    await database.default_pull(client, PollViews)
-    for i in PollViews.value:
-        bot.add_view(PollPanelView(i))
-    return None
-
-
 class PollPanelSlashInput(nextcord.ui.Modal):
-    def __init__(self, bot):
+    def __init__(self):
         super().__init__(
             "投票パネル",
             timeout=None
         )
-
-        self.bot = bot
 
         self.EmbedTitle = nextcord.ui.TextInput(
             label=f"投票パネルのタイトル",
@@ -87,11 +67,8 @@ class PollPanelSlashInput(nextcord.ui.Modal):
             embed_content = "`一人何票でも`\n" + \
                 ":`0`票:なし\n".join(values) + ":`0`票:なし"
 
-        self.bot.add_view(PollPanelView(values))
-        PollViews.value.append(values)
         if self.EmbedTitle.value == "" or self.EmbedTitle.value is None:
             self.EmbedTitle.value = "にらBOT投票パネル"
-        await database.default_push(self.bot.client, PollViews)
         try:
             await interaction.followup.send(f"作成者:{interaction.user.mention}", embed=nextcord.Embed(title=f"{self.EmbedTitle.value}", description=embed_content, color=0x00ff00).set_footer(text="NIRA Bot - PollPanel v2"), view=PollPanelView(values))
         except Exception:
@@ -101,13 +78,12 @@ class PollPanelSlashInput(nextcord.ui.Modal):
 
 
 class PollPanelEditModal(nextcord.ui.Modal):
-    def __init__(self, bot, message, options: dict, polltype: int):
+    def __init__(self, message: nextcord.Message, options: dict[str, str], polltype: int):
         super().__init__(
             "投票パネル 編集",
             timeout=None
         )
 
-        self.bot = bot
         self.message = message
         self.options = options
         self.poltype = polltype
@@ -170,10 +146,6 @@ class PollPanelEditModal(nextcord.ui.Modal):
             Args.append(i)
 
         embed_content += "\n".join([f"{key}:{value}" for key, value in options.items()])
-        self.bot.add_view(PollPanelView(values))
-        PollViews.value.append(Args)
-
-        await database.default_push(self.bot.client, PollViews)
 
         EmbedTitle = self.message.embeds[0].title
         try:
@@ -185,17 +157,18 @@ class PollPanelEditModal(nextcord.ui.Modal):
 
 
 class PollPanelView(nextcord.ui.View):
-    def __init__(self, args):
+    def __init__(self, args: list[str]):
         super().__init__(timeout=None)
 
-        for i in args:
-            self.add_item(PollPanelButton(i))
+        for arg in args:
+            self.add_item(PollPanelButton(arg))
         self.add_item(PollPanelEnd())
+        self.stop()
 
 
 
 class PollPanelButton(nextcord.ui.Button):
-    def __init__(self, arg):
+    def __init__(self, arg: str):
         super().__init__(
             label=arg,
             style=nextcord.ButtonStyle.green,
@@ -203,67 +176,7 @@ class PollPanelButton(nextcord.ui.Button):
         )
 
     async def callback(self, interaction: Interaction):
-        try:
-            message = interaction.message
-            content = message.embeds[0].description
-            pollType = None
-            if content.splitlines()[0] == "`一人一票`":
-                pollType = True
-            else:
-                pollType = False
-            who = interaction.user.id
-            what = self.custom_id.split(':')[1]
-            choice = {}
-            Pollers = []
-            for i in content.splitlines()[1:]:
-                if i.split(":", 2)[2] != "なし":
-                    choice[i.split(":", 2)[0]] = [
-                        j for j in i.split(":", 2)[2].split("/")]
-                else:
-                    choice[i.split(":", 2)[0]] = []
-
-            for i in choice.keys():
-                Pollers.extend(choice[i])
-            Pollers = list(set(Pollers))
-
-            if not pollType and f"<@{who}>" not in Pollers:
-                # 複数投票可&自分が投票していなかった
-                choice[what].append(f"<@{who}>")
-
-            elif not pollType and f"<@{who}>" in Pollers:
-                # 複数投票可&自分が投票していた
-                if f"<@{who}>" in choice[what]:
-                    choice[what].remove(f"<@{who}>")
-                else:
-                    choice[what].append(f"<@{who}>")
-
-            elif pollType and f"<@{who}>" not in Pollers:
-                # 一人一票&自分が投票していなかった
-                choice[what].append(f"<@{who}>")
-
-            elif pollType and f"<@{who}>" in Pollers:
-                # 一人一票&自分が投票していた
-                if f"<@{who}>" not in choice[what]:
-                    for i in choice.keys():
-                        if f"<@{who}>" in choice[i]:
-                            choice[i].remove(f"<@{who}>")
-                    choice[what].append(f"<@{who}>")
-
-                else:
-                    choice[what].remove(f"<@{who}>")
-
-            returnText = f"{content.splitlines()[0]}\n"
-            for i in choice.keys():
-                if choice[i] == []:
-                    returnText += f"{i}:`0`票:なし\n"
-                else:
-                    returnText += f"{i}:`{len(choice[i])}`票:{'/'.join(choice[i])}\n"
-            await interaction.message.edit(embed=nextcord.Embed(title=message.embeds[0].title, description=returnText, color=0x00ff00).set_footer(text="NIRA Bot - PollPanel v2"))
-
-        except Exception as err:
-            await interaction.response.send_message(f"ERR: `{err}`", ephemeral=True)
-            logging.error(err, exc_info=True)
-
+        ...
 
 
 class PollPanelEndConfirm(nextcord.ui.Button):
@@ -292,7 +205,6 @@ class PollPanelEnd(nextcord.ui.Button):
 class Pollpanel(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
-        asyncio.ensure_future(pull(self.bot, self.bot.client))
 
     @nextcord.message_command(name="Edit Pollpanel", name_localizations={nextcord.Locale.ja: "投票パネル編集"}, guild_ids=n_fc.GUILD_IDS)
     async def edit_pollpanel(self, interaction: Interaction, message: nextcord.Message):
@@ -352,7 +264,7 @@ class Pollpanel(commands.Cog):
             polltype = 0
         else:
             polltype = 1
-        await interaction.response.send_modal(PollPanelEditModal(self.bot, message, options, polltype))
+        await interaction.response.send_modal(PollPanelEditModal(message, options, polltype))
 
 
     @nextcord.slash_command(name="pollpanel", description="Create pollpanel", description_localizations={nextcord.Locale.ja: "投票パネルを設置します"}, guild_ids=n_fc.GUILD_IDS)
@@ -360,7 +272,7 @@ class Pollpanel(commands.Cog):
         self,
         interaction: Interaction
     ):
-        modal = PollPanelSlashInput(self.bot)
+        modal = PollPanelSlashInput()
         await interaction.response.send_modal(modal=modal)
 
 
@@ -380,16 +292,8 @@ n!pollpanel [on/off] [メッセージ内容]
 
 選択肢は最大で24個まで指定できます。""")
     async def pollpanel(self, ctx: commands.Context):
-        if ctx.message.content == f"{self.bot.command_prefix}pollpanel debug":
-            await ctx.message.add_reaction('🐛')
-            if (await self.bot.is_owner(ctx.author)):
-                await ctx.send(f"{ctx.author.mention}", embed=nextcord.Embed(title="Views", description=PollViews.value, color=0x00ff00))
-                return
-            else:
-                await ctx.send(f"{ctx.author.mention}", embed=nextcord.Embed(title="ERR", description="あなたは管理者ではありません。", color=0xff0000))
-                return
         if len(ctx.message.content.splitlines()) < 2:
-            await ctx.send(f"投票パネル機能を使用するにはメッセージ内容と選択肢を指定してください。\n```\n{self.bot.command_prefix}pollpanel [on/off] [メッセージ内容]\n[選択肢1]\n[選択肢2]...```")
+            await ctx.send(f"投票パネル機能を使用するにはメッセージ内容と選択肢を指定してください。\n```\n{ctx.prefix}pollpanel [on(一人一票)/off(一人何票でも)] [メッセージ内容]\n[選択肢1]\n[選択肢2]...```")
             return
         elif len(ctx.message.content.splitlines()) > 25:
             await ctx.send("投票パネル機能は最大で24個まで選択肢を指定できます。")
@@ -414,20 +318,102 @@ n!pollpanel [on/off] [メッセージ内容]
         if args[1] == "on":
             embed_content = "`一人一票`\n" + \
                 ":`0`票:なし\n".join(ViewArgs) + ":`0`票:なし"
-            poll_type = True
         else:
             embed_content = "`一人何票でも`\n" + \
                 ":`0`票:なし\n".join(ViewArgs) + ":`0`票:なし"
-            poll_type = False
 
-        self.bot.add_view(PollPanelView(ViewArgs))
-        PollViews.value.append(ViewArgs)
-        await database.default_push(self.bot.client, PollViews)
         try:
-            await ctx.send(f"作成者:{ctx.author.mention}", embed=nextcord.Embed(title=f"{content}", description=embed_content, color=0x00ff00).set_footer(text="NIRA Bot - PollPanel v2"), view=PollPanelView(ViewArgs))
+            await ctx.send(
+                f"作成者:{ctx.author.mention}",
+                embed=nextcord.Embed(
+                    title=f"{content}",
+                    description=embed_content,
+                    color=0x00ff00
+                ).set_footer(
+                    text="NIRA Bot - PollPanel v2"
+                ),
+                view=PollPanelView(ViewArgs)
+            )
         except Exception as err:
             await ctx.send(f"エラー: `{err}`")
             return
+
+    @commands.Cog.listener()
+    async def on_interaction(self, interaction: Interaction):
+        # かりぱく
+        # →投票に匿名性を持たせたりするような機能をつける場合はちょっと変える必要が...
+        if interaction.type is not nextcord.InteractionType.component:
+            return
+
+        custom_id = interaction.data.get("custom_id")
+        if custom_id is None or not custom_id.startswith("PollPanel:"):
+            return
+
+        try:
+            await interaction.response.defer(ephemeral=True)
+        except Exception:
+            pass
+
+        try:
+            message = interaction.message
+            content = message.embeds[0].description
+            pollType = None
+            if content.splitlines()[0] == "`一人一票`":
+                pollType = True
+            else:
+                pollType = False
+            who = interaction.user.id
+            what = custom_id.split(':')[1]
+            choice = {}
+            Pollers = []
+            for i in content.splitlines()[1:]:
+                if i.split(":", 2)[2] != "なし":
+                    choice[i.split(":", 2)[0]] = [
+                        j for j in i.split(":", 2)[2].split("/")]
+                else:
+                    choice[i.split(":", 2)[0]] = []
+
+            for i in choice.keys():
+                Pollers.extend(choice[i])
+            Pollers = list(set(Pollers))
+
+            if not pollType and f"<@{who}>" not in Pollers:
+                # 複数投票可&自分が投票していなかった
+                choice[what].append(f"<@{who}>")
+
+            elif not pollType and f"<@{who}>" in Pollers:
+                # 複数投票可&自分が投票していた
+                if f"<@{who}>" in choice[what]:
+                    choice[what].remove(f"<@{who}>")
+                else:
+                    choice[what].append(f"<@{who}>")
+
+            elif pollType and f"<@{who}>" not in Pollers:
+                # 一人一票&自分が投票していなかった
+                choice[what].append(f"<@{who}>")
+
+            elif pollType and f"<@{who}>" in Pollers:
+                # 一人一票&自分が投票していた
+                if f"<@{who}>" not in choice[what]:
+                    for i in choice.keys():
+                        if f"<@{who}>" in choice[i]:
+                            choice[i].remove(f"<@{who}>")
+                    choice[what].append(f"<@{who}>")
+
+                else:
+                    choice[what].remove(f"<@{who}>")
+
+            returnText = f"{content.splitlines()[0]}\n"
+            for i in choice.keys():
+                if choice[i] == []:
+                    returnText += f"{i}:`0`票:なし\n"
+                else:
+                    returnText += f"{i}:`{len(choice[i])}`票:{'/'.join(choice[i])}\n"
+            await interaction.message.edit(embed=nextcord.Embed(title=message.embeds[0].title, description=returnText, color=0x00ff00).set_footer(text="NIRA Bot - PollPanel v2"))
+
+        except Exception as err:
+            await interaction.response.send_message(f"ERR: `{err}`", ephemeral=True)
+            logging.error(err, exc_info=True)
 
 
 # args = [["ButtonLabel", "Role_Id"]]
