@@ -45,7 +45,7 @@ class Splatoon(commands.Cog):
             async with session.get(self.urls["schedule"]) as resp:
                 return await resp.json()
 
-    async def scheduleEmbed(self, matchtype: MatchType, schedule): 
+    async def scheduleEmbed(self, matchtype: MatchType, schedule):
         if matchtype == MatchType.RegularMatch:
             schedule["data"]["regularSchedules"]["nodes"][0]["regularMatchSetting"]["vsStages"][0]["image"]["url"]
 
