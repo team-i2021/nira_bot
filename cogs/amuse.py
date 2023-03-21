@@ -136,29 +136,30 @@ def _get_divination_result() -> nextcord.Embed:
     value = random.randint(1, 100)
     star_num = 1
 
-    # TODO: もう少しスマートにしたい
-    if 1 <= value <= 5:
-        star_num = 0
-    elif 5 < value <= 12:
-        star_num = 1
-    elif 12 < value <= 22:
-        star_num = 2
-    elif 22 < value <= 35:
-        star_num = 3
-    elif 35 < value <= 50:
-        star_num = 4
-    elif 50 < value <= 69:
-        star_num = 5
-    elif 69 < value <= 82:
-        star_num = 6
-    elif 82 < value <= 89:
-        star_num = 7
-    elif 89 < value <= 95:
-        star_num = 8
-    elif 95 < value <= 99:
-        star_num = 9
-    else:
-        star_num = 10
+    # TODO: match-caseにしたがスマートじゃない希ガス
+    match value:
+        case _ if 1 <= value <= 5:
+            star_num = 0
+        case _ if 5 < value <= 12:
+            star_num = 1
+        case _ if 12 < value <= 22:
+            star_num = 2
+        case _ if 22 < value <= 35:
+            star_num = 3
+        case _ if 35 < value <= 50:
+            star_num = 4
+        case _ if 50 < value <= 69:
+            star_num = 5
+        case _ if 69 < value <= 82:
+            star_num = 6
+        case _ if 82 < value <= 89:
+            star_num = 7
+        case _ if 89 < value <= 95:
+            star_num = 8
+        case _ if 95 < value <= 99:
+            star_num = 9
+        case _:
+            star_num = 10
 
     embed = nextcord.Embed(
         title="うらない",
