@@ -1,18 +1,20 @@
 import asyncio
-import datetime
 import importlib
 import listre
+import datetime
 import logging
 import os
 import random
 import re
 import sys
 
+from motor import motor_asyncio
+
 import nextcord
-from nextcord.ext import commands
+from nextcord.ext import commands, tasks
 
 import util.srtr as srtr
-from util import admin_check, n_fc, eh, web_api, database, parallel
+from util import web_api, database
 from util.nira import NIRA
 
 SYSDIR = sys.path[0]
@@ -172,7 +174,7 @@ allow_guild = [870642671415337001, 906400213495865344]
 # 通常反応をプログラム化したもの
 
 
-def n_reaction(message: nextcord.Message, *custom: int):
+async def n_reaction(message: nextcord.Message, *custom: int) -> nextcord.Message | None:
     if custom == ():
         ans = listre.search(reaction_list, message.content)
         nrs = re.search(nira_hantei, message.content)
@@ -185,95 +187,129 @@ def n_reaction(message: nextcord.Message, *custom: int):
         if reaction_files[ans[1]][0] == 0:
             if reaction_files[ans[1]][1] == 1:
                 if reaction_files[ans[1]][2] is not None:
-                    return message.reply(reaction_files[ans[1]][2])
+                    await message.reply(reaction_files[ans[1]][2])
                 else:
-                    return asyncio.sleep(0)
+                    await asyncio.sleep(0)
             else:
                 rnd = random.randint(1, reaction_files[ans[1]][1])
-                return message.reply(reaction_files[ans[1]][rnd+1])
+                await message.reply(reaction_files[ans[1]][rnd+1])
 
         # 通常画像
         elif reaction_files[ans[1]][0] == 1:
             if reaction_files[ans[1]][1] == 1:
                 if os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.png"):
-                    return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.png"))
+                    await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.png"))
                 elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"):
-                    return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"))
+                    await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"))
                 elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"):
-                    return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"))
+                    await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"))
             else:
                 rnd = random.randint(1, reaction_files[ans[1]][1])
                 if os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"):
-                    return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"))
+                    await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"))
                 elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"):
-                    return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"))
+                    await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"))
                 elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"):
-                    return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"))
+                    await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"))
 
         # ニラ画像
         elif reaction_files[ans[1]][0] == 2:
             if nrs:
                 if reaction_files[ans[1]][1] == 1:
                     if os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.png"):
-                        return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.png"))
+                        await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.png"))
                     elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"):
-                        return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"))
+                        await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"))
                     elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"):
-                        return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"))
+                        await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"))
                 else:
                     rnd = random.randint(1, reaction_files[ans[1]][1])
                     if os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"):
-                        return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"))
+                        await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"))
                     elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"):
-                        return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"))
+                        await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"))
                     elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"):
-                        return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"))
+                        await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"))
 
         # にらテキスト
         elif reaction_files[ans[1]][0] == 3:
             if nrs:
                 if reaction_files[ans[1]][1] == 1:
-                    return message.reply(reaction_files[ans[1]][2])
+                    await message.reply(reaction_files[ans[1]][2])
                 else:
                     rnd = random.randint(1, reaction_files[ans[1]][1])
-                    return message.reply(reaction_files[ans[1]][rnd+1])
+                    await message.reply(reaction_files[ans[1]][rnd+1])
 
         # Guild画像
         elif reaction_files[ans[1]][0] == 4:
             if message.guild.id in allow_guild:
                 if reaction_files[ans[1]][1] == 1:
                     if os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.png"):
-                        return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.png"))
+                        await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.png"))
                     elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"):
-                        return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"))
+                        await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"))
                     elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"):
-                        return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"))
+                        await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"))
                 else:
                     rnd = random.randint(1, reaction_files[ans[1]][1])
                     if os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"):
-                        return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"))
+                        await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"))
                     elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"):
-                        return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"))
+                        await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"))
                     elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"):
-                        return message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"))
+                        await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"))
 
         # Guildテキスト
         elif reaction_files[ans[1]][0] == 5:
             if message.guild.id in allow_guild:
                 if reaction_files[ans[1]][1] == 1:
-                    return message.reply(reaction_files[ans[1]][2])
+                    await message.reply(reaction_files[ans[1]][2])
                 else:
                     rnd = random.randint(1, reaction_files[ans[1]][1])
-                    return message.reply(reaction_files[ans[1]][rnd+1])
+                    await message.reply(reaction_files[ans[1]][rnd+1])
 
         # リアクション追加
         elif reaction_files[ans[1]][0] == 6:
-            return message.add_reaction(reaction_files[ans[1]][2])
+            await message.add_reaction(reaction_files[ans[1]][2])
+
+    return None
 
 
 class normal_reaction(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
+        self.all_reaction_list = []
+        self.ex_reaction_list = []
+        self.reaction_bool_list = []
+        self.notify_token = []
+        self.SLEEP_TIMER = 3
+        self.REACTION_ID = "<:trash:908565976407236608>"
+        self.last_update: str | None = None
+        asyncio.run(self.database_update())
+        self.er_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["er_setting"]
+        self.nr_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["nr_setting"]
+        self.ar_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["ar_setting"]
+        self.line_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["notify_token"]
+        self.database_update_loop.start()
+
+    def cog_unload(self):
+        self.database_update_loop.cancel()
+
+    async def database_update(self) -> None:
+        self.all_reaction_list = await self.ar_collection.find().to_list(length=None)
+        self.ex_reaction_list = await self.er_collection.find().to_list(length=None)
+        self.reaction_bool_list = await self.nr_collection.find().to_list(length=None)
+        self.notify_token = await self.line_collection.find().to_list(length=None)
+        self.last_update = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+
+    async def _after_reaction(self, message: nextcord.Message) -> None:
+        await message.add_reaction(self.REACTION_ID)
+        await asyncio.sleep(self.SLEEP_TIMER)
+        try:
+            await message.remove_reaction(self.REACTION_ID, self.bot.user)
+            return
+        except Exception as err:
+            logging.error(f"Unknown error occurred during removing reaction.: {err}")
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
@@ -281,69 +317,69 @@ class normal_reaction(commands.Cog):
             await n_reaction(message)
         if isinstance(message.channel, nextcord.Thread):
             return
-        tasks = []
-        tasks.append(asyncio.ensure_future(database.default_pull(self.bot.client, reaction_datas.all_reaction_list)))
-        tasks.append(asyncio.ensure_future(database.default_pull(self.bot.client, reaction_datas.ex_reaction_list)))
-        tasks.append(asyncio.ensure_future(database.default_pull(self.bot.client, reaction_datas.reaction_bool_list)))
-        tasks.append(asyncio.ensure_future(database.default_pull(self.bot.client, notify_token)))
-        await parallel.wait(tasks)
-        if message.guild.id in notify_token.value:
-            if message.channel.id in notify_token.value[message.guild.id]:
-                web_api.notify_line(message, notify_token.value[message.guild.id][message.channel.id])
-        # 自分自身(BOT)には反応しない
+
+        if len(notify_token := list(filter(lambda item: item["guild_id"] == message.guild.id and str(message.channel.id) in item, self.notify_token))) != 0:
+            await web_api.notify_line(self.bot.session, message, notify_token[0]["token"])
+
+        # BOTには反応しない
         if message.author.bot:
             return
         if message.content.startswith(self.bot.command_prefix) or message.content[-1:] == ".":
             return
-        # if message.author.id in n_fc.py_admin and message.guild.id == 885410991234490408 and message.content[-1:] != ";" and message.content[:7] != "http://" and message.content[:8] != "https://":
-        #     await self.bot.http.delete_message(message.channel.id, message.id)
-        #     await message.channel.send(embed=nextcord.Embed(title=f"{message.author.name}",description=f"error: nextcord.c:0: parse(syntax) error before `send_message`\n{message.content}", color=0xff0000))
-        #     return
+
         # AllReactionSetting
-        if message.guild.id in reaction_datas.all_reaction_list.value:
-            if message.channel.id in reaction_datas.all_reaction_list.value[message.guild.id]:
-                if reaction_datas.all_reaction_list.value[message.guild.id][message.channel.id] != 1:
-                    return
-        if message.channel.topic != None and re.search("nira-off", message.channel.topic):
+        # guild_idで指定しているから通常であれば長さは1または0になる。
+        if len(all_reaction_list := list(filter(lambda item: item["guild_id"] == message.guild.id, self.all_reaction_list))) == 0:
             return
+
+        if not all_reaction_list[0]["all"]:
+            return
+
+        # if message.guild.id in reaction_datas.all_reaction_list.value:
+        #     if message.channel.id in reaction_datas.all_reaction_list.value[message.guild.id]:
+        #         if reaction_datas.all_reaction_list.value[message.guild.id][message.channel.id] != 1:
+        #             return
+
+        # Channel Topic Check
+        if message.channel.topic is not None and re.search("nira-off", message.channel.topic):
+            return
+
         # 追加反応
-        if message.guild.id in reaction_datas.ex_reaction_list.value:
-            if reaction_datas.ex_reaction_list.value[message.guild.id]["value"] != 0:
-                for i in range(int(reaction_datas.ex_reaction_list.value[message.guild.id]["value"])):
-                    if re.search(reaction_datas.ex_reaction_list.value[message.guild.id][f"{i+1}_tr"], message.content):
-                        sended_mes = await message.reply(reaction_datas.ex_reaction_list.value[message.guild.id][f"{i+1}_re"])
-                        return
+        if len(ex_reaction_list := list(filter(lambda item: item["guild_id"] == message.guild.id and re.search(item["trigger"], message.content), self.ex_reaction_list))):
+            for reaction in ex_reaction_list:
+                asyncio.ensure_future(self._after_reaction(await message.reply(reaction["return"])))
+
         ###############################
         # 通常反応のブール値存在チェック #
         ###############################
-        if message.guild.id not in reaction_datas.reaction_bool_list.value:
-            reaction_datas.reaction_bool_list.value[message.guild.id] = {"all": 1, message.channel.id: 1}
-            asyncio.ensure_future(database.default_push(self.bot.client, reaction_datas.reaction_bool_list))
-        if message.channel.id not in reaction_datas.reaction_bool_list.value[message.guild.id]:
-            reaction_datas.reaction_bool_list.value[message.guild.id][message.channel.id] = 1
-            asyncio.ensure_future(database.default_push(self.bot.client, reaction_datas.reaction_bool_list))
+        if len(reaction_bool_list := list(filter(lambda item: item["guild_id"] == message.guild.id, self.reaction_bool_list))) == 0:
+            reaction_bool_list = {"guild_id": message.guild.id, "all": True, str(message.channel.id): True}
+            self.reaction_bool_list.append(reaction_bool_list)
+            await self.nr_collection.update_one(reaction_bool_list, insert=True)
+        else:
+            reaction_bool_list = reaction_bool_list[0]
+
+        if message.channel.id not in reaction_bool_list:
+            reaction_bool_list[str(message.channel.id)] = True
+            await self.nr_collection.update_one(reaction_bool_list, insert=True)
+
         #########################################
         # 通常反応
         # 「$nr [on/off]」で変更できます
         #########################################
-        if reaction_datas.reaction_bool_list.value[message.guild.id]["all"] != 1:
+        if not reaction_bool_list[message.guild.id]["all"]:
             return
-        if reaction_datas.reaction_bool_list.value[message.guild.id][message.channel.id] == 1:
-            sended_mes = ""
+        if reaction_bool_list[str(message.channel.id)]:
             try:
-                sended_mes = await n_reaction(message)
-            except TypeError:
-                pass
+                result = await n_reaction(message)
+                if result:
+                    await self._after_reaction(result)
             except Exception as err:
                 logging.error(err, exc_info=True)
-            if sended_mes != "" and sended_mes is not None:
-                await sended_mes.add_reaction("<:trash:908565976407236608>")
-                await asyncio.sleep(3)
-                try:
-                    await sended_mes.remove_reaction("<:trash:908565976407236608>", self.bot.user)
-                    return
-                except Exception as err:
-                    logging.error(err, exc_info=True)
+
+    @tasks.loop(seconds=30)
+    async def database_update_loop(self):
+        await self.database_update()
 
 
 def setup(bot, **kwargs):
