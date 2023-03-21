@@ -16,7 +16,6 @@ from subprocess import PIPE
 
 import HTTP_db
 import nextcord
-import requests
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
 
