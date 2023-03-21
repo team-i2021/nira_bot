@@ -3,7 +3,6 @@ import asyncio
 import json
 import logging
 import os
-import requests
 import sys
 import traceback
 import time
@@ -80,7 +79,8 @@ bot = NIRA(
     mongo=_MONGO_CLIENT, # mongo_db
     database_name=SETTING["database_name"],
     shard_id=SETTING["shard_id"],
-    shard_count=SETTING["shard_count"]
+    shard_count=SETTING["shard_count"],
+    settings=SETTING,
 )
 
 bot.load_extension("onami")
