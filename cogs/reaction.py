@@ -47,7 +47,7 @@ class NotifyTokenSet(nextcord.ui.Modal):
                 await interaction.send(f"そのトークンは無効なようです。\n```sh\n{token_result[1]}```", ephemeral=True)
                 return
             await self.collection.update_one({"guild_id": interaction.guild.id}, {"$set": {"token": self.token.value}}, upsert=True)
-            await interaction.send(f"{interaction.guild.name}/{interaction.channel.name}で`{self.token.value}`を保存します。\nトークンが他のユーザーに見られないようにしてください。", ephemeral=True)
+            await interaction.send(f"{interaction.guild.name}/{interaction.channel.name}で`{self.token.value}`を保存します。\nトークンが他のユーザーに見られないようにしてください。\nこれで、このチャンネルのメッセージがLINEに送信されるようになりました。\n{self._atdb}", ephemeral=True)
 
 
 class Reaction(commands.Cog):
@@ -57,6 +57,7 @@ class Reaction(commands.Cog):
         self.nr_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["nr_setting"]
         self.ar_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["ar_setting"]
         self.line_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["notify_token"]
+        self._atdb = "`(データベースへの接続の最適化のため、実際に設定が適応されるまでに最大で30秒程かかる場合があります。)`"
 
     @commands.has_permissions(manage_guild=True)
     @commands.group(name="er", help="""\
@@ -69,7 +70,7 @@ class Reaction(commands.Cog):
 `n!er list`でリストを表示できます。
 `n!er edit [トリガー] [新反応]`でトリガーを編集できます。
 
-データベース接続への最適化のため、実際に反応が適応されるまでに最大で10秒ほどかかる場合があります。
+データベースへの接続の最適化のため、実際に設定が適応されるまでに最大で30秒程かかる場合があります。
 """)
     async def er_command(self, ctx):
         pass
@@ -91,7 +92,7 @@ class Reaction(commands.Cog):
                 await ctx.reply(embed=nextcord.Embed(title="Error", description=f"返信に対するメンションの指定が不正です。\n`yes`や`True`又は、`off`や`False`で指定してください。", color=0xff0000))
                 return
             await self.er_collection.update_one({"guild_id": ctx.guild.id, "trigger": trigger}, {"$set": {"return": return_text, "mention": mention}}, upsert=True)
-            await ctx.reply(embed=nextcord.Embed(title="Success", description=f"トリガー`{trigger}`を追加しました。\nメンションは{'有効' if mention else '無効'}です。", color=0x00ff00))
+            await ctx.reply(embed=nextcord.Embed(title="Success", description=f"トリガー`{trigger}`を追加しました。\nメンションは{'有効' if mention else '無効'}です。\n{self._atdb}", color=0x00ff00))
 
     @commands.has_permissions(manage_guild=True)
     @er_command.command(name="del")
@@ -104,11 +105,11 @@ class Reaction(commands.Cog):
                 return
             if trigger == "all":
                 await self.er_collection.delete_many({"guild_id": ctx.guild.id})
-                await ctx.reply(embed=nextcord.Embed(title="Success", description=f"全てのトリガーを削除しました。", color=0x00ff00))
+                await ctx.reply(embed=nextcord.Embed(title="Success", description=f"全てのトリガーを削除しました。\n{self._atdb}", color=0x00ff00))
             else:
                 delete_status = await self.er_collection.delete_one({"guild_id": ctx.guild.id, "trigger": trigger})
                 if delete_status.deleted_count == 1:
-                    await ctx.reply(embed=nextcord.Embed(title="Success", description=f"トリガー`{trigger}`を削除しました。", color=0x00ff00))
+                    await ctx.reply(embed=nextcord.Embed(title="Success", description=f"トリガー`{trigger}`を削除しました。\n{self._atdb}", color=0x00ff00))
                 else:
                     await ctx.reply(embed=nextcord.Embed(title="Error", description=f"トリガー`{trigger}`は存在しませんでした。", color=0xff0000))
 
@@ -140,7 +141,7 @@ class Reaction(commands.Cog):
             if update_result.modified_count == 0:
                 await ctx.reply(embed=nextcord.Embed(title="Error", description=f"トリガー`{trigger}`は存在しませんでした。", color=0xff0000))
             else:
-                await ctx.reply(embed=nextcord.Embed(title="Success", description=f"トリガー`{trigger}`を編集しました。", color=0x00ff00))
+                await ctx.reply(embed=nextcord.Embed(title="Success", description=f"トリガー`{trigger}`を編集しました。\n{self._atdb}", color=0x00ff00))
 
 
     @nextcord.slash_command(name="er", description="Extended Reaction Setting", guild_ids=n_fc.GUILD_IDS)
@@ -200,7 +201,7 @@ class Reaction(commands.Cog):
         await interaction.response.defer(ephemeral=True)
         if admin_check.admin_check(interaction.guild, interaction.user):
             await self.er_collection.update_one({"guild_id": interaction.guild.id, "trigger": triggerMessage}, {"$set": {"return": returnMessage, "mention": mention}}, upsert=True)
-            await interaction.followup.send(embed=nextcord.Embed(title="Success", description=f"追加反応を追加しました。", color=0x00ff00))
+            await interaction.send(embed=nextcord.Embed(title="Success", description=f"追加反応を追加しました。\n{self._atdb}", color=0x00ff00))
         else:
             raise NIRA.Forbidden()
 
@@ -243,13 +244,13 @@ class Reaction(commands.Cog):
         await interaction.response.defer(ephemeral=True)
         if triggerMessage == "all":
             await self.er_collection.delete_many({"guild_id": interaction.guild.id})
-            await interaction.followup.send(embed=nextcord.Embed(title="Success", description=f"追加反応をすべて削除しました。", color=0x00ff00))
+            await interaction.followup.send(embed=nextcord.Embed(title="Success", description=f"追加反応をすべて削除しました。\n{self._atdb}", color=0x00ff00))
         else:
             delete_result = await self.er_collection.delete_one({"guild_id": interaction.guild.id, "trigger": triggerMessage})
             if delete_result.deleted_count == 0:
                 await interaction.followup.send(embed=nextcord.Embed(title="Error", description=f"追加反応が存在しませんでした。", color=0xff0000))
             else:
-                await interaction.followup.send(embed=nextcord.Embed(title="Success", description=f"追加反応を削除しました。", color=0x00ff00))
+                await interaction.followup.send(embed=nextcord.Embed(title="Success", description=f"追加反応を削除しました。\n{self._atdb}", color=0x00ff00))
 
 
     @application_checks.has_permissions(manage_guild=True)
@@ -285,7 +286,7 @@ class Reaction(commands.Cog):
         if edit_result.modified_count == 0:
             await interaction.followup.send(embed=nextcord.Embed(title="Error", description=f"追加反応が存在しませんでした。", color=0xff0000))
         else:
-            await interaction.followup.send(embed=nextcord.Embed(title="Success", description=f"追加反応を編集しました。", color=0x00ff00))
+            await interaction.followup.send(embed=nextcord.Embed(title="Success", description=f"追加反応を編集しました。\n{self._atdb}", color=0x00ff00))
 
     @commands.has_permissions(manage_guild=True)
     @commands.command(name="nr", help="""\
@@ -296,7 +297,7 @@ class Reaction(commands.Cog):
 `n!nr all off`:通常反応を**サーバーで**無効化
 `n!nr all on`:通常反応を**サーバーで**有効化
 
-データベース接続への最適化のため、実際に反応が適応されるまでに最大で10秒ほどかかる場合があります。
+データベースへの接続の最適化のため、実際に設定が適応されるまでに最大で30秒程かかる場合があります。
 
 ※サーバーで反応が無効化された場合、チャンネルで有効化しても反応しません。""")
     async def nr(self, ctx: commands.Context):
@@ -307,19 +308,19 @@ class Reaction(commands.Cog):
             else:
                 if setting[2] in n_fc.on_ali:
                     await self.nr_collection.update_one({"guild_id": ctx.guild.id}, {"$set": {"all": True}}, upsert=True)
-                    await ctx.send(f"サーバーでの通常反応を有効化しました。\n個別にチャンネルで無効化するには`{ctx.prefix}nr off`を設定したいチャンネルで実行してください。")
+                    await ctx.send(f"サーバーでの通常反応を有効化しました。\n個別にチャンネルで無効化するには`{ctx.prefix}nr off`を設定したいチャンネルで実行してください。\n{self._atdb}")
                 elif setting[2] in n_fc.off_ali:
                     await self.nr_collection.update_one({"guild_id": ctx.guild.id}, {"$set": {"all": False}}, upsert=True)
-                    await ctx.send("サーバーでの通常反応を無効化しました。\n個別で有効化することは出来ませんので、個別設定をしたい場合はまず、サーバーでの通常反応を有効化してください。")
+                    await ctx.send(f"サーバーでの通常反応を無効化しました。\n個別で有効化することは出来ませんので、個別設定をしたい場合はまず、サーバーでの通常反応を有効化してください。\n{self._atdb}")
                 else:
                     await ctx.send(f"引数が不正です。\n`{ctx.prefix}nr [on/off]`または`{ctx.prefix}nr all [on/off]`")
         elif len(setting) == 2:
             if setting[1] in n_fc.on_ali:
                 await self.nr_collection.update_one({"guild_id": ctx.guild.id}, {"$set": {str(ctx.channel.id): True}}, upsert=True)
-                await ctx.send("通常反応を有効化しました。\n※サーバーで反応が無効化されている場合は、個別で有効化しても反応しませんのでご注意ください。")
+                await ctx.send("通常反応を有効化しました。\n※サーバーで反応が無効化されている場合は、個別で有効化しても反応しませんのでご注意ください。\n{self._atdb}")
             elif setting[1] in n_fc.off_ali:
                 await self.nr_collection.update_one({"guild_id": ctx.guild.id}, {"$set": {str(ctx.channel.id): False}}, upsert=True)
-                await ctx.send("通常反応を無効化しました。")
+                await ctx.send(f"通常反応を無効化しました。\n{self._atdb}")
             else:
                 await ctx.send(f"引数が不正です。\n`{ctx.prefix}nr [on/off]`または`{ctx.prefix}nr all [on/off]`")
         elif len(setting) == 1:
@@ -370,7 +371,7 @@ class Reaction(commands.Cog):
             )
         ):
         await self.nr_collection.update_one({"guild_id": interaction.guild.id}, {"$set": {str(interaction.channel.id): setting}}, upsert=True)
-        await interaction.response.send_message(f"{interaction.channel.name}での通常反応を{'有効化' if setting else '無効化'}しました。\n※サーバーで反応が無効化されている場合は、個別で有効化しても反応しませんのでご注意ください。")
+        await interaction.response.send_message(f"{interaction.channel.name}での通常反応を{'有効化' if setting else '無効化'}しました。\n※サーバーで反応が無効化されている場合は、個別で有効化しても反応しませんのでご注意ください。\n{self._atdb}")
 
 
     @application_checks.has_permissions(manage_guild=True)
@@ -395,7 +396,7 @@ class Reaction(commands.Cog):
             )
         ):
         await self.nr_collection.update_one({"guild_id": interaction.guild.id}, {"$set": {"all": setting}}, upsert=True)
-        await interaction.response.send_message(f"サーバーでの通常反応を{'有効化' if setting else '無効化'}しました。")
+        await interaction.response.send_message(f"サーバーでの通常反応を{'有効化' if setting else '無効化'}しました。\n{self._atdb}")
 
     @commands.has_permissions(manage_guild=True)
     @commands.command(name="ar", help="""\
@@ -404,7 +405,9 @@ class Reaction(commands.Cog):
 `n!ar off`:全反応を無効化
 `n!ar on`:全反応を有効化
 
-チャンネルトピックに`nira-off`と入れておくと、そのチャンネルでは設定を無視して反応を無効化します。""")
+チャンネルトピックに`nira-off`と入れておくと、そのチャンネルでは設定を無視して反応を無効化します。
+
+データベースへの接続の最適化のため、実際に設定が適応されるまでに最大で30秒程かかる場合があります。""")
     async def ar(self, ctx: commands.Context, setting: str | None = None):
         if setting is None:
             ar_setting = await self.ar_collection.find_one({"guild_id": ctx.guild.id})
@@ -418,10 +421,10 @@ class Reaction(commands.Cog):
                     await ctx.send("このサーバーでの全体反応は無効です。")
         elif setting in n_fc.on_ali:
             await self.ar_collection.update_one({"guild_id": ctx.guild.id}, {"$set": {"all": True}}, upsert=True)
-            await ctx.send("このサーバーでの全体反応を有効化しました。")
+            await ctx.send(f"このサーバーでの全体反応を有効化しました。\n{self._atdb}")
         elif setting in n_fc.off_ali:
             await self.ar_collection.update_one({"guild_id": ctx.guild.id}, {"$set": {"all": False}}, upsert=True)
-            await ctx.send("このサーバーでの全体反応を無効化しました。")
+            await ctx.send(f"このサーバーでの全体反応を無効化しました。\n{self._atdb}")
         else:
             await ctx.send(f"引数が不正です。\n`{ctx.prefix}ar [on/off]`")
 
@@ -447,12 +450,14 @@ class Reaction(commands.Cog):
             )
         ):
         await self.ar_collection.update_one({"guild_id": interaction.guild.id}, {"$set": {"all": setting}}, upsert=True)
-        await interaction.response.send_message(f"サーバーでの全体反応を{'有効化' if setting else '無効化'}しました。")
+        await interaction.response.send_message(f"サーバーでの全体反応を{'有効化' if setting else '無効化'}しました。\n`{self._atdb}`")
 
 
     @commands.command(name="line", help="""\
 DiscordのメッセージをLINEに送信します。
-LINE Notifyという機能を用いて、DiscordのメッセージをLINEに送信します。""")
+LINE Notifyという機能を用いて、DiscordのメッセージをLINEに送信します。
+
+データベースへの接続の最適化のため、実際に設定が適応されるまでに最大で30秒程かかる場合があります。""")
     async def line(self, ctx: commands.Context):
         embed = nextcord.Embed(title="DiscordのメッセージをLINEに送信する機能", description="使い方", color=0x00ff00)
         embed.add_field(name="**このコマンドはスラッシュコマンドです**", value="""\
@@ -481,7 +486,7 @@ TOKENとは簡単に言えばパスワードです。LINE Notifyのページか�
     @line_slash.subcommand(name="del", description="Delete LINE Notify's TOKEN", description_localizations={nextcord.Locale.ja: "LINE Notifyのトークンを削除します。"})
     async def line_del_slash(self, interaction: Interaction):
         await self.line_collection.delete_one({"guild_id": interaction.guild.id})
-        await interaction.response.send_message("LINE Notifyのトークンを削除しました。")
+        await interaction.response.send_message(f"LINE Notifyのトークンを削除しました。\nこれでこのチャンネルのメッセージがLINEに送信されなくなりました。\n{self._atdb}")
 
 
 def setup(bot, **kwargs):
