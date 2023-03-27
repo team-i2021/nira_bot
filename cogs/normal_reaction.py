@@ -14,7 +14,7 @@ import nextcord
 from nextcord.ext import commands, tasks
 
 import util.srtr as srtr
-from util import web_api, database
+from util import web_api, database, n_fc
 from util.nira import NIRA
 
 SYSDIR = sys.path[0]
@@ -316,6 +316,9 @@ class normal_reaction(commands.Cog):
         if isinstance(message.channel, nextcord.DMChannel) and message.author != self.bot.user:
             await n_reaction(message)
         if isinstance(message.channel, nextcord.Thread):
+            return
+
+        if self.bot.debug and message.guild.id not in n_fc.GUILD_IDS:
             return
 
         if len(notify_token := list(filter(lambda item: item["guild_id"] == message.guild.id and str(message.channel.id) in item, self.notify_token))) != 0:
