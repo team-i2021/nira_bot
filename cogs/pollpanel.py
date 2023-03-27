@@ -172,7 +172,7 @@ class PollPanelButton(nextcord.ui.Button):
         super().__init__(
             label=arg,
             style=nextcord.ButtonStyle.green,
-            custom_id=f"PolePanel:{arg}"
+            custom_id=f"PollPanel:{arg}"
         )
 
     async def callback(self, interaction: Interaction):
@@ -187,20 +187,14 @@ class PollPanelEndConfirm(nextcord.ui.Button):
     async def callback(self, interaction: Interaction):
         await self.interaction.message.edit(content="投票終了！", view=None)
         await interaction.response.send_message("投票は締め切られました。", ephemeral=True)
-        self.stop()
+        self.view.stop()
 
 class PollPanelEnd(nextcord.ui.Button):
     def __init__(self):
-        super().__init__(label="締め切る", style=nextcord.ButtonStyle.red, custom_id="PolePanel:end")
+        super().__init__(label="締め切る", style=nextcord.ButtonStyle.red, custom_id="PollPanel:end")
 
     async def callback(self, interaction: Interaction):
-        if interaction.message.content.split(":")[1] == interaction.user.mention:
-            view = nextcord.ui.View()
-            view.add_item(PollPanelEndConfirm(interaction))
-            await interaction.response.send_message("本当に投票を締め切ってもよろしいですか！？\nもう投票できなくなります！", view=view, ephemeral=True)
-        else:
-            await interaction.response.send_message("誰だおめぇ...？\n（投票製作者のみ締め切ることが出来ます！）", ephemeral=True)
-
+        ...
 
 class Pollpanel(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs):
@@ -353,6 +347,15 @@ n!pollpanel [on/off] [メッセージ内容]
             await interaction.response.defer(ephemeral=True)
         except Exception:
             pass
+
+        if custom_id == "PollPanel:end":
+            if interaction.message.content.split(":")[1] == interaction.user.mention:
+                view = nextcord.ui.View()
+                view.add_item(PollPanelEndConfirm(interaction))
+                await interaction.send("本当に投票を締め切ってもよろしいですか！？\nもう投票できなくなります！", view=view, ephemeral=True)
+            else:
+                await interaction.send("誰だおめぇ...？\n（投票製作者のみ締め切ることが出来ます！）", ephemeral=True)
+            return
 
         try:
             message = interaction.message
