@@ -223,8 +223,8 @@ n!remind on 8:25 おはようございます！
     @remind_slash.subcommand(name="list", description="List Remind Messages", description_localizations={nextcord.Locale.ja: "リマインドメッセージ一覧"})
     async def list_remind_slash(self, interaction: Interaction):
         await interaction.response.defer()
-        reminds = await self.collection.find({"channel_id": interaction.channel.id}).find(length=None)
-        
+        reminds = await self.collection.find({"channel_id": interaction.channel.id}).to_list(length=None)
+
         if len(reminds) == 0:
             await interaction.followup.send(f"・エラー\nこのチャンネル`{interaction.channel.name}`で設定されているリマインドメッセージはありません。\n`/remind list`")
             return
@@ -248,7 +248,7 @@ n!remind on 8:25 おはようございます！
         await self.bot.wait_until_ready()
         dt = datetime.datetime.now()
         now_time = dt.strftime("%H:%M")
-        reminds = await self.collection.delete_one({"time": now_time})
+        reminds = await self.collection.find({"time": now_time}).to_list(length=None)
         for remind in reminds:
             try:
                 message = remind["message"].replace("%date%", dt.strftime("%m/%d"))
