@@ -143,7 +143,6 @@ class Reaction(commands.Cog):
                 await ctx.reply(embed=nextcord.Embed(title="Success", description=f"トリガー`{trigger}`を編集しました。", color=0x00ff00))
 
 
-    @application_checks.has_permissions(manage_guild=True)
     @nextcord.slash_command(name="er", description="Extended Reaction Setting", guild_ids=n_fc.GUILD_IDS)
     async def er_slash(self, interaction: Interaction):
         pass
@@ -344,7 +343,6 @@ class Reaction(commands.Cog):
                 await ctx.send(embed=embed)
 
 
-    @application_checks.has_permissions(manage_guild=True)
     @nextcord.slash_command(name="nr", description="Normal Reaction Setting", guild_ids=n_fc.GUILD_IDS)
     async def nr_slash(self, interaction):
         pass
