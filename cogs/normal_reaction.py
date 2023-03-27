@@ -285,11 +285,11 @@ class normal_reaction(commands.Cog):
         self.SLEEP_TIMER = 3
         self.REACTION_ID = "<:trash:908565976407236608>"
         self.last_update: str | None = None
-        asyncio.run(self.database_update())
         self.er_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["er_setting"]
         self.nr_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["nr_setting"]
         self.ar_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["ar_setting"]
         self.line_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["notify_token"]
+        asyncio.ensure_future(self.database_update())
         self.database_update_loop.start()
 
     def cog_unload(self):
@@ -313,6 +313,9 @@ class normal_reaction(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
+        if message.author == self.bot.user:
+            return
+
         if isinstance(message.channel, nextcord.DMChannel) and message.author != self.bot.user:
             await n_reaction(message)
         if isinstance(message.channel, nextcord.Thread):
@@ -358,19 +361,19 @@ class normal_reaction(commands.Cog):
         if len(reaction_bool_list := list(filter(lambda item: item["guild_id"] == message.guild.id, self.reaction_bool_list))) == 0:
             reaction_bool_list = {"guild_id": message.guild.id, "all": True, str(message.channel.id): True}
             self.reaction_bool_list.append(reaction_bool_list)
-            await self.nr_collection.update_one(reaction_bool_list, insert=True)
+            await self.nr_collection.update_one({"guild_id": message.guild.id}, {"$set": reaction_bool_list}, upsert=True)
         else:
             reaction_bool_list = reaction_bool_list[0]
 
         if message.channel.id not in reaction_bool_list:
             reaction_bool_list[str(message.channel.id)] = True
-            await self.nr_collection.update_one(reaction_bool_list, insert=True)
+            await self.nr_collection.update_one({str(message.channel.id): True}, {"$set": reaction_bool_list}, upsert=True)
 
         #########################################
         # 通常反応
         # 「$nr [on/off]」で変更できます
         #########################################
-        if not reaction_bool_list[message.guild.id]["all"]:
+        if not reaction_bool_list["all"]:
             return
         if reaction_bool_list[str(message.channel.id)]:
             try:
