@@ -1,4 +1,3 @@
-import aiohttp
 import datetime
 import nextcord
 import locale
@@ -8,6 +7,7 @@ from nextcord.ext import commands
 from util import nira, n_fc
 
 data_call = ["今日", "明日", "明後日"]
+day_of_week = ["月", "火", "水", "木", "金", "土", "日"]
 
 class Weather(commands.Cog):
     def __init__(self, bot: nira.NIRA):
@@ -16,12 +16,15 @@ class Weather(commands.Cog):
         self.endpoint_url = "https://wttr.in/{}?format=j1&lang=ja"
         locale.setlocale(locale.LC_TIME, 'ja_JP.UTF-8')
 
-    async def apiCall(self, location: str):
+    def _getWeek(self, week: int) -> str:
+        return day_of_week[week]
+
+    async def _apiCall(self, location: str):
         async with self.bot.session.get(self.endpoint_url.format(location)) as resp:
             return await resp.json()
 
-    async def getWeather(self, location: str) -> nextcord.Embed:
-        data = await self.apiCall(location)
+    async def _getWeather(self, location: str) -> nextcord.Embed:
+        data = await self._apiCall(location)
         now = datetime.datetime.now()
 
         embed = nextcord.Embed(
@@ -34,10 +37,10 @@ class Weather(commands.Cog):
             weather = data["weather"][day]
             target_date = now + datetime.timedelta(days=1*day)
             embed.add_field(
-                name=f"{data_call[day]}(`{target_date.strftime('%m/%d-%a')}`)の天気",
+                name=f"{data_call[day]}(`{target_date.strftime('%m/%d')}-{self._getWeek(target_date.weekday())}`)の天気",
                 value="\n".join(
                     [
-                        f"{int(j['time'])//100}時〜　" + f'`{j["lang_ja"][0]["value"]}` ({j["tempC"]}℃)' for j in weather["hourly"][( 0 if day != 0 else int(target_date.strftime("%k"))//3 ):]
+                        (f"{int(j['time'])//100}時〜 `{j['lang_ja'][0]['value']}` ({j['tempC']}℃)") for j in weather["hourly"][( 0 if day != 0 else int(target_date.strftime("%H"))//3 ):]
                     ]
                 )
             )
@@ -55,7 +58,7 @@ class Weather(commands.Cog):
             )
         ):
         await interaction.response.defer(ephemeral=False)
-        await interaction.send(embed=await self.getWeather(location))
+        await interaction.send(embed=await self._getWeather(location))
 
 
 def setup(bot: nira.NIRA):
