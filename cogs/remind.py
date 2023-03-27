@@ -64,7 +64,7 @@ class RemindMaker(nextcord.ui.Modal):
             return
 
         time = ":".join([f"0{i}"[-2:] for i in time.split(":", 1)])
-        
+
         await self.collection.update_one({"channel_id": interaction.channel.id}, {"$set": {"message": self.remind_content.value, "time": time}}, upsert=True)
         await interaction.followup.send(embed=nextcord.Embed(title="設定完了", description=f"毎日`{time}`に <#{interaction.channel.id}> にリマインドメッセージを送信します。", color=0x00ff00))
         return
@@ -128,7 +128,7 @@ n!remind on 8:25 おはようございます！
 
             time = ":".join([f"0{i}"[-2:] for i in time.split(":", 1)])
 
-            await self.collection.update_one({"channel_id": ctx.channel.id}, {"$set": {"message": arg[3], "time": time}}, upsert=True)
+            await self.collection.update_one({"channel_id": ctx.channel.id}, {"$set": {"message": args[3], "time": time}}, upsert=True)
             await ctx.reply(embed=nextcord.Embed(title="設定完了", description=f"毎日`{time}`に <#{ctx.channel.id}> にリマインドメッセージを送信します。", color=0x00ff00))
             return
 
@@ -151,13 +151,13 @@ n!remind on 8:25 おはようございます！
                 await ctx.reply(f"・エラー\n時間の入力が不正です。\n`{self.bot.command_prefix}remind off [時間(hh:mm)]`")
                 return
             time = ":".join([f"0{i}"[-2:] for i in time.split(":", 1)])
-            
+
             result = await self.collection.delete_one({"channel_id": ctx.channel.id, "time": time})
-            
-            if result is None!
+
+            if result is None:
                 await ctx.reply(f"・エラー\nこのチャンネル`{ctx.channel.name}`で`{time}`に送信されるリマインドメッセージはありません。\n`{self.bot.command_prefix}remind off [時間(hh:mm)]`")
             else:
-                await ctx.reply(embed=nextcord.Embed(title="削除完了", description=f"<#{ctx.channel.id}> での`{time}`のリマインドメッセージを削除しました。", color=
+                await ctx.reply(embed=nextcord.Embed(title="削除完了", description=f"<#{ctx.channel.id}> での`{time}`のリマインドメッセージを削除しました。", color=0x00ff00))
 
         elif args[1] == "list":
             reminds = await self.collection.find({"channel_id": ctx.channel.id}).to_list(length=None)
@@ -217,7 +217,7 @@ n!remind on 8:25 おはようございます！
                 return
 
             timeB = ":".join([f"0{i}"[-2:] for i in timeB.split(":", 1)])
-            
+
             result = await self.collection.delete_one({"channel_id": interaction.channel.id, "time": timeB})
 
             if result is None:
@@ -232,7 +232,7 @@ n!remind on 8:25 おはようございます！
     async def list_remind_slash(self, interaction: Interaction):
         await interaction.response.defer()
         reminds = await self.collection.find({"channel_id": ctx.channel.id}).find(length=None)
-        
+
         if len(reminds) == 0:
             await interaction.followup.send(f"・エラー\nこのチャンネル`{interaction.channel.name}`で設定されているリマインドメッセージはありません。\n`/remind list`")
             return

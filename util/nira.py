@@ -9,7 +9,7 @@ from util.n_fc import py_admin
 class NIRA(commands.Bot):
     """
     I AM NIRA BOT!!!
-    
+
     An object that extends `commands.Bot`.
     """
     def __init__(
@@ -18,7 +18,7 @@ class NIRA(commands.Bot):
             token: str = None,
             client = None,
             mongo: motor.motor_asyncio.AsyncIOMotorClient = None,
-            database_name: str = "nira-bot"
+            database_name: str = "nira-bot",
             *args,
             **kwargs
         ):
