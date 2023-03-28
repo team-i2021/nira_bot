@@ -1,30 +1,17 @@
 import asyncio
-import datetime
-import logging
-import math
-import re
-import sys
-import traceback
 
 import a2s
 
-from util import database
-import util.web_api as web_api
+import nextcord
 
 # 主にサーバーステータスを取得するコード
 
-class steam_server:
-    name = "steam_server"
-    value = {}
-    default = {}
-    value_type = database.CHANNEL_VALUE
 
-
-# ステータスチェック中にメッセージ返信ができないものを修正する(Created by tasuren)
-async def server_check_loop(loop, g_id, n):
-    return await loop.run_in_executor(
-        None, ss_bool, g_id, n
-    )
+# # ステータスチェック中にメッセージ返信ができないものを修正する(Created by tasuren)
+# async def server_check_loop(loop, g_id, n):
+#     return await loop.run_in_executor(
+#         None, ss_bool, g_id, n
+#     )
 
 
 async def RetryInfo(address: tuple, count: int) -> a2s.SourceInfo or None:
@@ -51,7 +38,7 @@ async def RetryPlayers(address: tuple, count: int) -> a2s.Player or None:
 # サーバーのステータスをチェックする
 
 
-async def server_check(server: dict, embed, type):
+async def server_check(server: dict, embed: nextcord.Embed, type):
     try:
         sv_ad = tuple(server["sv_ad"])
         sv_nm = server["sv_nm"]
@@ -79,30 +66,28 @@ async def server_check(server: dict, embed, type):
             )
         return True
     if type == 0:
-        embed.add_field(
-            name=f"> {sv_dt.server_name} - {sv_dt.map_name}",
-            value=f":white_check_mark:オンライン `{round(sv_dt.ping*1000,2)}`ms",
-            inline=False
-        )
+        result ={
+            "name": f"> {sv_dt.server_name} - {sv_dt.map_name}",
+            "value": f":white_check_mark:オンライン `{round(sv_dt.ping*1000,2)}`ms",
+        }
     elif type == 1:
-        embed.add_field(
-            name=f"> {sv_dt.server_name} - {sv_dt.map_name}",
-            value=f"```{sv_dt}```",
-            inline=False
-        )
+        result ={
+            "name": f"> {sv_dt.server_name} - {sv_dt.map_name}",
+            "value": f"```{sv_dt}```",
+        }
     user = ""
     sv_us = await RetryPlayers(sv_ad, 5)
     if sv_us is None:
         if type == 0:
             embed.add_field(
-                name=f"> Online Player",
-                value="プレイヤー情報が取得できませんでした。",
+                name=result["name"],
+                value=f"{result['value']}\n\n> Online Player\nプレイヤー情報が取得できませんでした。",
                 inline=False
             )
         elif type == 1:
             embed.add_field(
-                name=f"> Online Player",
-                value=f"`An error has occurred during checking online player.`",
+                name=result["name"],
+                value=f"{result['value']}\n`An error has occurred during checking online player.`",
                 inline=False
             )
         return True
@@ -120,26 +105,26 @@ async def server_check(server: dict, embed, type):
                     us = us - 1
             if user != "":
                 embed.add_field(
-                    name="> Online Player",
-                    value=f"プレーヤー数:`{len(sv_us)+us}/{sv_dt.max_players}`人\n```{user}```\n==========",
+                    name=result["name"],
+                    value=f"{result['value']}\n\n> Online Player\nプレーヤー数:`{len(sv_us)+us}/{sv_dt.max_players}`人\n```{user}```\n==========",
                     inline=False
                 )
             else:
                 embed.add_field(
-                    name="> Online Player",
-                    value=":information_source:オンラインユーザーはいません。\n==========",
+                    name=result['name'],
+                    value=f"{result['value']}\n\n> Online Player\n:information_source:オンラインユーザーはいません。\n==========",
                     inline=False
                 )
         else:
             embed.add_field(
-                name="> Online Player",
-                value=":information_source:オンラインユーザーはいません。\n==========",
+                name=result["name"],
+                value=f"{result['value']}\n\n> Online Player\n:information_source:オンラインユーザーはいません。\n==========",
                 inline=False
             )
     elif type == 1:
         embed.add_field(
-            name="> Online Player",
-            value=f"```{sv_us}```",
+            name=result["name"],
+            value=f"{result['value']}\n```{sv_us}```",
             inline=False
         )
     return True
@@ -147,29 +132,29 @@ async def server_check(server: dict, embed, type):
 # Bool返すタイプ
 
 
-async def ss_bool(client, g_id, n):
-    await database.default_pull(client, steam_server)
-    sv_ad = tuple(steam_server.value[g_id][f"{n}_ad"])
-    for _ in range(3):
-        try:
-            sv_dt = await RetryInfo(sv_ad, 5)
-            if sv_dt is None:
-                raise TimeoutError("timed out")
-            sv_pl = RetryPlayers(sv_ad)
-            if sv_pl is None:
-                raise TimeoutError("timed out")
-        except Exception:
-            pass
-        else:
-            return True
-    else:
-        return False
+# async def ss_bool(client, g_id, n):
+#     await database.default_pull(client, steam_server)
+#     sv_ad = tuple(steam_server.value[g_id][f"{n}_ad"])
+#     for _ in range(3):
+#         try:
+#             sv_dt = await RetryInfo(sv_ad, 5)
+#             if sv_dt is None:
+#                 raise TimeoutError("timed out")
+#             sv_pl = RetryPlayers(sv_ad)
+#             if sv_pl is None:
+#                 raise TimeoutError("timed out")
+#         except Exception:
+#             pass
+#         else:
+#             return True
+#     else:
+#         return False
 
 # embed
 # サーバーのステータスをチェックする
 
 
-async def ss_pin_embed(server, embed):
+async def ss_pin_embed(server, embed: nextcord.Embed):
     sv_ad = tuple(server["sv_ad"])
     sv_nm = server["sv_nm"]
     sv_dt = await RetryInfo(sv_ad, 5)
@@ -180,17 +165,16 @@ async def ss_pin_embed(server, embed):
             inline=False
         )
         return True
-    embed.add_field(
-        name=f"> {sv_dt.server_name} - {sv_dt.map_name}",
-        value=f":white_check_mark:オンライン `{round(sv_dt.ping*1000,2)}`ms",
-        inline=False
-    )
+    result = {
+        "name": f"> {sv_dt.server_name} - {sv_dt.map_name}",
+        "value": f":white_check_mark:オンライン `{round(sv_dt.ping*1000,2)}`ms"
+    }
     user = ""
     sv_us = await RetryPlayers(sv_ad, 5)
     if sv_us is None:
         embed.add_field(
-            name=f"> Online Player",
-            value="プレイヤー情報が取得できませんでした。",
+            name=result["name"],
+            value=f"{result['value']}\n\n> Online Player\nプレイヤー情報が取得できませんでした。",
             inline=False
         )
         return True
@@ -207,11 +191,20 @@ async def ss_pin_embed(server, embed):
                 us = us - 1
         if user != "":
             embed.add_field(
-                name="> Online Player", value=f"プレーヤー数:`{len(sv_us)+us}/{sv_dt.max_players}`人\n```{user}```\n==========", inline=False)
+                name=result["name"],
+                value=f"{result['value']}\n\n> Online Player\nプレーヤー数:`{len(sv_us)+us}/{sv_dt.max_players}`人\n```{user}```\n==========",
+                inline=False
+            )
         else:
             embed.add_field(
-                name="> Online Player", value=":information_source:オンラインユーザーはいません。\n==========", inline=False)
+                name=result["name"],
+                value=f"{result['value']}\n\n> Online Player\n:information_source:オンラインユーザーはいません。\n==========",
+                inline=False
+            )
     else:
         embed.add_field(
-            name="> Online Player", value=":information_source:オンラインユーザーはいません。\n==========", inline=False)
+            name=result["name"],
+            value=f"{result['value']}\n\n> Online Player\n:information_source:オンラインユーザーはいません。\n==========",
+            inline=False
+        )
     return True
