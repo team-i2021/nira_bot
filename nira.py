@@ -38,7 +38,7 @@ UNLOAD_COGS = SETTING["unload_cogs"]
 LOAD_COGS = SETTING["load_cogs"]
 DEBUG = False
 
-if len(sys.argv) > 1 and sys.argv[1] == "-d":
+if "-d" in sys.argv:
     DEBUG = True
     print(f"NIRA Bot Debug Mode\nThe following will be loaded... :{LOAD_COGS}")
 
