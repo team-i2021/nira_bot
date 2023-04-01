@@ -5,7 +5,6 @@ import nextcord
 from nextcord import Interaction
 from nextcord.ext import commands
 
-from cogs import embed, translate, tts
 from util import n_fc
 from util import nira
 
@@ -16,16 +15,16 @@ SYSDIR = sys.path[0]
 
 
 class MessageCommandPulldown(nextcord.ui.Select):
-    def __init__(self, bot: commands.Bot, client: HTTP_db.Client, interaction: Interaction, message: nextcord.Message):
+    def __init__(self, bot: nira.NIRA, interaction: Interaction, message: nextcord.Message):
         options = [
             nextcord.SelectOption(
-                label="Embedコンテンツの取得", description="Embedの中身を取得します。", value="embed"
+                label="Embedコンテンツの取得", description="Embedの中身を取得します。", value="Embed"
             ),
             nextcord.SelectOption(
-                label="メッセージの翻訳", description="メッセージを翻訳します。", value="translate"
+                label="メッセージの翻訳", description="メッセージを翻訳します。", value="Translate"
             ),
             nextcord.SelectOption(
-                label="メッセージの読み上げ", description="メッセージをVCで読み上げます。", value="tts"
+                label="メッセージの読み上げ", description="メッセージをVCで読み上げます。", value="Text2Speech"
             )
         ]
 
@@ -37,33 +36,37 @@ class MessageCommandPulldown(nextcord.ui.Select):
         )
 
         self.bot = bot
-        self.kwargs = {"client": client}
         self.interaciton = interaction
         self.message = message
-    
+
     async def callback(self, interaction: Interaction):
         value = self.values[0]
-        if value == "embed":
-            await embed.SendEmbed.embed_message_command(embed.SendEmbed(self.bot, self.kwargs), interaction, self.message)
-        elif value == "translate":
-            await translate.Translate.translation_message_command(translate.Translate(self.bot, self.kwargs), interaction, self.message)
-        elif value == "tts":
-            await tts.tts.speak_message(tts.tts(self.bot, self.kwargs), interaction, self.message)
-        return
-
-
+        cog = self.bot.get_cog(value)
+        if cog is None:
+            await interaction.send(
+                "エラーまたは、BOTの機能が制限されています。",
+                embed=nextcord.Embed(
+                    title="Q. どういう意味ですか？",
+                    description="A. メッセージコマンドの機能を呼び出そうとしましたが、機能が見つかりませんでした。\n単純なエラーか、メンテナンスなどによりBOTの機能が制限されている場合があります。\nNEWSチャンネルを確認するか、詳しくはこのメッセージをスクショしてお問い合わせください。",
+                    color=0xff0000
+                ).set_footer(
+                    text=f"debug::value:{value}"
+                ),
+                ephemeral=True
+            )
+        else:
+            await cog.mscommand(interaction, self.message)
 
 
 class MessageCommands(commands.Cog):
     def __init__(self, bot: nira.NIRA, **kwargs):
         self.bot = bot
-            
+
     @nextcord.message_command(name="その他", guild_ids=n_fc.GUILD_IDS)
     async def other_message_command(self, interaction: Interaction, message: nextcord.Message):
         view = nextcord.ui.View()
-        view.add_item(MessageCommandPulldown(self.bot, self.bot.client, interaction, message))
+        view.add_item(MessageCommandPulldown(self.bot, interaction, message))
         await interaction.response.send_message("実行したいメッセージコマンドを選択してください。", view=view, ephemeral=True)
-        return
 
-def setup(bot, **kwargs):
+def setup(bot: nira.NIRA, **kwargs):
     bot.add_cog(MessageCommands(bot, **kwargs))

@@ -88,6 +88,7 @@ class EmbedMaker(nextcord.ui.Modal):
 class SendEmbed(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
+        self.mscommands = self.embed_message_command
 
     # @nextcord.message_command(name="Embedコンテンツの取得", guild_ids=n_fc.GUILD_IDS)
     async def embed_message_command(self, interaction: Interaction, message: nextcord.Message):

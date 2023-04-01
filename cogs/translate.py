@@ -125,9 +125,7 @@ def languageCheck(text: str) -> str:
 
 
 def contentCheck(message: nextcord.Message) -> bool:
-    if message.content == "" or message.content is None:
-        return False
-    elif message.author.bot:
+    if message.content == "" or message.content is None or message.is_system():
         return False
     else:
         return True
@@ -213,6 +211,7 @@ class Translate(commands.Cog):
         else:
             self.deepl_tr = deepl.Translator(self.bot.settings["translate"])
         self.google_tr = Translator()
+        self.mscommand = self.translation_message_command
 
     @nextcord.slash_command(name="translate", description="Translate.", description_localizations={nextcord.Locale.ja: "翻訳します"}, guild_ids=n_fc.GUILD_IDS)
     async def slash_translate(
@@ -361,7 +360,10 @@ Powered by DeepL Translate/Google Translate.""")
             return
         if message.channel.topic is None:
             return
+
         if re.search(u"nira-tl-(ja|en|auto)", message.channel.topic):
+            if message.author.bot:
+                return
             CONTENT = message.content
             if CONTENT == "" or CONTENT is None:
                 CONTENT = message.embeds[0].description
@@ -372,6 +374,29 @@ Powered by DeepL Translate/Google Translate.""")
             elif re.search(u"nira-tl-(ja|en|auto)", message.channel.topic).group() == "nira-tl-en":
                 TARGET = "EN-US"
             elif re.search(u"nira-tl-(ja|en|auto)", message.channel.topic).group() == "nira-tl-auto":
+                sLang = languageCheck(message.content)
+                TARGET = "JA"
+                if sLang == "JA":
+                    TARGET = "EN-US"
+            else:
+                return
+            async with message.channel.typing():
+                result = await translation(self.bot, self.deepl_tr, self.google_tr, CONTENT, None, TARGET)
+                await message.reply(embed=make_embed(result[1], result[0], "...", TARGET))
+
+        elif re.search(u"nira-tlb-(ja|en|auto)", message.channel.topic):
+            if message.author.id == self.bot.user.id:
+                return
+            CONTENT = message.content
+            if CONTENT == "" or CONTENT is None:
+                CONTENT = message.embeds[0].description
+            if CONTENT == "" or CONTENT is None:
+                return
+            if re.search(u"nira-tlb-(ja|en|auto)", message.channel.topic).group() == "nira-tlb-ja":
+                TARGET = "JA"
+            elif re.search(u"nira-tlb-(ja|en|auto)", message.channel.topic).group() == "nira-tlb-en":
+                TARGET = "EN-US"
+            elif re.search(u"nira-tlb-(ja|en|auto)", message.channel.topic).group() == "nira-tlb-auto":
                 sLang = languageCheck(message.content)
                 TARGET = "JA"
                 if sLang == "JA":

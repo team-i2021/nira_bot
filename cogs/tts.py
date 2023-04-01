@@ -12,7 +12,7 @@ from nextcord.ext import commands
 
 from motor import motor_asyncio
 
-from util import n_fc, tts_convert, tts_dict
+from util import n_fc, tts_convert
 from util.nira import NIRA
 
 # Text To Speech
@@ -28,6 +28,7 @@ class Text2Speech(commands.Cog):
             self.Effective = False
         self.SPEAKER_AUTHOR = {}
         self.TTS_CHANNEL = {}
+        self.mscommand = self.speak_message
 
         asyncio.ensure_future(self.__recover_channel())
         asyncio.ensure_future(self.__recover_speaker())
@@ -158,7 +159,6 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
     async def reload_slash(self, interaction: Interaction):
         if await self.bot.is_owner(interaction.user):
             importlib.reload(tts_convert)
-            importlib.reload(tts_dict)
             await interaction.response.send_message(nextcord.Embed(title="Reloaded.", description="TTS modules were reloaded.", color=0x00ff00), ephemeral=True)
         else:
             raise NIRA.ForbiddenExpand()
@@ -264,7 +264,6 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
 
         elif action == "reload" and await self.bot.is_owner(ctx.author):
             importlib.reload(tts_convert)
-            importlib.reload(tts_dict)
             await ctx.reply("Reloaded.")
 
         else:
