@@ -30,7 +30,7 @@ async def RetryPlayers(address: tuple, count: int) -> a2s.Player or None:
     for _ in range(count):
         try:
             players = await a2s.aplayers(address)
-            return players
+            return [pl for pl in players if pl.name != ""]
         except Exception as err:
             await asyncio.sleep(1)
     return None
