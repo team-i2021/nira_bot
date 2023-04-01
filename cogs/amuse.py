@@ -56,6 +56,7 @@ JANKEN_RESULTS = {
 }
 
 DIVINATION_STAR = "★"
+DIVINATION_PROBABILITIES = [5, 7, 10, 13, 15, 19, 13, 7, 6, 4, 1]
 DIVINATION_MESSAGES = [
     "きっといいことあるよ...(`5%`)",
     "まぁ星0よりはマシだし...？(`7%`)",
@@ -133,42 +134,17 @@ def _get_janken_result(player_hand: JankenHand) -> nextcord.Embed:
 
 
 def _get_divination_result() -> nextcord.Embed:
-    value = random.randint(1, 100)
-    star_num = 1
-
-    # TODO: match-caseにしたがスマートじゃない希ガス
-    match value:
-        case _ if 1 <= value <= 5:
-            star_num = 0
-        case _ if 5 < value <= 12:
-            star_num = 1
-        case _ if 12 < value <= 22:
-            star_num = 2
-        case _ if 22 < value <= 35:
-            star_num = 3
-        case _ if 35 < value <= 50:
-            star_num = 4
-        case _ if 50 < value <= 69:
-            star_num = 5
-        case _ if 69 < value <= 82:
-            star_num = 6
-        case _ if 82 < value <= 89:
-            star_num = 7
-        case _ if 89 < value <= 95:
-            star_num = 8
-        case _ if 95 < value <= 99:
-            star_num = 9
-        case _:
-            star_num = 10
+    message = random.choices(DIVINATION_MESSAGES, weights=DIVINATION_PROBABILITIES)[0]
+    star = DIVINATION_STAR * (DIVINATION_MESSAGES.index(message) + 1)
 
     embed = nextcord.Embed(
         title="うらない",
-        description=f"**{DIVINATION_STAR * star_num}**",
+        description=f"**{star}**",
         color=0x00ff00,
     )
     embed.add_field(
-        name=f"あなたの運勢は**星10個中の{star_num}個**です！",
-        value=f"> {DIVINATION_MESSAGES[star_num]}",
+        name=f"あなたの運勢は**星10個中の{star}個**です！",
+        value=f"> {message}",
     )
     return embed
 
