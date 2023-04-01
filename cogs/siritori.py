@@ -3,7 +3,6 @@ import importlib
 import os
 import sys
 
-import HTTP_db
 import nextcord
 from nextcord.ext import commands
 
@@ -26,7 +25,7 @@ class Siritori(commands.Cog):
         self.collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["siritori_game"]
 
     @nextcord.slash_command(name="srtr", description="Siritori", guild_ids=GUILD_IDS)
-    async def srtr(self):
+    async def srtr(self, interaction: nextcord.Interaction):
         pass
 
     async def srtr_control(self, start: bool, guild: nextcord.Guild, channel: nextcord.abc.GuildChannel) -> nextcord.Embed:

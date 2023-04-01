@@ -29,7 +29,7 @@ class autorole(commands.Cog):
         self.collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["autorole"]
 
     @nextcord.slash_command(name="autorole", description="自動ロール", guild_ids=GUILD_IDS)
-    async def autorole(self):
+    async def autorole(self, interaction: Interaction):
         pass
 
     async def autorole_message(self, type, mode, user, guild, role: Role = None):
