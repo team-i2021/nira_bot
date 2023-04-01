@@ -1,12 +1,13 @@
 import asyncio
 import dataclasses
 import logging
-from collections.abc import Callable, Coroutine
+from collections.abc import AsyncGenerator, Callable, Coroutine, Mapping
 from enum import Enum, auto
-from typing import Any, AsyncGenerator, Final, TypeGuard
+from typing import Any, Final, NoReturn, overload
 from typing_extensions import Self
 
 import nextcord
+from motor.motor_asyncio import AsyncIOMotorCollection
 from nextcord import Embed, Interaction, Message, Locale
 from nextcord.ext import application_checks, commands
 from nextcord.utils import MISSING
@@ -27,16 +28,18 @@ SLEEP_COUNT: Final = 2
 
 MAX_LENGTH: Final = 2000
 
-AsyncIOMotorCollection = Any
-
 glock = asyncio.Lock()
 
 
 # typing には交差型が無いなんて...
-class MessageableGuildChannel(nextcord.abc.Messageable, nextcord.abc.GuildChannel):
-    @classmethod
-    def isinstance(cls, instance: Any) -> TypeGuard[Self]:
-        return all(isinstance(instance, c) for c in cls.__bases__)
+class _IntersectionMeta(type):
+    def __instancecheck__(self, instance: Any) -> bool:
+        return all(isinstance(instance, c) for c in self.__bases__)
+
+
+class MessageableGuildChannel(nextcord.abc.Messageable, nextcord.abc.GuildChannel, metaclass=_IntersectionMeta):
+    def __new__(cls) -> NoReturn:
+        raise NotImplementedError
 
 
 class Mode(Enum):
@@ -50,8 +53,18 @@ class _StoredPinDocument:
     text: str
     last_message_id: int | None = None
 
+    @overload
     @classmethod
-    def bind(cls, document: dict | None) -> Self | None:
+    def bind(cls, document: Mapping[str, Any]) -> Self:
+        ...
+
+    @overload
+    @classmethod
+    def bind(cls, document: None) -> None:
+        ...
+
+    @classmethod
+    def bind(cls, document: Mapping[str, Any] | None) -> Self | None:
         if document is None:
             return None
         # TODO: 型チェック…？ 自前で実装したくはないから Pydantic あたりを使いたいが…
@@ -141,9 +154,7 @@ class StoredPinCollection:
         if (s := self._cache.get(channel.id, MISSING)) is not MISSING:
             return s
 
-        doc = _StoredPinDocument.bind(
-            await self._collection.find_one({"_id": channel.id}),
-        )
+        doc = _StoredPinDocument.bind(await self._collection.find_one({"_id": channel.id}))
 
         s = None if doc is None else await self._doc_to_storedpin(channel, doc)
         self._cache[channel.id] = s
@@ -152,7 +163,6 @@ class StoredPinCollection:
     async def get_all(self) -> AsyncGenerator[StoredPin | Exception, None]:
         async for doc_raw in self._collection.find({"_id": {"$type": ["int", "long"]}}):
             doc = _StoredPinDocument.bind(doc_raw)
-            assert doc is not None
 
             channel = self._bot.get_channel(doc._id)
             if channel is None or isinstance(channel, nextcord.PartialMessageable):
@@ -164,7 +174,7 @@ class StoredPinCollection:
                     yield e
                     continue
 
-            if not MessageableGuildChannel.isinstance(channel):
+            if not isinstance(channel, MessageableGuildChannel):
                 continue
 
             s = await self._doc_to_storedpin(channel, doc)
@@ -252,11 +262,11 @@ class BottomPin(commands.Cog):
             | nextcord.PartialMessageable
             | nextcord.abc.Messageable,
             message: str | None = None,
-    ) -> tuple[str | None, Embed | Any]:
+    ) -> tuple[str, Embed | Any] | tuple[None, Embed]:
         async with glock:
             pass
 
-        if not MessageableGuildChannel.isinstance(channel):
+        if not isinstance(channel, MessageableGuildChannel):
             return (None, err_embed("下部ピン留めはスレッドでは使用できません。"))
 
         match mode:
@@ -370,7 +380,7 @@ Webhookは使いたくない精神なので、にらBOTが直々に送ってあ�
                 await ctx.reply("Permission denied")
                 return
 
-        if not MessageableGuildChannel.isinstance(channel):
+        if not isinstance(channel, MessageableGuildChannel):
             await ctx.reply("Not messageable guild channel")
             return
         elif await self.collection.get(channel) is None:
@@ -458,7 +468,7 @@ Webhookは使いたくない精神なので、にらBOTが直々に送ってあ�
         res = await self._pin(Mode.ON, interaction.channel, message.content)
         await interaction.send(res[0], embed=res[1], ephemeral=True)
         if res[0] is not None:
-            assert MessageableGuildChannel.isinstance(interaction.channel)
+            assert isinstance(interaction.channel, MessageableGuildChannel)
             await self._refresh_channel(interaction.channel)
 
     @nextcord.slash_command(name="pin", description="BottomPin command", guild_ids=n_fc.GUILD_IDS)
@@ -572,7 +582,7 @@ Webhookは使いたくない精神なので、にらBOTが直々に送ってあ�
             pass
 
         channel = message.channel
-        if message.flags.ephemeral or not MessageableGuildChannel.isinstance(channel):
+        if message.flags.ephemeral or not isinstance(channel, MessageableGuildChannel):
             return
 
         lock = self._get_lock(channel.id)
@@ -618,7 +628,7 @@ class BottomPinModal(nextcord.ui.Modal):
         res = await self.cog._pin(Mode.ON, interaction.channel, self.mes.value)
         await interaction.send(res[0], embed=res[1], ephemeral=True)
         if res[0] is not None:
-            assert MessageableGuildChannel.isinstance(interaction.channel)
+            assert isinstance(interaction.channel, MessageableGuildChannel)
             await self.cog._refresh_channel(interaction.channel)
 
 
