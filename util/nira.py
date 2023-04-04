@@ -1,3 +1,4 @@
+import warnings
 import aiohttp
 
 import nextcord
@@ -34,7 +35,7 @@ class NIRA(commands.Bot):
     ):
         self.debug = debug
         self.__token = token
-        self.client = client  # HTTP_dbとして呼び出す（今まで通りself.client + database.default_pushとかで呼び出す）
+        self.__client = client  # HTTP_dbとして呼び出す（今まで通りself.client + database.default_pushとかで呼び出す）
 
         self.__mongo = mongo  # おいてるだけだから使わない
 
@@ -49,6 +50,11 @@ class NIRA(commands.Bot):
         self.session = aiohttp.ClientSession()
         # self.main_prefix: str = (lambda x: x[0] if type(x) in [list, tuple, set] else x)(**kwargs[""])
         return super().__init__(*args, **kwargs)
+
+    @property
+    def client(self) -> Client:
+        warnings.warn("HTTP-db is deprecated and will be removed soon", DeprecationWarning, stacklevel=2)
+        return self.__client
 
     def run(self) -> None:
         super().run(self.__token, reconnect=True)
