@@ -23,7 +23,8 @@ class Talk(commands.Cog):
         name="talk",
         description="Use of the system indicates that you agree to the Terms of Use.",
         description_localizations={
-            nextcord.Locale.ja: "Use of the system indicates that you agree to the Terms of Use."
+            nextcord.Locale.ja: "使用にはA3RT TalkAPIの利用規約に同意する必要があります。",
+            nextcord.Locale.uk: "Використання A3RT TalkAPI вимагає згоди з Умовами використання."
         },
         guild_ids=n_fc.GUILD_IDS
     )
@@ -32,9 +33,10 @@ class Talk(commands.Cog):
             interaction: Interaction,
             query: str = SlashOption(
                 name="query",
-                description="Content",
+                description="Conversation content",
                 description_localizations={
-                    nextcord.Locale.ja: "Content"
+                    nextcord.Locale.ja: "会話内容",
+                    nextcord.Locale.uk: "Зміст розмови"
                 },
                 required=True,
             )
