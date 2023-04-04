@@ -53,7 +53,7 @@ class User(commands.Cog):
             if len(member.roles) > 1:
                 embed.add_field(
                     name="ロール",
-                    value=", ".join([r.mention for r in member.roles if r.id != member.guild.id])
+                    value=" ".join([r.mention for r in member.roles if r.id != member.guild.id])
                 )
 
         return embed
