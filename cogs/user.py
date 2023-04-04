@@ -43,15 +43,18 @@ class User(commands.Cog):
             embed.set_thumbnail(url=member.avatar.url)
         embed.add_field(
             name="アカウント製作日",
-            value=f"```{member.created_at}```",
-            inline=False
+            value=f"`{member.created_at}`"
         )
         if type(member) is nextcord.Member:
             embed.add_field(
                 name="サーバー参加日",
-                value=f"```{member.joined_at}```",
-                inline=False
+                value=f"`{member.joined_at}`"
             )
+            if len(member.roles) > 1:
+                embed.add_field(
+                    name="ロール",
+                    value=", ".join([r.mention for r in member.roles if r.id != member.guild.id])
+                )
 
         return embed
 
@@ -76,7 +79,7 @@ class User(commands.Cog):
             else:
                 await interaction.send("AFKを無効にしたよ。\n有効にするにはもっかい`/afk`ってやればいいと思うよ。")
         except Exception as err:
-            await interaction.send(f"BOTにあなたのニックネームを変更できる権限がないなどの理由で、コマンドを実行できませんでした。\nサーバーの管理者にお問い合わせください。\nERR: `{err}`")
+            await interaction.send(f"BOTにあなたのニックネームを変更できる権限がないなどの理由で、コマンドを実行できませんでした。\nサーバーの管理者にお問い合わせください。\nERR: `{err}`\n（あなたがサーバーの管理者の場合はこのコマンドが実行できません。仕様なんで。）")
 
     @nextcord.slash_command(name="user", description="Display user info", description_localizations={nextcord.Locale.ja: "ユーザー情報表示"}, guild_ids=n_fc.GUILD_IDS)
     async def user_slash(
