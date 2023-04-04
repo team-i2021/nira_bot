@@ -29,8 +29,6 @@ if not os.path.isfile(f"{sys.path[0]}/setting.json"):
 BOTの設定ファイルが見つかりませんでした。
 「nira.py」があるフォルダに「setting.json」をおいてください。
 「setting_temp.json」というテンプレートがありますのでそちらを参考にしてください。
-
-または、「setup.py」を実行して、画面の指示通りにしてください。
 """,
         file=sys.stderr,
     )
