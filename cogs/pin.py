@@ -3,7 +3,7 @@ import dataclasses
 import logging
 from collections.abc import AsyncGenerator, Callable, Coroutine, Mapping
 from enum import Enum, auto
-from typing import Any, Final, NoReturn, overload
+from typing import Any, Final, overload
 from typing_extensions import Self
 
 import nextcord
@@ -15,6 +15,7 @@ from cachetools import TTLCache
 
 from util import n_fc
 from util.nira import NIRA
+from util.typing import MessageableGuildChannel
 
 # 下部ピン留め
 
@@ -29,17 +30,6 @@ SLEEP_COUNT: Final = 2
 MAX_LENGTH: Final = 2000
 
 glock = asyncio.Lock()
-
-
-# typing には交差型が無いなんて...
-class _IntersectionMeta(type):
-    def __instancecheck__(self, instance: Any) -> bool:
-        return all(isinstance(instance, c) for c in self.__bases__)
-
-
-class MessageableGuildChannel(nextcord.abc.Messageable, nextcord.abc.GuildChannel, metaclass=_IntersectionMeta):
-    def __new__(cls) -> NoReturn:
-        raise NotImplementedError
 
 
 class Mode(Enum):
