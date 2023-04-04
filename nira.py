@@ -4,6 +4,7 @@ import logging
 import os
 import sys
 import traceback
+from argparse import ArgumentParser
 
 import nextcord
 from motor import motor_asyncio
@@ -13,6 +14,12 @@ from util.nira import NIRA
 
 sys.setrecursionlimit(10000)  # エラー回避
 print("モジュールインポート完了")
+
+
+# 引数解析
+parser = ArgumentParser(add_help=False, allow_abbrev=False)
+parser.add_argument("-d", "--debug", action="store_true")
+args = parser.parse_args()
 
 
 # 設定読み込み
@@ -39,7 +46,7 @@ UNLOAD_COGS = SETTING["unload_cogs"]
 LOAD_COGS = SETTING["load_cogs"]
 DEBUG = False
 
-if "-d" in sys.argv:
+if args.debug:
     DEBUG = True
     print(f"NIRA Bot Debug Mode\nThe following will be loaded... :{LOAD_COGS}")
 
