@@ -79,7 +79,7 @@ bot = NIRA(
     help_command=None,
     status=nextcord.Status.dnd,
     activity=nextcord.Game(name="Connecting...", type=1),
-    rollout_delete_unknown=DEBUG,
+    rollout_delete_unknown=not DEBUG,
     # TODO: nextcord >= 2.3: アプリケーションコマンドに一々 guild_ids=... とやらなくて済むようになる
     # default_guild_ids=list(settings.guild_ids) if settings.guild_ids else None,
 )
