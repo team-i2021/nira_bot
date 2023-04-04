@@ -9,6 +9,8 @@ from util.n_fc import py_admin
 
 from typing import Any
 
+from util.typing import GeneralChannel
+
 
 class NIRA(commands.Bot):
     """
@@ -56,6 +58,24 @@ class NIRA(commands.Bot):
             return True
         else:
             return await super().is_owner(user)
+
+    async def resolve_user(self, user_id: int) -> nextcord.User:
+        user = self.get_user(user_id)
+        if user is None:
+            user = await self.fetch_user(user_id)
+        return user
+
+    async def resolve_guild(self, guild_id: int) -> nextcord.Guild:
+        guild = self.get_guild(guild_id)
+        if guild is None:
+            guild = await self.fetch_guild(guild_id)
+        return guild
+
+    async def resolve_channel(self, channel_id: int) -> GeneralChannel:
+        channel = self.get_channel(channel_id)
+        if channel is None or isinstance(channel, nextcord.PartialMessageable):
+            channel = await self.fetch_channel(channel_id)
+        return channel
 
     class Forbidden(Exception):
         """Exception of default Forbidden (not Server Admin)"""
