@@ -11,6 +11,7 @@ from motor import motor_asyncio
 
 from util import n_fc, database
 from util.nira import NIRA
+from util.settings import BotSettings
 
 sys.setrecursionlimit(10000)  # エラー回避
 print("モジュールインポート完了")
@@ -35,13 +36,15 @@ BOTの設定ファイルが見つかりませんでした。
     os._exit(0)
 
 HOME = os.path.dirname(os.path.abspath(__file__))
-SETTING = json.load(open(f"{sys.path[0]}/setting.json", "r"))
+
+with open(f"{sys.path[0]}/setting.json", "r") as file:
+    settings = BotSettings.parse_obj(json.load(file))
 
 
-n_fc.GUILD_IDS = SETTING["guild_ids"]
-n_fc.py_admin = SETTING["py_admin"]
-UNLOAD_COGS = SETTING["unload_cogs"]
-LOAD_COGS = SETTING["load_cogs"]
+n_fc.GUILD_IDS = settings.guild_ids
+n_fc.py_admin = settings.py_admin
+UNLOAD_COGS = settings.unload_cogs
+LOAD_COGS = settings.load_cogs
 DEBUG = False
 
 if args.debug:
@@ -51,7 +54,7 @@ if args.debug:
 
 # データベースの設定
 CLIENT = database.openClient()
-_MONGO_CLIENT = motor_asyncio.AsyncIOMotorClient(SETTING["database_url"])
+_MONGO_CLIENT = motor_asyncio.AsyncIOMotorClient(settings.database_url)
 
 
 # BOTの設定
@@ -61,20 +64,23 @@ intents.presences = False  # 未認証なのでPresence Intentは無効化
 intents.members = True  # Members Intentを有効化
 intents.message_content = True  # Message Content Intentを有効化
 
+# TODO: BotSettings を直接渡せるようにする
 bot = NIRA(
     client=CLIENT,  # http_db
     mongo=_MONGO_CLIENT,  # mongo_db
     debug=DEBUG,
-    token=SETTING["tokens"]["nira_bot"],
-    database_name=SETTING["database_name"],
-    shard_id=SETTING["shard_id"],
-    shard_count=SETTING["shard_count"],
-    settings=SETTING,
-    command_prefix=SETTING["prefix"],
+    token=settings.tokens.nira_bot.get_secret_value(),
+    database_name=settings.database_name,
+    shard_id=settings.shard_id,
+    shard_count=settings.shard_count,
+    settings=settings.dict(),
+    command_prefix=settings.prefix,
     intents=intents,
     help_command=None,
     status=nextcord.Status.dnd,
     activity=nextcord.Game(name="Connecting...", type=1),
+    # TODO: nextcord >= 2.3: アプリケーションコマンドに一々 guild_ids=... とやらなくて済むようになる
+    # default_guild_ids=list(settings.guild_ids) if settings.guild_ids else None,
 )
 
 bot.load_extension("onami")
