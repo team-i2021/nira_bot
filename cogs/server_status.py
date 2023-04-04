@@ -764,8 +764,7 @@ Steam非公式サーバーのステータスを表示します
     @tasks.loop(minutes=5.0)
     async def check_status_pin_loop(self):
         await self.bot.wait_until_ready()
-        Autos = await self.auto_collection.find()
-        for autoConfig in Autos:
+        async for autoConfig in self.auto_collection.find():
             try:
                 servers = await self.ss_collection.find({"guild_id": autoConfig["guild_id"]}).to_list(length=None)
                 message: nextcord.Message = await (await self.bot.fetch_channel(autoConfig[0])).fetch_message(autoConfig[1])
