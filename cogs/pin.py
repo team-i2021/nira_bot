@@ -1,19 +1,17 @@
 import asyncio
-import dataclasses
 import logging
-from collections.abc import AsyncGenerator, Callable, Coroutine, Mapping
+from collections.abc import Callable, Coroutine, Mapping
 from enum import Enum, auto
-from typing import Any, Final, overload
-from typing_extensions import Self
+from typing import Any, Final
 
 import nextcord
-from motor.motor_asyncio import AsyncIOMotorCollection
+from cachetools import TTLCache
 from nextcord import Embed, Interaction, Message, Locale
 from nextcord.ext import application_checks, commands
-from nextcord.utils import MISSING
-from cachetools import TTLCache
+from typing_extensions import Self
 
 from util import n_fc
+from util.botdatabase import UniqueChannelCollection, UniqueChannelDocument
 from util.nira import NIRA
 from util.typing import MessageableGuildChannel
 
@@ -37,162 +35,30 @@ class Mode(Enum):
     OFF = auto()
 
 
-@dataclasses.dataclass
-class _StoredPinDocument:
-    _id: int  # to store channel id; it is unique
+class PinDocument(UniqueChannelDocument[MessageableGuildChannel]):
     text: str
-    last_message_id: int | None = None
+    last_message: nextcord.Message | None = None
 
-    @overload
-    @classmethod
-    def bind(cls, document: Mapping[str, Any]) -> Self:
-        ...
-
-    @overload
-    @classmethod
-    def bind(cls, document: None) -> None:
-        ...
+    async def encode(self) -> dict[str, Any]:
+        doc = await super().encode()
+        doc["last_message"] = self.last_message.id if self.last_message else None
+        return doc
 
     @classmethod
-    def bind(cls, document: Mapping[str, Any] | None) -> Self | None:
-        if document is None:
-            return None
-        # TODO: 型チェック…？ 自前で実装したくはないから Pydantic あたりを使いたいが…
-        # データベース周りだから念の為にもやっておきたいなぁ…
-        return cls(**document)
+    async def decode(cls, bot: NIRA, raw: Mapping[str, Any]) -> Self:
+        if (message_id := raw.get("last_message")) is not None:
+            channel, doc = await cls.resolve_primary(bot, raw)
 
-
-class StoredPin:
-    def __init__(
-            self,
-            collection: AsyncIOMotorCollection,
-            channel: MessageableGuildChannel,
-            text: str,
-            last_message: Message | None = None,
-    ) -> None:
-        self._collection = collection
-        self._channel = channel
-        self._text = text
-        self._last_message = last_message
-
-    @property
-    def collection(self) -> AsyncIOMotorCollection:
-        return self._collection
-
-    @property
-    def channel(self) -> MessageableGuildChannel:
-        return self._channel
-
-    @property
-    def text(self) -> str:
-        return self._text
-
-    @text.setter
-    def text_setter(self, text: str) -> None:
-        self.set_text(text)
-
-    @property
-    def last_message(self) -> Message | None:
-        return self._last_message
-
-    @last_message.setter
-    def last_message_setter(self, message: Message | None) -> None:
-        self.set_last_message(message)
-
-    def set_text(self, text: str) -> Self:
-        self._text = text
-        return self
-
-    def set_last_message(self, message: Message | None) -> Self:
-        self._last_message = message
-        return self
-
-    async def update(self) -> Self:
-        doc = _StoredPinDocument(
-            _id=self._channel.id,
-            text=self._text,
-            last_message_id=getattr(self._last_message, "id", None),
-        )
-
-        await self._collection.replace_one({"_id": doc._id}, dataclasses.asdict(doc), upsert=True)
-        return self
-
-    async def clear(self) -> Self:
-        self._last_message = None
-        if self._channel is not None:
-            await self._collection.delete_one({"_id": self._channel.id})
-
-        return self
-
-
-class StoredPinCollection:
-    def __init__(self, bot: NIRA) -> None:
-        self._bot = bot
-        self._collection: AsyncIOMotorCollection = bot.database[COLLECTION_NAME]
-        self._cache: TTLCache[int, StoredPin | None] = TTLCache(CACHE_MAX_SIZE, CACHE_TTL)
-
-    @property
-    def cache(self) -> TTLCache[int, StoredPin | None]:
-        return self._cache
-
-    def new(self, channel: MessageableGuildChannel, text: str) -> StoredPin:
-        s = StoredPin(self._collection, channel, text, None)
-        self._cache[channel.id] = s
-        return s
-
-    async def get(self, channel: MessageableGuildChannel) -> StoredPin | None:
-        if (s := self._cache.get(channel.id, MISSING)) is not MISSING:
-            return s
-
-        doc = _StoredPinDocument.bind(await self._collection.find_one({"_id": channel.id}))
-
-        s = None if doc is None else await self._doc_to_storedpin(channel, doc)
-        self._cache[channel.id] = s
-        return s
-
-    async def get_all(self) -> AsyncGenerator[StoredPin | Exception, None]:
-        async for doc_raw in self._collection.find({"_id": {"$type": ["int", "long"]}}):
-            doc = _StoredPinDocument.bind(doc_raw)
-
-            channel = self._bot.get_channel(doc._id)
-            if channel is None or isinstance(channel, nextcord.PartialMessageable):
-                try:
-                    channel = await self._bot.fetch_channel(doc._id)
-                except (nextcord.NotFound, nextcord.Forbidden):
-                    continue
-                except Exception as e:
-                    yield e
-                    continue
-
-            if not isinstance(channel, MessageableGuildChannel):
-                continue
-
-            s = await self._doc_to_storedpin(channel, doc)
-            self._cache[channel.id] = s
-            yield s
-
-    async def _doc_to_storedpin(
-            self,
-            channel: MessageableGuildChannel,
-            doc: _StoredPinDocument,
-    ) -> StoredPin:
-        text = doc.text
-        last_message: Message | None = None
-        if doc.last_message_id is not None:
+            message_id = int(message_id)
             try:
-                msg = await channel.fetch_message(doc.last_message_id)
+                message = await channel.fetch_message(message_id)
             except (nextcord.NotFound, nextcord.Forbidden):
-                pass
-            else:
-                last_message = msg
+                message = None
 
-        return StoredPin(self._collection, channel, text, last_message)
-
-    def uncache(self, channel_id: int | None = None) -> None:
-        if channel_id is None:
-            self._cache.clear()
-        elif channel_id in self._cache:
-            del self._cache[channel_id]
+            doc["last_message"] = message
+        else:
+            doc = raw
+        return await super().decode(bot, doc)
 
 
 class PinLock:
@@ -242,7 +108,12 @@ def err_embed(description: str) -> Embed:
 class BottomPin(commands.Cog):
     def __init__(self, bot: NIRA) -> None:
         self.bot = bot
-        self.collection = StoredPinCollection(bot)
+        self.collection = UniqueChannelCollection(
+            bot,
+            bot.database[COLLECTION_NAME],
+            PinDocument,
+            TTLCache(CACHE_MAX_SIZE, CACHE_TTL),
+        )
         self._locks: dict[int, PinLock] = {}
 
     async def _pin(
@@ -267,18 +138,19 @@ class BottomPin(commands.Cog):
                     return (None, err_embed(f"文字数は{MAX_LENGTH}文字以下である必要があります。"))
 
                 async with self._get_lock(channel.id).save:
-                    await self.collection.new(channel, message).update()
+                    document = self.collection.new(channel, text=message)
+                    await self.collection.update(document)
 
                 return ("メッセージを設定しました。", Embed(title="ピン留め", description=message))
 
             case Mode.OFF:
                 lock = self._get_lock(channel.id)
                 async with lock.save:
-                    store = await self.collection.get(channel)
-                    if store is None:
+                    document = await self.collection.get(channel.id)
+                    if document is None:
                         return (None, err_embed("このチャンネルにはメッセージが設定されていません。"))
 
-                    last_msg = store.last_message
+                    last_msg = document.last_message
                     failed = False
                     if last_msg is not None:
                         try:
@@ -287,7 +159,7 @@ class BottomPin(commands.Cog):
                             pass
                         except nextcord.Forbidden:
                             failed = True
-                    await store.clear()
+                    await self.collection.delete(document)
                     self.collection.uncache(channel.id)
                     lock.sleep_unlock()
                     del self._locks[channel.id]
@@ -373,7 +245,7 @@ Webhookは使いたくない精神なので、にらBOTが直々に送ってあ�
         if not isinstance(channel, MessageableGuildChannel):
             await ctx.reply("Not messageable guild channel")
             return
-        elif await self.collection.get(channel) is None:
+        elif await self.collection.get(channel.id) is None:
             await ctx.reply("Not configured")
             return
 
@@ -422,6 +294,7 @@ Webhookは使いたくない精神なので、にらBOTが直々に送ってあ�
             channel_id: int | None = None,
     ) -> None:
         cache = self.collection.cache
+        assert isinstance(cache, TTLCache)
         if channel_id is None:
             msg = (
                 f"Channels: {cache.currsize}\n"
@@ -495,27 +368,28 @@ Webhookは使いたくない精神なので、にらBOTが直々に送ってあ�
             self._locks[ch_id] = PinLock()
         return self._locks[ch_id]
 
-    async def _send_msg(self, store: StoredPin) -> bool:
+    async def _send_msg(self, document: PinDocument) -> bool:
         try:
-            msg = await store.channel.send(store.text)
+            msg = await document.channel.send(document.text)
         except Exception as e:
             if isinstance(e, nextcord.Forbidden):
                 logging.exception("Error while sending message")
             return False
 
         try:
-            await store.set_last_message(msg).update()
+            document.last_message = msg
+            await self.collection.update(document)
         except Exception:
             logging.exception("Error while updating database")
 
         return True
 
-    async def _del_msg(self, store: StoredPin) -> bool:
-        if store.last_message is None:
+    async def _del_msg(self, document: PinDocument) -> bool:
+        if document.last_message is None:
             return True
 
         try:
-            await store.last_message.delete()
+            await document.last_message.delete()
         except (nextcord.NotFound, nextcord.Forbidden):
             pass
         except Exception:
@@ -523,7 +397,8 @@ Webhookは使いたくない精神なので、にらBOTが直々に送ってあ�
             return False
 
         try:
-            await store.set_last_message(None).update()
+            document.last_message = None
+            await self.collection.update(document)
         except Exception:
             logging.exception("Error while updating database")
 
@@ -546,21 +421,21 @@ Webhookは使いたくない精神なので、にらBOTが直々に送ってあ�
             if lock.sleep.locked():
                 return
 
-            store = await self.collection.get(ch)
-            if store is None:
+            document = await self.collection.get(ch.id)
+            if document is None:
                 return
             elif (last_message is None
-                  or last_message != store.last_message and await self._del_msg(store)):
-                await self._send_msg(store)
+                  or last_message != document.last_message and await self._del_msg(document)):
+                await self._send_msg(document)
                 await lock.sleep_lock(FIRST_SLEEP, SECOND_SLEEP)
 
     async def _refresh_messages(self) -> None:
         async with glock:
-            async for store in self.collection.get_all():
-                if isinstance(store, StoredPin):
-                    await self._refresh_channel(store.channel)
+            async for document in self.collection.get_all():
+                if isinstance(document, PinDocument):
+                    await self._refresh_channel(document.channel)
                 else:
-                    logging.exception("Error while fetching channel", exc_info=store)
+                    logging.exception("Error while fetching channel", exc_info=document)
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
@@ -577,11 +452,11 @@ Webhookは使いたくない精神なので、にらBOTが直々に送ってあ�
 
         lock = self._get_lock(channel.id)
         async with lock.save:
-            store = await self.collection.get(channel)
-            if store is None:
+            document = await self.collection.get(channel.id)
+            if document is None:
                 return
 
-            last_message = store.last_message
+            last_message = document.last_message
             if message == last_message:
                 return
 
@@ -591,8 +466,8 @@ Webhookは使いたくない精神なので、にらBOTが直々に送ってあ�
                     lock.set_callback(self._refresh_channel, channel)
                 return
 
-            if await self._del_msg(store):
-                await self._send_msg(store)
+            if await self._del_msg(document):
+                await self._send_msg(document)
                 await lock.sleep_lock(FIRST_SLEEP, SECOND_SLEEP)
 
 
