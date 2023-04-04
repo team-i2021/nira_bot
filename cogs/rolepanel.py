@@ -164,6 +164,8 @@ class RolePanelButton(nextcord.ui.Button):
 class Rolepanel(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
+        self.add_role_mes = "ロール「`{role_name}`」をあなたに追加しました！\n（もう一度同じボタンを押すと、ロール「`{role_name}`」を削除します。）"
+        self.remove_role_mes = "ロール「`{role_name}`」をあなたから削除しました！\n（もう一度同じボタンを押すと、ロール「`{role_name}`」を追加します。）"
 
     @nextcord.message_command(name="Edit Rolepanel", name_localizations={nextcord.Locale.ja: "ロールパネル編集"}, guild_ids=n_fc.GUILD_IDS)
     async def edit_rolepanel(self, interaction: Interaction, message: nextcord.Message):
@@ -322,17 +324,22 @@ n!rolepanel [*メッセージ内容]
             for i in interaction.user.roles:
                 if i == role:
                     await interaction.user.remove_roles(role)
-                    await interaction.send(f"`{role.name}`を剥奪しました。", ephemeral=True)
+                    await interaction.send(self.remove_role_mes.format(role_name=role.name), ephemeral=True)
                     return
             await interaction.user.add_roles(role)
-            await interaction.send(f"`{role.name}`を付与しました。", ephemeral=True)
+            await interaction.send(self.add_role_mes.format(role_name=role.name), ephemeral=True)
             return
         except Exception as err:
-            await interaction.send(f"ロール付与/剥奪時のエラー: {err}", ephemeral=True)
+            await interaction.send(
+                "大変恐れ入りますが、エラーが発生しました。\n（BOTに適切な権限がないか、サーバーからロールが削除されているかもしれません。\n解決しない場合はBOT開発者へお問い合わせください。）",
+                embed=nextcord.Embed(
+                    title="エラー",
+                    description=str(err),
+                    color=0xff0000
+                ),
+                ephemeral=True
+            )
 
-
-
-# args = [["ButtonLabel", "Role_Id"]]
 
 
 def setup(bot, **kwargs):
