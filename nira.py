@@ -9,7 +9,7 @@ from argparse import ArgumentParser
 import nextcord
 from motor import motor_asyncio
 
-from util import n_fc, database
+from util import database, n_fc
 from util.nira import NIRA
 from util.settings import BotSettings
 
