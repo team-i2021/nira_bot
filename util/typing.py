@@ -28,3 +28,5 @@ Missing = MissingType()
 
 GeneralChannel: TypeAlias = nextcord.abc.GuildChannel | nextcord.Thread | nextcord.abc.PrivateChannel
 GeneralUser: TypeAlias = nextcord.User | nextcord.Member
+
+LoggerLevel: TypeAlias = Literal["CRITICAL", "FATAL", "ERROR", "WARNING", "WARN", "INFO", "DEBUG", "NOTSET"]

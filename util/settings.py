@@ -1,5 +1,10 @@
-from pydantic import BaseSettings, Extra, Field, MongoDsn, PositiveInt, SecretStr
+import sys
+from typing import Any
+
+from pydantic import BaseSettings, Extra, Field, MongoDsn, PositiveInt, SecretStr, validator
 from pydantic.env_settings import SettingsSourceCallable
+
+from util.typing import LoggerLevel
 
 
 class MongoDsnWithSrv(MongoDsn):
@@ -25,6 +30,16 @@ class Tokens(SettingsBase):
     nira_bot: SecretStr = Field(min_length=1, env="BOT_TOKEN")
 
 
+class Logging(SettingsBase):
+    filepath: str = f"{sys.path[0]}/nira.log"
+    format: str = "%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s"
+    level: int | LoggerLevel = "INFO"
+
+    @validator("level", pre=True)
+    def upper_level(cls, level: Any) -> Any:
+        return level.upper() if isinstance(level, str) else level
+
+
 class BotSettings(SettingsBase):
     # トークンとか (必須)
     tokens: Tokens
@@ -41,6 +56,7 @@ class BotSettings(SettingsBase):
     prefix: str = "n!"
     shard_id: int = Field(default=0, ge=0)
     shard_count: PositiveInt = 1
+    logging: Logging = Logging()
 
     # 上同だが任意のもの
     py_admin: tuple[int, ...] = ()

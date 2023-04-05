@@ -91,11 +91,10 @@ print("BOTの設定完了")
 
 # loggingの設定
 
-FORMATTER = "%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s"
 logging.basicConfig(
-    format=FORMATTER,
-    filename=f"{sys.path[0]}/nira.log",
-    level=logging.INFO,
+    format=settings.logging.format,
+    filename=settings.logging.filepath,
+    level=settings.logging.level,
 )
 
 print("Logging設定完了")
