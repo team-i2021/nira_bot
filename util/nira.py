@@ -9,7 +9,7 @@ from nextcord.ext import commands
 
 from util.n_fc import py_admin
 from util.typing import GeneralChannel
-
+from util.colors import Color
 
 class NIRA(commands.Bot):
     """
@@ -44,6 +44,8 @@ class NIRA(commands.Bot):
         self.shard_id = shard_id
         self.shard_count = shard_count
         self.settings = settings
+
+        self.color = Color
 
         self.session = aiohttp.ClientSession()
         # self.main_prefix: str = (lambda x: x[0] if type(x) in [list, tuple, set] else x)(**kwargs[""])
