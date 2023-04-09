@@ -288,7 +288,7 @@ class Genshin(commands.Cog):
         view = ModalButton(self.collection)
         await interaction.send(embed=nextcord.Embed(
             title="原神アカウントの接続の注意点",
-            description="BOTにアカウントを接続する場合は、必ず注意事項をお読みください。\n原神アカウントの接続方法及び注意事項については[こちら](https://nattyan-tv.github.io/nira-note/note/bot/notes/genshin)をご確認ください。\n接続コードを取得できましたら下のボタンを押してください。",
+            description="BOTにアカウントを接続する場合は、必ず注意事項をお読みください。\n原神アカウントの接続方法及び注意事項については[こちら](https://nattyan-tv.github.io/nira-note/bot/notes/genshin)をご確認ください。\n接続コードを取得できましたら下のボタンを押してください。",
             color=self.bot.color.ATTENTION
         ), view=view)
 
