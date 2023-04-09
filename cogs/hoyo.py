@@ -334,11 +334,7 @@ class Genshin(commands.Cog):
                 description = f"デイリー報酬を獲得しました！\n\n・今日の報酬\n{reward.name} `x{reward.amount}`"
             await interaction.send(embed=nextcord.Embed(title="デイリー報酬", description=description, color=self.bot.color.NORMAL))
 
-    @slash_genshin_daily.subcommand(name="auto", description="Auto claim daily rewards")
-    async def auto_daily_slash(self, interaction: Interaction):
-        pass
-
-    @auto_daily_slash.subcommand(name="enable", description="Auto claim daily rewards")
+    @slash_genshin_daily.subcommand(name="enable", description="Enable auto claim daily rewards")
     async def auto_daily_on_slash(self, interaction: Interaction):
         if interaction.user.id not in GenshinClients:
             await interaction.send(embed=nextcord.Embed(title="エラー", description=f"{interaction.user.mention}の原神アカウントは接続されていません。\n`/genshin account`からご確認ください。", color=self.bot.color.ERROR), ephemeral=True)
@@ -346,7 +342,7 @@ class Genshin(commands.Cog):
             await self.collection.update_one({"user_id": interaction.user.id}, {"$set": {"auto_daily": True}}, upsert=True)
             await interaction.send(embed=nextcord.Embed(title="自動デイリー報酬", description="自動ログインボーナスを有効にしました。\n毎日、日本時間の午前1時に報酬を受け取ります。（午前2時にも確認のため実行されます。）", color=self.bot.color.NORMAL))
 
-    @auto_daily_slash.subcommand(name="disable", description="Auto claim daily rewards")
+    @slash_genshin_daily.subcommand(name="disable", description="Disable auto claim daily rewards")
     async def auto_daily_off_slash(self, interaction: Interaction):
         if interaction.user.id not in GenshinClients:
             await interaction.send(embed=nextcord.Embed(title="エラー", description=f"{interaction.user.mention}の原神アカウントは接続されていません。\n`/genshin account`からご確認ください。", color=self.bot.color.ERROR), ephemeral=True)
