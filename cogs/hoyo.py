@@ -1,18 +1,15 @@
 import asyncio
+import base64
+import datetime
 import logging
 import math
-import os
-import sys
-import traceback
-import json
 
-import HTTP_db
 import genshin
 import nextcord
-from nextcord import Interaction, SlashOption, ChannelType
-from nextcord.ext import commands
+from nextcord import Interaction, SlashOption
+from nextcord.ext import commands, tasks
 
-from util import admin_check, n_fc, eh, database, pagination
+from util import n_fc, pagination
 from util.nira import NIRA
 
 # Genshin...
@@ -55,44 +52,45 @@ SERVER = {
 STAT, CHARA = range(2) # マジックナンバー対策
 REPU = "Reputation"
 
-class ClientData:
-    name = "genshin_client"
-    value = {}
-    default = {}
-    value_type = database.GUILD_VALUE
-
+# 日本時間設定
+JST = datetime.timezone(datetime.timedelta(hours=+9), 'JST')
 
 class ModalButton(nextcord.ui.View):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, collection):
         super().__init__(timeout=None)
-        self.bot = bot
+        self.collection = collection
         self.add_item(nextcord.ui.Button(label="HoYoLAB", url="https://www.hoyolab.com"))
 
-    @nextcord.ui.button(label="Connect", style=nextcord.ButtonStyle.red)
+    @nextcord.ui.button(label="同意して接続", style=nextcord.ButtonStyle.red)
     async def connect(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
-        await interaction.response.send_modal(modal=TokenSend(self.bot))
+        await interaction.response.send_modal(modal=TokenSend(self.collection))
         self.stop()
 
 
 class TokenSend(nextcord.ui.Modal):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, collection):
         super().__init__(
             "Connect Genshin Account",
             timeout=None
         )
-        self.bot = bot
+        self.collection = collection
 
         self.connect_code = nextcord.ui.TextInput(
             label="アカウント接続コード",
             style=nextcord.TextInputStyle.short,
-            placeholder="123456789/Ab1Cd2Ef3Gh4Ij5Kl6Mn7",
+            placeholder="ODAwMDAwMDAwL+OBk+OCjOOBr+ODhuOCueODiOOBoOOBi+OCieOAgg==",
             required=True
         )
         self.add_item(self.connect_code)
 
     async def callback(self, interaction: Interaction):
         await interaction.response.defer(ephemeral=True, with_message=True)
-        if len(code := self.connect_code.value.strip().split("/", 1)) != 2:
+        try:
+            decoded = base64.b64decode(self.connect_code.value.strip()).decode()
+        except Exception:
+            await interaction.send(embed=nextcord.Embed(title="エラー", description=f"入力された接続コードは無効です。\nこの形式は接続コードではありません。", color=0xff0000), ephemeral=True)
+            return
+        if len(code := decoded.split("/", 1)) != 2:
             await interaction.send(embed=nextcord.Embed(title="エラー", description=f"入力された接続コードは無効です。\nこの形式は接続コードではありません。", color=0xff0000), ephemeral=True)
             return
         GenshinClients[interaction.user.id] = genshin.Client({"ltuid": code[0], "ltoken": code[1]}, game=genshin.Game.GENSHIN, lang="ja-jp")
@@ -107,9 +105,10 @@ class TokenSend(nextcord.ui.Modal):
             await interaction.send(embed=nextcord.Embed(title="エラー", description=f"アカウントに接続できませんでした。\n`{err}`", color=0xff0000), ephemeral=True)
             logging.error(err, exc_info=True)
         else:
-            ClientData.value[interaction.user.id] = code
-            asyncio.ensure_future(database.default_push(self.bot.client, ClientData))
-            await interaction.send(embed=nextcord.Embed(title="コードを保存しました。", description=f"以降、原神コマンドの各機能がご利用いただけます。\nUID:`{UID}`", color=0x00ff00))
+            # 本当に気持ち程度としてbase64でエンコードする
+            ltoken = base64.b64encode(code[1].encode()).decode()
+            await self.collection.update_one({"user_id": interaction.user.id}, update={"$set": {"ltuid": code[0], "ltoken": ltoken, "auto_daily": False}}, upsert=True)
+            await interaction.send(embed=nextcord.Embed(title="接続できました！", description=f"これで原神のコマンドが利用できます！\nUID:`{UID}`", color=0x00ff00))
 
 async def get_uid(client: genshin.Client) -> int:
     if genshin.Game.GENSHIN not in client.uids:
@@ -245,7 +244,7 @@ def create_paginator(
 
     pages[0].embeds[0].set_author(
         name=f"{user.info.nickname} ({uid})",
-        icon_url=user.info.icon or nextcord.Embed.Empty,
+        icon_url=user.info.icon or None,
     )
 
     return pagination.Paginator(
@@ -256,21 +255,21 @@ def create_paginator(
         loop_pages=True,
     )
 
-
-async def GetClient(client: HTTP_db.Client):
-    global GenshinClients
-    await database.default_pull(client, ClientData)
-    for key, value in ClientData.value.items():
-        GenshinClients[key] = genshin.Client({"ltuid": value[0], "ltoken": value[1]}, game=genshin.Game.GENSHIN, lang="ja-jp")
-
-
 class Genshin(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
-        SETTING = json.load(open(f"{sys.path[0]}/setting.json", "r"))
-        cookie = {"ltuid": SETTING["ltuid"], "ltoken": SETTING["ltoken"]}
+        self.collection = self.bot.database["genshin"]
+        asyncio.ensure_future(self._init_clients())
+        self.claim_daily_loop.start()
+
+    def cog_unload(self):
+        self.claim_daily_loop.cancel()
+
+    async def _init_clients(self):
+        cookie = {"ltuid": self.bot.settings["ltuid"], "ltoken": self.bot.settings["ltoken"].get_secret_value()}
         self.base_client = genshin.Client(cookie, game=genshin.Game.GENSHIN, lang="ja-jp") # TODO: ベースクライアントを設定しない/設定されていなかった場合...
-        asyncio.ensure_future(GetClient(self.bot.client))
+        async for doc in self.collection.find():
+            GenshinClients[doc["user_id"]] = genshin.Client({"ltuid": doc["ltuid"], "ltoken": base64.b64decode(doc["ltoken"]).decode()}, game=genshin.Game.GENSHIN, lang="ja-jp")
 
 
     @nextcord.slash_command(name="genshin", description="Genshin slash command", guild_ids=n_fc.GUILD_IDS)
@@ -286,9 +285,21 @@ class Genshin(commands.Cog):
     async def connect_account_slash(self, interaction: Interaction):
         # TODO: util/genshin_token.jsを実行すれば情報は取れるから、そのことを明記したdocs/noteを作る...
         await interaction.response.defer(ephemeral=True)
-        view = ModalButton(self.bot)
-        await interaction.send(embed=nextcord.Embed(title="原神アカウントの接続の注意点", description="If you want to connect your Genshin account to NIRA Bot, please watch important notice.\nCheck how to connect your genshin account at [here](https://127.0.0.1/note/genshin).\nAfter get tokens, press below button.", color=0xff0000), view=view)
+        view = ModalButton(self.collection)
+        await interaction.send(embed=nextcord.Embed(
+            title="原神アカウントの接続の注意点",
+            description="BOTにアカウントを接続する場合は、必ず注意事項をお読みください。\n原神アカウントの接続方法及び注意事項については[こちら](https://nattyan-tv.github.io/nira-note/note/bot/notes/genshin)をご確認ください。\n接続コードを取得できましたら下のボタンを押してください。",
+            color=self.bot.color.ATTENTION
+        ), view=view)
 
+    @slash_genshin_account.subcommand(name="disconnect", description="Disconnect your Genshin account")
+    async def disconnect_account_slash(self, interaction: Interaction):
+        if interaction.user.id not in GenshinClients:
+            await interaction.send(embed=nextcord.Embed(title="エラー", description=f"{interaction.user.mention}の原神アカウントは接続されていません。\n`/genshin account`からご確認ください。", color=self.bot.color.ERROR), ephemeral=True)
+            return
+        await self.collection.delete_one({"user_id": interaction.user.id})
+        del GenshinClients[interaction.user.id]
+        await interaction.send(embed=nextcord.Embed(title="成功", description=f"{interaction.user.mention}の原神アカウントとの接続を解除しました。", color=self.bot.color.NORMAL), ephemeral=True)
 
     @slash_genshin.subcommand(name="daily", description="Daily reward")
     async def slash_genshin_daily(self, interaction: Interaction):
@@ -297,16 +308,22 @@ class Genshin(commands.Cog):
     @slash_genshin_daily.subcommand(name="check", description="Check daily rewards status")
     async def check_daily_slash(self, interaction: Interaction):
         if interaction.user.id not in GenshinClients:
-            await interaction.send(embed=nextcord.Embed(title="エラー", description=f"{interaction.user.mention}の原神アカウントは接続されていません。\n`/genshin account`からご確認ください。(コマンドは開発中です)", color=0xff0000), ephemeral=True)
+            await interaction.send(embed=nextcord.Embed(title="エラー", description=f"{interaction.user.mention}の原神アカウントは接続されていません。\n`/genshin account`からご確認ください。", color=self.bot.color.ERROR), ephemeral=True)
             return
         signed_in, claimed = await GenshinClients[interaction.user.id].get_reward_info()
-        embed=nextcord.Embed(title="デイリー報酬", description=f"本日のデイリー報酬は受け取られていま{'す！' if signed_in else 'せん！'}\n{'' if signed_in else '`/genshin daily claim`で獲得しましょう！'}\nあなたはデイリーを{claimed}日間受け取っています！", color=0x00ff00)
+        embed=nextcord.Embed(
+            title="デイリー報酬",
+            description=f"本日のデイリー報酬は受け取られていま{'す！' if signed_in else 'せん！'}\n{'' if signed_in else '`/genshin daily claim`で獲得しましょう！'}",
+            color=self.bot.color.NORMAL if signed_in else self.bot.color.ATTENTION
+        ).set_footer(
+            text="デイリー報酬は毎日5時(JST)にリセットされます。"
+        )
         await interaction.send(embed=embed)
 
     @slash_genshin_daily.subcommand(name="claim", description="Claim daily rewards")
     async def claim_daily_slash(self, interaction: Interaction):
         if interaction.user.id not in GenshinClients:
-            await interaction.send(embed=nextcord.Embed(title="エラー", description=f"{interaction.user.mention}の原神アカウントは接続されていません。\n`/genshin account`からご確認ください。(コマンドは開発中です)", color=0xff0000), ephemeral=True)
+            await interaction.send(embed=nextcord.Embed(title="エラー", description=f"{interaction.user.mention}の原神アカウントは接続されていません。\n`/genshin account`からご確認ください。", color=self.bot.color.ERROR), ephemeral=True)
         else:
             description = ""
             try:
@@ -315,8 +332,27 @@ class Genshin(commands.Cog):
                 description = "今日のデイリーは既に獲得されています！"
             else:
                 description = f"デイリー報酬を獲得しました！\n\n・今日の報酬\n{reward.name} `x{reward.amount}`"
-            await interaction.send(embed=nextcord.Embed(title="デイリー報酬", description=description, color=0x00ff00))
+            await interaction.send(embed=nextcord.Embed(title="デイリー報酬", description=description, color=self.bot.color.NORMAL))
 
+    @slash_genshin_daily.subcommand(name="auto", description="Auto claim daily rewards")
+    async def auto_daily_slash(self, interaction: Interaction):
+        pass
+
+    @slash_genshin_daily_auto.subcommand(name="enable", description="Auto claim daily rewards")
+    async def auto_daily_on_slash(self, interaction: Interaction):
+        if interaction.user.id not in GenshinClients:
+            await interaction.send(embed=nextcord.Embed(title="エラー", description=f"{interaction.user.mention}の原神アカウントは接続されていません。\n`/genshin account`からご確認ください。", color=self.bot.color.ERROR), ephemeral=True)
+        else:
+            await self.collection.update_one({"user_id": interaction.user.id}, {"$set": {"auto_daily": True}}, upsert=True)
+            await interaction.send(embed=nextcord.Embed(title="自動デイリー報酬", description="自動ログインボーナスを有効にしました。\n毎日、日本時間の午前1時に報酬を受け取ります。（午前2時にも確認のため実行されます。）", color=self.bot.color.NORMAL))
+
+    @slash_genshin_daily_auto.subcommand(name="disable", description="Auto claim daily rewards")
+    async def auto_daily_off_slash(self, interaction: Interaction):
+        if interaction.user.id not in GenshinClients:
+            await interaction.send(embed=nextcord.Embed(title="エラー", description=f"{interaction.user.mention}の原神アカウントは接続されていません。\n`/genshin account`からご確認ください。", color=self.bot.color.ERROR), ephemeral=True)
+        else:
+            await self.collection.update_one({"user_id": interaction.user.id}, {"$set": {"auto_daily": False}}, upsert=True)
+            await interaction.send(embed=nextcord.Embed(title="自動デイリー報酬", description="自動ログインボーナスを無効にしました。", color=self.bot.color.NORMAL))
 
     @slash_genshin.subcommand(name="stats", description="Show genshin user info")
     async def slash_genshin_stats(
@@ -330,7 +366,7 @@ class Genshin(commands.Cog):
         ):
         if uid is None:
             if interaction.user.id not in GenshinClients:
-                await interaction.send(embed=nextcord.Embed(title="エラー", description="ユーザー情報の取得で、UIDを指定しない場合は先に原神アカウントをBOTと接続する必要があります。"), ephemeral=True)
+                await interaction.send(embed=nextcord.Embed(title="エラー", description="ユーザー情報の取得で、UIDを指定しない場合は先に原神アカウントをBOTと接続する必要があります。", color=self.bot.color.ERROR), ephemeral=True)
             else:
                 await interaction.response.defer(ephemeral=False)
                 UID = await get_uid(GenshinClients[interaction.user.id])
@@ -347,10 +383,10 @@ class Genshin(commands.Cog):
                     user = await GenshinClients[interaction.user.id].get_full_genshin_user(uid)
                     await create_paginator(STAT, uid, user).respond(interaction)
             except genshin.errors.AccountNotFound:
-                await interaction.send(embed=nextcord.Embed(title="エラー", description=f"UID:`{uid}`の原神アカウントが見つかりませんでした。", color=0xff0000), ephemeral=True)
+                await interaction.send(embed=nextcord.Embed(title="エラー", description=f"UID:`{uid}`の原神アカウントが見つかりませんでした。", color=self.bot.color.ERROR), ephemeral=True)
             except genshin.errors.DataNotPublic:
                 # TODO: Statsのパブリック条件がわからないけど取れる情報は取りたい
-                await interaction.send(embed=nextcord.Embed(title="エラー", description=f"UID:`{uid}`の原神アカウントはデータがパブリックになっていません。", color=0xff0000))
+                await interaction.send(embed=nextcord.Embed(title="エラー", description=f"UID:`{uid}`の原神アカウントはデータがパブリックになっていません。", color=self.bot.color.ERROR))
 
     @slash_genshin.subcommand(name="chara", description="Show genshin characters")
     async def slash_genshin_chara(
@@ -364,7 +400,7 @@ class Genshin(commands.Cog):
         ):
         if uid is None:
             if interaction.user.id not in GenshinClients:
-                await interaction.send(embed=nextcord.Embed(title="エラー", description="ユーザー情報の取得で、UIDを指定しない場合は先に原神アカウントをBOTと接続する必要があります。"), ephemeral=True)
+                await interaction.send(embed=nextcord.Embed(title="エラー", description="ユーザー情報の取得で、UIDを指定しない場合は先に原神アカウントをBOTと接続する必要があります。", color=self.bot.color.ERROR), ephemeral=True)
             else:
                 await interaction.response.defer()
                 UID = await get_uid(GenshinClients[interaction.user.id])
@@ -381,39 +417,22 @@ class Genshin(commands.Cog):
                     user = await GenshinClients[interaction.user.id].get_full_genshin_user(uid)
                     await create_paginator(CHARA, uid, user).respond(interaction)
             except genshin.errors.AccountNotFound:
-                await interaction.send(embed=nextcord.Embed(title="エラー", description=f"UID:`{uid}`の原神アカウントが見つかりませんでした。", color=0xff0000))
+                await interaction.send(embed=nextcord.Embed(title="エラー", description=f"UID:`{uid}`の原神アカウントが見つかりませんでした。", color=self.bot.color.ERROR))
             except genshin.errors.DataNotPublic:
                 # TODO: 公開設定にしてるキャラクターの情報は見れるはずだからその処理を...(fullじゃなくてなんかぱーしゃるとかそっちのほう...)
-                await interaction.send(embed=nextcord.Embed(title="エラー", description=f"UID:`{uid}`の原神アカウントはデータがパブリックになっていません。", color=0xff0000))
+                await interaction.send(embed=nextcord.Embed(title="エラー", description=f"UID:`{uid}`の原神アカウントはデータがパブリックになっていません。", color=self.bot.color.ERROR))
 
-
-#    @nextcord.slash_command(name="genshin", description="Show genshin info", guild_ids=n_fc.GUILD_IDS)
-#    async def slash_genshin(self, interaction: Interaction):
-#        pass
-#
-#    @slash_genshin.subcommand(name="stats", description="原神のユーザーの戦績を表示します")
-#    async def slash_genshin_stats(self, interaction: Interaction, authkey: str = SlashOption(required=True, description="原神のAuthKey")):
-#        await interaction.response.defer()
-#        client = genshin.Client(
-#            lang="ja-jp", game=genshin.Game.GENSHIN, authkey=authkey)
-#        user = await client.get_full_genshin_user(client.uid)
-#        # user.stats.
-#        embed = nextcord.Embed(
-#            title=f"{client.get_banner_names}の戦績", description=f"UID:`{client.uid}`", color=0x00ff00)
-#        embed.add_field(name="活動日数", value=f"`{user.stats.days_active}`日")
-#        embed.add_field(name="アチーブメント", value=f"`{user.stats.achievements}`個")
-#        embed.add_field(name="キャラクター数", value=f"`{user.stats.characters}`人")
-#        embed.add_field(name="解放済みワープポイント",
-#                        value=f"`{user.stats.unlocked_waypoints}`")
-#        embed.add_field(name="宝箱(普通,精巧,貴重,豪華,珍奇)",
-#                        value=f"`{[user.stats.common_chests, user.stats.exquisite_chests, user.stats.precious_chests, user.stats.luxurious_chests, user.stats.remarkable_chests]}`")
-#        await interaction.followup.send(embed=embed)
-
-    @commands.command(name="genshin", help="""\
-原神の情報表示
-`n!genshin ...` : 原神の戦績を表示します""")
-    async def command_genshin(self, ctx: commands.Context):
-        return
+    @tasks.loop(time=[datetime.time(hour=1, tzinfo=JST), datetime.time(hour=2, tzinfo=JST)])
+    async def claim_daily_loop(self):
+        async for user_id in self.collection.find({"auto_daily": True}):
+            try:
+                await GenshinClients[user_id].claim_daily_reward()
+            except genshin.AlreadyClaimed:
+                pass
+            except genshin.errors.AccountNotFound:
+                ...
+            except Exception as e:
+                logging.error(e)
 
 
 def setup(bot: NIRA, **kwargs):
