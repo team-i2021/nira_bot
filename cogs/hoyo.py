@@ -420,9 +420,9 @@ class Genshin(commands.Cog):
 
     @tasks.loop(time=[datetime.time(hour=1, tzinfo=JST), datetime.time(hour=2, tzinfo=JST)])
     async def claim_daily_loop(self):
-        async for user_id in self.collection.find({"auto_daily": True}):
+        async for doc in self.collection.find({"auto_daily": True}):
             try:
-                await GenshinClients[user_id].claim_daily_reward()
+                await GenshinClients[doc["user_id"]].claim_daily_reward()
             except genshin.AlreadyClaimed:
                 pass
             except genshin.errors.AccountNotFound:
