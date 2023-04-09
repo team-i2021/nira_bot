@@ -422,7 +422,9 @@ class Genshin(commands.Cog):
     async def claim_daily_loop(self):
         async for doc in self.collection.find({"auto_daily": True}):
             try:
-                await GenshinClients[doc["user_id"]].claim_daily_reward()
+                # ふぉあせーふ。
+                # await GenshinClients[doc["user_id"]].claim_daily_reward()
+                ...
             except genshin.AlreadyClaimed:
                 pass
             except genshin.errors.AccountNotFound:
