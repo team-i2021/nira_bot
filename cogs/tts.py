@@ -29,14 +29,14 @@ class Text2Speech(commands.Cog):
         self.SPEAKER_AUTHOR = {}
         self.TTS_CHANNEL = {}
         self.mscommand = self.speak_message
-        
+
         self.api_url = "https://deprecatedapis.tts.quest/v2/voicevox"
 
         asyncio.ensure_future(self.__recover_channel())
         asyncio.ensure_future(self.__recover_speaker())
 
     class VoiceSelect(nextcord.ui.Select):
-        def __init__(self, parent, author: nextcord.Member | nextcord.User):
+        def __init__(self, parent: 'Text2Speech', author: nextcord.Member | nextcord.User):
             self.parent = parent
 
             options = [
@@ -78,7 +78,7 @@ class Text2Speech(commands.Cog):
             if self.author.id != interaction.user.id:
                 await interaction.send("あなたが送信した声選択メニューではありません。\n`/tts voice`と送信して、声選択メニューを表示してください。", ephemeral=True)
                 return
-            self.SPEAKER_AUTHOR[interaction.user.id] = self.values[0]
+            self.parent.SPEAKER_AUTHOR[interaction.user.id] = self.values[0]
             try:
                 await self.parent.collection.update_one({"user_id": interaction.user.id, "type": "speaker"}, {"$set": {"speaker": self.values[0]}}, upsert=True)
                 await interaction.message.channel.send(f'{interaction.user.mention}、設定しました。')
