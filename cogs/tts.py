@@ -29,6 +29,8 @@ class Text2Speech(commands.Cog):
         self.SPEAKER_AUTHOR = {}
         self.TTS_CHANNEL = {}
         self.mscommand = self.speak_message
+        
+        self.api_url = "https://deprecatedapis.tts.quest/v2/voicevox"
 
         asyncio.ensure_future(self.__recover_channel())
         asyncio.ensure_future(self.__recover_speaker())
@@ -128,7 +130,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
 また、音声生成には[WEB版VOICEVOX](https://voicevox.su-shiki.com/)のAPIを使用させていただいております。""", color=0x00ff00))
             interaction.guild.voice_client.play(
                 nextcord.PCMVolumeTransformer(nextcord.FFmpegPCMAudio(
-                    f"https://api.su-shiki.com/v2/voicevox/audio/?text=接続しました&key={self.key}&speaker=2"
+                    f"{self.api_url}/audio/?text=接続しました&key={self.key}&speaker=2"
                 ),
                     volume=0.5)
             )
@@ -207,7 +209,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                     ctx.guild.voice_client.play(
                         nextcord.PCMVolumeTransformer(
                             nextcord.FFmpegPCMAudio(
-                                f"https://api.su-shiki.com/v2/voicevox/audio/?text=接続しました&key={self.key}&speaker=2"
+                                f"{self.api_url}/audio/?text=接続しました&key={self.key}&speaker=2"
                             ),
                             volume=0.5
                         )
@@ -297,7 +299,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                 await interaction.followup.send(embed=nextcord.Embed(title="TTS", description=f"```\n{message.content}```\nを読み上げます...", color=0x00ff00))
                 interaction.guild.voice_client.play(
                     nextcord.PCMVolumeTransformer(nextcord.FFmpegPCMAudio(
-                        f"https://api.su-shiki.com/v2/voicevox/audio/?text={tts_convert.convert(message.content)}&key={self.key}&speaker={self.SPEAKER_AUTHOR[interaction.user.id]}"
+                        f"{self.api_url}/audio/?text={tts_convert.convert(message.content)}&key={self.key}&speaker={self.SPEAKER_AUTHOR[interaction.user.id]}"
                     ),
                         volume=0.5)
                 )
@@ -336,7 +338,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                         break
             message.guild.voice_client.play(
                 nextcord.PCMVolumeTransformer(nextcord.FFmpegPCMAudio(
-                    f"https://api.su-shiki.com/v2/voicevox/audio/?text={tts_convert.convert(message.content)}&key={self.key}&speaker={self.SPEAKER_AUTHOR[message.author.id]}"
+                    f"{self.api_url}/audio/?text={tts_convert.convert(message.content)}&key={self.key}&speaker={self.SPEAKER_AUTHOR[message.author.id]}"
                 ),
                     volume=0.5)
             )
