@@ -2,19 +2,16 @@ import asyncio
 import datetime
 import importlib
 import logging
-import os
 import re
 import sys
 import traceback
 
-import HTTP_db
 import nextcord
-from nextcord import SlashOption, Interaction
+from motor import motor_asyncio
+from nextcord import Interaction, SlashOption
 from nextcord.ext import commands, tasks
 
-from motor import motor_asyncio
-
-from util import admin_check, eh, n_fc, server_check, database
+from util import admin_check, eh, n_fc, server_check
 from util.nira import NIRA
 
 # loggingの設定
@@ -32,16 +29,23 @@ async def ss_force(bot: NIRA, message: nextcord.Message):
         embed = nextcord.Embed(
             title="ServerStatus Checker",
             description=f"LastCheck:`{datetime.datetime.now()}`",
-            color=0x00ff00
+            color=0x00FF00,
         )
-        servers = await bot.database[STEAM_SERVER_COLLECTION_NAME].find({"guild_id": message.guild.id}).to_list(length=None)
+        servers = (
+            await bot.database[STEAM_SERVER_COLLECTION_NAME].find({"guild_id": message.guild.id}).to_list(length=None)
+        )
         for server in servers:
             await server_check.ss_pin_embed(server, embed)
         embed.set_footer(text="pingは参考値です")
         await message.edit(
-            f"AutoSS実行中\n止めるには`{bot.command_prefix}ss auto off`または`/ss off`\nリロードするには下の`再読み込み`ボタンか`/ss reload`\n止まった場合は一度オフにしてから再度オンにしてください",
+            content=(
+                "AutoSS実行中\n"
+                f"止めるには`{bot.command_prefix}ss auto off`または`/ss off`\n"
+                "リロードするには下の`再読み込み`ボタンか`/ss reload`\n"
+                "止まった場合は一度オフにしてから再度オンにしてください"
+            ),
             embed=embed,
-            view=Reload_SS_Auto(bot, message)
+            view=Reload_SS_Auto(bot, message),
         )
         logging.info("Status loaded.(Not scheduled)")
     except Exception as err:
@@ -62,7 +66,12 @@ async def launch_ss(self, channel_id, message_id):
 
 
 # コマンド内部
-async def ss_base(bot: NIRA, ss_collection: motor_asyncio.AsyncIOMotorCollection, auto_collection: motor_asyncio.AsyncIOMotorCollection, ctx: commands.Context):
+async def ss_base(
+    bot: NIRA,
+    ss_collection: motor_asyncio.AsyncIOMotorCollection,
+    auto_collection: motor_asyncio.AsyncIOMotorCollection,
+    ctx: commands.Context,
+):
     servers = await ss_collection.find({"guild_id": ctx.guild.id}).to_list(length=None)
     if ctx.message.content == f"{bot.command_prefix}ss":
         if len(servers) == 0:
@@ -72,7 +81,7 @@ async def ss_base(bot: NIRA, ss_collection: motor_asyncio.AsyncIOMotorCollection
                 embed = nextcord.Embed(
                     title="Server Status Checker",
                     description=f"{ctx.author.mention}\n:globe_with_meridians:Status\n==========",
-                    color=0x00ff00
+                    color=0x00FF00,
                 )
                 for server in servers:
                     await server_check.server_check(server, embed, 0)
@@ -91,9 +100,19 @@ async def ss_base(bot: NIRA, ss_collection: motor_asyncio.AsyncIOMotorCollection
                 address = " ".join(args[3:])
                 ad_ip = str(re.sub("[^0-9a-zA-Z._-]", "", address.split(",")[0]))
                 ad_port = int(re.sub("[^0-9]", "", address.split(",")[1]))
-                await ss_collection.insert_one({"guild_id": ctx.guild.id, "sv_nm": ad_name, "sv_ad": (ad_ip, ad_port), "server_id": len(servers) + 1})
+                await ss_collection.insert_one(
+                    {
+                        "guild_id": ctx.guild.id,
+                        "sv_nm": ad_name,
+                        "sv_ad": (ad_ip, ad_port),
+                        "server_id": len(servers) + 1,
+                    }
+                )
 
-                await ctx.reply("サーバーを追加しました。", embed=nextcord.Embed(title=f"サーバー名：`{ad_name}`", description=f"サーバーアドレス:`{ad_ip}:{ad_port}`"))
+                await ctx.reply(
+                    "サーバーを追加しました。",
+                    embed=nextcord.Embed(title=f"サーバー名：`{ad_name}`", description=f"サーバーアドレス:`{ad_ip}:{ad_port}`"),
+                )
                 return
             except Exception as err:
                 await ctx.reply(f"サーバー追加時にエラーが発生しました。\n```sh\n{err}```")
@@ -108,38 +127,48 @@ async def ss_base(bot: NIRA, ss_collection: motor_asyncio.AsyncIOMotorCollection
                 embed = nextcord.Embed(
                     title="Steam Server List",
                     description=f"「{ctx.guild.name}」のサーバーリスト\n```保存数：{len(servers)}```",
-                    color=0x00ff00
+                    color=0x00FF00,
                 )
                 for server in servers:
                     embed.add_field(
                         name=f"ID: `{server['server_id']}`\n保存名: `{server['sv_nm']}`",
-                        value=f"アドレス：`{server['sv_ad'][0]}:{server['sv_ad'][1]}`"
+                        value=f"アドレス：`{server['sv_ad'][0]}:{server['sv_ad'][1]}`",
                     )
                 await user.send(embed=embed)
                 await ctx.message.add_reaction("\U00002705")
             else:
-                await ctx.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
+                await ctx.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。", color=0xFF0000))
 
     elif args[1] == "auto":
         auto_doc = await auto_collection.find_one({"guild_id": ctx.guild.id})
 
         if admin_check.admin_check(ctx.guild, ctx.author) == False:
-            await ctx.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
+            await ctx.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。", color=0xFF0000))
             return
         if ctx.message.content == f"{bot.command_prefix}ss auto":
-            await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"引数が足りません。\n`{bot.command_prefix}ss auto on/off`"))
+            await ctx.reply(
+                embed=nextcord.Embed(title="エラー", description=f"引数が足りません。\n`{bot.command_prefix}ss auto on/off`")
+            )
             return
 
         elif ctx.message.content[10:12] == "on":
             if auto_doc is not None:
-                await ctx.reply(f"既に`{ctx.guild.name}`でAutoSSタスクが実行されています。\n`{bot.command_prefix}ss auto off`で終了してください。")
+                await ctx.reply(
+                    f"既に`{ctx.guild.name}`でAutoSSタスクが実行されています。\n`{bot.command_prefix}ss auto off`で終了してください。",
+                )
                 return
             if len(servers) == 0:
                 await ctx.reply("このサーバーにSteamServerは登録されていません。")
                 return
-            mes_ss = await ctx.channel.send(f"設定したメッセージをご確認ください！\n（メッセージが指定されていない場合はこのメッセージがすぐに切り替わります...）")
+            mes_ss = await ctx.channel.send(
+                "設定したメッセージをご確認ください！\n（メッセージが指定されていない場合はこのメッセージがすぐに切り替わります...）",
+            )
             if ctx.message.content == f"{bot.command_prefix}ss auto on":
-                await auto_collection.update_one({"guild_id": ctx.guild.id}, {"$set": {"channel_id": ctx.channel.id, "message_id": mes_ss.id}}, upsert=True)
+                await auto_collection.update_one(
+                    {"guild_id": ctx.guild.id},
+                    {"$set": {"channel_id": ctx.channel.id, "message_id": mes_ss.id}},
+                    upsert=True,
+                )
                 asyncio.ensure_future(ss_force(bot, mes_ss))
                 return
             else:
@@ -153,8 +182,13 @@ async def ss_base(bot: NIRA, ss_collection: motor_asyncio.AsyncIOMotorCollection
                 await messs.edit(content="現在変更をしています...")
                 await auto_collection.update_one(
                     {"guild_id": ctx.guild.id},
-                    {"$set": {"channel_id": int(ctx.message.content[16:].split(" ", 1)[0]), "message_id": int(ctx.message.content[16:].split(" ", 1)[1])}},
-                    upsert=True
+                    {
+                        "$set": {
+                            "channel_id": int(ctx.message.content[16:].split(" ", 1)[0]),
+                            "message_id": int(ctx.message.content[16:].split(" ", 1)[1]),
+                        }
+                    },
+                    upsert=True,
                 )
                 asyncio.ensure_future(ss_force(bot, messs))
                 return
@@ -165,7 +199,9 @@ async def ss_base(bot: NIRA, ss_collection: motor_asyncio.AsyncIOMotorCollection
                 return
             try:
                 await auto_collection.delete_one({"guild_id": ctx.guild.id})
-                await ctx.reply(f"AutoSSを無効にしました。\n再度有効にするには`{ctx.prefix}ss auto on`または`/ss auto on`を使用してください。")
+                await ctx.reply(
+                    f"AutoSSを無効にしました。\n再度有効にするには`{ctx.prefix}ss auto on`または`/ss auto on`を使用してください。",
+                )
                 return
             except Exception as err:
                 await ctx.reply(embed=eh.eh(bot.client, err))
@@ -178,7 +214,6 @@ async def ss_base(bot: NIRA, ss_collection: motor_asyncio.AsyncIOMotorCollection
             else:
                 await ctx.reply(f"`{ctx.prefix}ss auto [on/off]`\nAutoSSは無効になっています。")
                 return
-        return
 
     elif args[1] == "edit":
         if ctx.message.content == f"{bot.command_prefix}ss edit":
@@ -189,7 +224,7 @@ async def ss_base(bot: NIRA, ss_collection: motor_asyncio.AsyncIOMotorCollection
             return
 
         adre = ctx.message.content[10:].split(" ", 3)
-        s_id = int("".join(re.findall(r'[\d]', adre[0])))
+        s_id = int("".join(re.findall(r"[\d]", adre[0])))
         s_nm = str(adre[1])
         s_adre = str(adre[2]).split(",", 2)
         s_port = int(s_adre[1])
@@ -199,8 +234,14 @@ async def ss_base(bot: NIRA, ss_collection: motor_asyncio.AsyncIOMotorCollection
             await ctx.reply(f"そのサーバーナンバーのサーバーは登録されていません！\n`{ctx.prefix}ss list`で確認してみてください。")
             return
         try:
-            await ss_collection.update_one({"guild_id": ctx.guild.id, "server_id": s_id}, {"$set": {"sv_nm": s_nm, "sv_ad": (s_ip, s_port)}})
-            await ctx.reply(f"サーバーID:`{s_id}`の情報を編集しました。", embed=nextcord.Embed(title=f"サーバー名:`{s_nm}`", description=f"サーバーアドレス:`{s_ip}:{s_port}`"))
+            await ss_collection.update_one(
+                {"guild_id": ctx.guild.id, "server_id": s_id},
+                {"$set": {"sv_nm": s_nm, "sv_ad": (s_ip, s_port)}},
+            )
+            await ctx.reply(
+                f"サーバーID:`{s_id}`の情報を編集しました。",
+                embed=nextcord.Embed(title=f"サーバー名:`{s_nm}`", description=f"サーバーアドレス:`{s_ip}:{s_port}`"),
+            )
             return
         except Exception as err:
             await ctx.reply(embed=eh.eh(bot.client, err))
@@ -217,16 +258,27 @@ async def ss_base(bot: NIRA, ss_collection: motor_asyncio.AsyncIOMotorCollection
             await ctx.reply("サーバーIDの欄には数値が入ります。")
             return
         if args[2] > len(servers) or args[3] > len(servers):
-            await ctx.reply(f"{ctx.guild.name}に登録されているサーバーの数は{len(servers)}個です。\n無効なサーバーIDを指定しないでください。")
+            await ctx.reply(
+                f"{ctx.guild.name}に登録されているサーバーの数は{len(servers)}個です。\n無効なサーバーIDを指定しないでください。",
+            )
             return
         if args[2] <= 0 or args[3] <= 0:
-            await ctx.reply(f"サーバーIDは1から順につけられます。\n無効なサーバーIDを指定しないでください。")
+            await ctx.reply("サーバーIDは1から順につけられます。\n無効なサーバーIDを指定しないでください。")
             return
         try:
             # いい書き方にいつか変えたい
-            await ss_collection.update_one({"guild_id": ctx.guild.id, "server_id": args[2]}, {"$set": {"server_id": 0}})
-            await ss_collection.update_one({"guild_id": ctx.guild.id, "server_id": args[3]}, {"$set": {"server_id": args[2]}})
-            await ss_collection.update_one({"guild_id": ctx.guild.id, "server_id": 0}, {"$set": {"server_id": args[3]}})
+            await ss_collection.update_one(
+                {"guild_id": ctx.guild.id, "server_id": args[2]},
+                {"$set": {"server_id": 0}},
+            )
+            await ss_collection.update_one(
+                {"guild_id": ctx.guild.id, "server_id": args[3]},
+                {"$set": {"server_id": args[2]}},
+            )
+            await ss_collection.update_one(
+                {"guild_id": ctx.guild.id, "server_id": 0},
+                {"$set": {"server_id": args[3]}},
+            )
             await ctx.reply("入れ替えが完了しました。")
             return
         except Exception as err:
@@ -245,27 +297,51 @@ async def ss_base(bot: NIRA, ss_collection: motor_asyncio.AsyncIOMotorCollection
                 return
             if admin_check.admin_check(ctx.guild, ctx.author):
                 if del_num > len(servers):
-                    await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"そのサーバーは登録されていません！\n`{ctx.prefix}ss list`で確認してみてください！", color=0xff0000))
+                    await ctx.reply(
+                        embed=nextcord.Embed(
+                            title="エラー",
+                            description=f"そのサーバーは登録されていません！\n`{ctx.prefix}ss list`で確認してみてください！",
+                            color=0xFF0000,
+                        )
+                    )
                     return
                 if del_num <= 0:
-                    await ctx.reply(embed=nextcord.Embed(title="エラー", description="リストで0以下のナンバーは振り当てられていません。", color=0xff0000))
+                    await ctx.reply(
+                        embed=nextcord.Embed(
+                            title="エラー",
+                            description="リストで0以下のナンバーは振り当てられていません。",
+                            color=0xFF0000,
+                        )
+                    )
                     return
                 try:
                     await ss_collection.delete_one({"guild_id": ctx.guild.id, "server_id": del_num})
                     await ss_collection.update_many(
                         {"guild_id": ctx.guild.id, "server_id": {"$gt": del_num}},
-                        {"$inc": {"server_id": -1}}
+                        {"$inc": {"server_id": -1}},
                     )
-                    await ctx.reply(embed=nextcord.Embed(title="削除", description=f"ID:{del_num}のサーバーをリストから削除しました。", color=0xff0000))
+                    await ctx.reply(
+                        embed=nextcord.Embed(
+                            title="削除",
+                            description=f"ID:{del_num}のサーバーをリストから削除しました。",
+                            color=0xFF0000,
+                        )
+                    )
                 except Exception as err:
                     logging.error(traceback.format_exc())
                     await ctx.reply(embed=eh.eh(bot.client, err))
                     return
             else:
-                await ctx.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。", color=0xff0000))
+                await ctx.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。", color=0xFF0000))
         else:
             await ss_collection.delete_many({"guild_id": ctx.guild.id})
-            await ctx.reply(embed=nextcord.Embed(title="リスト削除", description=f"{ctx.author.mention}\n{ctx.guild.name}のSteamServerは全て削除されました。", color=0xffffff))
+            await ctx.reply(
+                embed=nextcord.Embed(
+                    title="リスト削除",
+                    description=f"{ctx.author.mention}\n{ctx.guild.name}のSteamServerは全て削除されました。",
+                    color=0xFFFFFF,
+                )
+            )
 
     elif args[1] == "all":
         if len(servers) == 0:
@@ -275,16 +351,16 @@ async def ss_base(bot: NIRA, ss_collection: motor_asyncio.AsyncIOMotorCollection
             embed = nextcord.Embed(
                 title="Server Status Checker",
                 description=f"{ctx.author.mention}\n:globe_with_meridians:Status\n==========",
-                color=0x00ff00
+                color=0x00FF00,
             )
             for server in servers:
                 await server_check.server_check(server, embed, 1)
             await asyncio.sleep(1)
             await ctx.reply(embed=embed)
 
-
     elif len(args) > 2:
-        await ctx.reply(f"""\
+        await ctx.reply(
+            f"""\
 引数とか何かがおかしいです。
 
 ・SS系コマンド一覧
@@ -293,12 +369,15 @@ async def ss_base(bot: NIRA, ss_collection: motor_asyncio.AsyncIOMotorCollection
 `{bot.command_prefix}ss list`: 登録されているサーバーの一覧を表示します。
 `{bot.command_prefix}ss auto on`: 10分毎にステータスを更新するAutoSSのメッセージを送信します。
 `{bot.command_prefix}ss auto off`: AutoSSを停止します。
-`{bot.command_prefix}ss edit [サーバーID] [表示名] [アドレス],[ポート]`: 指定したサーバーIDの表示名やアドレスなどを修正します。事前に`{self.bot.command_prefix}ss list`などで確認しておくことを推奨します。
+`{bot.command_prefix}ss edit [サーバーID] [表示名] [アドレス],[ポート]`: 指定したサーバーIDの表示名やアドレスなどを修正します。\
+事前に`{self.bot.command_prefix}ss list`などで確認しておくことを推奨します。
 `{bot.command_prefix}ss sort [サーバーID1] [サーバーID2]`: サーバーID1とサーバID2の場所を入れ替えます。
 `{bot.command_prefix}ss del [サーバーID]`: 指定したサーバーIDの情報を削除します。
 `{bot.command_prefix}ss del all`: 登録されているサーバーをすべて削除します。
-`{bot.command_prefix}ss all`: 登録されているサーバーのステータスをより詳細に表示します。あまりにサーバー数があると、メッセージ数規定に引っかかって送れない場合があります。
-`{bot.command_prefix}ss [サーバーID]`: 指定したサーバーIDのステータスのみを表示します。""")
+`{bot.command_prefix}ss all`: 登録されているサーバーのステータスをより詳細に表示します。\
+あまりにサーバー数があると、メッセージ数規定に引っかかって送れない場合があります。
+`{bot.command_prefix}ss [サーバーID]`: 指定したサーバーIDのステータスのみを表示します。"""
+        )
         return
 
     else:
@@ -309,7 +388,7 @@ async def ss_base(bot: NIRA, ss_collection: motor_asyncio.AsyncIOMotorCollection
             embed = nextcord.Embed(
                 title="Server Status Checker",
                 description=f"{ctx.author.mention}\n:globe_with_meridians:Status\n==========",
-                color=0x00ff00
+                color=0x00FF00,
             )
             server = await ss_collection.find_one({"guild_id": ctx.guild.id, "server_id": int(args[1])})
             await server_check.server_check(server, embed, 0)
@@ -323,15 +402,18 @@ class Reload_SS_Auto(nextcord.ui.View):
         self.bot = bot
         self.message = message
 
-    @nextcord.ui.button(label='再読み込み', style=nextcord.ButtonStyle.green)
+    @nextcord.ui.button(label="再読み込み", style=nextcord.ButtonStyle.green)
     async def reload(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
         await interaction.response.defer(ephemeral=True)
         try:
             asyncio.ensure_future(ss_force(self.bot, self.message))
-            await interaction.followup.send('Reloaded!', ephemeral=True)
+            await interaction.followup.send("Reloaded!", ephemeral=True)
 
         except Exception as err:
-            await interaction.followup.send(f'エラーが発生しました。\n`{err}`\n```sh\n{traceback.format_exc()}```', ephemeral=True)
+            await interaction.followup.send(
+                f"エラーが発生しました。\n`{err}`\n```sh\n{traceback.format_exc()}```",
+                ephemeral=True,
+            )
             logging.error(traceback.format_exc())
 
 
@@ -341,19 +423,23 @@ class Recheck_SS_Embed(nextcord.ui.View):
         self.bot = bot
         self.ss_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database[STEAM_SERVER_COLLECTION_NAME]
 
-    @nextcord.ui.button(label='もう一度チェックする', style=nextcord.ButtonStyle.green)
+    @nextcord.ui.button(label="もう一度チェックする", style=nextcord.ButtonStyle.green)
     async def recheck(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
         await interaction.response.defer(with_message=True)
         try:
             embed = nextcord.Embed(
                 title="Server Status Checker",
-                description=f":globe_with_meridians:Status\n==========",
-                color=0x00ff00
+                description=":globe_with_meridians:Status\n==========",
+                color=0x00FF00,
             )
             servers = await self.ss_collection.find({"guild_id": interaction.guild.id}).to_list(length=None)
             for server in servers:
                 await server_check.server_check(server, embed, 1)
-            await interaction.followup.send(f'{interaction.user.mention} - Server Status', embed=embed, view=Recheck_SS_Embed(self.bot))
+            await interaction.followup.send(
+                f"{interaction.user.mention} - Server Status",
+                embed=embed,
+                view=Recheck_SS_Embed(self.bot),
+            )
             logging.info("rechecked")
 
         except Exception:
@@ -368,11 +454,14 @@ class server_status(commands.Cog):
         self.auto_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["auto_ss"]
         self.check_status_pin_loop.start()
 
-
     def cog_unload(self):
         self.check_status_pin_loop.stop()
 
-    @nextcord.message_command(name="Start AutoSS", name_localizations={nextcord.Locale.ja: "AutoSSのスタート"}, guild_ids=n_fc.GUILD_IDS)
+    @nextcord.message_command(
+        name="Start AutoSS",
+        name_localizations={nextcord.Locale.ja: "AutoSSのスタート"},
+        guild_ids=n_fc.GUILD_IDS,
+    )
     async def start_auto_ss(self, interaction: Interaction, message: nextcord.Message):
         await interaction.response.defer(ephemeral=True)
         try:
@@ -381,25 +470,31 @@ class server_status(commands.Cog):
                     embed=nextcord.Embed(
                         title="エラー",
                         description=f"{self.bot.user.mention}が送信したメッセージにのみこのコマンドを使用できます。",
-                        color=0xff0000
+                        color=0xFF0000,
                     ),
-                    ephemeral=True
+                    ephemeral=True,
                 )
                 return
             CHANNEL_ID = message.channel.id
             MESSAGE_ID = message.id
-            await self.auto_collection.update_one({"guild_id": interaction.guild.id}, {"$set": {"channel_id": CHANNEL_ID, "message_id": MESSAGE_ID}}, upsert=True)
+            await self.auto_collection.update_one(
+                {"guild_id": interaction.guild.id},
+                {"$set": {"channel_id": CHANNEL_ID, "message_id": MESSAGE_ID}},
+                upsert=True,
+            )
             asyncio.ensure_future(ss_force(self.bot, message))
-            await interaction.followup.send(f"指定されたメッセージでAutoSSをスタートしました。")
+            await interaction.followup.send("指定されたメッセージでAutoSSをスタートしました。")
         except Exception as err:
             await interaction.followup.send(f"エラーが発生しました。\n```\n{err}```")
 
-
-    @commands.command(name="ss", help="""\
+    @commands.command(
+        name="ss",
+        help="""\
 Steam非公式サーバーのステータスを表示します
 このコマンドは、**user毎**で**10秒**のクールダウンがあります。
 このコマンドのヘルプは別ページにあります。
-[ヘルプはこちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/ss)""")
+[ヘルプはこちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/ss)""",
+    )
     @commands.cooldown(1, 10, type=commands.BucketType.user)
     async def ss(self, ctx: commands.Context):
         await ss_base(self.bot, self.ss_collection, self.auto_collection, ctx)
@@ -408,250 +503,340 @@ Steam非公式サーバーのステータスを表示します
     async def ss_slash(self, interaction: Interaction):
         pass
 
-    @ss_slash.subcommand(name="add", description="Add Steam Dedicated Server", description_localizations={nextcord.Locale.ja: "Steam非公式サーバーを追加します"})
+    @ss_slash.subcommand(
+        name="add",
+        description="Add Steam Dedicated Server",
+        description_localizations={nextcord.Locale.ja: "Steam非公式サーバーを追加します"},
+    )
     async def add_slash(
         self,
         interaction: Interaction,
         ServerName: str = SlashOption(
             name="name",
-            name_localizations={
-                nextcord.Locale.ja: "サーバー名"
-            },
+            name_localizations={nextcord.Locale.ja: "サーバー名"},
             description="Name of server (if server is offline, it shows.)",
-            description_localizations={
-                nextcord.Locale.ja: "オフライン時に表示されるサーバーの名前"
-            },
-            required=True
+            description_localizations={nextcord.Locale.ja: "オフライン時に表示されるサーバーの名前"},
+            required=True,
         ),
         ServerAddress: str = SlashOption(
             name="address",
-            name_localizations={
-                nextcord.Locale.ja: "サーバーアドレス"
-            },
+            name_localizations={nextcord.Locale.ja: "サーバーアドレス"},
             description="Address of server",
-            description_localizations={
-                nextcord.Locale.ja: "サーバーのIPアドレスまたはドメイン名"
-            },
-            required=True
+            description_localizations={nextcord.Locale.ja: "サーバーのIPアドレスまたはドメイン名"},
+            required=True,
         ),
         ServerPort: int = SlashOption(
             name="port",
-            name_localizations={
-                nextcord.Locale.ja: "サーバーポート"
-            },
+            name_localizations={nextcord.Locale.ja: "サーバーポート"},
             description="Port of server",
-            description_localizations={
-                nextcord.Locale.ja: "サーバーのポート番号"
-            },
-            required=True
-        )
+            description_localizations={nextcord.Locale.ja: "サーバーのポート番号"},
+            required=True,
+        ),
     ):
         await interaction.response.defer()
         try:
             if admin_check.admin_check(interaction.guild, interaction.user):
                 servers = await self.ss_collection.find({"guild_id": interaction.guild.id}).to_list(length=None)
-                await self.ss_collection.insert_one({"guild_id": interaction.guild.id, "sv_nm": ServerName, "sv_ad": (ServerAddress, ServerPort), "server_id": len(servers) + 1})
+                await self.ss_collection.insert_one(
+                    {
+                        "guild_id": interaction.guild.id,
+                        "sv_nm": ServerName,
+                        "sv_ad": (ServerAddress, ServerPort),
+                        "server_id": len(servers) + 1,
+                    }
+                )
 
-                await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description=f"サーバーの追加に成功しました。\nサーバー名：`{ServerName}`\nサーバーアドレス: `{ServerAddress}:{ServerPort}`", color=0x00ff00), ephemeral=True)
+                await interaction.followup.send(
+                    embed=nextcord.Embed(
+                        title="SteamDedicatedServer",
+                        description=(
+                            f"サーバーの追加に成功しました。\nサーバー名：`{ServerName}`\nサーバーアドレス: `{ServerAddress}:{ServerPort}`"
+                        ),
+                        color=0x00FF00,
+                    ),
+                    ephemeral=True,
+                )
                 return
             else:
-                await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="管理者権限がありません。", color=0xff0000), ephemeral=True)
+                await interaction.followup.send(
+                    embed=nextcord.Embed(title="SteamDedicatedServer", description="管理者権限がありません。", color=0xFF0000),
+                    ephemeral=True,
+                )
                 return
         except Exception as err:
             await interaction.followup.send(f"サーバー追加時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
-    @ss_slash.subcommand(name="del", description="Delete Steam Dedicated Server", description_localizations={nextcord.Locale.ja: "Steam非公式サーバーを削除します"})
+    @ss_slash.subcommand(
+        name="del",
+        description="Delete Steam Dedicated Server",
+        description_localizations={nextcord.Locale.ja: "Steam非公式サーバーを削除します"},
+    )
     async def del_slash(
         self,
         interaction: Interaction,
         ServerID: int = SlashOption(
             name="server_id",
-            name_localizations={
-                nextcord.Locale.ja: "サーバーid"
-            },
+            name_localizations={nextcord.Locale.ja: "サーバーid"},
             description="Server ID of want to delete",
-            description_localizations={
-                nextcord.Locale.ja: "削除するサーバーのID"
-            },
-            required=True
-        )
+            description_localizations={nextcord.Locale.ja: "削除するサーバーのID"},
+            required=True,
+        ),
     ):
         await interaction.response.defer()
         try:
             if admin_check.admin_check(interaction.guild, interaction.user):
                 servers = await self.ss_collection.find({"guild_id": interaction.guild.id}).to_list(length=None)
                 if ServerID <= 0:
-                    await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="サーバーIDは1以上の整数である必要があります。", color=0xff0000), ephemeral=True)
+                    await interaction.followup.send(
+                        embed=nextcord.Embed(
+                            title="SteamDedicatedServer",
+                            description="サーバーIDは1以上の整数である必要があります。",
+                            color=0xFF0000,
+                        ),
+                        ephemeral=True,
+                    )
                     return
                 if ServerID > len(servers):
-                    await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="指定されたIDのサーバーは存在しません。", color=0xff0000), ephemeral=True)
+                    await interaction.followup.send(
+                        embed=nextcord.Embed(
+                            title="SteamDedicatedServer",
+                            description="指定されたIDのサーバーは存在しません。",
+                            color=0xFF0000,
+                        ),
+                        ephemeral=True,
+                    )
                     return
 
                 await self.ss_collection.delete_one({"guild_id": interaction.guild.id, "server_id": ServerID})
                 await self.ss_collection.update_many(
                     {"guild_id": interaction.guild.id, "server_id": {"$gt": ServerID}},
-                    {"$inc": {"server_id": -1}}
+                    {"$inc": {"server_id": -1}},
                 )
-                await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description=f"サーバーの削除に成功しました。", color=0x00ff00), ephemeral=True)
+                await interaction.followup.send(
+                    embed=nextcord.Embed(
+                        title="SteamDedicatedServer",
+                        description="サーバーの削除に成功しました。",
+                        color=0x00FF00,
+                    ),
+                    ephemeral=True,
+                )
                 return
             else:
-                await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="管理者権限がありません。", color=0xff0000), ephemeral=True)
+                await interaction.followup.send(
+                    embed=nextcord.Embed(title="SteamDedicatedServer", description="管理者権限がありません。", color=0xFF0000),
+                    ephemeral=True,
+                )
                 return
         except Exception as err:
             await interaction.followup.send(f"サーバー削除時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
-    @ss_slash.subcommand(name="list", description="Show list of Steam Dedicated Server", description_localizations={nextcord.Locale.ja: "Steam非公式サーバーの一覧を表示します"})
+    @ss_slash.subcommand(
+        name="list",
+        description="Show list of Steam Dedicated Server",
+        description_localizations={nextcord.Locale.ja: "Steam非公式サーバーの一覧を表示します"},
+    )
     async def list_slash(self, interaction: Interaction):
         await interaction.response.defer(ephemeral=True)
         try:
             if admin_check.admin_check(interaction.guild, interaction.user):
                 servers = await self.ss_collection.find({"guild_id": interaction.guild.id}).to_list(length=None)
                 if len(servers) == 0:
-                    await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="このサーバーにはSteam Dedicated Serverは追加されていません。", color=0xff0000), ephemeral=True)
+                    await interaction.followup.send(
+                        embed=nextcord.Embed(
+                            title="SteamDedicatedServer",
+                            description="このサーバーにはSteam Dedicated Serverは追加されていません。",
+                            color=0xFF0000,
+                        ),
+                        ephemeral=True,
+                    )
                     return
                 embed = nextcord.Embed(
-                    title="SteamDedicatedServer",
-                    description=interaction.guild.name,
-                    color=0x00ff00
+                    title="SteamDedicatedServer", description=interaction.guild.name, color=0x00FF00
                 )
                 for server in servers:
                     embed.add_field(
                         name=f"ID: `{server['server_id']}`\n保存名: `{server['sv_nm']}`",
-                        value=f"アドレス：`{server['sv_ad'][0]}:{server['sv_ad'][1]}`"
+                        value=f"アドレス：`{server['sv_ad'][0]}:{server['sv_ad'][1]}`",
                     )
                 await interaction.user.send(embed=embed)
                 await interaction.followup.send("Sended!", ephemeral=True)
                 return
             else:
-                await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="管理者権限がありません。", color=0xff0000), ephemeral=True)
+                await interaction.followup.send(
+                    embed=nextcord.Embed(title="SteamDedicatedServer", description="管理者権限がありません。", color=0xFF0000),
+                    ephemeral=True,
+                )
                 return
         except Exception as err:
             await interaction.followup.send(f"サーバー一覧表示時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
-    @ss_slash.subcommand(name="sort", description="Replace servers", description_localizations={nextcord.Locale.ja: "Steam非公式サーバーの一覧を入れ替えます"})
+    @ss_slash.subcommand(
+        name="sort",
+        description="Replace servers",
+        description_localizations={nextcord.Locale.ja: "Steam非公式サーバーの一覧を入れ替えます"},
+    )
     async def sort_slash(
         self,
         interaction: Interaction,
         SortSource: int = SlashOption(
             name="source",
-            name_localizations={
-                nextcord.Locale.ja: "置き替え元のサーバーid"
-            },
+            name_localizations={nextcord.Locale.ja: "置き替え元のサーバーid"},
             description="Source server ID",
-            description_localizations={
-                nextcord.Locale.ja: "置き換え元のサーバーID"
-            },
-            required=True
+            description_localizations={nextcord.Locale.ja: "置き換え元のサーバーID"},
+            required=True,
         ),
         SortDestination: int = SlashOption(
             name="destination",
-            name_localizations={
-                nextcord.Locale.ja: "置き替え先のサーバーid"
-            },
+            name_localizations={nextcord.Locale.ja: "置き替え先のサーバーid"},
             description="Destination server ID",
-            description_localizations={
-                nextcord.Locale.ja: "置き換え先のサーバーID"
-            },
-            required=True
-        )
+            description_localizations={nextcord.Locale.ja: "置き換え先のサーバーID"},
+            required=True,
+        ),
     ):
         await interaction.response.defer()
         try:
             if admin_check.admin_check(interaction.guild, interaction.user):
                 servers = await self.ss_collection.find({"guild_id": interaction.guild.id}).to_list(length=None)
                 if len(servers) == 0:
-                    await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="このサーバーにはSteam Dedicated Serverは追加されていません。", color=0xff0000), ephemeral=True)
+                    await interaction.followup.send(
+                        embed=nextcord.Embed(
+                            title="SteamDedicatedServer",
+                            description="このサーバーにはSteam Dedicated Serverは追加されていません。",
+                            color=0xFF0000,
+                        ),
+                        ephemeral=True,
+                    )
                     return
                 if SortSource > len(servers) or SortDestination > len(servers):
-                    await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="指定されたIDのサーバーは存在しません。", color=0xff0000), ephemeral=True)
+                    await interaction.followup.send(
+                        embed=nextcord.Embed(
+                            title="SteamDedicatedServer",
+                            description="指定されたIDのサーバーは存在しません。",
+                            color=0xFF0000,
+                        ),
+                        ephemeral=True,
+                    )
                     return
                 if SortSource == SortDestination:
-                    await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="置き換え元と置き換え先が同じです。", color=0xff0000), ephemeral=True)
+                    await interaction.followup.send(
+                        embed=nextcord.Embed(
+                            title="SteamDedicatedServer",
+                            description="置き換え元と置き換え先が同じです。",
+                            color=0xFF0000,
+                        ),
+                        ephemeral=True,
+                    )
                     return
                 if SortSource <= 0 or SortDestination <= 0:
-                    await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="指定したIDは不正です。", color=0xff0000), ephemeral=True)
+                    await interaction.followup.send(
+                        embed=nextcord.Embed(title="SteamDedicatedServer", description="指定したIDは不正です。", color=0xFF0000),
+                        ephemeral=True,
+                    )
                     return
-                await self.ss_collection.update_one({"guild_id": interaction.guild.id, "server_id": SortSource}, {"$set": {"server_id": 0}})
-                await self.ss_collection.update_one({"guild_id": interaction.guild.id, "server_id": SortDestination}, {"$set": {"server_id": SortSource}})
-                await self.ss_collection.update_one({"guild_id": interaction.guild.id, "server_id": 0}, {"$set": {"server_id": SortDestination}})
+                await self.ss_collection.update_one(
+                    {"guild_id": interaction.guild.id, "server_id": SortSource},
+                    {"$set": {"server_id": 0}},
+                )
+                await self.ss_collection.update_one(
+                    {"guild_id": interaction.guild.id, "server_id": SortDestination},
+                    {"$set": {"server_id": SortSource}},
+                )
+                await self.ss_collection.update_one(
+                    {"guild_id": interaction.guild.id, "server_id": 0},
+                    {"$set": {"server_id": SortDestination}},
+                )
                 await interaction.followup.send("ソートが完了しました。", ephemeral=True)
                 return
             else:
-                await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="管理者権限がありません。", color=0xff0000), ephemeral=True)
+                await interaction.followup.send(
+                    embed=nextcord.Embed(title="SteamDedicatedServer", description="管理者権限がありません。", color=0xFF0000),
+                    ephemeral=True,
+                )
                 return
         except Exception as err:
             await interaction.followup.send(f"ソート時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
-    @ss_slash.subcommand(name="edit", description="Edit Steam Dedicated Server Setting", description_localizations={nextcord.Locale.ja: "Steam非公式サーバーの設定を編集します"})
+    @ss_slash.subcommand(
+        name="edit",
+        description="Edit Steam Dedicated Server Setting",
+        description_localizations={nextcord.Locale.ja: "Steam非公式サーバーの設定を編集します"},
+    )
     async def edit_slash(
         self,
         interaction: Interaction,
         EditSource: int = SlashOption(
             name="server_id",
-            name_localizations={
-                nextcord.Locale.ja: "編集するサーバーid"
-            },
+            name_localizations={nextcord.Locale.ja: "編集するサーバーid"},
             description="Server ID of want to edit",
-            description_localizations={
-                nextcord.Locale.ja: "編集するサーバーID"
-            },
-            required=True
+            description_localizations={nextcord.Locale.ja: "編集するサーバーID"},
+            required=True,
         ),
         ServerName: str = SlashOption(
             name="name",
-            name_localizations={
-                nextcord.Locale.ja: "サーバー名"
-            },
+            name_localizations={nextcord.Locale.ja: "サーバー名"},
             description="Name of server (if server is offline, it shows.)",
-            description_localizations={
-                nextcord.Locale.ja: "オフライン時に表示されるサーバーの名前"
-            },
-            required=True
+            description_localizations={nextcord.Locale.ja: "オフライン時に表示されるサーバーの名前"},
+            required=True,
         ),
         ServerAddress: str = SlashOption(
             name="address",
-            name_localizations={
-                nextcord.Locale.ja: "サーバーアドレス"
-            },
+            name_localizations={nextcord.Locale.ja: "サーバーアドレス"},
             description="Address of server",
-            description_localizations={
-                nextcord.Locale.ja: "サーバーのIPアドレスまたはドメイン名"
-            },
-            required=True
+            description_localizations={nextcord.Locale.ja: "サーバーのIPアドレスまたはドメイン名"},
+            required=True,
         ),
         ServerPort: int = SlashOption(
             name="port",
-            name_localizations={
-                nextcord.Locale.ja: "サーバーポート"
-            },
+            name_localizations={nextcord.Locale.ja: "サーバーポート"},
             description="Port of server",
-            description_localizations={
-                nextcord.Locale.ja: "サーバーのポート番号"
-            },
-            required=True
-        )
+            description_localizations={nextcord.Locale.ja: "サーバーのポート番号"},
+            required=True,
+        ),
     ):
         await interaction.response.defer()
         try:
             if admin_check.admin_check(interaction.guild, interaction.user):
                 servers = await self.ss_collection.find({"guild_id": interaction.guild.id}).to_list(length=None)
                 if len(servers):
-                    await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="このサーバーにはSteam Dedicated Serverは追加されていません。", color=0xff0000), ephemeral=True)
+                    await interaction.followup.send(
+                        embed=nextcord.Embed(
+                            title="SteamDedicatedServer",
+                            description="このサーバーにはSteam Dedicated Serverは追加されていません。",
+                            color=0xFF0000,
+                        ),
+                        ephemeral=True,
+                    )
                     return
                 if EditSource > len(servers):
-                    await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="指定されたIDのサーバーは存在しません。", color=0xff0000), ephemeral=True)
+                    await interaction.followup.send(
+                        embed=nextcord.Embed(
+                            title="SteamDedicatedServer",
+                            description="指定されたIDのサーバーは存在しません。",
+                            color=0xFF0000,
+                        ),
+                        ephemeral=True,
+                    )
                     return
                 if EditSource <= 0:
-                    await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="指定したIDは不正です。", color=0xff0000), ephemeral=True)
+                    await interaction.followup.send(
+                        embed=nextcord.Embed(title="SteamDedicatedServer", description="指定したIDは不正です。", color=0xFF0000),
+                        ephemeral=True,
+                    )
                     return
-                await self.ss_collection.update_one({"guild_id": interaction.guild.id, "server_id": EditSource}, {"$set": {"sv_nm": ServerName, "sv_ad": (ServerAddress, ServerPort)}})
+                await self.ss_collection.update_one(
+                    {"guild_id": interaction.guild.id, "server_id": EditSource},
+                    {"$set": {"sv_nm": ServerName, "sv_ad": (ServerAddress, ServerPort)}},
+                )
                 await interaction.followup.send("編集が完了しました。", ephemeral=True)
             else:
-                await interaction.followup.send(embed=nextcord.Embed(title="SteamDedicatedServer", description="管理者権限がありません。", color=0xff0000), ephemeral=True)
+                await interaction.followup.send(
+                    embed=nextcord.Embed(title="SteamDedicatedServer", description="管理者権限がありません。", color=0xFF0000),
+                    ephemeral=True,
+                )
                 return
         except Exception as err:
             await interaction.followup.send(f"編集時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
@@ -661,11 +846,12 @@ Steam非公式サーバーのステータスを表示します
     async def auto_slash(self, interaction: Interaction):
         pass
 
-    @auto_slash.subcommand(name="on", description="Enable to display Steam Dedicated Server's Realtime Status", description_localizations={nextcord.Locale.ja: "鯖のステータスをリアルタイム表示します"})
-    async def auto_on_slash(
-        self,
-        interaction: Interaction
-    ):
+    @auto_slash.subcommand(
+        name="on",
+        description="Enable to display Steam Dedicated Server's Realtime Status",
+        description_localizations={nextcord.Locale.ja: "鯖のステータスをリアルタイム表示します"},
+    )
+    async def auto_on_slash(self, interaction: Interaction):
         await interaction.response.defer(ephemeral=True)
         servers = await self.ss_collection.find({"guild_id": interaction.guild.id}).to_list(length=None)
         if len(servers):
@@ -675,16 +861,21 @@ Steam非公式サーバーのステータスを表示します
         if auto_doc is not None:
             await interaction.followup.send(f"既に{interaction.guild.name}で他のAutoSSタスクが実行されています。", ephemeral=True)
             return
-        mes_ss = await interaction.channel.send(f"AutoSSの準備をしています...")
+        mes_ss = await interaction.channel.send("AutoSSの準備をしています...")
         asyncio.ensure_future(ss_force(self.bot, mes_ss))
-        await self.auto_collection.update_one({"guild_id": interaction.guild.id}, {"$set": {"channel_id": interaction.channel.id, "message_id": mes_ss.id}}, upsert=True)
+        await self.auto_collection.update_one(
+            {"guild_id": interaction.guild.id},
+            {"$set": {"channel_id": interaction.channel.id, "message_id": mes_ss.id}},
+            upsert=True,
+        )
         await interaction.followup.send("AutoSSを開始しました。")
 
-    @auto_slash.subcommand(name="off", description="Disable to display Steam Dedicated Server's Realtime Status", description_localizations={nextcord.Locale.ja: "鯖のステータスをリアルタイム表示を無効にします。"})
-    async def auto_off_slash(
-        self,
-        interaction: Interaction
-    ):
+    @auto_slash.subcommand(
+        name="off",
+        description="Disable to display Steam Dedicated Server's Realtime Status",
+        description_localizations={nextcord.Locale.ja: "鯖のステータスをリアルタイム表示を無効にします。"},
+    )
+    async def auto_off_slash(self, interaction: Interaction):
         await interaction.response.defer(ephemeral=True)
         auto_doc = await self.auto_collection.find_one({"guild_id": interaction.guild.id})
         if auto_doc is not None:
@@ -698,15 +889,19 @@ Steam非公式サーバーのステータスを表示します
             await interaction.followup.send(embed=eh.eh(self.bot.client, err), ephemeral=True)
             return
 
-    @ss_slash.subcommand(name="status", description="Display Steam Dedicated Server's Status", description_localizations={nextcord.Locale.ja: "Steam非公式サーバーのステータスを表示します"})
+    @ss_slash.subcommand(
+        name="status",
+        description="Display Steam Dedicated Server's Status",
+        description_localizations={nextcord.Locale.ja: "Steam非公式サーバーのステータスを表示します"},
+    )
     async def status_slash(
         self,
         interaction: Interaction,
         server_id: str = SlashOption(
             name="server_id",
             description="デフォルトは空白。特定のサーバーだけ指定したい場合はIDを入力してください。又はallで詳細に表示します。",
-            required=False
-        )
+            required=False,
+        ),
     ):
         await interaction.response.defer()
         servers = await self.ss_collection.find({"guild_id": interaction.guild.id}).to_list(length=None)
@@ -716,7 +911,10 @@ Steam非公式サーバーのステータスを表示します
                     await interaction.followup.send("サーバーは登録されていません。", ephemeral=True)
                     return
                 embed = nextcord.Embed(
-                    title="Server Status Checker", description=f"{interaction.user.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
+                    title="Server Status Checker",
+                    description=f"{interaction.user.mention}\n:globe_with_meridians:Status\n==========",
+                    color=0x00FF00,
+                )
                 for server in servers:
                     await server_check.server_check(server, embed, 1)
                 await interaction.followup.send(embed=embed)
@@ -727,8 +925,11 @@ Steam非公式サーバーのステータスを表示します
                     await interaction.followup.send("サーバーは登録されていません。", ephemeral=True)
                     return
                 embed = nextcord.Embed(
-                    title="Server Status Checker", description=f"{interaction.user.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
-                await self.ss_collection.find_one({"guild_id":interaction.guild.id, "server_id":server_id})
+                    title="Server Status Checker",
+                    description=f"{interaction.user.mention}\n:globe_with_meridians:Status\n==========",
+                    color=0x00FF00,
+                )
+                await self.ss_collection.find_one({"guild_id": interaction.guild.id, "server_id": server_id})
                 await server_check.server_check(server, embed, 0)
                 await interaction.followup.send(embed=embed)
                 return
@@ -738,7 +939,10 @@ Steam非公式サーバーのステータスを表示します
                     await interaction.followup.send("サーバーは登録されていません。", ephemeral=True)
                     return
                 embed = nextcord.Embed(
-                    title="Server Status Checker", description=f"{interaction.user.mention}\n:globe_with_meridians:Status\n==========", color=0x00ff00)
+                    title="Server Status Checker",
+                    description=f"{interaction.user.mention}\n:globe_with_meridians:Status\n==========",
+                    color=0x00FF00,
+                )
                 for server in servers:
                     await server_check.server_check(server, embed, 0)
                 await interaction.followup.send(embed=embed, view=Recheck_SS_Embed(self.bot))
@@ -748,8 +952,11 @@ Steam非公式サーバーのステータスを表示します
             await interaction.followup.send(f"ステータス取得時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
-
-    @ss_slash.subcommand(name="reload", description="Reload AutoSS Status", description_localizations={nextcord.Locale.ja: "AutoSSを更新します。"})
+    @ss_slash.subcommand(
+        name="reload",
+        description="Reload AutoSS Status",
+        description_localizations={nextcord.Locale.ja: "AutoSSを更新します。"},
+    )
     async def ss_reload(self, interaction: Interaction):
         await interaction.response.defer(ephemeral=True)
         auto_doc = await self.auto_collection.find_one({"guild_id": interaction.guild.id})
@@ -760,32 +967,44 @@ Steam非公式サーバーのステータスを表示します
             asyncio.ensure_future(ss_force(self.bot, message))
             await interaction.send("リロードしました。", ephemeral=True)
 
-
     @tasks.loop(minutes=5.0)
     async def check_status_pin_loop(self):
         await self.bot.wait_until_ready()
         async for autoConfig in self.auto_collection.find():
             try:
                 servers = await self.ss_collection.find({"guild_id": autoConfig["guild_id"]}).to_list(length=None)
-                message: nextcord.Message = await (await self.bot.fetch_channel(autoConfig[0])).fetch_message(autoConfig[1])
+                message: nextcord.Message = await (await self.bot.fetch_channel(autoConfig[0])).fetch_message(
+                    autoConfig[1]
+                )
                 embed = nextcord.Embed(
                     title="ServerStatus Checker",
                     description=f"LastCheck:`{datetime.datetime.now()}`",
-                    color=0x00ff00
+                    color=0x00FF00,
                 )
                 for server in servers:
                     await server_check.ss_pin_embed(server, embed)
                 embed.set_footer(text="pingは参考値です")
                 await message.edit(
-                    f"AutoSS実行中\n止めるには`{self.bot.command_prefix}ss auto off`または`/ss off`\nリロードするには下の`再読み込み`ボタンか`/ss reload`\n止まった場合は一度オフにしてから再度オンにしてください",
+                    content=(
+                        "AutoSS実行中\n"
+                        f"止めるには`{self.bot.command_prefix}ss auto off`または`/ss off`\n"
+                        "リロードするには下の`再読み込み`ボタンか`/ss reload`\n"
+                        "止まった場合は一度オフにしてから再度オンにしてください"
+                    ),
                     embed=embed,
-                    view=Reload_SS_Auto(self.bot, message)
+                    view=Reload_SS_Auto(self.bot, message),
                 )
                 logging.info("Status loaded.(Scheduled)")
             except Exception as err:
                 logging.info(err, traceback.format_exc())
-                await message.edit(content=f"AutoSSのループ内でエラーが発生しました。\n`再読み込み`ボタン又は`/ss reload`コマンドでリロードしてください。\n```sh\n{traceback.format_exc()}```", embed=None)
-
+                await message.edit(
+                    content=(
+                        "AutoSSのループ内でエラーが発生しました。\n"
+                        "`再読み込み`ボタン又は`/ss reload`コマンドでリロードしてください。\n"
+                        f"```sh\n{traceback.format_exc()}```"
+                    ),
+                    embed=None,
+                )
 
     @check_status_pin_loop.error
     async def status_loop_error(self, error: Exception):
