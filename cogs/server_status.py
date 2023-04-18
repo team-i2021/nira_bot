@@ -142,7 +142,7 @@ async def ss_base(
     elif args[1] == "auto":
         auto_doc = await auto_collection.find_one({"guild_id": ctx.guild.id})
 
-        if admin_check.admin_check(ctx.guild, ctx.author) == False:
+        if not admin_check.admin_check(ctx.guild, ctx.author):
             await ctx.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。", color=0xFF0000))
             return
         if ctx.message.content == f"{bot.command_prefix}ss auto":
