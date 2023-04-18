@@ -370,7 +370,7 @@ async def ss_base(
 `{bot.command_prefix}ss auto on`: 10分毎にステータスを更新するAutoSSのメッセージを送信します。
 `{bot.command_prefix}ss auto off`: AutoSSを停止します。
 `{bot.command_prefix}ss edit [サーバーID] [表示名] [アドレス],[ポート]`: 指定したサーバーIDの表示名やアドレスなどを修正します。\
-事前に`{self.bot.command_prefix}ss list`などで確認しておくことを推奨します。
+事前に`{bot.command_prefix}ss list`などで確認しておくことを推奨します。
 `{bot.command_prefix}ss sort [サーバーID1] [サーバーID2]`: サーバーID1とサーバID2の場所を入れ替えます。
 `{bot.command_prefix}ss del [サーバーID]`: 指定したサーバーIDの情報を削除します。
 `{bot.command_prefix}ss del all`: 登録されているサーバーをすべて削除します。
