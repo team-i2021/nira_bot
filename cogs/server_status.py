@@ -444,7 +444,7 @@ class Recheck_SS_Embed(nextcord.ui.View):
 
         except Exception:
             await interaction.followup.send(f"エラーが発生しました。\n```\n{traceback.format_exc()}```")
-            logging.err(traceback.format_exc())
+            logging.error(traceback.format_exc())
 
 
 class server_status(commands.Cog):
