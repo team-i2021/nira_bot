@@ -19,7 +19,7 @@ async def RetryInfo(address: tuple, count: int) -> a2s.SourceInfo | None:
         try:
             info = await a2s.ainfo(address)
             return info
-        except Exception as err:
+        except Exception:
             await asyncio.sleep(1)
     return None
 
@@ -30,7 +30,7 @@ async def RetryPlayers(address: tuple, count: int) -> a2s.Player | None:
         try:
             players = await a2s.aplayers(address)
             return [pl for pl in players if pl.name != ""]
-        except Exception as err:
+        except Exception:
             await asyncio.sleep(1)
     return None
 
