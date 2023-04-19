@@ -13,7 +13,7 @@ import nextcord
 #     )
 
 
-async def RetryInfo(address: tuple, count: int) -> a2s.SourceInfo | None:
+async def RetryInfo(address: tuple[str, int], count: int) -> a2s.SourceInfo | a2s.GoldSrcInfo | None:
     """サーバーのステータスを取得しますが、その際`count`回リトライします。"""
     for _ in range(count):
         try:
@@ -24,7 +24,7 @@ async def RetryInfo(address: tuple, count: int) -> a2s.SourceInfo | None:
     return None
 
 
-async def RetryPlayers(address: tuple, count: int) -> a2s.Player | None:
+async def RetryPlayers(address: tuple[str, int], count: int) -> list[a2s.Player] | None:
     """サーバーのユーザー情報を取得しますが、その際`count`回リトライします。"""
     for _ in range(count):
         try:
@@ -67,6 +67,8 @@ async def server_check(server: dict, embed: nextcord.Embed, type):
             "name": f"> {sv_dt.server_name} - {sv_dt.map_name}",
             "value": f"```{sv_dt}```",
         }
+    else:
+        raise ValueError
     user = ""
     sv_us = await RetryPlayers(sv_ad, 5)
     if sv_us is None:
