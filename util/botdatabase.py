@@ -329,7 +329,45 @@ class CollectionBase(ABC, Generic[DocumentBaseT]):
         ...
 
 
-class UniqueCollection(CollectionBase[UniqueDocumentT], Generic[UniqueDocumentT, PrimaryKeyT, IDValueT]):
+class CollectionCacheMixin(Generic[DocumentBaseT, IDValueT]):
+    """コレクションにドキュメントのキャッシュを実装するミックスインです。"""
+
+    _cache: Cache[IDValueT, DocumentBaseT | None] | None
+
+    @property
+    def cache(self) -> Cache[IDValueT, DocumentBaseT | None] | None:
+        return self._cache
+
+    def uncache(self, key: IDValueT | None = None, /) -> None:
+        """指定された主キーを持つ、または全てのドキュメントをキャッシュから消去します。
+
+        Parameters
+        ----------
+        key, default `None`
+            消去対象のドキュメントの主キー。既定では、全てのドキュメントが対象になります。
+        """
+        if self.cache is None:
+            return
+        elif key is None:
+            self.cache.clear()
+        elif key in self.cache:
+            self.cache.pop(key)
+
+    def _get_cache(self, key: IDValueT, /) -> DocumentBaseT | None | MissingType:
+        if self.cache is None or key not in self.cache:
+            return Missing
+        return self.cache[key]
+
+    def _set_cache(self, key: IDValueT, /, document: DocumentBaseT | None) -> None:
+        if self.cache is not None:
+            self.cache[key] = document
+
+
+class UniqueCollection(
+    CollectionBase[UniqueDocumentT],
+    CollectionCacheMixin[UniqueDocumentT, IDValueT],
+    Generic[UniqueDocumentT, PrimaryKeyT, IDValueT],
+):
     """それぞれのドキュメントが一意であるコレクションを表す ABC です。"""
 
     def __init__(
@@ -354,10 +392,6 @@ class UniqueCollection(CollectionBase[UniqueDocumentT], Generic[UniqueDocumentT,
         """
         super().__init__(bot, collection, document)
         self._cache = cache
-
-    @property
-    def cache(self) -> Cache[IDValueT, UniqueDocumentT | None] | None:
-        return self._cache
 
     @abstractmethod
     def new(self, primary: PrimaryKeyT, /, **kwargs: Any) -> UniqueDocumentT:
@@ -413,30 +447,6 @@ class UniqueCollection(CollectionBase[UniqueDocumentT], Generic[UniqueDocumentT,
         await self.collection.delete_one({ID_KEY_NAME: key})
         self._set_cache(key, None)
         return document
-
-    def uncache(self, key: IDValueT | None = None, /) -> None:
-        """指定された主キーを持つ、または全てのドキュメントをキャッシュから消去します。
-
-        Parameters
-        ----------
-        key, default `None`
-            消去対象のドキュメントの主キー。既定では、全てのドキュメントが対象になります。
-        """
-        if self.cache is None:
-            return
-        elif key is None:
-            self.cache.clear()
-        elif key in self.cache:
-            self.cache.pop(key)
-
-    def _get_cache(self, key: IDValueT, /) -> UniqueDocumentT | None | MissingType:
-        if self.cache is None or key not in self.cache:
-            return Missing
-        return self.cache[key]
-
-    def _set_cache(self, key: IDValueT, /, document: UniqueDocumentT | None) -> None:
-        if self.cache is not None:
-            self.cache[key] = document
 
     @abstractmethod
     def _get_primary_key(self, document: UniqueDocumentT) -> IDValueT:
