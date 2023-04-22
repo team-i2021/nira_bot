@@ -232,7 +232,7 @@ async def server_check(bot: NIRA, collection: motor_asyncio.AsyncIOMotorCollecti
             await messages.mreply(ctx, "Minecraft Server Status", embed=embed)
             return
 
-async def server_list(bot: NIRA, collection: motor_asyncio.AsyncIOMotorCollection, ctx):
+async def server_list(bot: NIRA, collection: motor_asyncio.AsyncIOMotorCollection, ctx: nextcord.Interaction | commands.Context):
     servers = await collection.find({"guild_id": ctx.guild.id}).to_list(length=None)
 
     if len(servers) == 0:
@@ -240,7 +240,7 @@ async def server_list(bot: NIRA, collection: motor_asyncio.AsyncIOMotorCollectio
         return
 
     try:
-        if type(ctx) == nextcord.Interaction:
+        if isinstance(ctx, nextcord.Interaction):
             user = await bot.fetch_user(ctx.user.id)
         else:
             user = await bot.fetch_user(ctx.author.id)
@@ -255,6 +255,10 @@ async def server_list(bot: NIRA, collection: motor_asyncio.AsyncIOMotorCollectio
                 value=f"名前:`{server['name']}`\n{server['server_type']}Edition サーバー\nアドレス:`{server['host']}:{server['port']}`"
             )
         await user.send(embed=embed)
+        if isinstance(ctx, nextcord.Interaction):
+            await ctx.send("サーバーリストをDMに送信しました。", ephemeral=True)
+        else:
+            await ctx.message.add_reaction("✅")
         return
 
     except Exception:
