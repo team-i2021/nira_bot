@@ -23,9 +23,6 @@ SET, DEL, STATUS = (0, 1, 2)
 ROLE_ID = compile(r"<@&[0-9]+?>")
 
 
-
-
-
 async def UpNotifyConfig(collection: motor_asyncio.AsyncIOMotorCollection, interaction, config_type: int, value: int or None):
     upper = await collection.find_one({"guild_id": interaction.guild.id})
 
