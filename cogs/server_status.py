@@ -973,8 +973,8 @@ Steam非公式サーバーのステータスを表示します
         async for autoConfig in self.auto_collection.find():
             try:
                 servers = await self.ss_collection.find({"guild_id": autoConfig["guild_id"]}).to_list(length=None)
-                message: nextcord.Message = await (await self.bot.fetch_channel(autoConfig[0])).fetch_message(
-                    autoConfig[1]
+                message: nextcord.Message = await (await self.bot.resolve_channel(autoConfig["channel_id"])).fetch_message(
+                    autoConfig["message_id"]
                 )
                 embed = nextcord.Embed(
                     title="ServerStatus Checker",
