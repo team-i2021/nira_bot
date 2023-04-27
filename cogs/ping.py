@@ -54,14 +54,14 @@ async def ping_there(adr, message: nextcord.Message or Interaction):
 async def base_ping(bot, client: HTTP_db.Client, adr, message: nextcord.Message or Interaction):
     if adr == DISCORD:
         bot_latency = round(bot.latency * 1000, 3)
-        await message.edit(embed=nextcord.Embed(title="Ping", description=f"- Discord Server```\n{bot_latency}ms```\n- Database Server```\nConnecting...```", color=0x00ff00))
+        await message.edit(embed=nextcord.Embed(title="Ping", description=f"### Discord Server\n`{bot_latency}ms`\n### Database Server\n`Connecting...`", color=0x00ff00))
         try:
             data = await client.ping()
             db_latency = round(float(data.ping) * 1000, 3)
-            await message.edit(embed=nextcord.Embed(title="Ping", description=f"- Discord Server```\n{bot_latency}ms```\n- Database Server```\n{db_latency}ms```", color=0x00ff00))
+            await message.edit(embed=nextcord.Embed(title="Ping", description=f"### Discord Server\n`{bot_latency}ms`\n### Database Server\n`{db_latency}ms`", color=0x00ff00))
             return
-        except Exception as err:
-            await message.edit(embed=nextcord.Embed(title="Ping", description=f"- Discord Server```\n{bot_latency}ms```\n- Database Server```\nDatabase Connection Error.\n{err}```", color=0x00ff00))
+        except Exception:
+            await message.edit(embed=nextcord.Embed(title="Ping", description=f"### Discord Server\n`{bot_latency}ms`\n### Database Server\n`Database Connection Error.`", color=0x00ff00))
             return
 
     elif adr != DISCORD:
