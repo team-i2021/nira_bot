@@ -186,7 +186,7 @@ class UserJoin(commands.Cog):
             if rolekeeper is None:
                 rolekeeper = {"rk": 0}
                 return
-            rolekeeper[member.id] = role_ids
+            rolekeeper[str(member.id)] = role_ids
             await self.rk_collection.update_one({"guild_id": member.guild.id}, {"$set": rolekeeper}, upsert=True)
             return
         except Exception as err:
