@@ -74,7 +74,7 @@ async def server_check(server: dict[str, str | list[str | int]], embed: nextcord
         if type == 0:
             embed.add_field(
                 name=result["name"],
-                value=f"{result['value']}\n\n> Online Player\nプレイヤー情報が取得できませんでした。",
+                value=f"{result['value']}\nプレイヤー情報が取得できませんでした。",
                 inline=False,
             )
         elif type == 1:
@@ -92,27 +92,26 @@ async def server_check(server: dict[str, str | list[str | int]], embed: nextcord
                 embed.add_field(
                     name=result["name"],
                     value=(
-                        f"{result['value']}\n\n"
-                        f"> Online Player\nプレーヤー数:`{len(users)}/{sv_dt.max_players}`人\n"
-                        f"```{user}```\n"
-                        "=========="
+                        f"{result['value']}\n"
+                        f"プレーヤー数:`{len(users)}/{sv_dt.max_players}`人"
+                        f"```{user}```"
                     ),
                     inline=False,
                 )
             else:
                 embed.add_field(
                     name=result["name"],
-                    value=f"{result['value']}\n\n> Online Player\n:information_source:オンラインユーザーはいません。\n==========",
+                    value=f"{result['value']}\n:information_source:オンラインユーザーはいません。",
                     inline=False,
                 )
         else:
             embed.add_field(
                 name=result["name"],
-                value=f"{result['value']}\n\n> Online Player\n:information_source:オンラインユーザーはいません。\n==========",
+                value=f"{result['value']}\n:information_source:オンラインユーザーはいません。",
                 inline=False,
             )
     elif type == 1:
-        embed.add_field(name=result["name"], value=f"{result['value']}\n```{sv_us}```", inline=False)
+        embed.add_field(name=result["name"], value=f"{result['value']}```{sv_us}```", inline=False)
     return True
 
 # embed
@@ -133,7 +132,7 @@ async def ss_pin_embed(server: dict[str, str | list[str | int]], embed: nextcord
     if sv_us is None:
         embed.add_field(
             name=result["name"],
-            value=f"{result['value']}\n\n> Online Player\nプレイヤー情報が取得できませんでした。",
+            value=f"{result['value']}\nプレイヤー情報が取得できませんでした。",
             inline=False,
         )
         return True
@@ -144,23 +143,22 @@ async def ss_pin_embed(server: dict[str, str | list[str | int]], embed: nextcord
             embed.add_field(
                 name=result["name"],
                 value=(
-                    f"{result['value']}\n\n"
-                    f"> Online Player\nプレーヤー数:`{len(users)}/{sv_dt.max_players}`人\n"
-                    f"```{user}```\n"
-                    "=========="
+                    f"{result['value']}\n"
+                    f"プレーヤー数:`{len(users)}/{sv_dt.max_players}`人"
+                    f"```{user}```"
                 ),
                 inline=False,
             )
         else:
             embed.add_field(
                 name=result["name"],
-                value=f"{result['value']}\n\n> Online Player\n:information_source:オンラインユーザーはいません。\n==========",
+                value=f"{result['value']}\n:information_source:オンラインユーザーはいません。\n==========",
                 inline=False,
             )
     else:
         embed.add_field(
             name=result["name"],
-            value=f"{result['value']}\n\n> Online Player\n:information_source:オンラインユーザーはいません。\n==========",
+            value=f"{result['value']}\n:information_source:オンラインユーザーはいません。\n==========",
             inline=False,
         )
     return True
