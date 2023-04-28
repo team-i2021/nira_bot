@@ -7,7 +7,7 @@ import nextcord
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
 
-from util import n_fc, database
+from util import n_fc
 
 
 CaptchaData = {}
