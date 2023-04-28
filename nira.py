@@ -9,7 +9,7 @@ from argparse import ArgumentParser
 import nextcord
 from motor import motor_asyncio
 
-from util import database, n_fc
+from util import n_fc
 from util.nira import NIRA
 from util.settings import BotSettings
 
@@ -53,7 +53,6 @@ if args.debug:
 
 
 # データベースの設定
-CLIENT = database.openClient()
 _MONGO_CLIENT = motor_asyncio.AsyncIOMotorClient(settings.database_url)
 
 
@@ -66,7 +65,6 @@ intents.message_content = True  # Message Content Intentを有効化
 
 # TODO: BotSettings を直接渡せるようにする
 bot = NIRA(
-    client=CLIENT,  # http_db
     mongo=_MONGO_CLIENT,  # mongo_db
     debug=DEBUG,
     token=settings.tokens.nira_bot.get_secret_value(),

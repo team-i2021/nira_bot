@@ -1,9 +1,7 @@
-import warnings
 from typing import Any
 
 import aiohttp
 import nextcord
-from HTTP_db import Client
 from motor.motor_asyncio import AsyncIOMotorClient
 from nextcord.ext import commands
 
@@ -20,7 +18,6 @@ class NIRA(commands.Bot):
 
     def __init__(
         self,
-        client: Client,
         mongo: AsyncIOMotorClient,
         debug: bool = False,
         token: str | None = None,
@@ -33,7 +30,6 @@ class NIRA(commands.Bot):
     ):
         self.debug = debug
         self.__token = token
-        self.__client = client  # HTTP_dbとして呼び出す（今まで通りself.client + database.default_pushとかで呼び出す）
 
         self.__mongo = mongo  # おいてるだけだから使わない
 
@@ -56,11 +52,6 @@ class NIRA(commands.Bot):
         if self._session.closed:
             self._session = aiohttp.ClientSession(loop=self.loop)
         return self._session
-
-    @property
-    def client(self) -> Client:
-        warnings.warn("HTTP-db is deprecated and will be removed soon", DeprecationWarning, stacklevel=2)
-        return self.__client
 
     def run(self) -> None:
         super().run(self.__token, reconnect=True)
