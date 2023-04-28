@@ -970,11 +970,15 @@ Steam非公式サーバーのステータスを表示します
     async def check_status_pin_loop(self):
         await self.bot.wait_until_ready()
         async for autoConfig in self.auto_collection.find():
+            message = None
             try:
                 servers = await self.ss_collection.find({"guild_id": autoConfig["guild_id"]}).to_list(length=None)
-                message: nextcord.Message = await (await self.bot.resolve_channel(autoConfig["channel_id"])).fetch_message(
-                    autoConfig["message_id"]
-                )
+                if len(servers) == 0:
+                    logging.info(f"サーバーが設定されていないため、設定を削除します。\nGuildID:{autoConfig['guild_id']}\nChannelID:{autoConfig['channel_id']}\nMessageID:{autoConfig['message_id']}")
+                    await self.auto_collection.delete_one({"guild_id": autoConfig["guild_id"]})
+                    continue
+                channel = await self.bot.resolve_channel(autoConfig["channel_id"])
+                message = await channel.fetch_message(autoConfig["message_id"])
                 embed = nextcord.Embed(
                     title="ServerStatus Checker",
                     description=f"LastCheck:`{datetime.datetime.now()}`",
@@ -994,21 +998,23 @@ Steam非公式サーバーのステータスを表示します
                     view=Reload_SS_Auto(self.bot, message),
                 )
                 logging.info("Status loaded.(Scheduled)")
+            except nextcord.errors.NotFound:
+                # auto_collectionのデータベースから指定Guildのデータを消す
+                logging.info(f"チャンネルが見つからなかったため、設定を削除します。\nGuildID:{autoConfig['guild_id']}\nChannelID:{autoConfig['channel_id']}\nMessageID:{autoConfig['message_id']}")
+                await self.auto_collection.delete_one({"guild_id": autoConfig["guild_id"]})
+                continue
             except Exception as err:
                 logging.info(err, traceback.format_exc())
-                await message.edit(
-                    content=(
-                        "AutoSSのループ内でエラーが発生しました。\n"
-                        "`再読み込み`ボタン又は`/ss reload`コマンドでリロードしてください。\n"
-                        f"```sh\n{traceback.format_exc()}```"
-                    ),
-                    embed=None,
-                )
-
-    @check_status_pin_loop.error
-    async def status_loop_error(self, error: Exception):
-        logging.error(error, exc_info=True)
-        self.check_status_pin_loop.restart()
+                if message is not None:
+                    await message.edit(
+                        content=(
+                            "AutoSSのループ内でエラーが発生しました。\n"
+                            "`再読み込み`ボタン又は`/ss reload`コマンドでリロードしてください。\n"
+                            f"```sh\n{traceback.format_exc()}```"
+                        ),
+                        embed=None,
+                    )
+                continue
 
 
 def setup(bot, **kwargs):
