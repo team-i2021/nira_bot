@@ -9,5 +9,11 @@
     "unload_cogs": [],
     "load_cogs": [],
     "translate":DeepL APIのキー,
-    "database_url":データベースのURL
+    "database_url": MongoDBのURL,
+    "database_name": MongoDBのデータベース名,
+    "shard_count": シャード数,
+    "shard_id": シャードID,
+    "talk_api": TalkAPIのAPIキー,
+    "ltuid": HoYoverse通行証のUID,
+    "ltoken": HoYoverse通行証のトークン
 }
