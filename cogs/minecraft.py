@@ -27,12 +27,6 @@ mcMessage = {
 NORMAL = 0
 DETAIL = 1
 
-class minecraft_data:
-    name = "minecraft"
-    value = {}
-    default = {}
-    value_type = database.CHANNEL_VALUE
-
 async def status_embed(
         embed: nextcord.Embed, server: dict, value_type: int = NORMAL
     ):

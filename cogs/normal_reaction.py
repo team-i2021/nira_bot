@@ -14,7 +14,7 @@ import nextcord
 from nextcord.ext import commands, tasks
 
 import util.srtr as srtr
-from util import web_api, database, n_fc
+from util import web_api, n_fc
 from util.nira import NIRA
 
 SYSDIR = sys.path[0]
@@ -23,32 +23,6 @@ image_root = "https://team-i2021.github.io/nira_bot/images"
 image_loc = f"{SYSDIR}/images"
 
 # 通常反応をまとめたもの。
-
-class reaction_datas:
-    class all_reaction_list:
-        name = "all_reaction_list"
-        value = {}
-        default = {}
-        value_type = database.CHANNEL_VALUE
-
-    class ex_reaction_list:
-        name = "ex_reaction_list"
-        value = {}
-        default = {}
-        value_type = database.CHANNEL_VALUE
-
-    class reaction_bool_list:
-        name = "reaction_bool_list"
-        value = {}
-        default = {}
-        value_type = database.CHANNEL_VALUE
-
-
-class notify_token:
-    name = "notify_token"
-    value = {}
-    default = {}
-    value_type = database.CHANNEL_VALUE
 
 
 nira_hantei = r'にら|ニラ|nira|garlic|韮|Chinese chives|Allium tuberosum|てりじの|テリジノ'

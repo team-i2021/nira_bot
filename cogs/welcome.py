@@ -7,7 +7,7 @@ from nextcord.ext import commands
 
 from motor import motor_asyncio
 
-from util import admin_check, n_fc, database
+from util import admin_check, n_fc
 from util.nira import NIRA
 
 # join message system
@@ -20,11 +20,6 @@ MESSAGES = [
     "このチャンネルにはWelcomeメッセージは設定されていません。",
 ]
 
-class WelcomeMessage:
-    name = "welcome_message"
-    value = {}
-    default = {}
-    value_type = database.CHANNEL_VALUE
 
 async def editSetting(collection: motor_asyncio.AsyncIOMotorCollection, setting_type: int | None = None, guild_id: int | None = None, channel_id: int | None = None, value_type: str | int | None = None, value: str | None = None) -> int:
     """Editとか書いてるけど別にEditだけじゃないですべいび"""
