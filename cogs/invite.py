@@ -9,8 +9,6 @@ from nextcord.ext import commands, application_checks
 from util import n_fc
 from util.nira import NIRA
 
-import HTTP_db
-
 from motor import motor_asyncio
 
 inviteUrlTemplate = compile(r'https://discord.gg/([0-9a-zA-Z]+)')
@@ -24,7 +22,6 @@ class Invite(commands.Cog):
         self.bot = bot
         self.collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["invite_data"]
 
-    
     async def fetch_invite(self, discord_invites: list, guild_id: int):
         result = await self.collection.find_one({"guild_id": guild_id})
         if result is None:

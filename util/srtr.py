@@ -1,21 +1,17 @@
 import copy
-import importlib
 import logging
 import random
 import re
 import sys
 import traceback
-from os import getenv
-import asyncio
 
-import HTTP_db
 import jaconv
 import nextcord
 import pykakasi
 
 from motor import motor_asyncio
 
-from util import word_data, database
+from util import word_data
 
 re_hiragana = re.compile(r'^[あ-ん]+$')
 re_katakana = re.compile(r'[\u30A1-\u30F4]+')
