@@ -11,7 +11,7 @@ from motor import motor_asyncio
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands, tasks
 
-from util import admin_check, eh, n_fc, server_check
+from util import admin_check, n_fc, server_check
 from util.nira import NIRA
 
 # loggingの設定
@@ -204,7 +204,7 @@ async def ss_base(
                 )
                 return
             except Exception as err:
-                await ctx.reply(embed=eh.eh(bot.client, err))
+                await ctx.reply(embed=bot.error_embed(err))
                 return
 
         else:
@@ -244,7 +244,7 @@ async def ss_base(
             )
             return
         except Exception as err:
-            await ctx.reply(embed=eh.eh(bot.client, err))
+            await ctx.reply(embed=bot.error_embed(err))
             return
 
     elif args[1] == "sort":
@@ -293,7 +293,7 @@ async def ss_base(
             try:
                 del_num = int(ctx.message.content[9:])
             except Exception as err:
-                await ctx.reply(embed=eh.eh(bot.client, err))
+                await ctx.reply(embed=bot.error_embed(err))
                 return
             if admin_check.admin_check(ctx.guild, ctx.author):
                 if del_num > len(servers):
@@ -329,7 +329,7 @@ async def ss_base(
                     )
                 except Exception as err:
                     logging.error(traceback.format_exc())
-                    await ctx.reply(embed=eh.eh(bot.client, err))
+                    await ctx.reply(embed=bot.error_embed(err))
                     return
             else:
                 await ctx.reply(embed=nextcord.Embed(title="エラー", description="管理者権限がありません。", color=0xFF0000))
@@ -885,7 +885,7 @@ Steam非公式サーバーのステータスを表示します
             await interaction.followup.send("AutoSSを無効にしました。", ephemeral=True)
             return
         except Exception as err:
-            await interaction.followup.send(embed=eh.eh(self.bot.client, err), ephemeral=True)
+            await interaction.followup.send(embed=self.bot.error_embed(err), ephemeral=True)
             return
 
     @ss_slash.subcommand(

@@ -8,7 +8,6 @@ import nextcord
 from nextcord.ext import application_checks, commands
 
 import nira_commands
-from util import eh
 from util.nira import NIRA
 
 
@@ -159,7 +158,7 @@ class error(commands.Cog):
 
         if add_trace:
             trace = "".join(traceback.TracebackException.from_exception(error).format())
-            description += f"\n```py\n{trace.replace(self.bot.client.url, '[URL]')}```"
+            description += f"\n```py\n{trace.replace(self.bot.settings["database_url"], '[URL]')}```"
         # Context.command は Optional[Command]
         if add_help and ctx.command:
             name = ctx.invoked_parents[0]
@@ -248,7 +247,7 @@ class error(commands.Cog):
 
         if add_trace:
             trace = "".join(traceback.TracebackException.from_exception(error).format())
-            description += f"\n```py\n{trace.replace(self.bot.client.url, '[URL]')}```"
+            description += f"\n```py\n{trace.replace(self.bot.settings["database_url"], '[URL]')}```"
         # Interaction.application_command は Optional[ApplicationCommand]
         if add_help and (command := interaction.application_command):
             while getattr(command, "parent_cmd", None) is not None:
@@ -278,4 +277,3 @@ class error(commands.Cog):
 def setup(bot, **kwargs):
     bot.add_cog(error(bot, **kwargs))
     importlib.reload(nira_commands)
-    importlib.reload(eh)

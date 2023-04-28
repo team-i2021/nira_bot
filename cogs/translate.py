@@ -9,7 +9,7 @@ from nextcord import Interaction, SlashOption, ChannelType
 from nextcord.ext import commands
 
 
-from util import admin_check, n_fc, eh
+from util import admin_check, n_fc
 from util.nira import NIRA
 
 # Translate

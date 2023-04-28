@@ -5,7 +5,6 @@ import nextcord
 from nextcord import Interaction
 from nextcord.ext import commands
 
-from util import n_fc, eh
 from util.nira import NIRA
 
 # embedを送信する機能
@@ -143,7 +142,7 @@ Embedの本文です。
             await ctx.send(embed=embed)
             return
         except Exception as err:
-            await ctx.reply(embed=eh.eh(self.bot.client, err))
+            await ctx.reply(embed=self.bot.error_embed(err))
             return
 
 

@@ -1,3 +1,6 @@
+import os
+import sys
+import traceback
 from typing import Any
 
 import aiohttp
@@ -79,6 +82,13 @@ class NIRA(commands.Bot):
         if channel is None or isinstance(channel, nextcord.PartialMessageable):
             channel = await self.fetch_channel(channel_id)
         return channel
+
+    def error_embed(self, err) -> nextcord.Embed:
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        er = str(err).replace(self.settings["database_url"], "[URL]")
+        tb = str(traceback.format_exc()).replace(self.settings["database_url"], "[URL]")
+        return nextcord.Embed(title="Error",description=f"大変申し訳ございません。ニラがエラーが発生させました。\n```{er}```\n```sh\n{tb}```\nfile:`{fname}`\nline:{exc_tb.tb_lineno}\n\n[サポートサーバー](https://discord.gg/awfFpCYTcP)", color=self.color.ERROR)
 
     class Forbidden(Exception):
         """Exception of default Forbidden (not Server Admin)"""

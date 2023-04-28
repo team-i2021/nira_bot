@@ -7,8 +7,7 @@ from nextcord.ext import commands
 
 from motor import motor_asyncio
 
-from util import eh, srtr
-from util.n_fc import GUILD_IDS
+from util import srtr
 from util.nira import NIRA
 
 SYSDIR = sys.path[0]
@@ -44,7 +43,7 @@ class Siritori(commands.Cog):
             try:
                 await self.collection.update_one({"guild_id": guild.id}, {"$set": srtr_data}, upsert=True)
             except Exception as err:
-                return eh(self.bot.client, err)
+                return self.bot.error_embed(err)
 
             return nextcord.Embed(title="しりとり", description=f"{channel.name}でしりとりを始めます。", color=0x00ff00)
 
@@ -58,7 +57,7 @@ class Siritori(commands.Cog):
                 asyncio.ensure_future(self.collection.update_one({"guild_id": guild.id}, {"$set": srtr_data}, upsert=True))
 
             except Exception as err:
-                return eh(self.bot.client, err)
+                return self.bot.error_embed(err)
 
             return nextcord.Embed(title="しりとり", description=f"{channel.name}でのしりとりを終了します。", color=0x00ff00)
 

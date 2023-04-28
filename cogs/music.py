@@ -15,7 +15,7 @@ import youtube_dlc
 from nextcord.ext import commands
 
 from cogs import tts
-from util import admin_check, n_fc, eh, server_check
+from util import n_fc
 
 # 音楽再生
 
@@ -322,7 +322,7 @@ Discord及びGoogleは、DiscordのボイスチャンネルでのYouTube再生BO
                             await ctx.reply(f"追加したよ！\nあなたの曲は`{len(music_list[ctx.guild.id])}`番目！")
                             return
         except Exception as err:
-            await ctx.reply(embed=eh.eh(self.bot.client, err))
+            await ctx.reply(embed=self.bot.error_embed(err))
             logging.error(f"[楽曲再生時or再生中のエラー - {datetime.datetime.now()}]\n\n{err}\n\n{sys.exc_info()}")
             return
 
