@@ -34,7 +34,7 @@ class Code(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
 
-    @nextcord.slash_command(name="html", description="HTMLを入力してページを返します。", guild_ids=GUILD_IDS)
+    @nextcord.slash_command(name="html", description="HTMLを入力してページを返します。")
     async def html_slash(self, interaction: Interaction):
         modal = CodeInsert()
         await interaction.response.send_modal(modal=modal)

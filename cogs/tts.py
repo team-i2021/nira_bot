@@ -100,7 +100,7 @@ class Text2Speech(commands.Cog):
         for sp in speaker:
             self.SPEAKER_AUTHOR[sp['user_id']] = sp['speaker']
 
-    @nextcord.slash_command(name="tts", description="Text-To-Speech", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="tts", description="Text-To-Speech")
     async def tts_slash(self, interaction: Interaction):
         pass
 
@@ -272,7 +272,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
             await ctx.reply(f"・読み上げ機能\nエラー：書き方が間違っています。\n\n`{ctx.prefix}tts join`: 参加\n`{ctx.prefix}tts leave`: 退出\n`{ctx.prefix}tts voice`: 声選択")
 
 
-    #@nextcord.message_command(name="メッセージを読み上げる", guild_ids=n_fc.GUILD_IDS)
+    #@nextcord.message_command(name="メッセージを読み上げる")
     async def speak_message(self, interaction: Interaction, message: nextcord.Message):
         await interaction.response.defer(ephemeral=True)
         try:

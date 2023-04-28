@@ -272,7 +272,7 @@ class Genshin(commands.Cog):
             GenshinClients[doc["user_id"]] = genshin.Client({"ltuid": doc["ltuid"], "ltoken": base64.b64decode(doc["ltoken"]).decode()}, game=genshin.Game.GENSHIN, lang="ja-jp")
 
 
-    @nextcord.slash_command(name="genshin", description="Genshin slash command", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="genshin", description="Genshin slash command")
     async def slash_genshin(self, interaction: Interaction):
         pass
 

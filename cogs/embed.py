@@ -89,7 +89,7 @@ class SendEmbed(commands.Cog):
         self.bot = bot
         self.mscommands = self.embed_message_command
 
-    # @nextcord.message_command(name="Embedコンテンツの取得", guild_ids=n_fc.GUILD_IDS)
+    # @nextcord.message_command(name="Embedコンテンツの取得")
     async def embed_message_command(self, interaction: Interaction, message: nextcord.Message):
         await interaction.response.defer(ephemeral=True)
         if len(message.embeds) == 0:
@@ -103,7 +103,7 @@ class SendEmbed(commands.Cog):
             content += "\n"
         await interaction.followup.send(content)
 
-    @nextcord.slash_command(name="embed", description="Embedを作成して送信します。", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="embed", description="Embedを作成して送信します。")
     async def embed_slash(self, interaction: Interaction):
         modal = EmbedMaker()
         await interaction.response.send_modal(modal=modal)

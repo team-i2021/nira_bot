@@ -22,7 +22,7 @@ class MessageRole(commands.Cog):
         self.bot = bot
         self.collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["message_role"]
 
-    @nextcord.slash_command(name="mesrole", description="Message role command", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="mesrole", description="Message role command")
     async def slash_message_role(self, interaction: Interaction):
         pass
 

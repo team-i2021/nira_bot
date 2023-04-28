@@ -76,7 +76,7 @@ class Ping(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
 
-    @nextcord.slash_command(name="ping", description="Display latency of servers", description_localizations={nextcord.Locale.ja: "Discordサーバー又は、指定サーバーとのレイテンシを計測します。"}, guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="ping", description="Display latency of servers", description_localizations={nextcord.Locale.ja: "Discordサーバー又は、指定サーバーとのレイテンシを計測します。"})
     async def ping_slash(
         self,
         interaction: Interaction,

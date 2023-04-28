@@ -61,7 +61,7 @@ class DefinedDM(commands.Cog):
         self.collection = self.bot.database["defined_dm"]
 
     @application_checks.has_permissions(manage_guild=True)
-    @nextcord.slash_command(name="defined", description="DefinedDM config", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="defined", description="DefinedDM config")
     async def defined_slash(self, interaction: Interaction):
         pass
 

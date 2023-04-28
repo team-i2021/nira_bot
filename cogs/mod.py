@@ -7,7 +7,7 @@ from nextcord.ext import commands, tasks
 
 from motor import motor_asyncio
 
-from util import admin_check, n_fc, eh, database
+from util import admin_check, n_fc
 from util.nira import NIRA
 
 # 規定秒数以内に指定数メッセージを送信した人をミュートするモデレーター的な機能
@@ -143,7 +143,7 @@ remove: ロールの剥奪を行うかどうか（`on`/`off`）（指定され�
                 await ctx.reply(f"messageCounter: `{counter.messageCounter}`\nmod_list: `{MOD_LIST}`\nmod_check: `{counter.messageCounter[ctx.author.id] >= MOD_LIST[ctx.guild.id]['counter']}`\nlast reset: `{reset_time}`")
 
 
-    @nextcord.slash_command(name="mod", description="荒らし対策機能の設定を変更します。", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="mod", description="荒らし対策機能の設定を変更します。")
     async def mod_slash(self, interaction: Interaction):
         pass
 

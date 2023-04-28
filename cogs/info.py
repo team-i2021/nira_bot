@@ -534,7 +534,7 @@ class info(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
 
-    @nextcord.slash_command(name="info", description="にらBOTの情報を表示します。", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="info", description="にらBOTの情報を表示します。")
     async def info_slash(self, interaction: Interaction):
         await info_base.info(self, interaction, SLASH)
         return
@@ -546,7 +546,7 @@ class info(commands.Cog):
         await info_base.info(self, ctx, CTX)
         return
 
-    @nextcord.slash_command(name="help", description="にらBOT及び、コマンドのヘルプを表示します。", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="help", description="にらBOT及び、コマンドのヘルプを表示します。")
     async def help_slash(
         self,
         interaction: Interaction,

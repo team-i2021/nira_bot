@@ -47,7 +47,7 @@ class Weather(commands.Cog):
 
         return embed
 
-    @nextcord.slash_command(name="weather", description="Get weather info from wttr.in", description_localizations={nextcord.Locale.ja: "Wttr.inより天気情報を取得します。"}, guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="weather", description="Get weather info from wttr.in", description_localizations={nextcord.Locale.ja: "Wttr.inより天気情報を取得します。"})
     async def weather(
             self,
             interaction: nextcord.Interaction,

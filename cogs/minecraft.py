@@ -6,7 +6,7 @@ import nextcord
 from nextcord import Interaction, SlashOption, ChannelType
 from nextcord.ext import commands
 
-from util import n_fc, database
+from util import n_fc
 from util import mc_status as mc
 from util.admin_check import admin_check
 from util.slash_tool import messages
@@ -320,7 +320,7 @@ class Minecraft(commands.Cog):
         await server_list(self.bot, self.collection, ctx)
 
 
-    @nextcord.slash_command(name="mc", description="Minecraftサーバーステータス", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="mc", description="Minecraftサーバーステータス")
     async def mc_slash(self, interaction: Interaction):
         pass
 

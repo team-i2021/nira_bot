@@ -40,7 +40,7 @@ class Invite(commands.Cog):
         await self.collection.update_one({"guild_id": guild_id}, {"$set": result}, upsert=True)
 
     @application_checks.bot_has_permissions(manage_guild=True)
-    @nextcord.slash_command(name="invite", description="Set alias for invite url.", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="invite", description="Set alias for invite url.")
     async def invite_slash(
             self,
             interaction: Interaction

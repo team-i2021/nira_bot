@@ -460,7 +460,6 @@ class server_status(commands.Cog):
     @nextcord.message_command(
         name="Start AutoSS",
         name_localizations={nextcord.Locale.ja: "AutoSSのスタート"},
-        guild_ids=n_fc.GUILD_IDS,
     )
     async def start_auto_ss(self, interaction: Interaction, message: nextcord.Message):
         await interaction.response.defer(ephemeral=True)
@@ -499,7 +498,7 @@ Steam非公式サーバーのステータスを表示します
     async def ss(self, ctx: commands.Context):
         await ss_base(self.bot, self.ss_collection, self.auto_collection, ctx)
 
-    @nextcord.slash_command(name="ss", description="Show Steam Dedicated Server's status", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="ss", description="Show Steam Dedicated Server's status")
     async def ss_slash(self, interaction: Interaction):
         pass
 

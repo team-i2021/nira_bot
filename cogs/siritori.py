@@ -23,7 +23,7 @@ class Siritori(commands.Cog):
         self.bot = bot
         self.collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["siritori_game"]
 
-    @nextcord.slash_command(name="srtr", description="Siritori", guild_ids=GUILD_IDS)
+    @nextcord.slash_command(name="srtr", description="Siritori")
     async def srtr(self, interaction: nextcord.Interaction):
         pass
 

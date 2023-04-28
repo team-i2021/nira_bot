@@ -26,7 +26,6 @@ class Talk(commands.Cog):
             nextcord.Locale.ja: "使用にはA3RT TalkAPIの利用規約に同意する必要があります。",
             nextcord.Locale.uk: "Використання A3RT TalkAPI вимагає згоди з Умовами використання."
         },
-        guild_ids=n_fc.GUILD_IDS
     )
     async def talk_slash(
             self,

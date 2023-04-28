@@ -22,7 +22,7 @@ class MessageDM(commands.Cog):
         self.bot = bot
         self.collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["message_dm"]
 
-    @nextcord.slash_command(name="mesdm", description="Send DM when a set message is sent", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="mesdm", description="Send DM when a set message is sent")
     async def slash_message_dm(self, interaction: Interaction):
         pass
 

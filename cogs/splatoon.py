@@ -5,7 +5,7 @@ import nextcord
 from nextcord import Interaction, SlashOption, ChannelType
 from nextcord.ext import commands
 
-from util import admin_check, n_fc, eh, database
+from util import n_fc
 from util.nira import NIRA
 
 # pingを送信するだけ
@@ -63,7 +63,7 @@ class Splatoon(commands.Cog):
         return embed
 
 
-    @nextcord.slash_command(name="splatoon", description="Splatoon command", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="splatoon", description="Splatoon command")
     async def splatoon_slash(
             self,
             interaction: Interaction

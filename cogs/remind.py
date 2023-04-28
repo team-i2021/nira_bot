@@ -179,7 +179,7 @@ n!remind on 8:25 おはようございます！
             ))
             return
 
-    @nextcord.slash_command(name="remind", description="remind", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="remind", description="remind")
     async def remind_slash(self, interaction: Interaction):
         pass
 

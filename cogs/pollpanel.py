@@ -199,7 +199,7 @@ class Pollpanel(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
 
-    @nextcord.message_command(name="Edit Pollpanel", name_localizations={nextcord.Locale.ja: "投票パネル編集"}, guild_ids=n_fc.GUILD_IDS)
+    @nextcord.message_command(name="Edit Pollpanel", name_localizations={nextcord.Locale.ja: "投票パネル編集"})
     async def edit_pollpanel(self, interaction: Interaction, message: nextcord.Message):
         if message.author.id != self.bot.user.id:
             await interaction.response.send_message(embed=nextcord.Embed(title="エラー", description=f"{self.bot.user.mention}が送信した投票パネルにのみこのコマンドを使用できます。", color=0xff0000), ephemeral=True)
@@ -260,7 +260,7 @@ class Pollpanel(commands.Cog):
         await interaction.response.send_modal(PollPanelEditModal(message, options, polltype))
 
 
-    @nextcord.slash_command(name="pollpanel", description="Create pollpanel", description_localizations={nextcord.Locale.ja: "投票パネルを設置します"}, guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="pollpanel", description="Create pollpanel", description_localizations={nextcord.Locale.ja: "投票パネルを設置します"})
     async def pollpanel_slash(
         self,
         interaction: Interaction

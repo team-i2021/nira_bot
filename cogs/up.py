@@ -118,7 +118,7 @@ DissokuのUpをしたら、その1時間後に通知します。
                 await ErrorSend(ctx)
 
     @application_checks.has_permissions(manage_guild=True)
-    @nextcord.slash_command(name="up", description="Dissoku notification", guild_ids=GUILD_IDS)
+    @nextcord.slash_command(name="up", description="Dissoku notification")
     async def up_slash(self, interaction: Interaction):
         pass
 

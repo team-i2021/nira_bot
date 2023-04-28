@@ -285,7 +285,7 @@ class Debug(commands.Cog):
             await ctx.reply(f"```{rt_sh}```")
             return
 
-    @nextcord.slash_command(name="debug", description="Debug commands", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="debug", description="Debug commands")
     async def debug_slash(self, interaction):
         pass
 

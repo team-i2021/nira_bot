@@ -29,7 +29,7 @@ class Gacha(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs):
         self.bot = bot
 
-    @nextcord.slash_command(name="gacha", description="The command of amuse", guild_ids=GUILD_IDS)
+    @nextcord.slash_command(name="gacha", description="The command of amuse")
     async def gacha(self, interaction: Interaction):
         pass
 

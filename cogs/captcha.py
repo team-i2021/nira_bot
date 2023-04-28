@@ -59,7 +59,7 @@ class Captcha(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @nextcord.slash_command(name="captcha", description="Web認証を設定します。", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="captcha", description="Web認証を設定します。")
     async def captcha_slash(
         self,
         interaction: Interaction,

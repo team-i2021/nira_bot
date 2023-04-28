@@ -161,7 +161,7 @@ class Rolepanel(commands.Cog):
         self.add_role_mes = "ロール「`{role_name}`」をあなたに追加しました！\n（もう一度同じボタンを押すと、ロール「`{role_name}`」を削除します。）"
         self.remove_role_mes = "ロール「`{role_name}`」をあなたから削除しました！\n（もう一度同じボタンを押すと、ロール「`{role_name}`」を追加します。）"
 
-    @nextcord.message_command(name="Edit Rolepanel", name_localizations={nextcord.Locale.ja: "ロールパネル編集"}, guild_ids=n_fc.GUILD_IDS)
+    @nextcord.message_command(name="Edit Rolepanel", name_localizations={nextcord.Locale.ja: "ロールパネル編集"})
     async def edit_rolepanel(self, interaction: Interaction, message: nextcord.Message):
         if not admin_check(interaction.guild, interaction.user):
             await interaction.response.send_message(embed=nextcord.Embed(title="エラー", description=f"管理者の方のみがこのコマンドを使用できます。", color=0xff0000), ephemeral=True)
@@ -221,7 +221,7 @@ class Rolepanel(commands.Cog):
             )
         await interaction.response.send_modal(RolePanelEditModal(self.bot, message, roles))
 
-    @nextcord.slash_command(name="rolepanel", description="Create rolepanel", description_localizations={nextcord.Locale.ja: "ロールパネルを設置します"}, guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="rolepanel", description="Create rolepanel", description_localizations={nextcord.Locale.ja: "ロールパネルを設置します"})
     async def rolepanel_slash(
         self,
         interaction: Interaction

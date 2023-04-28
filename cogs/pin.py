@@ -321,7 +321,6 @@ Webhookは使いたくない精神なので、にらBOTが直々に送ってあ�
     @nextcord.message_command(
         name="Set BottomPin",
         name_localizations={Locale.ja: "下部ピン留めする"},
-        guild_ids=n_fc.GUILD_IDS,
     )
     @application_checks.has_permissions(manage_messages=True)
     @application_checks.guild_only()
@@ -334,7 +333,7 @@ Webhookは使いたくない精神なので、にらBOTが直々に送ってあ�
             assert isinstance(interaction.channel, MessageableGuildChannel)
             await self._refresh_channel(interaction.channel)
 
-    @nextcord.slash_command(name="pin", description="BottomPin command", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="pin", description="BottomPin command")
     @application_checks.has_permissions(manage_messages=True)
     @application_checks.guild_only()
     async def pin_s(self, _) -> None:

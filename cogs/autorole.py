@@ -24,7 +24,7 @@ class autorole(commands.Cog):
         self.bot = bot
         self.collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["autorole"]
 
-    @nextcord.slash_command(name="autorole", description="自動ロール", guild_ids=GUILD_IDS)
+    @nextcord.slash_command(name="autorole", description="自動ロール")
     async def autorole(self, interaction: Interaction):
         pass
 

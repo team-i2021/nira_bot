@@ -52,11 +52,11 @@ class User(commands.Cog):
 
         return embed
 
-    @nextcord.user_command(name="Display user info", name_localizations={nextcord.Locale.ja: "ユーザー情報表示"}, guild_ids=n_fc.GUILD_IDS)
+    @nextcord.user_command(name="Display user info", name_localizations={nextcord.Locale.ja: "ユーザー情報表示"})
     async def member_info(self, interaction: Interaction, member: nextcord.Member):
         await interaction.response.send_message(embed=self.UserInfoEmbed(member))
 
-    @nextcord.slash_command(name="afk", description="Change afk status.", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="afk", description="Change afk status.")
     async def afk_turn(self, interaction: Interaction):
         await interaction.response.defer(ephemeral=True)
         nick = interaction.user.display_name
@@ -75,7 +75,7 @@ class User(commands.Cog):
         except Exception as err:
             await interaction.send(f"BOTにあなたのニックネームを変更できる権限がないなどの理由で、コマンドを実行できませんでした。\nサーバーの管理者にお問い合わせください。\nERR: `{err}`\n（あなたがサーバーの管理者の場合はこのコマンドが実行できません。仕様なんで。）")
 
-    @nextcord.slash_command(name="user", description="Display user info", description_localizations={nextcord.Locale.ja: "ユーザー情報表示"}, guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="user", description="Display user info", description_localizations={nextcord.Locale.ja: "ユーザー情報表示"})
     async def user_slash(
         self,
         interaction: Interaction,
@@ -175,7 +175,7 @@ class User(commands.Cog):
                         return
 
     @application_checks.has_permissions(manage_guild=True)
-    @nextcord.slash_command(name="rk", description="Setting of role-keeper", description_localizations={nextcord.Locale.ja: "ロールキーパーの設定"}, guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="rk", description="Setting of role-keeper", description_localizations={nextcord.Locale.ja: "ロールキーパーの設定"})
     async def rk_slash(
         self,
         interaction: Interaction,
@@ -237,7 +237,7 @@ AutoMod等の機能を活用したうえで、過信しすぎずに使用して�
                 await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"サーバーで設定は`有効`です\n設定チャンネル: <#{result['channel_id']}>", color=0x00ff00), ephemeral=True)
 
 
-    @nextcord.slash_command(name="ui", description="Send a message when user join/leave", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="ui", description="Send a message when user join/leave")
     async def ui_slash(self, interaction):
         pass
 

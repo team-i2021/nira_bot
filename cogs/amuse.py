@@ -189,7 +189,7 @@ class Amuse(commands.Cog):
             view=_get_retry_button(DiceId.NORMAL, min_count, max_count),
         )
 
-    @nextcord.slash_command(name="amuse", description="The command of amuse", guild_ids=GUILD_IDS)
+    @nextcord.slash_command(name="amuse", description="The command of amuse")
     async def amuse(self, interaction: Interaction):
         pass
 

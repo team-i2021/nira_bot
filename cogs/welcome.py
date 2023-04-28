@@ -132,7 +132,7 @@ n!welcome leave off
             await ctx.reply(embed=nextcord.Embed(title=f"Welcomeメッセージ設定: `{command}`", description=message, color=0x00ff00))
             return
 
-    @nextcord.slash_command(name="welcome", description="WelcomeMessage command", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="welcome", description="WelcomeMessage command")
     async def welcome_slash(self, interaction: Interaction):
         pass
 

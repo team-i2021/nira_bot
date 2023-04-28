@@ -72,8 +72,11 @@ class Reaction(commands.Cog):
 
 データベースへの接続の最適化のため、実際に設定が適応されるまでに最大で30秒程かかる場合があります。
 """)
-    async def er_command(self, ctx):
-        pass
+    async def er_command(self, ctx: commands.Context):
+        if ctx.invoked_subcommand is None:
+            await ctx.reply(embed=nextcord.Embed(title="Error", description=f"構文が異なります。\n```{self.bot.command_prefix}er [add/del/list/edit]```", color=self.bot.color.ERROR))
+        else:
+            pass
 
     @commands.has_permissions(manage_guild=True)
     @er_command.command(name="add")
@@ -125,7 +128,7 @@ class Reaction(commands.Cog):
             return
         embed = nextcord.Embed(title="追加反応リスト", description=f"追加反応のリストです。", color=0x00ff00)
         for er in er_list:
-            embed.add_field(name=er["trigger"], value=f"- 返信文\n{er['return']}\n\n- メンション\n{'有効' if er['mention'] else '無効'}", inline=False)
+            embed.add_field(name=er["trigger"], value=f"### 返信文\n{er['return']}\n### メンション\n{'有効' if er['mention'] else '無効'}", inline=False)
         await ctx.author.send(embed=embed)
 
     @commands.has_permissions(manage_guild=True)
@@ -154,7 +157,7 @@ class Reaction(commands.Cog):
                 await ctx.reply(embed=nextcord.Embed(title="Success", description=f"トリガー`{trigger}`を編集しました。\n{self._atdb}", color=0x00ff00))
 
 
-    @nextcord.slash_command(name="er", description="Extended Reaction Setting", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="er", description="Extended Reaction Setting")
     async def er_slash(self, interaction: Interaction):
         pass
 
@@ -290,7 +293,7 @@ class Reaction(commands.Cog):
             },
             required=True
         ),
-        mention: bool = SlashOption(
+        mention: str = SlashOption(
             name="mention",
             name_localizations={
                 nextcord.Locale.ja: "メンション"
@@ -300,15 +303,29 @@ class Reaction(commands.Cog):
                 nextcord.Locale.ja: "メンションをするかどうかです"
             },
             required=False,
-            default=False
+            default="None",
+            choices={
+                "Enable": "True",
+                "Disable": "False"
+            },
+            choice_localizations={
+                nextcord.Locale.ja: {
+                    "有効": "True",
+                    "無効": "False"
+                }
+            }
         )
     ):
         await interaction.response.defer(ephemeral=True)
-        edit_result = await self.er_collection.update_one({"guild_id": interaction.guild.id, "trigger": triggerMessage}, {"$set": {"return": returnMessage, "mention": mention}})
+        if mention == "None":
+            update_value = {"return": returnMessage}
+        else:
+            update_value = {"return": returnMessage, "mention": True if mention == "True" else False}
+        edit_result = await self.er_collection.update_one({"guild_id": interaction.guild.id, "trigger": triggerMessage}, {"$set": update_value})
         if edit_result.modified_count == 0:
             await interaction.followup.send(embed=nextcord.Embed(title="Error", description=f"追加反応が存在しませんでした。", color=0xff0000))
         else:
-            await interaction.followup.send(embed=nextcord.Embed(title="Success", description=f"追加反応を編集しました。\nメンションは{'有効' if mention else '無効'}です。\n{self._atdb}", color=0x00ff00))
+            await interaction.followup.send(embed=nextcord.Embed(title="Success", description=f"追加反応を編集しました。\n{self._atdb}", color=0x00ff00))
 
     @commands.has_permissions(manage_guild=True)
     @commands.command(name="nr", help="""\
@@ -366,7 +383,7 @@ class Reaction(commands.Cog):
                 await ctx.send(embed=embed)
 
 
-    @nextcord.slash_command(name="nr", description="Normal Reaction Setting", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="nr", description="Normal Reaction Setting")
     async def nr_slash(self, interaction):
         pass
 
@@ -452,7 +469,7 @@ class Reaction(commands.Cog):
 
 
     @application_checks.has_permissions(manage_guild=True)
-    @nextcord.slash_command(name="ar", description="サーバー全体反応設定", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="ar", description="サーバー全体反応設定")
     async def ar_slash(
             self,
             interaction: Interaction,
@@ -492,7 +509,7 @@ TOKENとは簡単に言えばパスワードです。LINE Notifyのページか�
         await ctx.reply(embed=embed)
 
 
-    @nextcord.slash_command(name="line", description="Setting of Line Notify", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="line", description="Setting of Line Notify")
     async def line_slash(self, interaction: Interaction):
         pass
 

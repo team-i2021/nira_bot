@@ -61,7 +61,7 @@ class MessageCommands(commands.Cog):
     def __init__(self, bot: nira.NIRA, **kwargs):
         self.bot = bot
 
-    @nextcord.message_command(name="その他", guild_ids=n_fc.GUILD_IDS)
+    @nextcord.message_command(name="その他")
     async def other_message_command(self, interaction: Interaction, message: nextcord.Message):
         view = nextcord.ui.View()
         view.add_item(MessageCommandPulldown(self.bot, interaction, message))

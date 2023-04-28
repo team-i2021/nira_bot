@@ -207,7 +207,7 @@ class Translate(commands.Cog):
         self.google_tr = Translator()
         self.mscommand = self.translation_message_command
 
-    @nextcord.slash_command(name="translate", description="Translate.", description_localizations={nextcord.Locale.ja: "翻訳します"}, guild_ids=n_fc.GUILD_IDS)
+    @nextcord.slash_command(name="translate", description="Translate.", description_localizations={nextcord.Locale.ja: "翻訳します"})
     async def slash_translate(
         self,
         interaction: Interaction,
@@ -269,7 +269,7 @@ class Translate(commands.Cog):
     ):
         await interaction.response.send_modal(TranslateModal(self.bot, self.deepl_tr, self.google_tr, source_lang, target_lang))
 
-    #@nextcord.message_command(name="メッセージ翻訳", guild_ids=n_fc.GUILD_IDS)
+    #@nextcord.message_command(name="メッセージ翻訳")
     async def translation_message_command(self, interaction: Interaction, message: nextcord.Message):
         await interaction.response.defer()
         if not contentCheck(message):
