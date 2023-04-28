@@ -8,7 +8,6 @@ import sys
 import traceback
 from subprocess import PIPE
 
-import HTTP_db
 import nextcord
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
@@ -50,18 +49,10 @@ async def ping_there(adr, message: nextcord.Message or Interaction):
 # ctx.message == None:こまんど
 
 
-async def base_ping(bot, client: HTTP_db.Client, adr, message: nextcord.Message or Interaction):
+async def base_ping(latency: float, adr, message: nextcord.Message or Interaction):
     if adr == DISCORD:
-        bot_latency = round(bot.latency * 1000, 3)
-        await message.edit(embed=nextcord.Embed(title="Ping", description=f"### Discord Server\n`{bot_latency}ms`\n### Database Server\n`Connecting...`", color=0x00ff00))
-        try:
-            data = await client.ping()
-            db_latency = round(float(data.ping) * 1000, 3)
-            await message.edit(embed=nextcord.Embed(title="Ping", description=f"### Discord Server\n`{bot_latency}ms`\n### Database Server\n`{db_latency}ms`", color=0x00ff00))
-            return
-        except Exception:
-            await message.edit(embed=nextcord.Embed(title="Ping", description=f"### Discord Server\n`{bot_latency}ms`\n### Database Server\n`Database Connection Error.`", color=0x00ff00))
-            return
+        bot_latency = round(latency * 1000, 3)
+        await message.edit(embed=nextcord.Embed(title="Ping", description=f"### Discord Server\n`{bot_latency}ms`", color=0x00ff00))
 
     elif adr != DISCORD:
         try:
@@ -101,7 +92,7 @@ class Ping(commands.Cog):
         if address is None:
             address = DISCORD
         await interaction.send(embed=nextcord.Embed(title="Ping", description=f"Ping測定中...", color=0x00ff00))
-        await base_ping(self.bot, self.bot.client, address, await interaction.original_message())
+        await base_ping(self.bot.latency, address, await interaction.original_message())
 
     @commands.command(name="ping", help="""\
 レイテンシを表示します。
@@ -116,9 +107,9 @@ IPアドレスまたはドメインの形で指定してください。""")
         message = await ctx.reply(embed=nextcord.Embed(title="Ping", description=f"Ping測定中...", color=0x00ff00))
         texts = ctx.message.content.split(" ", 1)
         if len(texts) == 1:
-            await base_ping(self.bot, self.bot.client, DISCORD, message)
+            await base_ping(self.bot.latency, DISCORD, message)
         else:
-            await base_ping(self.bot, self.bot.client, texts[1], message)
+            await base_ping(self.bot.latency, texts[1], message)
 
 
 def setup(bot, **kwargs):
