@@ -124,31 +124,8 @@ async def server_check(server: dict, embed: nextcord.Embed, type):
         embed.add_field(name=result["name"], value=f"{result['value']}\n```{sv_us}```", inline=False)
     return True
 
-
-# Bool返すタイプ
-
-
-# async def ss_bool(client, g_id, n):
-#     await database.default_pull(client, steam_server)
-#     sv_ad = tuple(steam_server.value[g_id][f"{n}_ad"])
-#     for _ in range(3):
-#         try:
-#             sv_dt = await RetryInfo(sv_ad, 5)
-#             if sv_dt is None:
-#                 raise TimeoutError("timed out")
-#             sv_pl = RetryPlayers(sv_ad)
-#             if sv_pl is None:
-#                 raise TimeoutError("timed out")
-#         except Exception:
-#             pass
-#         else:
-#             return True
-#     else:
-#         return False
-
 # embed
 # サーバーのステータスをチェックする
-
 
 async def ss_pin_embed(server, embed: nextcord.Embed):
     sv_ad = tuple(server["sv_ad"])
