@@ -39,15 +39,13 @@ class Invite(commands.Cog):
 
         await self.collection.update_one({"guild_id": guild_id}, {"$set": result}, upsert=True)
 
-
-    @commands.bot_has_permissions(manage_guild=True)
+    @application_checks.bot_has_permissions(manage_guild=True)
     @nextcord.slash_command(name="invite", description="Set alias for invite url.", guild_ids=n_fc.GUILD_IDS)
     async def invite_slash(
             self,
             interaction: Interaction
         ):
         pass
-
 
     @application_checks.has_permissions(manage_guild=True)
     @invite_slash.subcommand(name="set", description="招待リンクに名前を付けます。")
@@ -79,7 +77,6 @@ class Invite(commands.Cog):
             await interaction.send(embed=nextcord.Embed(title="エラー", description=f"招待リンク`{InviteURL}`が見つかりませんでした。", color=0xFF0000))
         asyncio.ensure_future(self.collection.update_one({"guild_id": interaction.guild.id}, {"$set": InviteData}, upsert=True))
 
-
     @application_checks.has_permissions(manage_guild=True)
     @invite_slash.subcommand(name="del", description="招待リンクの名前を削除します。")
     async def del_invite_slash(
@@ -104,7 +101,6 @@ class Invite(commands.Cog):
         else:
             await interaction.send(embed=nextcord.Embed(title="エラー", description=f"招待リンク`{InviteURL}`が見つかりませんでした。", color=0xFF0000))
         asyncio.ensure_future(self.collection.update_one({"guild_id": interaction.guild.id}, {"$set": InviteData}, upsert=True))
-
 
     @invite_slash.subcommand(name="list", description="招待リンクの一覧を表示します。")
     async def list_invite_slash(self, interaction: Interaction):
