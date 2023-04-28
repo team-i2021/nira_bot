@@ -2,7 +2,6 @@ import alkana
 import os
 import re
 import sys
-from urlextract import URLExtract
 
 from re import compile
 
@@ -11,9 +10,9 @@ command_pattern = compile(r"</[\da-z_ ]+:[\d]>")
 channel_pattern = compile(r"<#[\d]+>")
 user_pattern = compile(r"<@[\d]+>")
 role_pattern = compile(r"<@&[\d]+>")
+url_pattern = compile(r"https?://[\w/:%#\$&\?\(\)~\.=\+\-]+")
 lol_pattern = compile(r"w{3,}")
 
-extractor = URLExtract()
 
 SUBER = {
     ""
@@ -51,9 +50,7 @@ def convert(message: str) -> str:
     """TTS用に文章を構成し直す"""
     if message == "" or type(message) != str:
         raise ValueError()
-    urls = extractor.find_urls(message)
-    for url in urls:
-        message = message.replace(url, "、ゆーあーるえる、")
+    url_pattern.sub("、ゆーあーるえる、", message)
     for word, read in SUBER.items():
         message = message.replace(word, read)
     message = convertE2K(message)
