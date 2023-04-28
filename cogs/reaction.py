@@ -130,14 +130,24 @@ class Reaction(commands.Cog):
 
     @commands.has_permissions(manage_guild=True)
     @er_command.command(name="edit")
-    async def er_edit(self, ctx: commands.Context, trigger: str | None = None, return_text: str | None = None):
+    async def er_edit(self, ctx: commands.Context, trigger: str | None = None, return_text: str | None = None, mention: str | None = None):
         if trigger is None or return_text is None:
-            await ctx.reply(f"構文が異なります。\n```{self.bot.command_prefix}er edit [トリガー] [新反応]```")
+            await ctx.reply(f"構文が異なります。\n```{self.bot.command_prefix}er edit [トリガー] [新反応] [*メンション]```")
         else:
             if not admin_check.admin_check(ctx.guild, ctx.author):
                 await ctx.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
                 return
-            update_result = await self.er_collection.update_one({"guild_id": ctx.guild.id, "trigger": trigger}, {"$set": {"return": return_text}})
+            if mention is None:
+                set_value = {"return": return_text}
+            else:
+                if mention in n_fc.on_ali:
+                    set_value = {"return": return_text, "mention": True}
+                elif mention in n_fc.off_ali:
+                    set_value = {"return": return_text, "mention": False}
+                else:
+                    await ctx.reply(embed=nextcord.Embed(title="Error", description=f"返信に対するメンションの指定が不正です。\n`yes`や`True`又は、`off`や`False`で指定してください。", color=0xff0000))
+                    return
+            update_result = await self.er_collection.update_one({"guild_id": ctx.guild.id, "trigger": trigger}, {"$set": set_value})
             if update_result.modified_count == 0:
                 await ctx.reply(embed=nextcord.Embed(title="Error", description=f"トリガー`{trigger}`は存在しませんでした。", color=0xff0000))
             else:
@@ -279,14 +289,26 @@ class Reaction(commands.Cog):
                 nextcord.Locale.ja: "返信するメッセージ内容です"
             },
             required=True
+        ),
+        mention: bool = SlashOption(
+            name="mention",
+            name_localizations={
+                nextcord.Locale.ja: "メンション"
+            },
+            description="Mention",
+            description_localizations={
+                nextcord.Locale.ja: "メンションをするかどうかです"
+            },
+            required=False,
+            default=False
         )
     ):
         await interaction.response.defer(ephemeral=True)
-        edit_result = await self.er_collection.update_one({"guild_id": interaction.guild.id, "trigger": triggerMessage}, {"$set": {"return": returnMessage}})
+        edit_result = await self.er_collection.update_one({"guild_id": interaction.guild.id, "trigger": triggerMessage}, {"$set": {"return": returnMessage, "mention": mention}})
         if edit_result.modified_count == 0:
             await interaction.followup.send(embed=nextcord.Embed(title="Error", description=f"追加反応が存在しませんでした。", color=0xff0000))
         else:
-            await interaction.followup.send(embed=nextcord.Embed(title="Success", description=f"追加反応を編集しました。\n{self._atdb}", color=0x00ff00))
+            await interaction.followup.send(embed=nextcord.Embed(title="Success", description=f"追加反応を編集しました。\nメンションは{'有効' if mention else '無効'}です。\n{self._atdb}", color=0x00ff00))
 
     @commands.has_permissions(manage_guild=True)
     @commands.command(name="nr", help="""\
