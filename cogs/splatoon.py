@@ -58,7 +58,7 @@ class Splatoon(commands.Cog):
             embed.set_author(name="Splatoon3", icon_url="https://splatoon3.ink/assets/little-buddy.445c3c88.png")
 
         else:
-            embed = nextcord.Embed(title="Not supported match type.", description="Not support or currently not supported.", color=0xff0000)
+            embed = nextcord.Embed(title="Not supported match type.", description="大変申し訳ございませんが、まだその機能には対応していません。", color=self.bot.color.ERROR)
 
         return embed
 
