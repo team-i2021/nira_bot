@@ -1,12 +1,9 @@
 import asyncio
 import distro
 import importlib
-import json
 import logging
-import os
 import platform
 import re
-import shutil
 import subprocess
 import sys
 import traceback
@@ -14,12 +11,11 @@ import psutil
 import websockets
 from subprocess import PIPE
 
-import HTTP_db
 import nextcord
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
 
-from util import admin_check, n_fc, eh, database, slash_tool
+from util import n_fc, slash_tool
 from util.nira import NIRA
 
 
@@ -357,11 +353,7 @@ class Debug(commands.Cog):
         if not (await self.bot.is_owner(interaction.user)):
             raise NIRA.ForbiddenExpand()
         await interaction.response.defer()
-        os = platform.system()
-        try:
-            ping = f"{round((await self.bot.client.ping()).ping * 1000, 2)}ms"
-        except Exception:
-            ping = "Connection Error"
+
         embed = nextcord.Embed(
             title="Debug info",
             description=f"Hosting on {sysinfo()}",
@@ -378,10 +370,6 @@ class Debug(commands.Cog):
         embed.add_field(
             name="Ping(Discord)",
             value=f"{round(self.bot.latency * 1000, 2)}ms"
-        )
-        embed.add_field(
-            name="Ping(HTTP_db)",
-            value=ping
         )
         embed.add_field(
             name="Guilds",
@@ -401,116 +389,6 @@ class Debug(commands.Cog):
             inline=False
         )
         await interaction.followup.send(embed=embed)
-
-    @debug_slash.subcommand(name="db", description="database")
-    async def db(self, interaction: Interaction):
-        pass
-
-    @db.subcommand(name="get", description="Method POST:/get")
-    async def db_get(self, interaction: Interaction, key: str = SlashOption(name="key", description="key", required=True)):
-        if not (await self.bot.is_owner(interaction.user)):
-            raise NIRA.ForbiddenExpand()
-        await interaction.response.defer()
-        try:
-            key = eval(key)
-            value = await self.bot.client.get(key)
-            await interaction.followup.send(embed=nextcord.Embed(title="POST:/get", description=f"```\n{value}```", color=0x00ff00))
-        except Exception:
-            await interaction.followup.send(embed=nextcord.Embed(title="POST:/get", description=f"```\n{traceback.format_exc()}```", color=0xFF0000))
-
-    @db.subcommand(name="get_all", description="Method POST:/get_all")
-    async def db_get_all(self, interaction: Interaction):
-        if not (await self.bot.is_owner(interaction.user)):
-            raise NIRA.ForbiddenExpand()
-        await interaction.response.defer()
-        try:
-            value = await self.bot.client.get_all()
-            await interaction.followup.send(embed=nextcord.Embed(title="POST:/get_all", description=f"```\n{value}```", color=0x00ff00))
-        except Exception:
-            await interaction.followup.send(embed=nextcord.Embed(title="POST:/get_all", description=f"```\n{traceback.format_exc()}```", color=0xFF0000))
-
-    @db.subcommand(name="post", description="Method POST:/post")
-    async def db_post(self, interaction: Interaction, key: str = SlashOption(name="key", description="key", required=True), value: str = SlashOption(name="value", description="value", required=True)):
-        if not (await self.bot.is_owner(interaction.user)):
-            raise NIRA.ForbiddenExpand()
-        await interaction.response.defer()
-        try:
-            key = eval(key)
-            value = eval(value)
-            await self.bot.client.post(key, value)
-            await interaction.followup.send(embed=nextcord.Embed(title="POST:/post", description=f"```\n{value}```", color=0x00ff00))
-        except Exception:
-            await interaction.followup.send(embed=nextcord.Embed(title="POST:/post", description=f"```\n{traceback.format_exc()}```", color=0xFF0000))
-
-    @db.subcommand(name="exists", description="Method POST:/exists")
-    async def db_exists(self, interaction: Interaction, key: str = SlashOption(name="key", description="key", required=True)):
-        if not (await self.bot.is_owner(interaction.user)):
-            raise NIRA.ForbiddenExpand()
-        await interaction.response.defer()
-        try:
-            key = eval(key)
-            value = await self.bot.client.exists(key)
-            await interaction.followup.send(embed=nextcord.Embed(title="POST:/exists", description=f"```\n{value}```", color=0x00ff00))
-        except Exception:
-            await interaction.followup.send(embed=nextcord.Embed(title="POST:/exists", description=f"```\n{traceback.format_exc()}```", color=0xFF0000))
-
-    @db.subcommand(name="delete", description="Method POST:/delete")
-    async def db_delete(self, interaction: Interaction, key: str = SlashOption(name="key", description="key", required=True)):
-        if not (await self.bot.is_owner(interaction.user)):
-            raise NIRA.ForbiddenExpand()
-        await interaction.response.defer()
-        try:
-            key = eval(key)
-            await self.bot.client.delete(key)
-            await interaction.followup.send(embed=nextcord.Embed(title="POST:/delete", description=f"```\n{key}```", color=0x00ff00))
-        except Exception:
-            await interaction.followup.send(embed=nextcord.Embed(title="POST:/delete", description=f"```\n{traceback.format_exc()}```", color=0xFF0000))
-
-#    危ないよね
-#    @db.subcommand(name="delete_all", description="Method POST:/delete_all")
-#    async def db_delete_all(self, interaction: Interaction):
-#        if not (await self.bot.is_owner(interaction.user)):
-#            raise NIRA.ForbiddenExpand()
-#        await interaction.response.defer()
-#        try:
-#            await self.bot.client.delete_all()
-#            await interaction.followup.send(embed=nextcord.Embed(title="POST:/delete_all", description="", color=0x00ff00))
-#        except Exception:
-#            await interaction.followup.send(embed=nextcord.Embed(title="POST:/delete_all", description=f"```\n{traceback.format_exc()}```", color=0xFF0000))
-
-    @db.subcommand(name="info", description="Method GET:/info")
-    async def db_info(self, interaction: Interaction):
-        if not (await self.bot.is_owner(interaction.user)):
-            raise NIRA.ForbiddenExpand()
-        await interaction.response.defer()
-        try:
-            value = await self.bot.client.info()
-            await interaction.followup.send(embed=nextcord.Embed(title="GET:/info", description=f"{value}", color=0x00ff00))
-        except Exception:
-            await interaction.followup.send(embed=nextcord.Embed(title="GET:/info", description=f"```\n{traceback.format_exc()}```", color=0xFF0000))
-
-    @db.subcommand(name="ping", description="Method GET:/ping")
-    async def db_ping(self, interaction: Interaction):
-        if not (await self.bot.is_owner(interaction.user)):
-            raise NIRA.ForbiddenExpand()
-        await interaction.response.defer()
-        try:
-            value = await self.bot.client.ping()
-            await interaction.followup.send(embed=nextcord.Embed(title="GET:/ping", description=f"{round(float(value.ping) * 1000, 2)}ms", color=0x00ff00))
-        except Exception:
-            await interaction.followup.send(embed=nextcord.Embed(title="GET:/ping", description=f"```\n{traceback.format_exc()}```", color=0xFF0000))
-
-    @db.subcommand(name="reload", description="Reload databse module")
-    async def db_reload(self, interaction: Interaction):
-        if not (await self.bot.is_owner(interaction.user)):
-            raise NIRA.ForbiddenExpand()
-        await interaction.response.defer()
-        try:
-            importlib.reload(HTTP_db)
-            importlib.reload(database)
-            await interaction.followup.send(embed=nextcord.Embed(title="RELOAD MODULES", description=f"Reloaded.\nHTTP_db:`{HTTP_db.__version__}`\nutil.database:`{database.__version__}`", color=0x00ff00))
-        except Exception:
-            await interaction.followup.send(embed=nextcord.Embed(title="RELOAD MODULES", description=f"```\n{traceback.format_exc()}```", color=0xff0000))
 
     @debug_slash.subcommand(name="command", description="Manage commands")
     async def command_slash(self, interaction):
