@@ -1,14 +1,5 @@
 import asyncio
-import aiohttp
-import ipaddress
-import json
-import logging
-import os
-import platform
-import subprocess
-import sys
 import enum
-import traceback
 
 import nextcord
 from nextcord import Interaction, SlashOption, ChannelType

@@ -1,18 +1,14 @@
 import listre
-import logging
 import random
 import re
-import sys
 import urllib.parse
 from enum import Enum, auto
-from typing import Literal
 
 import nextcord
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
 
 from util.n_fc import GUILD_IDS
-from util.slash_tool import messages
 from util.wordle_data import words
 from util.nira import NIRA
 

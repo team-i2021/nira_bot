@@ -1,12 +1,11 @@
 import re
-import sys
 from io import StringIO
 
 import nextcord
 from nextcord import Interaction
 from nextcord.ext import commands
 
-from util import admin_check, n_fc, eh
+from util import n_fc, eh
 from util.nira import NIRA
 
 # embedを送信する機能

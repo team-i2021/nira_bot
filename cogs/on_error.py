@@ -1,6 +1,5 @@
 import importlib
 import logging
-import sys
 import traceback
 from difflib import get_close_matches
 from http import HTTPStatus as Codes

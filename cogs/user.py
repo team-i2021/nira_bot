@@ -1,16 +1,10 @@
-import asyncio
-import os
-import re
-import sys
-
-import HTTP_db
 import nextcord
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands, application_checks
 
 from motor import motor_asyncio
 
-from util import admin_check, eh, slash_tool, database, n_fc
+from util import slash_tool, n_fc
 from util.nira import NIRA
 
 SET, DEL, STATUS = (0, 1, 2)

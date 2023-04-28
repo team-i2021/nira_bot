@@ -1,6 +1,5 @@
 import asyncio
 import ipaddress
-import json
 import logging
 import os
 import platform
@@ -11,10 +10,10 @@ from subprocess import PIPE
 
 import HTTP_db
 import nextcord
-from nextcord import Interaction, SlashOption, ChannelType
+from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
 
-from util import admin_check, n_fc, eh, database
+from util import n_fc
 from util.nira import NIRA
 
 # pingを送信するだけ

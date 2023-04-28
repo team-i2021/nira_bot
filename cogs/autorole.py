@@ -1,16 +1,12 @@
-import asyncio
-import logging
-import sys
 from re import compile
 
-import HTTP_db
 import nextcord
 from nextcord import Interaction, SlashOption, Role
 from nextcord.ext import commands, application_checks
 
 from motor import motor_asyncio
 
-from util import admin_check, database, dict_list
+from util import admin_check
 from util.n_fc import GUILD_IDS
 from util.slash_tool import messages
 from util.nira import NIRA

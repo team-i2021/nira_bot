@@ -1,9 +1,6 @@
 import asyncio
 import logging
-import datetime
-import sys
 
-import HTTP_db
 import nextcord
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands, tasks

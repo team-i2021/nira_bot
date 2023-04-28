@@ -1,16 +1,13 @@
-import asyncio
 import logging
-import os
-import sys
 import traceback
 
 import nextcord
-from nextcord import Interaction, SlashOption, ChannelType
+from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
 
 from motor import motor_asyncio
 
-from util import admin_check, n_fc, eh, database
+from util import admin_check, n_fc, database
 from util.nira import NIRA
 
 # join message system

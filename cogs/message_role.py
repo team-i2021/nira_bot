@@ -1,21 +1,13 @@
-import asyncio
-import datetime
-import importlib
-import json
-import logging
-import os
 import re
 import sys
-import traceback
 
-import HTTP_db
 import nextcord
-from nextcord import Interaction, SlashOption, ChannelType
+from nextcord import Interaction, SlashOption
 from nextcord.ext import commands, application_checks
 
 from motor import motor_asyncio
 
-from util import admin_check, n_fc, eh, dict_list, database
+from util import admin_check, n_fc
 from util.nira import NIRA
 
 ROLE_ID = re.compile(r"<@&[\d]+?>")

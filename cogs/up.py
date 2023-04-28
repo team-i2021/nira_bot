@@ -1,11 +1,7 @@
 import asyncio
-import json
 import logging
 import math
-import os
 import random
-import re
-import sys
 import time
 from re import compile
 
@@ -16,7 +12,7 @@ from nextcord.ext import commands, tasks, application_checks
 from motor import motor_asyncio
 
 from util.n_fc import GUILD_IDS
-from util import slash_tool, admin_check, database
+from util import slash_tool
 from util.nira import NIRA
 
 SET, DEL, STATUS = (0, 1, 2)

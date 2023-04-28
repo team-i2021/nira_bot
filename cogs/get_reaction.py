@@ -1,11 +1,8 @@
-import logging
-import os
 import sys
 
 import nextcord
 from nextcord.ext import commands
 
-from util import admin_check, n_fc, eh
 from util.nira import NIRA
 
 SYSDIR = sys.path[0]

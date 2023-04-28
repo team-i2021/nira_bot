@@ -7,7 +7,7 @@ from nextcord.ext import commands, application_checks
 
 from motor import motor_asyncio
 
-from util import admin_check, n_fc, eh
+from util import n_fc
 from util.nira import NIRA
 
 # 定型文を指定したユーザーのDMに送る機能

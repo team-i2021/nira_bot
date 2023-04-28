@@ -7,7 +7,7 @@ from nextcord.ext import commands, application_checks
 
 from motor import motor_asyncio
 
-from util import admin_check, n_fc, eh, web_api, slash_tool
+from util import admin_check, n_fc, web_api
 from util.nira import NIRA
 
 DIR = sys.path[0]

@@ -1,17 +1,11 @@
-import asyncio
-import datetime
-import logging
-import os
 import re
-import sys
 import traceback
-from os import getenv
 
 import nextcord
-from nextcord import Interaction, SlashOption, Role
+from nextcord import Interaction
 from nextcord.ext import commands
 
-from util import n_fc, mc_status, database
+from util import n_fc
 from util.admin_check import admin_check
 from util.nira import NIRA
 

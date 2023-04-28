@@ -1,12 +1,7 @@
-import asyncio
 import importlib
 import logging
-import os
-import sys
 import traceback
-import enum
 
-import HTTP_db
 import nextcord
 from nextcord import Interaction, SlashOption, ChannelType
 from nextcord.ext import commands

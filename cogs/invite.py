@@ -1,16 +1,12 @@
 import asyncio
 import copy
-import logging
-import os
-import sys
-import traceback
 from re import compile
 
 import nextcord
-from nextcord import Interaction, SlashOption, ChannelType
-from nextcord.ext import commands, tasks, application_checks
+from nextcord import Interaction, SlashOption
+from nextcord.ext import commands, application_checks
 
-from util import admin_check, n_fc, eh, database, dict_list
+from util import n_fc
 from util.nira import NIRA
 
 import HTTP_db

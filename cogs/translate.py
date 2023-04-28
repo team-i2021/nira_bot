@@ -1,13 +1,7 @@
-import asyncio
-import json
-import logging
-import os
 import re
 import sys
-import traceback
 
 import deepl
-import googletrans
 import nextcord
 import pycld2
 from googletrans import Translator

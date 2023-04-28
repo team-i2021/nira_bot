@@ -1,20 +1,16 @@
 import asyncio
-import datetime
 import math
 import random
 import re
-import sys
 import time
 
-import HTTP_db
 import nextcord
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
 
 from motor import motor_asyncio
 
-import util.srtr as srtr
-from util import admin_check, n_fc, eh, slash_tool, database
+from util import admin_check, n_fc, slash_tool
 
 # Bump通知
 

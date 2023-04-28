@@ -1,10 +1,8 @@
-import sys
-
 import nextcord
 from nextcord import Interaction
 from nextcord.ext import commands
 
-from util import admin_check, n_fc, eh, slash_tool
+from util import admin_check, n_fc, slash_tool
 
 # 管理者かどうかをチェックする
 

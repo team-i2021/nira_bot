@@ -1,19 +1,13 @@
 import asyncio
 import datetime
-import json
 import logging
-import re
-import sys
 import traceback
-from time import timezone
 
-import HTTP_db
 import nextcord
 from nextcord.ext import commands
 
 from motor import motor_asyncio
 
-from util import admin_check, n_fc, eh, database, dict_list, parallel
 from util.nira import NIRA
 
 

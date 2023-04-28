@@ -1,18 +1,12 @@
-import datetime
-import logging
-from util import admin_check, n_fc, eh, dict_list, database
-from util.nira import NIRA
-import asyncio
-from nextcord.ext import commands, application_checks
-import nextcord
-import traceback
-import os
 import re
 import sys
-from nextcord import Interaction, SlashOption, ChannelType
-import HTTP_db
-import json
-import importlib
+
+import nextcord
+from nextcord import Interaction, SlashOption
+from nextcord.ext import commands, application_checks
+
+from util import admin_check, n_fc
+from util.nira import NIRA
 
 from motor import motor_asyncio
 

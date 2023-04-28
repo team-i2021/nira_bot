@@ -1,8 +1,4 @@
-import listre
-import logging
 import random
-import re
-import sys
 
 
 import nextcord

@@ -1,6 +1,5 @@
 import asyncio
 import importlib
-import os
 import sys
 
 import nextcord
@@ -8,7 +7,7 @@ from nextcord.ext import commands
 
 from motor import motor_asyncio
 
-from util import eh, srtr, database
+from util import eh, srtr
 from util.n_fc import GUILD_IDS
 from util.nira import NIRA
 

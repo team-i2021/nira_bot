@@ -1,6 +1,4 @@
 import importlib
-import logging
-import sys
 import traceback
 
 import nextcord
@@ -8,7 +6,7 @@ from nextcord import Interaction, SlashOption, ChannelType
 from nextcord.ext import commands
 
 import util.help_command as hc
-from util import admin_check, n_fc, eh, slash_tool
+from util import n_fc
 from util.nira import NIRA
 
 # インフォ系
