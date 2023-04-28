@@ -4,6 +4,14 @@ import re
 import sys
 from urlextract import URLExtract
 
+from re import compile
+
+emoji_pattern = compile(r"<[\da-z_:]+>")
+command_pattern = compile(r"</[\da-z_ ]+:[\d]>")
+channel_pattern = compile(r"<#[\d]+>")
+user_pattern = compile(r"<@[\d]+>")
+role_pattern = compile(r"<@&[\d]+>")
+lol_pattern = compile(r"w{3,}")
 
 extractor = URLExtract()
 
@@ -49,7 +57,11 @@ def convert(message: str) -> str:
     for word, read in SUBER.items():
         message = message.replace(word, read)
     message = convertE2K(message)
+    message = emoji_pattern.sub("えもじ", command_pattern.sub("こまんど", channel_pattern.sub("ちゃんねる", user_pattern.sub("ゆーざー", role_pattern.sub(
+        "ろーる",
+        message
+    )))))
+
     message = message.replace("?","？").replace("&","あんど").replace("=","いこーる").replace("\n","。").replace("/", "すらっしゅ").replace(" ", "、").replace(" ", "、")
-    message = re.sub(r"<[\da-z_:]+>", "えもじ", re.sub(r"</[\da-z_ ]+:[\d]>", "こまんど", re.sub(r"<#[\d]+>", "ちゃんねる", re.sub(r"<@[\d]+>", "ゆーざー", re.sub(r"<@&[\d]+>", "ろーる", message)))))
-    message = re.sub("w{3,}", "わらわらわら", message)
+    message = lol_pattern.sub("わら", message)
     return message
