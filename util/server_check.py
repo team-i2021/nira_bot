@@ -13,7 +13,7 @@ import nextcord
 #     )
 
 
-async def RetryInfo(address: tuple[str, int], count: int) -> a2s.SourceInfo | a2s.GoldSrcInfo | None:
+async def RetryInfo(address: tuple[str, int], count: int = 3) -> a2s.SourceInfo | a2s.GoldSrcInfo | None:
     """サーバーのステータスを取得しますが、その際`count`回リトライします。"""
     for _ in range(count):
         try:
@@ -24,7 +24,7 @@ async def RetryInfo(address: tuple[str, int], count: int) -> a2s.SourceInfo | a2
     return None
 
 
-async def RetryPlayers(address: tuple[str, int], count: int) -> list[a2s.Player] | None:
+async def RetryPlayers(address: tuple[str, int], count: int = 3) -> list[a2s.Player] | None:
     """サーバーのユーザー情報を取得しますが、その際`count`回リトライします。"""
     for _ in range(count):
         try:
