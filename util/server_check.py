@@ -28,7 +28,7 @@ async def RetryPlayers(address: tuple[str, int], count: int = 3) -> list[a2s.Pla
     """サーバーのユーザー情報を取得しますが、その際`count`回リトライします。"""
     for _ in range(count):
         try:
-            players = await a2s.aplayers(address)
+            players: list[a2s.Player] = await a2s.aplayers(address)
             return [pl for pl in players if pl.name != ""]
         except Exception:
             await asyncio.sleep(1)
@@ -38,9 +38,9 @@ async def RetryPlayers(address: tuple[str, int], count: int = 3) -> list[a2s.Pla
 # サーバーのステータスをチェックする
 
 
-async def server_check(server: dict, embed: nextcord.Embed, type):
+async def server_check(server: dict[str, str | list[str | int]], embed: nextcord.Embed, type):
     try:
-        sv_ad = tuple(server["sv_ad"])
+        sv_ad: tuple[str, int] = tuple(server["sv_ad"])
         sv_nm = server["sv_nm"]
     except Exception:
         embed.add_field(name="サーバーはセットされていません。", value="`n!ss list`でサーバーリストを確認してみましょう！", inline=False)
@@ -60,7 +60,7 @@ async def server_check(server: dict, embed: nextcord.Embed, type):
     if type == 0:
         result = {
             "name": f"> {sv_dt.server_name} - {sv_dt.map_name}",
-            "value": f":white_check_mark:オンライン `{round(sv_dt.ping*1000,2)}`ms",
+            "value": f":white_check_mark:オンライン `{round(sv_dt.ping*1000, 2)}`ms",
         }
     elif type == 1:
         result = {
@@ -69,7 +69,6 @@ async def server_check(server: dict, embed: nextcord.Embed, type):
         }
     else:
         raise ValueError
-    user = ""
     sv_us = await RetryPlayers(sv_ad, 5)
     if sv_us is None:
         if type == 0:
@@ -85,24 +84,16 @@ async def server_check(server: dict, embed: nextcord.Embed, type):
                 inline=False,
             )
         return True
-    us = 0
     if type == 0:
         if sv_us != []:
-            for i in range(len(sv_us)):
-                user_add = str(sv_us[i].name)
-                user_time = int(sv_us[i].duration / 60)
-                if user_time >= 60:
-                    user_time = f"{int(user_time // 60)}時間{int(user_time % 60)}"
-                if user_add != "":
-                    user = user + f"\n{user_add} | {user_time}分"
-                else:
-                    us = us - 1
+            users = [f"{u.name} | {f'{int(t // 60)}時間{int(t % 60)}' if (t := int(u.duration / 60)) >= 60 else t}分" for u in sv_us if u.name != ""]
+            user = "\n".join(users)
             if user != "":
                 embed.add_field(
                     name=result["name"],
                     value=(
                         f"{result['value']}\n\n"
-                        f"> Online Player\nプレーヤー数:`{len(sv_us)+us}/{sv_dt.max_players}`人\n"
+                        f"> Online Player\nプレーヤー数:`{len(users)}/{sv_dt.max_players}`人\n"
                         f"```{user}```\n"
                         "=========="
                     ),
@@ -127,8 +118,8 @@ async def server_check(server: dict, embed: nextcord.Embed, type):
 # embed
 # サーバーのステータスをチェックする
 
-async def ss_pin_embed(server, embed: nextcord.Embed):
-    sv_ad = tuple(server["sv_ad"])
+async def ss_pin_embed(server: dict[str, str | list[str | int]], embed: nextcord.Embed):
+    sv_ad: tuple[str, int] = tuple(server["sv_ad"])
     sv_nm = server["sv_nm"]
     sv_dt = await RetryInfo(sv_ad, 5)
     if sv_dt is None:
@@ -136,9 +127,8 @@ async def ss_pin_embed(server, embed: nextcord.Embed):
         return True
     result = {
         "name": f"> {sv_dt.server_name} - {sv_dt.map_name}",
-        "value": f":white_check_mark:オンライン `{round(sv_dt.ping*1000,2)}`ms",
+        "value": f":white_check_mark:オンライン `{round(sv_dt.ping*1000, 2)}`ms",
     }
-    user = ""
     sv_us = await RetryPlayers(sv_ad, 5)
     if sv_us is None:
         embed.add_field(
@@ -147,23 +137,15 @@ async def ss_pin_embed(server, embed: nextcord.Embed):
             inline=False,
         )
         return True
-    us = 0
     if sv_us != []:
-        for i in range(len(sv_us)):
-            user_add = str(sv_us[i].name)
-            user_time = int(sv_us[i].duration / 60)
-            if user_time >= 60:
-                user_time = f"{int(user_time // 60)}時間{int(user_time % 60)}"
-            if user_add != "":
-                user = user + f"\n{user_add} | {user_time}分"
-            else:
-                us = us - 1
+        users = [f"{u.name} | {f'{int(t // 60)}時間{int(t % 60)}' if (t := int(u.duration / 60)) >= 60 else t}分" for u in sv_us if u.name != ""]
+        user = "\n".join(users)
         if user != "":
             embed.add_field(
                 name=result["name"],
                 value=(
                     f"{result['value']}\n\n"
-                    f"> Online Player\nプレーヤー数:`{len(sv_us)+us}/{sv_dt.max_players}`人\n"
+                    f"> Online Player\nプレーヤー数:`{len(users)}/{sv_dt.max_players}`人\n"
                     f"```{user}```\n"
                     "=========="
                 ),
