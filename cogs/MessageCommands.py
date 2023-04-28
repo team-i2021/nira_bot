@@ -17,7 +17,7 @@ class MessageCommandPulldown(nextcord.ui.Select):
     def __init__(self, bot: nira.NIRA, interaction: Interaction, message: nextcord.Message):
         options = [
             nextcord.SelectOption(
-                label="Embedコンテンツの取得", description="Embedの中身を取得します。", value="Embed"
+                label="Embedコンテンツの取得", description="Embedの中身を取得します。", value="SendEmbed"
             ),
             nextcord.SelectOption(
                 label="メッセージの翻訳", description="メッセージを翻訳します。", value="Translate"
@@ -49,7 +49,7 @@ class MessageCommandPulldown(nextcord.ui.Select):
                     description="A. メッセージコマンドの機能を呼び出そうとしましたが、機能が見つかりませんでした。\n単純なエラーか、メンテナンスなどによりBOTの機能が制限されている場合があります。\nNEWSチャンネルを確認するか、詳しくはこのメッセージをスクショしてお問い合わせください。",
                     color=0xff0000
                 ).set_footer(
-                    text=f"debug::value:{value}"
+                    text=f"debug::value::{value}"
                 ),
                 ephemeral=True
             )
