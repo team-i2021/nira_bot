@@ -330,7 +330,7 @@ class normal_reaction(commands.Cog):
         # 追加反応
         if len(ex_reaction_list := list(filter(lambda item: item["guild_id"] == message.guild.id and re.search(item["trigger"], message.content), self.ex_reaction_list))):
             for reaction in ex_reaction_list:
-                asyncio.ensure_future(self._after_reaction(await message.reply(reaction["return"], mention_author=reaction["mention"])))
+                asyncio.ensure_future(message.reply(reaction["return"], mention_author=reaction["mention"]))
 
         ###############################
         # 通常反応のブール値存在チェック #
