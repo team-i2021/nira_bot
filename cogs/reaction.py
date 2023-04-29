@@ -356,7 +356,7 @@ class Reaction(commands.Cog):
         elif len(setting) == 2:
             if setting[1] in n_fc.on_ali:
                 await self.nr_collection.update_one({"guild_id": ctx.guild.id}, {"$set": {str(ctx.channel.id): True}}, upsert=True)
-                await ctx.send("通常反応を有効化しました。\n※サーバーで反応が無効化されている場合は、個別で有効化しても反応しませんのでご注意ください。\n{self._atdb}")
+                await ctx.send(f"通常反応を有効化しました。\n※サーバーで反応が無効化されている場合は、個別で有効化しても反応しませんのでご注意ください。\n{self._atdb}")
             elif setting[1] in n_fc.off_ali:
                 await self.nr_collection.update_one({"guild_id": ctx.guild.id}, {"$set": {str(ctx.channel.id): False}}, upsert=True)
                 await ctx.send(f"通常反応を無効化しました。\n{self._atdb}")
