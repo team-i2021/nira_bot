@@ -308,7 +308,11 @@ class normal_reaction(commands.Cog):
         # AllReactionSetting
         # guild_idで指定しているから通常であれば長さは1または0になる。
         if len(all_reaction_list := list(filter(lambda item: item["guild_id"] == message.guild.id, self.all_reaction_list))) == 0:
-            return
+            all_reaction_list = [{
+                "guild_id": message.guild.id,
+                "all": 1,
+            }]
+            asyncio.ensure_future(self.ar_correction.insert_one(all_reaction_list[0]))
 
         if not all_reaction_list[0]["all"]:
             return
