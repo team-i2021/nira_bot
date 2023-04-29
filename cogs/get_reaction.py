@@ -14,8 +14,10 @@ class GetReaction(commands.Cog):
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction: nextcord.Reaction, member: nextcord.Member):
         if member.id != self.bot.user.id and reaction.message.author.id == self.bot.user.id and str(reaction.emoji) == '<:trash:908565976407236608>':
-            await reaction.message.delete()
-            return
+            if message.reference is not None and message.reference.cached_message is not None:
+                if message.reference.cached_message.author.id == member.id:
+                    await reaction.message.delete()
+                    return
 
 
 def setup(bot, **kwargs):
