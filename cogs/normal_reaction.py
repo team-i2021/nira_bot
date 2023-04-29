@@ -159,86 +159,86 @@ async def n_reaction(message: nextcord.Message, *custom: int) -> nextcord.Messag
         if reaction_files[ans[1]][0] == 0:
             if reaction_files[ans[1]][1] == 1:
                 if reaction_files[ans[1]][2] is not None:
-                    await message.reply(reaction_files[ans[1]][2])
+                    return await message.reply(reaction_files[ans[1]][2])
                 else:
                     await asyncio.sleep(0)
             else:
                 rnd = random.randint(1, reaction_files[ans[1]][1])
-                await message.reply(reaction_files[ans[1]][rnd+1])
+                return await message.reply(reaction_files[ans[1]][rnd+1])
 
         # 通常画像
         elif reaction_files[ans[1]][0] == 1:
             if reaction_files[ans[1]][1] == 1:
                 if os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.png"):
-                    await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.png"))
+                    return await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.png"))
                 elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"):
-                    await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"))
+                    return await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"))
                 elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"):
-                    await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"))
+                    return await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"))
             else:
                 rnd = random.randint(1, reaction_files[ans[1]][1])
                 if os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"):
-                    await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"))
+                    return await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"))
                 elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"):
-                    await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"))
+                    return await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"))
                 elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"):
-                    await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"))
+                    return await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"))
 
         # ニラ画像
         elif reaction_files[ans[1]][0] == 2:
             if nrs:
                 if reaction_files[ans[1]][1] == 1:
                     if os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.png"):
-                        await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.png"))
+                        return await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.png"))
                     elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"):
-                        await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"))
+                        return await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"))
                     elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"):
-                        await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"))
+                        return await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"))
                 else:
                     rnd = random.randint(1, reaction_files[ans[1]][1])
                     if os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"):
-                        await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"))
+                        return await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"))
                     elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"):
-                        await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"))
+                        return await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"))
                     elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"):
-                        await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"))
+                        return await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"))
 
         # にらテキスト
         elif reaction_files[ans[1]][0] == 3:
             if nrs:
                 if reaction_files[ans[1]][1] == 1:
-                    await message.reply(reaction_files[ans[1]][2])
+                    return await message.reply(reaction_files[ans[1]][2])
                 else:
                     rnd = random.randint(1, reaction_files[ans[1]][1])
-                    await message.reply(reaction_files[ans[1]][rnd+1])
+                    return await message.reply(reaction_files[ans[1]][rnd+1])
 
         # Guild画像
         elif reaction_files[ans[1]][0] == 4:
             if message.guild.id in allow_guild:
                 if reaction_files[ans[1]][1] == 1:
                     if os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.png"):
-                        await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.png"))
+                        return await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.png"))
                     elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"):
-                        await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"))
+                        return await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.jpg"))
                     elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"):
-                        await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"))
+                        return await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}.mp4"))
                 else:
                     rnd = random.randint(1, reaction_files[ans[1]][1])
                     if os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"):
-                        await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"))
+                        return await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.png"))
                     elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"):
-                        await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"))
+                        return await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.jpg"))
                     elif os.path.isfile(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"):
-                        await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"))
+                        return await message.reply(file=nextcord.File(f"{image_loc}/{reaction_files[ans[1]][2]}_{rnd}.mp4"))
 
         # Guildテキスト
         elif reaction_files[ans[1]][0] == 5:
             if message.guild.id in allow_guild:
                 if reaction_files[ans[1]][1] == 1:
-                    await message.reply(reaction_files[ans[1]][2])
+                    return await message.reply(reaction_files[ans[1]][2])
                 else:
                     rnd = random.randint(1, reaction_files[ans[1]][1])
-                    await message.reply(reaction_files[ans[1]][rnd+1])
+                    return await message.reply(reaction_files[ans[1]][rnd+1])
 
         # リアクション追加
         elif reaction_files[ans[1]][0] == 6:
