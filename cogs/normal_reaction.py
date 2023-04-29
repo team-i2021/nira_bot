@@ -290,6 +290,7 @@ class normal_reaction(commands.Cog):
 
         if isinstance(message.channel, nextcord.DMChannel) and message.author != self.bot.user:
             await n_reaction(message)
+            return
         if isinstance(message.channel, nextcord.Thread):
             return
 
@@ -312,7 +313,7 @@ class normal_reaction(commands.Cog):
                 "guild_id": message.guild.id,
                 "all": 1,
             }]
-            asyncio.ensure_future(self.ar_correction.insert_one(all_reaction_list[0]))
+            asyncio.ensure_future(self.ar_collection.insert_one(all_reaction_list[0]))
 
         if not all_reaction_list[0]["all"]:
             return
