@@ -1,7 +1,7 @@
 import asyncio
 
 import nextcord
-from nextcord.ext import commands, application_checks
+from nextcord.ext import application_checks, commands
 
 from util.nira import NIRA
 
@@ -68,44 +68,52 @@ class ChannelSort(commands.Cog):
         name="sort",
         description="Sorts the channels in the server.",
         description_localizations={
-            nextcord.Locale.ja: "サーバーのチャンネルを並べ替えます。"
-        }
+            nextcord.Locale.ja: "サーバーのチャンネルを並べ替えます。",
+        },
     )
     async def sort_slash(
         self,
         interaction: nextcord.Interaction,
-        category: nextcord.CategoryChannel | None = nextcord.SlashOption(
+        category: (nextcord.CategoryChannel | None) = nextcord.SlashOption(
             name="category",
             description="The category to sort.",
             description_localizations={
-                nextcord.Locale.ja: "並べ替えるカテゴリー。"
+                nextcord.Locale.ja: "並べ替えるカテゴリー。",
             },
-            required=False
+            required=False,
         ),
     ):
         await interaction.response.defer()
         if category is None:
             category = interaction.channel.category
         if category is None:
-            await interaction.send(embed=nextcord.Embed(
-                title="エラー",
-                description="カテゴリー外のチャンネルでこのコマンドを実行するには、カテゴリーを指定する必要があります。",
-                color=self.bot.color.ERROR
-            ))
+            await interaction.send(
+                embed=nextcord.Embed(
+                    title="エラー",
+                    description="カテゴリー外のチャンネルでこのコマンドを実行するには、カテゴリーを指定する必要があります。",
+                    color=self.bot.color.ERROR,
+                )
+            )
             return
 
         channels = category.channels
         if len(channels) <= 1:
-            await interaction.send(embed=nextcord.Embed(
-                title="終了",
-                description="指定したカテゴリーにはチャンネルが2つ以上ないため、操作が終了しました。",
-                color=self.bot.color.ATTENTION
-            ))
+            await interaction.send(
+                embed=nextcord.Embed(
+                    title="終了",
+                    description="指定したカテゴリーにはチャンネルが2つ以上ないため、操作が終了しました。",
+                    color=self.bot.color.ATTENTION,
+                )
+            )
             return
 
         sorted_channels = self.quick_sort(channels)
-        text_channels = [c for c in sorted_channels if isinstance(c, nextcord.TextChannel) or isinstance(c, nextcord.ForumChannel)]
-        voice_channels = [c for c in sorted_channels if isinstance(c, nextcord.VoiceChannel) or isinstance(c, nextcord.StageChannel)]
+        text_channels = [
+            c for c in sorted_channels if isinstance(c, nextcord.TextChannel) or isinstance(c, nextcord.ForumChannel)
+        ]
+        voice_channels = [
+            c for c in sorted_channels if isinstance(c, nextcord.VoiceChannel) or isinstance(c, nextcord.StageChannel)
+        ]
 
         print(text_channels)
         print(voice_channels)
@@ -122,11 +130,10 @@ class ChannelSort(commands.Cog):
             await voice_channels[pos].move(beginning=True, offset=pos, category=category)
             await asyncio.sleep(1)
 
-        await interaction.send(embed=nextcord.Embed(
-            title="完了",
-            description="チャンネルの並べ替えが完了しました。",
-            color=self.bot.color.NORMAL
-        ))
+        await interaction.send(
+            embed=nextcord.Embed(title="完了", description="チャンネルの並べ替えが完了しました。", color=self.bot.color.NORMAL)
+        )
+
 
 def setup(bot: NIRA):
     bot.add_cog(ChannelSort(bot))
