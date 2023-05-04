@@ -15,7 +15,7 @@ class ChannelSort(commands.Cog):
 
         優位条件1: チャンネル名が同じ場合、IDが小さい方が優位
         優位条件2: チャンネル名が異なる場合、Unicodeのコードポイント順で小さい方が優位
-        優位条件3: それ以外の場合、チャンネルは同じと判断されるため、aをが優位とされる
+        優位条件3: それ以外の場合、チャンネルは同じと判断されるため、aが優位とされる
 
         Parameters
         ----------
@@ -61,6 +61,7 @@ class ChannelSort(commands.Cog):
 
             return left + [pivot] + right
 
+    @application_checks.guild_only()
     @application_checks.has_guild_permissions(manage_channels=True)
     @application_checks.bot_has_guild_permissions(manage_channels=True)
     @nextcord.slash_command(
@@ -73,7 +74,7 @@ class ChannelSort(commands.Cog):
     async def sort_slash(
         self,
         interaction: nextcord.Interaction,
-        category: nextcord.CategoryChannel = nextcord.SlashOption(
+        category: nextcord.CategoryChannel | None = nextcord.SlashOption(
             name="category",
             description="The category to sort.",
             description_localizations={
@@ -83,15 +84,16 @@ class ChannelSort(commands.Cog):
         ),
     ):
         await interaction.response.defer()
-        if isinstance(interaction.channel, nextcord.DMChannel):
+        if category is None:
+            category = interaction.channel.category
+        if category is None:
             await interaction.send(embed=nextcord.Embed(
                 title="エラー",
-                description="DMチャンネルではこのコマンドを使用できません。",
+                description="カテゴリー外のチャンネルでこのコマンドを実行するには、カテゴリーを指定する必要があります。",
                 color=self.bot.color.ERROR
             ))
             return
-        if category is None:
-            category = interaction.channel.category
+
         channels = category.channels
         if len(channels) <= 1:
             await interaction.send(embed=nextcord.Embed(
