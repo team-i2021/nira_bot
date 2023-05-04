@@ -1,9 +1,13 @@
 import asyncio
+from typing import TypeVar
 
 import nextcord
 from nextcord.ext import application_checks, commands
 
 from util.nira import NIRA
+
+GuildChannelT_co = TypeVar("GuildChannelT_co", bound=nextcord.abc.GuildChannel, covariant=True)
+
 
 class ChannelSort(commands.Cog):
     def __init__(self, bot: NIRA):
@@ -44,7 +48,7 @@ class ChannelSort(commands.Cog):
                         return b
             return a
 
-    def quick_sort(self, channels: list[nextcord.abc.GuildChannel]) -> list[nextcord.abc.GuildChannel]:
+    def quick_sort(self, channels: list[GuildChannelT_co]) -> list[GuildChannelT_co]:
         """
         理解が間違ってなければクイックソートしてます
         """
@@ -83,6 +87,9 @@ class ChannelSort(commands.Cog):
             required=False,
         ),
     ):
+        assert interaction.channel is not None
+        assert not isinstance(interaction.channel, nextcord.PartialMessageable)
+
         await interaction.response.defer()
         if category is None:
             category = interaction.channel.category
