@@ -962,7 +962,8 @@ Steam非公式サーバーのステータスを表示します
         if auto_doc is None:
             await interaction.send(f"{interaction.guild.name}では、AutoSSは実行されていません。", ephemeral=True)
         else:
-            message = await (await self.bot.fetch_channel(auto_doc[0])).fetch_message(auto_doc[1])
+            channel = await self.bot.resolve_channel(auto_doc["channel_id"])
+            message = await channel.fetch_message(auto_doc["message_id"])
             asyncio.ensure_future(ss_force(self.bot, message))
             await interaction.send("リロードしました。", ephemeral=True)
 
