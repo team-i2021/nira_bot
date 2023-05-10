@@ -134,7 +134,7 @@ remove: ロールの剥奪を行うかどうか（`on`/`off`）（指定され�
                     "role": role_id,
                     "remove_role": remove
                 }
-                await self.collection.update_one({"guild_id": ctx.guild.id}, {"$set": {MOD_LIST[ctx.guild.id]}}, upsert=True)
+                await self.collection.update_one({"guild_id": ctx.guild.id}, {"$set": MOD_LIST[ctx.guild.id]}, upsert=True)
                 await ctx.reply(f"設定完了", embed=nextcord.Embed(title="荒らし対策", description=f"メッセージカウンター:`{args[2]}`\nミュート用ロール:<@&{role_id}>\n付与されてたロールの剥奪:{remove}", color=0x00ff00))
             else:
                 await ctx.reply(embed=nextcord.Embed(title="荒らし対策", description="あなたは管理者ではありません。", color=0xff0000))
@@ -178,7 +178,7 @@ remove: ロールの剥奪を行うかどうか（`on`/`off`）（指定され�
                     "role": role.id,
                     "remove_role": remove_role
                 }
-                await self.collection.update_one({"guild_id": interaction.guild.id}, {"$set": {MOD_LIST[interaction.guild.id]}}, upsert=True)
+                await self.collection.update_one({"guild_id": interaction.guild.id}, {"$set": MOD_LIST[interaction.guild.id]}, upsert=True)
             except Exception as err:
                 await interaction.response.send_message(embed=nextcord.Embed(title="荒らし対策", description=f"エラーが発生しました。\n```\n{err}```", color=0xff0000), ephemeral=True)
                 return
