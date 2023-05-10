@@ -138,9 +138,6 @@ remove: ロールの剥奪を行うかどうか（`on`/`off`）（指定され�
                 await ctx.reply(f"設定完了", embed=nextcord.Embed(title="荒らし対策", description=f"メッセージカウンター:`{args[2]}`\nミュート用ロール:<@&{role_id}>\n付与されてたロールの剥奪:{remove}", color=0x00ff00))
             else:
                 await ctx.reply(embed=nextcord.Embed(title="荒らし対策", description="あなたは管理者ではありません。", color=0xff0000))
-        elif ctx.message.content == f"{self.bot.command_prefix}mod debug":
-            if (await self.bot.is_owner(ctx.author)):
-                await ctx.reply(f"messageCounter: `{counter.messageCounter}`\nmod_list: `{MOD_LIST}`\nmod_check: `{counter.messageCounter[ctx.author.id] >= MOD_LIST[ctx.guild.id]['counter']}`\nlast reset: `{reset_time}`")
 
 
     @nextcord.slash_command(name="mod", description="荒らし対策機能の設定を変更します。")
