@@ -43,15 +43,26 @@ async def server_check(server: dict[str, str | list[str | int]], embed: nextcord
         sv_ad: tuple[str, int] = tuple(server["sv_ad"])
         sv_nm = server["sv_nm"]
     except Exception:
-        embed.add_field(name="サーバーはセットされていません。", value="`n!ss list`でサーバーリストを確認してみましょう！", inline=False)
+        embed.insert_field_at(
+            index=server["server_id"] - 1,
+            name="サーバーはセットされていません。",
+            value="`n!ss list`でサーバーリストを確認してみましょう！",
+            inline=False
+        )
         return
     sv_dt = None
     sv_dt = await RetryInfo(sv_ad, 5)
     if sv_dt is None:
         if type == 0:
-            embed.add_field(name=f"> {sv_nm}", value=":ng:サーバーに接続できませんでした。", inline=False)
+            embed.insert_field_at(
+                index=server["server_id"] - 1,
+                name=f"> {sv_nm}",
+                value=":ng:サーバーに接続できませんでした。",
+                inline=False,
+            )
         elif type == 1:
-            embed.add_field(
+            embed.insert_field_at(
+                index=server["server_id"] - 1,
                 name=f"> {sv_nm}",
                 value="`An error has occrred during checking server status.`",
                 inline=False,
@@ -72,13 +83,15 @@ async def server_check(server: dict[str, str | list[str | int]], embed: nextcord
     sv_us = await RetryPlayers(sv_ad, 5)
     if sv_us is None:
         if type == 0:
-            embed.add_field(
+            embed.insert_field_at(
+                index=server["server_id"] - 1,
                 name=result["name"],
                 value=f"{result['value']}\nプレイヤー情報が取得できませんでした。",
                 inline=False,
             )
         elif type == 1:
-            embed.add_field(
+            embed.insert_field_at(
+                index=server["server_id"] - 1,
                 name=result["name"],
                 value=f"{result['value']}\n`An error has occurred during checking online player.`",
                 inline=False,
@@ -89,7 +102,8 @@ async def server_check(server: dict[str, str | list[str | int]], embed: nextcord
             users = [f"{u.name} | {f'{int(t // 60)}時間{int(t % 60)}' if (t := int(u.duration / 60)) >= 60 else t}分" for u in sv_us if u.name != ""]
             user = "\n".join(users)
             if user != "":
-                embed.add_field(
+                embed.insert_field_at(
+                    index=server["server_id"] - 1,
                     name=result["name"],
                     value=(
                         f"{result['value']}\n"
@@ -99,19 +113,26 @@ async def server_check(server: dict[str, str | list[str | int]], embed: nextcord
                     inline=False,
                 )
             else:
-                embed.add_field(
+                embed.insert_field_at(
+                    index=server["server_id"] - 1,
                     name=result["name"],
                     value=f"{result['value']}\n:information_source:オンラインユーザーはいません。",
                     inline=False,
                 )
         else:
-            embed.add_field(
+            embed.insert_field_at(
+                index=server["server_id"] - 1,
                 name=result["name"],
                 value=f"{result['value']}\n:information_source:オンラインユーザーはいません。",
                 inline=False,
             )
     elif type == 1:
-        embed.add_field(name=result["name"], value=f"{result['value']}```{sv_us}```", inline=False)
+        embed.insert_field_at(
+            index=server["server_id"] - 1,
+            name=result["name"],
+            value=f"{result['value']}```{sv_us}```",
+            inline=False,
+        )
     return True
 
 # embed
@@ -122,7 +143,12 @@ async def ss_pin_embed(server: dict[str, str | list[str | int]], embed: nextcord
     sv_nm = server["sv_nm"]
     sv_dt = await RetryInfo(sv_ad, 5)
     if sv_dt is None:
-        embed.add_field(name=f"> {sv_nm}", value=":ng:サーバーに接続できませんでした。", inline=False)
+        embed.insert_field_at(
+            index=server["server_id"] - 1,
+            name=f"> {sv_nm}",
+            value=":ng:サーバーに接続できませんでした。",
+            inline=False,
+        )
         return True
     result = {
         "name": f"> {sv_dt.server_name} - {sv_dt.map_name}",
@@ -130,7 +156,8 @@ async def ss_pin_embed(server: dict[str, str | list[str | int]], embed: nextcord
     }
     sv_us = await RetryPlayers(sv_ad, 5)
     if sv_us is None:
-        embed.add_field(
+        embed.insert_field_at(
+            index=server["server_id"] - 1,
             name=result["name"],
             value=f"{result['value']}\nプレイヤー情報が取得できませんでした。",
             inline=False,
@@ -140,7 +167,8 @@ async def ss_pin_embed(server: dict[str, str | list[str | int]], embed: nextcord
         users = [f"{u.name} | {f'{int(t // 60)}時間{int(t % 60)}' if (t := int(u.duration / 60)) >= 60 else t}分" for u in sv_us if u.name != ""]
         user = "\n".join(users)
         if user != "":
-            embed.add_field(
+            embed.insert_field_at(
+                index=server["server_id"] - 1,
                 name=result["name"],
                 value=(
                     f"{result['value']}\n"
@@ -150,13 +178,15 @@ async def ss_pin_embed(server: dict[str, str | list[str | int]], embed: nextcord
                 inline=False,
             )
         else:
-            embed.add_field(
+            embed.insert_field_at(
+                index=server["server_id"] - 1,
                 name=result["name"],
                 value=f"{result['value']}\n:information_source:オンラインユーザーはいません。\n==========",
                 inline=False,
             )
     else:
-        embed.add_field(
+        embed.insert_field_at(
+            index=server["server_id"] - 1,
             name=result["name"],
             value=f"{result['value']}\n:information_source:オンラインユーザーはいません。\n==========",
             inline=False,

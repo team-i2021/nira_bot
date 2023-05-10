@@ -130,7 +130,8 @@ async def ss_base(
                     color=0x00FF00,
                 )
                 for server in servers:
-                    embed.add_field(
+                    embed.insert_field_at(
+                        index=server["server_id"] - 1,
                         name=f"ID: `{server['server_id']}`\n保存名: `{server['sv_nm']}`",
                         value=f"アドレス：`{server['sv_ad'][0]}:{server['sv_ad'][1]}`",
                     )
@@ -655,7 +656,8 @@ Steam非公式サーバーのステータスを表示します
                     title="SteamDedicatedServer", description=interaction.guild.name, color=0x00FF00
                 )
                 for server in servers:
-                    embed.add_field(
+                    embed.insert_field_at(
+                        index=server["server_id"] - 1,
                         name=f"ID: `{server['server_id']}`\n保存名: `{server['sv_nm']}`",
                         value=f"アドレス：`{server['sv_ad'][0]}:{server['sv_ad'][1]}`",
                     )
