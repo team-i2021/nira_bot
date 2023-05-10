@@ -227,23 +227,23 @@ AutoMod等の機能を活用したうえで、過信しすぎずに使用して�
                 await self.winfo_collection.update_one({"guild_id": guild_id}, {"$set": {"channel_id": channel.id}}, upsert=True)
                 CHANNEL = await self.bot.fetch_channel(channel.id)
                 await CHANNEL.send("このチャンネルが、ユーザー情報表示チャンネルとして指定されました。")
-                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"<#{channel.id}>に指定されました。", color=0x00ff00), ephemeral=True)
+                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"<#{channel.id}>に指定されました。", color=self.bot.color.NORMAL), ephemeral=True)
             except Exception as err:
-                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"エラーが発生しました。\n```\n{err}```", color=0xff000), ephemeral=True)
+                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"エラーが発生しました。\n```\n{err}```", color=self.bot.color.ERROR), ephemeral=True)
         elif type == DEL:
             try:
                 if result is None:
-                    await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"このサーバーには登録されていません。", color=0xff0000), ephemeral=True)
+                    await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"このサーバーには登録されていません。", color=self.bot.color.ATTENTION), ephemeral=True)
                     return
                 await self.winfo_collection.delete_one({"guild_id": guild_id})
-                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"設定を削除しました。", color=0x00ff00), ephemeral=True)
+                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"設定を削除しました。", color=self.bot.color.NORMAL), ephemeral=True)
             except Exception as err:
-                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"エラーが発生しました。\n```\n{err}```", color=0xff000), ephemeral=True)
+                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"エラーが発生しました。\n```\n{err}```", color=self.bot.color.ERROR), ephemeral=True)
         elif type == STATUS:
             if result is None:
-                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"サーバーで設定は`無効`です", color=0x00ff00), ephemeral=True)
+                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"サーバーで設定は`無効`です", color=self.bot.color.NORMAL), ephemeral=True)
             else:
-                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"サーバーで設定は`有効`です\n設定チャンネル: <#{result['channel_id']}>", color=0x00ff00), ephemeral=True)
+                await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"サーバーで設定は`有効`です\n設定チャンネル: <#{result['channel_id']}>", color=self.bot.color.NORMAL), ephemeral=True)
 
 
     @nextcord.slash_command(name="ui", description="Send a message when user join/leave")
