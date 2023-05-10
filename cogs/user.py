@@ -211,11 +211,14 @@ AutoMod等の機能を活用したうえで、過信しすぎずに使用して�
         else:
             await ctx.reply(f"引数が不正です。\n`{ctx.prefix}rk [on/off]`")
 
-    async def ui_config(self, interaction: Interaction or commands.Context, type: int, guild_id: int, channel: nextcord.channel):
-        result = await self.ui_collection.find_one({"guild_id": guild_id})
+    async def ui_config(self, interaction: Interaction or commands.Context, type: int, guild_id: int, channel: nextcord.abc.GuildChannel | None):
+        if isinstance(channel, nextcord.ForumChannel):
+            await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description="フォーラムチャンネルは指定できません。", color=0xff0000), ephemeral=True)
+            return
+        result = await self.winfo_collection.find_one({"guild_id": guild_id})
         if type == SET:
             try:
-                await self.ui_collection.update_one({"guild_id": guild_id}, {"$set": {"channel_id": channel.id}}, upsert=True)
+                await self.winfo_collection.update_one({"guild_id": guild_id}, {"$set": {"channel_id": channel.id}}, upsert=True)
                 CHANNEL = await self.bot.fetch_channel(channel.id)
                 await CHANNEL.send("このチャンネルが、ユーザー情報表示チャンネルとして指定されました。")
                 await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"<#{channel.id}>に指定されました。", color=0x00ff00), ephemeral=True)
@@ -226,7 +229,7 @@ AutoMod等の機能を活用したうえで、過信しすぎずに使用して�
                 if result is None:
                     await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"このサーバーには登録されていません。", color=0xff0000), ephemeral=True)
                     return
-                await self.ui_collection.delete_one({"guild_id": guild_id})
+                await self.winfo_collection.delete_one({"guild_id": guild_id})
                 await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"設定を削除しました。", color=0x00ff00), ephemeral=True)
             except Exception as err:
                 await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"エラーが発生しました。\n```\n{err}```", color=0xff000), ephemeral=True)
