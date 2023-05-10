@@ -40,10 +40,9 @@ class MessageModeration(commands.Cog):
     def cog_unload(self):
         self.counter_reset.stop()
 
+    @commands.guild_only()
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
-        if isinstance(message.channel, nextcord.DMChannel):
-            return
         if message.author.bot:
             return
         if message.guild.id not in MOD_LIST:
