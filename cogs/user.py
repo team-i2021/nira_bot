@@ -213,7 +213,13 @@ AutoMod等の機能を活用したうえで、過信しすぎずに使用して�
 
     async def ui_config(self, interaction: Interaction or commands.Context, type: int, guild_id: int, channel: nextcord.abc.GuildChannel | None):
         if isinstance(channel, nextcord.ForumChannel):
-            await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description="フォーラムチャンネルは指定できません。", color=0xff0000), ephemeral=True)
+            await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description="フォーラムチャンネルは指定できません。", color=self.bot.color.ERROR), ephemeral=True)
+            return
+        if isinstance(channel, nextcord.StageChannel):
+            await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description="ステージチャンネルは指定できません。", color=self.bot.color.ERROR), ephemeral=True)
+            return
+        if isinstance(channel, nextcord.CategoryChannel):
+            await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description="カテゴリチャンネルは指定できません。", color=self.bot.color.ERROR), ephemeral=True)
             return
         result = await self.winfo_collection.find_one({"guild_id": guild_id})
         if type == SET:
