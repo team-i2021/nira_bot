@@ -3,72 +3,32 @@ import datetime
 import importlib
 import logging
 import re
-import sys
 import traceback
 
 import nextcord
 from motor import motor_asyncio
 from nextcord import Interaction, SlashOption
-from nextcord.ext import commands, tasks, application_checks
+from nextcord.ext import commands, tasks
 
 from util import admin_check, server_check
 from util.nira import NIRA
+from util.semiembed import SemiEmbed
 
-# loggingの設定
-
-SYSDIR = sys.path[0]
 
 STEAM_SERVER_COLLECTION_NAME = "steam_server"
-
-ss_check_result = {}
-
-
-class SemiEmbed:
-    """
-    もしかしたらutilとかに移すかもしれないけどとりあえずここで使うからまずはここに置いておく
-    """
-    def __init__(self, title: str = "Server Status Checker", description: str = ":globe_with_meridians: Status", color: int = 0x00FF00) -> None:
-        self._embed_base = {
-            "title": title,
-            "description": description,
-            "color": color,
-        }
-        self.fields = []
-
-    def add_field(self, name: str, value: str, inline: bool = True) -> None:
-        self.fields.append(
-            {
-                "name": name,
-                "value": value,
-                "inline": inline,
-            }
-        )
-
-    def _create_embed(self) -> nextcord.Embed:
-        return nextcord.Embed(**self._embed_base)
-
-    def get_embed(self, limit: int = 7) -> list[nextcord.Embed]:
-        embeds = []
-        for i in range(0, len(self.fields), limit):
-            embed = self._create_embed()
-            for field in self.fields[i : i + limit]:
-                embed.add_field(**field)
-            embed.set_footer(text=f"{len(embeds) + 1}/{len(self.fields) // limit + 1} Page(s)")
-            embeds.append(embed)
-        return embeds
 
 
 async def ss_force(bot: NIRA, message: nextcord.Message):
     await message.edit(content="Loading status...", view=None)
     try:
-        semi_embed = SemiEmbed(
-            title="ServerStatus Checker",
-            description=f"LastCheck:`{datetime.datetime.now()}`",
-            color=0x00FF00,
-        )
         assert isinstance(message.guild, nextcord.Guild)
         servers = (
             await bot.database[STEAM_SERVER_COLLECTION_NAME].find({"guild_id": message.guild.id}).to_list(length=None)
+        )
+        semi_embed = SemiEmbed(
+            title="ServerStatus Checker",
+            description=f"最終更新: `{datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')}`",
+            color=0x00FF00,
         )
         for server in sorted(servers, key=lambda x: x['server_id']):
             semi_embed.add_field(**(await server_check.ss_pin_embed(server)))
@@ -79,7 +39,7 @@ async def ss_force(bot: NIRA, message: nextcord.Message):
                 "リロードするには下の`再読み込み`ボタンか`/ss reload`\n"
                 "止まった場合は一度オフにしてから再度オンにしてください"
             ),
-            embeds=semi_embed.get_embed(),
+            embeds=semi_embed.get_embeds(),
             view=Reload_SS_Auto(bot, message),
         )
         logging.info("Status loaded.(Not scheduled)")
@@ -125,7 +85,7 @@ async def ss_base(
                 for server in sorted(servers, key=lambda x: x['server_id']):
                     semi_embed.add_field(**(await server_check.server_check(server, server_check.EmbedType.NORMAL)))
                 await asyncio.sleep(1)
-                await ctx.reply(embeds=semi_embed.get_embed(), view=Recheck_SS_Embed(bot))
+                await ctx.reply(embeds=semi_embed.get_embeds(), view=Recheck_SS_Embed(bot))
         return
 
     args = ctx.message.content.split(" ")
@@ -396,7 +356,7 @@ async def ss_base(
             for server in sorted(servers, key=lambda x: x['server_id']):
                 semi_embed.add_field(**(await server_check.server_check(server, server_check.EmbedType.DETAIL)))
             await asyncio.sleep(1)
-            await ctx.reply(embeds=semi_embed.get_embed(), view=Recheck_SS_Embed(bot))
+            await ctx.reply(embeds=semi_embed.get_embeds(), view=Recheck_SS_Embed(bot))
 
     elif len(args) > 2:
         await ctx.reply(
@@ -477,7 +437,7 @@ class Recheck_SS_Embed(nextcord.ui.View):
                 semi_embed.add_field(**(await server_check.server_check(server, server_check.EmbedType.NORMAL)))
             await interaction.followup.send(
                 f"{interaction.user.mention} - Server Status",
-                embeds=semi_embed.get_embed(),
+                embeds=semi_embed.get_embeds(),
                 view=Recheck_SS_Embed(self.bot),
             )
             logging.info("rechecked")
@@ -526,6 +486,7 @@ class server_status(commands.Cog):
         except Exception as err:
             await interaction.followup.send(f"エラーが発生しました。\n```\n{err}```")
 
+    @commands.guild_only()
     @commands.command(
         name="ss",
         help="""\
@@ -956,7 +917,7 @@ Steam非公式サーバーのステータスを表示します
                 )
                 for server in sorted(servers, key=lambda x: x['server_id']):
                     semi_embed.add_field(**(await server_check.server_check(server, server_check.EmbedType.DETAIL)))
-                await interaction.followup.send(embeds=semi_embed.get_embed(), view=Recheck_SS_Embed(self.bot))
+                await interaction.followup.send(embeds=semi_embed.get_embeds(), view=Recheck_SS_Embed(self.bot))
                 return
 
             elif server_id is not None:
@@ -984,7 +945,7 @@ Steam非公式サーバーのステータスを表示します
                 )
                 for server in sorted(servers, key=lambda x: x['server_id']):
                     semi_embed.add_field(**(await server_check.server_check(server, server_check.EmbedType.NORMAL)))
-                await interaction.followup.send(embeds=semi_embed.get_embed(), view=Recheck_SS_Embed(self.bot))
+                await interaction.followup.send(embeds=semi_embed.get_embeds(), view=Recheck_SS_Embed(self.bot))
                 return
 
         except Exception as err:
@@ -999,6 +960,7 @@ Steam非公式サーバーのステータスを表示します
     async def ss_reload(self, interaction: Interaction):
         await interaction.response.defer(ephemeral=True)
         auto_doc = await self.auto_collection.find_one({"guild_id": interaction.guild.id})
+
         if auto_doc is None:
             await interaction.send(f"{interaction.guild.name}では、AutoSSは実行されていません。", ephemeral=True)
         else:
@@ -1025,7 +987,7 @@ Steam非公式サーバーのステータスを表示します
                 message = await channel.fetch_message(autoConfig["message_id"])
                 semi_embed = SemiEmbed(
                     title="ServerStatus Checker",
-                    description=f"LastCheck:`{datetime.datetime.now()}`",
+                    description=f"最終更新: `{datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')}`",
                     color=0x00FF00,
                 )
                 for server in sorted(servers, key=lambda x: x['server_id']):
@@ -1037,7 +999,7 @@ Steam非公式サーバーのステータスを表示します
                         "リロードするには下の`再読み込み`ボタンか`/ss reload`\n"
                         "止まった場合は一度オフにしてから再度オンにしてください"
                     ),
-                    embeds=semi_embed.get_embed(),
+                    embeds=semi_embed.get_embeds(),
                     view=Reload_SS_Auto(self.bot, message),
                 )
                 logging.info("Status loaded.(Scheduled)")
