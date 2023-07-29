@@ -78,22 +78,19 @@ class SemiEmbed:
                     embed.set_image(**value)
                 case "thumbnail":
                     embed.set_thumbnail(**value)
-                case _:
-                    continue
         return embed
 
     def get_embeds(self, limit: int = 7, page_show: bool = True) -> list[nextcord.Embed]:
         embeds = []
+        if len(self.fields) == 0:
+            return [nextcord.Embed(**self._embed_base)]
         for i in range(0, len(self.fields), limit):
             embed = self._create_embed()
             for field in self.fields[i : i + limit]:
                 embed.add_field(**field)
             if page_show:
                 embed.set_footer(
-                    text=(
-                        '' if self._embed_extra['footer'] is None else f"{self._embed_extra['footer']['text']} | "
-                        f"{len(embeds) + 1}/{len(self.fields) // limit + 1} Page(s)"
-                    )
+                    text=(("" if self._embed_extra['footer'] is None else f"{self._embed_extra['footer']['text']} | ") + f"{len(embeds) + 1}/{(len(self.fields) - 1) // limit + 1} Page(s)")
                 )
             embeds.append(embed)
         return embeds
