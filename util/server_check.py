@@ -99,7 +99,7 @@ async def server_check(server: Server, type: EmbedType) -> EmbedField:
         if type == EmbedType.NORMAL:
             return {
                 "name": f"> {sv_nm}",
-                "value": ":ng:サーバーに接続できませんでした。",
+                "value": ":octagonal_sign: サーバーに接続できませんでした。",
                 "inline": False
             }
         elif type == EmbedType.DETAIL:
@@ -111,7 +111,7 @@ async def server_check(server: Server, type: EmbedType) -> EmbedField:
     if type == EmbedType.NORMAL:
         result = {
             "name": f"> {sv_dt.server_name} - {sv_dt.map_name}",
-            "value": f":white_check_mark:オンライン `{round(sv_dt.ping*1000, 2)}`ms",
+            "value": f":white_check_mark: オンライン `{round(sv_dt.ping*1000, 2)}`ms",
         }
     elif type == EmbedType.DETAIL:
         result = {
@@ -176,12 +176,12 @@ async def ss_pin_embed(server: Server) -> EmbedField:
     if sv_dt is None:
         return {
             "name": f"> {sv_nm}",
-            "value": ":ng:サーバーに接続できませんでした。",
+            "value": ":octagonal_sign: サーバーに接続できませんでした。",
             "inline": False
         }
     result = {
         "name": f"> {sv_dt.server_name} - {sv_dt.map_name}",
-        "value": f":white_check_mark:オンライン `{round(sv_dt.ping*1000, 2)}`ms",
+        "value": f":white_check_mark: オンライン `{round(sv_dt.ping*1000, 2)}`ms",
     }
     sv_us = await RetryPlayers(sv_ad, 5)
     if sv_us is None:
