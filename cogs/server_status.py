@@ -28,7 +28,7 @@ async def ss_force(bot: NIRA, message: nextcord.Message):
         semi_embed = SemiEmbed(
             title="ServerStatus Checker",
             description=f"最終更新: `{datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')}`",
-            color=0x00FF00,
+            color=0x2a475e,
         )
         for server in sorted(servers, key=lambda x: x['server_id']):
             semi_embed.add_field(**(await server_check.ss_pin_embed(server)))
@@ -80,7 +80,7 @@ async def ss_base(
                 semi_embed = SemiEmbed(
                     title="Server Status Checker",
                     description=f"{ctx.author.mention}\n:globe_with_meridians: Status",
-                    color=0x00FF00,
+                    color=0x2a475e,
                 )
                 for server in sorted(servers, key=lambda x: x['server_id']):
                     semi_embed.add_field(**(await server_check.server_check(server, server_check.EmbedType.NORMAL)))
@@ -126,7 +126,7 @@ async def ss_base(
                 embed = nextcord.Embed(
                     title="Steam Server List",
                     description=f"「{ctx.guild.name}」のサーバーリスト\n```保存数：{len(servers)}```",
-                    color=0x00FF00,
+                    color=0x2a475e,
                 )
                 for server in servers:
                     embed.insert_field_at(
@@ -351,7 +351,7 @@ async def ss_base(
             semi_embed = SemiEmbed(
                 title="Server Status Checker",
                 description=f"{ctx.author.mention}\n:globe_with_meridians: Status",
-                color=0x00FF00,
+                color=0x2a475e,
             )
             for server in sorted(servers, key=lambda x: x['server_id']):
                 semi_embed.add_field(**(await server_check.server_check(server, server_check.EmbedType.DETAIL)))
@@ -388,7 +388,7 @@ async def ss_base(
             embed = nextcord.Embed(
                 title="Server Status Checker",
                 description=f"{ctx.author.mention}\n:globe_with_meridians: Status",
-                color=0x00FF00,
+                color=0x2a475e,
             )
             server = await ss_collection.find_one({"guild_id": ctx.guild.id, "server_id": int(args[1])})
             embed.add_field(**(await server_check.server_check(server, server_check.EmbedType.NORMAL)))
@@ -430,7 +430,7 @@ class Recheck_SS_Embed(nextcord.ui.View):
             semi_embed = SemiEmbed(
                 title="Server Status Checker",
                 description=":globe_with_meridians: Status",
-                color=self.bot.color.NORMAL,
+                color=0x2a475e,
             )
             servers = await self.ss_collection.find({"guild_id": interaction.guild.id}).to_list(length=None)
             for server in servers:
@@ -551,7 +551,7 @@ Steam非公式サーバーのステータスを表示します
                         description=(
                             f"サーバーの追加に成功しました。\nサーバー名：`{ServerName}`\nサーバーアドレス: `{ServerAddress}:{ServerPort}`"
                         ),
-                        color=0x00FF00,
+                        color=self.bot.color.NORMAL,
                     ),
                     ephemeral=True,
                 )
@@ -616,7 +616,7 @@ Steam非公式サーバーのステータスを表示します
                     embed=nextcord.Embed(
                         title="SteamDedicatedServer",
                         description="サーバーの削除に成功しました。",
-                        color=0x00FF00,
+                        color=self.bot.color.NORMAL,
                     ),
                     ephemeral=True,
                 )
@@ -652,7 +652,7 @@ Steam非公式サーバーのステータスを表示します
                     )
                     return
                 embed = nextcord.Embed(
-                    title="SteamDedicatedServer", description=interaction.guild.name, color=0x00FF00
+                    title="SteamDedicatedServer", description=interaction.guild.name, color=0x2a475e
                 )
                 for server in servers:
                     embed.insert_field_at(
@@ -913,7 +913,7 @@ Steam非公式サーバーのステータスを表示します
                 semi_embed = SemiEmbed(
                     title="Server Status Checker",
                     description=f"{interaction.user.mention}\n:globe_with_meridians: Status",
-                    color=0x00FF00,
+                    color=0x2a475e,
                 )
                 for server in sorted(servers, key=lambda x: x['server_id']):
                     semi_embed.add_field(**(await server_check.server_check(server, server_check.EmbedType.DETAIL)))
@@ -927,7 +927,7 @@ Steam非公式サーバーのステータスを表示します
                 embed = nextcord.Embed(
                     title="Server Status Checker",
                     description=f"{interaction.user.mention}\n:globe_with_meridians: Status",
-                    color=0x00FF00,
+                    color=0x2a475e,
                 )
                 server = await self.ss_collection.find_one({"guild_id": interaction.guild.id, "server_id": server_id})
                 embed.add_field(**(await server_check.server_check(server, server_check.EmbedType.NORMAL)))
@@ -941,7 +941,7 @@ Steam非公式サーバーのステータスを表示します
                 semi_embed = SemiEmbed(
                     title="Server Status Checker",
                     description=f"{interaction.user.mention}\n:globe_with_meridians: Status",
-                    color=0x00FF00,
+                    color=0x2a475e,
                 )
                 for server in sorted(servers, key=lambda x: x['server_id']):
                     semi_embed.add_field(**(await server_check.server_check(server, server_check.EmbedType.NORMAL)))
@@ -988,7 +988,7 @@ Steam非公式サーバーのステータスを表示します
                 semi_embed = SemiEmbed(
                     title="ServerStatus Checker",
                     description=f"最終更新: `{datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')}`",
-                    color=0x00FF00,
+                    color=0x2a475e,
                 )
                 for server in sorted(servers, key=lambda x: x['server_id']):
                     semi_embed.add_field(**(await server_check.ss_pin_embed(server)))
