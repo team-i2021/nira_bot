@@ -76,7 +76,7 @@ class Text2Speech(commands.Cog):
 
 
     class VOICEVOXGenerationSelect(nextcord.ui.Select):
-        def __init__(self, parent: 'Text2Speech', author: nextcord.Member | nextcord.User):
+        def __init__(self, parent: 'Text2Speech', author: nextcord.Member | nextcord.User, generation: str | None = None):
             self.parent = parent
             self.author = author
             options = [
@@ -89,10 +89,10 @@ class Text2Speech(commands.Cog):
                 nextcord.SelectOption(label="1期生", value="1"),
             ]
             super().__init__(
-                placeholder='キャラクターの世代を選択してください。',
+                placeholder=f"世代: {generation}期生" if generation else 'キャラクターの世代を選択してください。',
                 min_values=1,
                 max_values=1,
-                options=options
+                options=options,
             )
 
         async def callback(self, interaction: nextcord.Interaction):
@@ -110,7 +110,7 @@ class Text2Speech(commands.Cog):
 
 
     class VOICEVOXSpeakerSelect(nextcord.ui.Select):
-        def __init__(self, parent: 'Text2Speech', author: nextcord.Member | nextcord.User, generation: str):
+        def __init__(self, parent: 'Text2Speech', author: nextcord.Member | nextcord.User, generation: str, speaker: str | None = None):
             self.parent = parent
             self.author = author
             self.generation = generation
@@ -166,11 +166,17 @@ class Text2Speech(commands.Cog):
                 case _:
                     options = []
 
+            if speaker:
+                chara = self.parent.VOICEVOX_SPEAKER_LIST[int(speaker)]
+                placeholder = f"キャラクター: {chara['name']}"
+            else:
+                chara = None
+                placeholder = f'{self.generation}期生のキャラクターを選択してください。'
             super().__init__(
-                placeholder=f'{self.generation}期生のキャラクターを選択してください。',
+                placeholder=placeholder,
                 min_values=1,
                 max_values=1,
-                options=options
+                options=options,
             )
 
         async def callback(self, interaction: nextcord.Interaction):
@@ -200,7 +206,7 @@ class Text2Speech(commands.Cog):
                 options.append(nextcord.SelectOption(label=self.chara["styles"][i]["name"], value=f'{self.chara["styles"][i]["name"]}:{self.chara["styles"][i]["id"]}'))
 
             super().__init__(
-                placeholder='声の種類を選んでください。',
+                placeholder=f"{self.chara['name']}の声の種類を選んでください。",
                 min_values=1,
                 max_values=1,
                 options=options
@@ -233,9 +239,9 @@ class Text2Speech(commands.Cog):
             self.parent = parent
             self.author = author
             super().__init__(timeout=None)
-            self.add_item(self.parent.VOICEVOXGenerationSelect(self.parent, author))
+            self.add_item(self.parent.VOICEVOXGenerationSelect(self.parent, author, generation))
             if generation:
-                self.add_item(self.parent.VOICEVOXSpeakerSelect(self.parent, author, generation))
+                self.add_item(self.parent.VOICEVOXSpeakerSelect(self.parent, author, generation, speaker))
                 if speaker:
                     self.add_item(self.parent.VOICEVOXVoiceTypeSelect(self.parent, author, generation, speaker))
 
