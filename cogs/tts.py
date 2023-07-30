@@ -22,7 +22,7 @@ class Text2Speech(commands.Cog):
         self.bot = bot
         self.VOICEVOX_VERSION = "0.14.4"
         self.collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["tts_database"]
-        self.keys: dict[str, str] | None = self.bot.settings["voicevox"]
+        self.keys: list[str] | None = self.bot.settings["voicevox"]
         self.Effective = True
         if self.keys is None or len(self.keys) == 0:
             self.Effective = False
