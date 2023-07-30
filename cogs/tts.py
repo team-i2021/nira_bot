@@ -24,8 +24,10 @@ class Text2Speech(commands.Cog):
         self.collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["tts_database"]
         self.keys: list[str] | None = self.bot.settings["voicevox"]
         self.Effective = True
+        self.Reason = ""
         if self.keys is None or len(self.keys) == 0:
             self.Effective = False
+            self.Reason = "VOICEVOX API Key doesn't exist."
         self.SPEAKER_AUTHOR = {}
         self.TTS_CHANNEL = {}
         self.mscommand = self.speak_message
@@ -254,11 +256,12 @@ class Text2Speech(commands.Cog):
 
     async def __fetch_speakers(self, retry: int = 3):
         for _ in range(retry):
-            async with self.bot.session.get(f"{self.api_url}/speaker") as resp:
+            async with self.bot.session.post(f"{self.api_url}/speakers/", data={"key": self.key}) as resp:
                 if resp.status == 200:
                     self.VOICEVOX_SPEAKER_LIST = await resp.json()
                     return
                 else:
+                    self.Reason = f"Failed to fetch speakers. (VOICEVOX API) {resp.status}"
                     await asyncio.sleep(1)
         logging.error("Failed to fetch speakers.")
         self.Effective = False
@@ -270,7 +273,7 @@ class Text2Speech(commands.Cog):
     @tts_slash.subcommand(name="join", description="Join VC (for TTS)", description_localizations={nextcord.Locale.ja: "BOTを読み上げ用にVCに参加させます"})
     async def join_slash(self, interaction: Interaction):
         if not self.Effective:
-            await interaction.response.send_message(embed=nextcord.Embed(title="現在読み上げ機能は利用できません。", description="BOT管理者からの情報をご確認ください。\n`VOICEVOX API Key doesn't exist.`\nVOICEVOX WebAPIのキーが存在しません。\n`setting.json`の`voicevox`欄にAPIキーを入力してから、`cogs/tts.py`をリロードしてください。", color=0xff0000))
+            await interaction.response.send_message(embed=nextcord.Embed(title="現在読み上げ機能は利用できません。", description=f"BOT管理者からの情報をご確認ください。\n`{self.Reason}`", color=0xff0000))
             return
         if interaction.user.voice is None:
             await interaction.response.send_message(embed=nextcord.Embed(title="TTSエラー", description="先にVCに接続してください。", color=0xff0000), ephemeral=True)
@@ -351,7 +354,7 @@ API制限などが来た場合はご了承ください。許せ。""")
         assert isinstance(ctx.guild, nextcord.Guild), "このコマンドはサーバー内でのみ実行できます。"
 
         if not self.Effective:
-            await ctx.reply(embed=nextcord.Embed(title="現在読み上げ機能は利用できません。", description="BOT管理者からの情報をご確認ください。\n`VOICEVOX API Key doesn't exist.`\nVOICEVOX WebAPIのキーが存在しません。\n`setting.json`の`voicevox`欄にAPIキーを入力してから、`cogs/tts.py`をリロードしてください。", color=0xff0000))
+            await ctx.reply(embed=nextcord.Embed(title="現在読み上げ機能は利用できません。", description=f"BOT管理者からの情報をご確認ください。\n`{self.Reason}`", color=0xff0000))
             return
 
         if action is None:
