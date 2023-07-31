@@ -50,15 +50,29 @@ def convert(message: str) -> str:
     """TTS用に文章を構成し直す"""
     if message == "" or type(message) != str:
         raise ValueError()
-    url_pattern.sub("、ゆーあーるえる、", message)
+    message = url_pattern.sub("、ゆーあーるえる、", message)
     for word, read in SUBER.items():
         message = message.replace(word, read)
     message = convertE2K(message)
-    message = emoji_pattern.sub("えもじ", command_pattern.sub("こまんど", channel_pattern.sub("ちゃんねる", user_pattern.sub("ゆーざー", role_pattern.sub(
-        "ろーる",
-        message
-    )))))
-
-    message = message.replace("?","？").replace("&","あんど").replace("=","いこーる").replace("\n","。").replace("/", "すらっしゅ").replace(" ", "、").replace(" ", "、")
+    message = emoji_pattern.sub("、えもじ、", message)
+    message = command_pattern.sub("、こまんど、", message)
+    message = channel_pattern.sub("、ちゃんねる、", message)
+    message = user_pattern.sub("、ゆーざー、", message)
+    message = role_pattern.sub("、ろーる、", message)
+    message = message.replace(
+        "?","？"
+    ).replace(
+        "&","あんど"
+    ).replace(
+        "=","いこーる"
+    ).replace(
+        "\n","。"
+    ).replace(
+        "/", "すらっしゅ"
+    ).replace(
+        " ", "、"
+    ).replace(
+        " ", "、"
+    )
     message = lol_pattern.sub("わら", message)
     return message
