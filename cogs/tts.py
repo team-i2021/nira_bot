@@ -531,5 +531,48 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
             return
 
 
+    @commands.Cog.listener()
+    async def on_voice_state_update(self, member: nextcord.Member, before: nextcord.VoiceState, after: nextcord.VoiceState):
+        try:
+            if member == self.bot.user:
+                # にらBOTに関するイベント
+                assert isinstance(after, nextcord.VoiceState)
+                if self.bot.user.id in after.channel.members and after.mute:
+                    # ミュートにされているため、ミュートを解除する
+                    try:
+                        await member.edit(mute=False)
+                        if member.guild.id in self.TTS_CHANNEL:
+                            channel = await self.bot.resolve_channel(self.TTS_CHANNEL[member.guild.id])
+                            await channel.send(embed=nextcord.Embed(title="...はっ！", description="呼吸できなくて死ぬかと思ったわ！！！\nお願いやからサーバーミュートとかしないでくれたまえ！！！", color=self.bot.color.YELLOW))
+                    except nextcord.Forbidden | nextcord.HTTPException:
+                        if member.guild.id in self.TTS_CHANNEL:
+                            channel = await self.bot.resolve_channel(self.TTS_CHANNEL[member.guild.id])
+                            await channel.send(embed=nextcord.Embed(title="...", description="（どうやら喋れないらしい。\nサーバーミュートになっていないかご確認ください。）", color=self.bot.color.YELLOW))
+            else:
+                # にらBOT以外のイベント
+                if member.guild.voice_client is None:
+                    # そもそもVCに接続していない場合
+                    return
+                assert isinstance(member.guild.voice_client, nextcord.VoiceClient)
+
+                if before.channel is None:
+                    # ユーザー接続時
+                    return
+
+                assert isinstance(member.guild.voice_client.channel, (nextcord.VoiceChannel, nextcord.StageChannel))
+                if len(member.guild.voice_client.channel.members) == 1:
+                    await member.guild.voice_client.disconnect()
+                    channel_id = self.TTS_CHANNEL[member.guild.id]
+                    del self.TTS_CHANNEL[member.guild.id]
+                    await self.collection.delete_one({"guild_id": member.guild.id, "type": "channel"})
+                    message_channel = await self.bot.resolve_channel(channel_id)
+                    assert isinstance(message_channel, nextcord.TextChannel)
+                    await message_channel.send(embed=nextcord.Embed(title="TTS", description="誰もいなくなったため切断しました。", color=0x00ff00))
+                    return
+        except Exception:
+            logging.exception(traceback.format_exc())
+            return
+
+
 def setup(bot, **kwargs):
     bot.add_cog(Text2Speech(bot, **kwargs))
