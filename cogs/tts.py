@@ -12,7 +12,7 @@ from nextcord.ext import commands
 
 from motor import motor_asyncio
 
-from util import n_fc, tts_convert
+from util import n_fc, tts_convert, semiembed
 from util.nira import NIRA
 
 # Text To Speech
@@ -22,6 +22,7 @@ class Text2Speech(commands.Cog):
         self.bot = bot
         self.VOICEVOX_VERSION = "0.14.4"
         self.collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["tts_database"]
+        self.dict_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["tts_dictionary"]
         self.keys: list[str] | None = self.bot.settings["voicevox"]
         self.Effective = True
         self.Reason = ""
@@ -31,6 +32,8 @@ class Text2Speech(commands.Cog):
         self.SPEAKER_AUTHOR = {}
         self.TTS_CHANNEL = {}
         self.mscommand = self.speak_message
+
+        self.custom_dictionary: dict[int, dict[str, str]] = {}
 
         self.voicevox_embed = nextcord.Embed(
             title="声の種類選択",
@@ -250,6 +253,28 @@ class Text2Speech(commands.Cog):
     def key(self):
         return self.keys[random.randint(0, len(self.keys) - 1)]
 
+    def get_custom_dictionary(self, guild_id: int | None = None) -> dict[str, str]:
+        if guild_id is not None and guild_id in self.custom_dictionary:
+            return self.custom_dictionary[guild_id]
+        else:
+            return {}
+
+    async def pull_dictionary(self, guild_id: int) -> None:
+        self.custom_dictionary[guild_id] = {}
+        dictionary = await self.dict_collection.find({"guild_id": guild_id}).to_list(length=None)
+        if dictionary is None:
+            return
+        for dic in dictionary:
+            self.custom_dictionary[guild_id][dic["word"]] = dic["read"]
+
+    async def push_dictionary(self, guild_id: int, word: str, read: str) -> None:
+        # pushとか言ってるけど正確にはaddとcommitとpush全部やってる
+        self.custom_dictionary[guild_id][word] = read
+        await self.dict_collection.update_one({"guild_id": guild_id, "word": word}, {"$set": {"read": read}}, upsert=True)
+
+    def get_speak_url(self, message: str, speaker: str = "2", guild_id: int | None = None) -> str:
+        return f"{self.api_url}/audio/?text={tts_convert.convert(message, self.get_custom_dictionary(guild_id))}&key={self.key}&speaker={speaker}"
+
     async def __recover_channel(self):
         channels = await self.collection.find({"type":"channel"}).to_list(length=None)
         for channel in channels:
@@ -291,6 +316,7 @@ class Text2Speech(commands.Cog):
                 else:
                     await interaction.response.send_message(embed=nextcord.Embed(title="TTSエラー", description=f"BOTが別のVCに参加しています。\nBOTが参加しているVCに参加して、切断コマンドを実行してください。", color=0xff0000), ephemeral=True)
                     return
+            await self.pull_dictionary(interaction.guild.id)
             await interaction.user.voice.channel.connect()
             self.TTS_CHANNEL[interaction.guild.id] = interaction.channel.id
             asyncio.ensure_future(self.collection.update_one({"guild_id": interaction.guild.id, "type": "channel"}, {"$set": {"channel_id": interaction.channel.id}}, upsert=True))
@@ -304,7 +330,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
 本サービスはVOICEVOX公式より承諾されたものではなく、非公式で提供しているものです。""", color=0x00ff00))
             interaction.guild.voice_client.play(
                 nextcord.PCMVolumeTransformer(nextcord.FFmpegPCMAudio(
-                    f"{self.api_url}/audio/?text=接続しました&key={self.key}&speaker=2"
+                    self.get_speak_url("接続しました。", "2")
                 ),
                     volume=0.5)
             )
@@ -340,6 +366,42 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
             await interaction.response.send_message(nextcord.Embed(title="Reloaded.", description="TTS modules were reloaded.", color=0x00ff00), ephemeral=True)
         else:
             raise NIRA.ForbiddenExpand()
+
+
+    @tts_slash.subcommand(name="dictionary", description="Custom Dictionary")
+    async def dictionary_slash(self, interaction: Interaction):
+        pass
+
+
+    @dictionary_slash.subcommand(name="add", description="Add word to custom dictionary", description_localizations={nextcord.Locale.ja: "カスタム辞書に単語を追加します"})
+    async def dictionary_add_slash(self, interaction: Interaction, word: str, read: str):
+        await self.push_dictionary(interaction.guild.id, word, read)
+        await interaction.response.send_message(embed=nextcord.Embed(title="Server Custom Dictionary", description=f"単語 `{word}` を `{read}` として登録しました。", color=0x00ff00))
+        await self.pull_dictionary(interaction.guild.id)
+
+
+    @dictionary_slash.subcommand(name="remove", description="Remove word from custom dictionary", description_localizations={nextcord.Locale.ja: "カスタム辞書から単語を削除します"})
+    async def dictionary_remove_slash(self, interaction: Interaction, word: str):
+        await self.pull_dictionary(interaction.guild.id)
+        if word in self.get_custom_dictionary(interaction.guild.id):
+            await self.dict_collection.delete_one({"guild_id": interaction.guild.id, "word": word})
+            await interaction.response.send_message(embed=nextcord.Embed(title="Server Custom Dictionary", description=f"単語 `{word}` を削除しました。", color=0x00ff00))
+            await self.pull_dictionary(interaction.guild.id)
+        else:
+            await interaction.response.send_message(embed=nextcord.Embed(title="Server Custom Dictionary", description=f"単語 `{word}` は登録されていません。", color=0xff0000))
+
+
+    @dictionary_slash.subcommand(name="list", description="Show custom dictionary", description_localizations={nextcord.Locale.ja: "カスタム辞書を表示します"})
+    async def dictionary_list_slash(self, interaction: Interaction):
+        await self.pull_dictionary(interaction.guild.id)
+        if len(self.get_custom_dictionary(interaction.guild.id)) == 0:
+            await interaction.response.send_message(embed=nextcord.Embed(title="Server Custom Dictionary", description="カスタム辞書は空です。", color=0xff0000))
+        else:
+            embed = semiembed.SemiEmbed(title="Server Custom Dictionary", description="カスタム辞書", color=0x00ff00)
+            for word, read in self.get_custom_dictionary(interaction.guild.id).items():
+                embed.add_field(name=word, value=read, inline=False)
+            await interaction.response.send_message(embeds=embed.get_embeds())
+
 
     @commands.command(name='tts', aliases=("読み上げ", "よみあげ"), help="""\
 VCに乱入して、代わりに読み上げてくれる機能。
@@ -390,7 +452,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                     ctx.guild.voice_client.play(
                         nextcord.PCMVolumeTransformer(
                             nextcord.FFmpegPCMAudio(
-                                f"{self.api_url}/audio/?text=接続しました&key={self.key}&speaker=2"
+                                self.get_speak_url("接続しました。", "2")
                             ),
                             volume=0.5
                         )
@@ -479,10 +541,12 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                             break
                 await interaction.followup.send(embed=nextcord.Embed(title="TTS", description=f"```\n{message.content}```\nを読み上げます...", color=0x00ff00))
                 interaction.guild.voice_client.play(
-                    nextcord.PCMVolumeTransformer(nextcord.FFmpegPCMAudio(
-                        f"{self.api_url}/audio/?text={tts_convert.convert(message.content)}&key={self.key}&speaker={self.SPEAKER_AUTHOR[interaction.user.id]}"
-                    ),
-                        volume=0.5)
+                    nextcord.PCMVolumeTransformer(
+                        nextcord.FFmpegPCMAudio(
+                            self.get_speak_url(message.content, self.SPEAKER_AUTHOR[interaction.user.id], interaction.guild.id)
+                        ),
+                        volume=0.5
+                    )
                 )
                 return
         except Exception as err:
@@ -520,7 +584,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
             message.guild.voice_client.play(
                 nextcord.PCMVolumeTransformer(
                     nextcord.FFmpegPCMAudio(
-                        f"{self.api_url}/audio/?text={tts_convert.convert(message.content)}&key={self.key}&speaker={self.SPEAKER_AUTHOR[message.author.id]}"
+                        self.get_speak_url(message.content, self.SPEAKER_AUTHOR[message.author.id], message.guild.id)
                     ),
                     volume=0.5
                 )
