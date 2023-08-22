@@ -7,7 +7,7 @@ import sys
 import traceback
 
 import nextcord
-from nextcord import Interaction
+from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
 
 from motor import motor_asyncio
@@ -374,7 +374,22 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
 
 
     @dictionary_slash.subcommand(name="add", description="Add word to custom dictionary", description_localizations={nextcord.Locale.ja: "カスタム辞書に単語を追加します"})
-    async def dictionary_add_slash(self, interaction: Interaction, word: str, read: str):
+    async def dictionary_add_slash(
+            self,
+            interaction: Interaction,
+            word: str = SlashOption(
+                name="word",
+                description="Substitute word",
+                description_localizations={nextcord.Locale.ja: "置き換える単語"},
+                required=True
+            ),
+            read: str = SlashOption(
+                name="read",
+                description="Reading",
+                description_localizations={nextcord.Locale.ja: "読み方"},
+                required=True
+            )
+        ):
         await self.push_dictionary(interaction.guild.id, word, read)
         await interaction.response.send_message(embed=nextcord.Embed(title="Server Custom Dictionary", description=f"単語 `{word}` を `{read}` として登録しました。", color=0x00ff00))
         await self.pull_dictionary(interaction.guild.id)
