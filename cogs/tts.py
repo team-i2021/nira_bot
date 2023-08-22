@@ -8,7 +8,7 @@ import traceback
 
 import nextcord
 from nextcord import Interaction, SlashOption
-from nextcord.ext import commands
+from nextcord.ext import commands, application_checks
 
 from motor import motor_asyncio
 
@@ -373,6 +373,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
         pass
 
 
+    @application_checks.has_permissions(speak=True, connect=True)
     @dictionary_slash.subcommand(name="add", description="Add word to custom dictionary", description_localizations={nextcord.Locale.ja: "カスタム辞書に単語を追加します"})
     async def dictionary_add_slash(
             self,
@@ -395,6 +396,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
         await self.pull_dictionary(interaction.guild.id)
 
 
+    @application_checks.has_permissions(speak=True, connect=True)
     @dictionary_slash.subcommand(name="remove", description="Remove word from custom dictionary", description_localizations={nextcord.Locale.ja: "カスタム辞書から単語を削除します"})
     async def dictionary_remove_slash(self, interaction: Interaction, word: str):
         await self.pull_dictionary(interaction.guild.id)
