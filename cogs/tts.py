@@ -573,25 +573,25 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
-        if isinstance(message.channel, nextcord.DMChannel):
-            return
-        if message.author.bot:
-            return
-        if message.content is None or message.content == "":
-            return
-        if message.guild.id not in self.TTS_CHANNEL:
-            return
-        if message.channel.id != self.TTS_CHANNEL[message.guild.id]:
-            return
-        if getattr(message.guild, 'voice_client', None) is None:
-            return
-        if message.content.startswith(self.bot.command_prefix):
+        if (
+            message.guild is None or
+            message.author.bot or
+            message.content is None or
+            message.content == "" or
+            message.guild.id not in self.TTS_CHANNEL or
+            message.channel.id != self.TTS_CHANNEL[message.guild.id] or
+            getattr(message.guild, 'voice_client', None) is None or
+            isinstance(self.bot.command_prefix, str) and message.content.startswith(self.bot.command_prefix) or
+            isinstance(self.bot.command_prefix, list) and any([message.content.startswith(prefix) for prefix in self.bot.command_prefix])
+        ):
             return
 
         try:
             if message.author.id not in self.SPEAKER_AUTHOR:
                 self.SPEAKER_AUTHOR[message.author.id] = 2
                 asyncio.ensure_future(self.collection.update_one({"user_id": message.author.id, "type": "speaker"}, {"$set": {"speaker": 2}}, upsert=True))
+            if not isinstance(message.guild.voice_client, nextcord.VoiceClient):
+                return
             if message.guild.voice_client.is_playing():
                 while True:
                     if message.guild.voice_client.is_playing():
@@ -614,35 +614,42 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member: nextcord.Member, before: nextcord.VoiceState, after: nextcord.VoiceState):
-        try:
-            if member == self.bot.user:
-                # にらBOTに関するイベント
-                assert isinstance(after, nextcord.VoiceState)
-                if self.bot.user.id in after.channel.members and after.mute:
-                    # ミュートにされているため、ミュートを解除する
-                    try:
-                        await member.edit(mute=False)
-                        if member.guild.id in self.TTS_CHANNEL:
-                            channel = await self.bot.resolve_channel(self.TTS_CHANNEL[member.guild.id])
-                            await channel.send(embed=nextcord.Embed(title="...はっ！", description="呼吸できなくて死ぬかと思ったわ！！！\nお願いやからサーバーミュートとかしないでくれたまえ！！！", color=self.bot.color.YELLOW))
-                    except nextcord.Forbidden | nextcord.HTTPException:
-                        if member.guild.id in self.TTS_CHANNEL:
-                            channel = await self.bot.resolve_channel(self.TTS_CHANNEL[member.guild.id])
-                            await channel.send(embed=nextcord.Embed(title="...", description="（どうやら喋れないらしい。\nサーバーミュートになっていないかご確認ください。）", color=self.bot.color.YELLOW))
-            else:
-                # にらBOT以外のイベント
-                if member.guild.voice_client is None:
-                    # そもそもVCに接続していない場合
-                    return
-                assert isinstance(member.guild.voice_client, nextcord.VoiceClient)
+        if member == self.bot.user:
+            # にらBOTに関するイベント
+            assert isinstance(after, nextcord.VoiceState)
+            if after.channel is None:
+                # ユーザー切断時
+                return
+            if self.bot.user in after.channel.members and after.mute:
+                # ミュートにされているため、ミュートを解除する
+                try:
+                    await member.edit(mute=False)
+                    if member.guild.id in self.TTS_CHANNEL:
+                        channel = await self.bot.resolve_channel(self.TTS_CHANNEL[member.guild.id])
+                        await channel.send(embed=nextcord.Embed(title="なんでそんなことするの！", description="呼吸できなくて死ぬかと思ったわ！！！\nお願いやからサーバーミュートとかしないでくれたまえ！！！", color=self.bot.color.YELLOW))
+                except (nextcord.Forbidden, nextcord.HTTPException):
+                    # サーバーミュートを外す権限がない場合
+                    if member.guild.id in self.TTS_CHANNEL:
+                        channel = await self.bot.resolve_channel(self.TTS_CHANNEL[member.guild.id])
+                        await channel.send(embed=nextcord.Embed(title="...", description="（どうやら喋れないらしい。\nサーバーミュートになっていないかご確認ください。）", color=self.bot.color.YELLOW))
+                except AttributeError:
+                    # メッセージを送信できないタイプのチャンネルだった場合
+                    pass
+        else:
+            # にらBOT以外のイベント
+            if member.guild.voice_client is None:
+                # そもそもBOTがVCに接続していない場合
+                return
+            assert isinstance(member.guild.voice_client, nextcord.VoiceClient)
 
-                if before.channel is None:
-                    # ユーザー接続時
-                    return
+            if before.channel is None:
+                # ユーザー接続時
+                return
 
-                assert isinstance(member.guild.voice_client.channel, (nextcord.VoiceChannel, nextcord.StageChannel))
-                if len(member.guild.voice_client.channel.members) == 1:
-                    await member.guild.voice_client.disconnect()
+            assert isinstance(member.guild.voice_client.channel, (nextcord.VoiceChannel, nextcord.StageChannel))
+            if len(member.guild.voice_client.channel.members) == 1:
+                await member.guild.voice_client.disconnect()
+                if member.guild.id in self.TTS_CHANNEL:
                     channel_id = self.TTS_CHANNEL[member.guild.id]
                     del self.TTS_CHANNEL[member.guild.id]
                     await self.collection.delete_one({"guild_id": member.guild.id, "type": "channel"})
@@ -650,9 +657,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                     assert isinstance(message_channel, nextcord.TextChannel)
                     await message_channel.send(embed=nextcord.Embed(title="TTS", description="誰もいなくなったため切断しました。", color=0x00ff00))
                     return
-        except Exception:
-            logging.exception(traceback.format_exc())
-            return
+
 
 
 def setup(bot, **kwargs):
