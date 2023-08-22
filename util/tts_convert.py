@@ -72,7 +72,6 @@ def convert(message: str, custom_dicationary: dict[str, str] = {}) -> str:
     message = url_pattern.sub("、ゆーあーるえる、", message)
     for pattern, read in PreDictionary.items():
         message = pattern.sub(read, message)
-    message = convertE2K(message)
     message = emoji_pattern.sub("、えもじ、", message)
     message = command_pattern.sub("、こまんど、", message)
     message = channel_pattern.sub("、ちゃんねる、", message)
@@ -80,6 +79,7 @@ def convert(message: str, custom_dicationary: dict[str, str] = {}) -> str:
     message = role_pattern.sub("、ろーる、", message)
     for word, read in custom_dicationary.items():
         message = message.replace(word, read)
+    message = convertE2K(message)
     message = message.replace(
         "?","？"
     ).replace(
