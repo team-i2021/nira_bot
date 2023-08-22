@@ -1003,7 +1003,7 @@ Steam非公式サーバーのステータスを表示します
                     view=Reload_SS_Auto(self.bot, message),
                 )
                 logging.info("Status loaded.(Scheduled)")
-            except nextcord.errors.NotFound | nextcord.errors.Forbidden | nextcord.errors.InvalidData | AssertionError:
+            except (nextcord.errors.NotFound, nextcord.errors.Forbidden, nextcord.errors.InvalidData, AssertionError):
                 # auto_collectionのデータベースから指定Guildのデータを消す
                 logging.info(f"チャンネルにアクセスできなかったため、設定を削除します。\nGuildID:{autoConfig['guild_id']}\nChannelID:{autoConfig['channel_id']}\nMessageID:{autoConfig['message_id']}")
                 await self.auto_collection.delete_one({"guild_id": autoConfig["guild_id"]})
