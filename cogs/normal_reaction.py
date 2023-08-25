@@ -33,7 +33,7 @@ reaction_list = [
     r'^(?=.*草)(?!.*元素).*$',
     r'https://www.nicovideo.jp',
     r'https://www.youtube.com',
-    r'https://twitter.com',
+    r'https://(twitter|x).com',
     r'煮裸族|にらぞく|ニラゾク',
     r'コイキング|イトコイ|いとこい|こいきんぐ|itokoi',
     r'栽培|さいばい|サイバイ',
