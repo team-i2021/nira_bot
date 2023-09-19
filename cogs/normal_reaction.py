@@ -33,7 +33,7 @@ reaction_list = [
     r'^(?=.*草)(?!.*元素).*$',
     r'https://www.nicovideo.jp',
     r'https://www.youtube.com',
-    r'https://twitter.com',
+    r'https://(twitter|x).com',
     r'煮裸族|にらぞく|ニラゾク',
     r'コイキング|イトコイ|いとこい|こいきんぐ|itokoi',
     r'栽培|さいばい|サイバイ',
@@ -330,7 +330,26 @@ class normal_reaction(commands.Cog):
         # 追加反応
         if len(ex_reaction_list := list(filter(lambda item: item["guild_id"] == message.guild.id and re.search(item["trigger"], message.content), self.ex_reaction_list))):
             for reaction in ex_reaction_list:
-                asyncio.ensure_future(message.reply(reaction["return"], mention_author=reaction["mention"]))
+                reaction_content = reaction["return"]
+                reaction_contents = []
+                join_check = False
+                for c in reaction_content.split("|"):
+                    if c == "":
+                        join_check = True
+                        continue
+                    if join_check:
+                        if len(reaction_contents) == 0:
+                            reaction_contents.append(c)
+                            join_check = False
+                        else:
+                            reaction_contents[-1] += f"|{c}"
+                            join_check = False
+                    else:
+                        reaction_contents.append(c)
+                if len(reaction_contents) == 1:
+                    asyncio.ensure_future(message.reply(reaction_content, mention_author=reaction["mention"]))
+                elif len(reaction_contents) > 1:
+                    asyncio.ensure_future(message.reply(random.choice(reaction_contents), mention_author=reaction["mention"]))
 
         ###############################
         # 通常反応のブール値存在チェック #
