@@ -342,7 +342,7 @@ class normal_reaction(commands.Cog):
                             reaction_contents.append(c)
                             join_check = False
                         else:
-                            reaction_contents[-1] += c
+                            reaction_contents[-1] += f"|{c}"
                             join_check = False
                     else:
                         reaction_contents.append(c)
