@@ -20,6 +20,7 @@ class NotifyTokenSet(nextcord.ui.Modal):
             "LINE Notify設定",
             timeout=None
         )
+        self._atdb = "`(データベースへの接続の最適化のため、実際に設定が適応されるまでに最大で30秒程かかる場合があります。)`"
         self.session = session
 
         self.collection = collection
@@ -43,11 +44,29 @@ class NotifyTokenSet(nextcord.ui.Modal):
             await interaction.send("あなたにはサーバーの管理権限がないため実行できません。", ephemeral=True)
         else:
             token_result = await web_api.line_token_check(self.session, self.token.value)
-            if token_result[0] == False:
-                await interaction.send(f"そのトークンは無効なようです。\n```sh\n{token_result[1]}```", ephemeral=True)
+            if token_result[0] is False:
+                await interaction.send(
+                    f"そのトークンは無効なようです。\n```sh\n{token_result[1]}```",
+                    ephemeral=True
+                )
                 return
-            await self.collection.update_one({"guild_id": interaction.guild.id}, {"$set": {"token": self.token.value}}, upsert=True)
-            await interaction.send(f"{interaction.guild.name}/{interaction.channel.name}で`{self.token.value}`を保存します。\nトークンが他のユーザーに見られないようにしてください。\nこれで、このチャンネルのメッセージがLINEに送信されるようになりました。\n{self._atdb}", ephemeral=True)
+            await self.collection.update_one(
+                {
+                    "channel_id": interaction.channel.id,
+                    "guild_id": interaction.guild.id
+                },
+                {"$set": {"token": self.token.value}},
+                upsert=True
+            )
+            await interaction.send(
+                (
+                    f"<#{interaction.channel.id}>で`{self.token.value}`を保存します。\n"
+                    "トークンが他のユーザーに見られないようにしてください。\n"
+                    "これで、このチャンネルのメッセージがLINEに送信されるようになりました。\n"
+                    f"{self._atdb}"
+                ),
+                ephemeral=True
+            )
 
 
 class Reaction(commands.Cog):
