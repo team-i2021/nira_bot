@@ -297,7 +297,7 @@ class normal_reaction(commands.Cog):
         if self.bot.debug and message.guild.id not in n_fc.GUILD_IDS:
             return
 
-        if len(notify_token := list(filter(lambda item: item["guild_id"] == message.guild.id and str(message.channel.id) in item, self.notify_token))) != 0:
+        if len(notify_token := list(filter(lambda item: item["channel_id"] == message.guild.id, self.notify_token))) != 0:
             await web_api.notify_line(self.bot.session, message, notify_token[0]["token"])
 
         # BOTには反応しない
