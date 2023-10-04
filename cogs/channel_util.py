@@ -223,8 +223,8 @@ class ChannelUtil(commands.Cog):
                 )
             )
             return
-        managerole = interaction.guild.get_role(roledata["managerole"])
-        if managerole is None:
+        manage_role = interaction.guild.get_role(roledata["managerole"])
+        if manage_role is None:
             await interaction.send(
                 embed=nextcord.Embed(
                     title="エラー",
@@ -233,11 +233,11 @@ class ChannelUtil(commands.Cog):
                 )
             )
             return
-        if managerole not in interaction.user.roles:
+        if manage_role not in interaction.user.roles:
             await interaction.send(
                 embed=nextcord.Embed(
                     title="エラー",
-                    description=f"このコマンドを実行する権限がありません。\nこのコマンドを実行するには、ユーザー上限コマンドを実行できるロールとして「{managerole.name}」が必要です。",
+                    description=f"このコマンドを実行する権限がありません。\nこのコマンドを実行するには、ユーザー上限コマンドを実行できるロールとして「{manage_role.name}」が必要です。",
                     color=self.bot.color.ERROR,
                 )
             )
@@ -251,7 +251,7 @@ class ChannelUtil(commands.Cog):
                 )
             )
             return
-        vcChannel = interaction.user.voice.channel
+        vc_channel = interaction.user.voice.channel
         if userlimit < 0:
             await interaction.send(
                 embed=nextcord.Embed(
@@ -261,8 +261,8 @@ class ChannelUtil(commands.Cog):
                 )
             )
             return
-        assert isinstance(vcChannel, nextcord.VoiceChannel)
-        await vcChannel.edit(user_limit=userlimit)
+        assert isinstance(vc_channel, nextcord.VoiceChannel)
+        await vc_channel.edit(user_limit=userlimit)
         if userlimit == 0:
             await interaction.send(
                 embed=nextcord.Embed(
