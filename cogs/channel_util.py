@@ -262,7 +262,17 @@ class ChannelUtil(commands.Cog):
             )
             return
         assert isinstance(vc_channel, nextcord.VoiceChannel)
-        await vc_channel.edit(user_limit=userlimit)
+        try:
+            await vc_channel.edit(user_limit=userlimit)
+        except nextcord.Forbidden:
+            await interaction.send(
+                embed=nextcord.Embed(
+                    title="エラー",
+                    description="BOTが人数制限を変更する権限を持っていませんでした。\nBOTに適切な権限を付与してから再度試してください。",
+                    color=self.bot.color.ERROR,
+                )
+            )
+            return
         if userlimit == 0:
             await interaction.send(
                 embed=nextcord.Embed(
@@ -329,7 +339,7 @@ VCの人数制限を変更します。
                 )
             )
             return
-        vcChannel = ctx.author.voice.channel
+        vc_channel = ctx.author.voice.channel
         if userlimit < 0:
             await ctx.reply(
                 embed=nextcord.Embed(
@@ -339,8 +349,18 @@ VCの人数制限を変更します。
                 )
             )
             return
-        assert isinstance(vcChannel, nextcord.VoiceChannel)
-        await vcChannel.edit(user_limit=userlimit)
+        assert isinstance(vc_channel, nextcord.VoiceChannel)
+        try:
+            await vc_channel.edit(user_limit=userlimit)
+        except nextcord.Forbidden:
+            await ctx.reply(
+                embed=nextcord.Embed(
+                    title="エラー",
+                    description="BOTが人数制限を変更する権限を持っていませんでした。\nBOTに適切な権限を付与してから再度試してください。",
+                    color=self.bot.color.ERROR,
+                )
+            )
+            return
         if userlimit == 0:
             await ctx.reply(
                 embed=nextcord.Embed(
