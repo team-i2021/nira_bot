@@ -280,6 +280,84 @@ class ChannelUtil(commands.Cog):
                 )
             )
 
+    @commands.command(name="vclimit", aliases=["vl", "人数制限"], help="""\
+VCの人数制限を変更します。
+
+引数には変更後の人数を指定してください。
+0を指定するか指定しないと人数制限を解除します。
+
+変更には、このコマンドを実行できるロールが必要です。
+このコマンドを実行できるロールは、`/vclimit manage`コマンドで設定できます。""")
+    async def vclimit_change(self, ctx: commands.Context, userlimit: int = 0):
+        assert isinstance(ctx.author, nextcord.Member)
+        assert isinstance(ctx.guild, nextcord.Guild)
+        roledata = await self.vclimit_collection.find_one({"_id": ctx.guild.id})
+        if roledata is None:
+            await ctx.reply(
+                embed=nextcord.Embed(
+                    title="エラー",
+                    description="ユーザー上限コマンドを実行できるロールが設定されていません。\n事前に管理者が`/vclimit manage`コマンドでロールを設定してください。",
+                    color=self.bot.color.ERROR,
+                )
+            )
+            return
+        managerole = ctx.guild.get_role(roledata["managerole"])
+        if managerole is None:
+            await ctx.reply(
+                embed=nextcord.Embed(
+                    title="エラー",
+                    description="ユーザー上限コマンドを実行できるロールが設定されていません。\n事前に管理者が`/vclimit manage`コマンドでロールを設定してください。",
+                    color=self.bot.color.ERROR,
+                )
+            )
+            return
+        if managerole not in ctx.author.roles:
+            await ctx.reply(
+                embed=nextcord.Embed(
+                    title="エラー",
+                    description=f"このコマンドを実行する権限がありません。\nこのコマンドを実行するには、ユーザー上限コマンドを実行できるロールとして「{managerole.name}」が必要です。",
+                    color=self.bot.color.ERROR,
+                )
+            )
+            return
+        if ctx.author.voice is None:
+            await ctx.reply(
+                embed=nextcord.Embed(
+                    title="エラー",
+                    description="このコマンドを実行するには、ボイスチャンネルに入室している必要があります。",
+                    color=self.bot.color.ERROR,
+                )
+            )
+            return
+        vcChannel = ctx.author.voice.channel
+        if userlimit < 0:
+            await ctx.reply(
+                embed=nextcord.Embed(
+                    title="エラー",
+                    description="ユーザー上限は0以上の整数で指定してください。",
+                    color=self.bot.color.ERROR,
+                )
+            )
+            return
+        assert isinstance(vcChannel, nextcord.VoiceChannel)
+        await vcChannel.edit(user_limit=userlimit)
+        if userlimit == 0:
+            await ctx.reply(
+                embed=nextcord.Embed(
+                    title="完了",
+                    description="ボイスチャンネルのユーザー上限を解除しました。",
+                    color=self.bot.color.NORMAL,
+                )
+            )
+        else:
+            await ctx.reply(
+                embed=nextcord.Embed(
+                    title="完了",
+                    description=f"ボイスチャンネルのユーザー上限を{userlimit}人に設定しました。",
+                    color=self.bot.color.NORMAL,
+                )
+            )
+
 
 def setup(bot: NIRA):
     bot.add_cog(ChannelUtil(bot))
