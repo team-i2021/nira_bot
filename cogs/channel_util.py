@@ -159,9 +159,9 @@ class ChannelUtil(commands.Cog):
     @application_checks.has_guild_permissions(manage_channels=True)
     @vclimit_slash.subcommand(
         name="grant",
-        description="Sets whether to allow anyone to execute the user limit command on the channel.",
+        description="Sets whether to allow anyone to execute the user limit command on this VC",
         description_localizations={
-            nextcord.Locale.ja: "チャンネルをユーザー上限コマンドを誰にでも許可するかを設定します。",
+            nextcord.Locale.ja: "ユーザー上限コマンドをこのVCで誰にでも許可するかを設定します。",
         },
     )
     async def vclimit_grant_slash(
@@ -169,9 +169,9 @@ class ChannelUtil(commands.Cog):
         interaction: nextcord.Interaction,
         grant: bool = nextcord.SlashOption(
             name="grant",
-            description="Whether to allow anyone to execute the user limit command on the channel.",
+            description="Whether to allow anyone to execute the user limit command on this VC.",
             description_localizations={
-                nextcord.Locale.ja: "チャンネルをユーザー上限コマンドを誰にでも許可するか。",
+                nextcord.Locale.ja: "このVCでユーザー上限コマンドを誰にでも許可するか。",
             },
             required=True,
         ),
@@ -363,7 +363,9 @@ VCの人数制限を変更します。
 0を指定するか指定しないと人数制限を解除します。
 
 変更には、このコマンドを実行できるロールが必要です。
-このコマンドを実行できるロールは、`/vclimit manage`コマンドで設定できます。""")
+このコマンドを実行できるロールは、`/vclimit manage`コマンドで設定できます。
+
+エイリアス: `vl`、`人数制限`""")
     async def vclimit_change(self, ctx: commands.Context, userlimit: int = 0):
         assert isinstance(ctx.author, nextcord.Member)
         assert isinstance(ctx.guild, nextcord.Guild)
