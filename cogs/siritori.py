@@ -105,9 +105,11 @@ class Siritori(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
         if not isinstance(message.channel, nextcord.DMChannel):
+            if message.content.startswith(self.bot.command_prefix):
+                return
             srtr_data = await self.collection.find_one({"guild_id": message.guild.id})
             if srtr_data is not None:
-                if message.channel.id in srtr_data[message.guild.id]["channels"]:
+                if message.channel.id in srtr_data["channels"]:
                     await srtr.on_srtr(message, self.collection)
 
 
