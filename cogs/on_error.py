@@ -158,7 +158,7 @@ class error(commands.Cog):
 
         if add_trace:
             trace = "".join(traceback.TracebackException.from_exception(error).format())
-            description += f"\n```py\n{trace.replace(self.bot.settings['database_url'], '[URL]')}```"
+            description += f"\n```py\n{trace.replace(str(self.bot.settings['database_url']), '[URL]')}```"
         # Context.command は Optional[Command]
         if add_help and ctx.command:
             name = ctx.invoked_parents[0]
