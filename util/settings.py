@@ -48,6 +48,7 @@ class BotSettings(SettingsBase):
     translate: str | None = Field(default=None, min_length=1)
     voicevox: tuple[str, ...] = ()
     talk_api: str | None = Field(default=None, min_length=1)
+    gcloud_api: str | None = Field(default=None, min_length=1)
 
     # データベース周り
     database_url: MongoSRVDsn
