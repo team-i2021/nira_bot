@@ -1,4 +1,4 @@
-nextcord==2.4.2
+nextcord==2.6.0
 click>=8.0.3
 jaconv==0.3
 onami==2.6.3
