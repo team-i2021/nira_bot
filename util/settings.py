@@ -1,25 +1,25 @@
 import sys
-from typing import Any
+from typing import Any, Annotated
 
-from pydantic import BaseSettings, Extra, Field, MongoDsn, PositiveInt, SecretStr, validator
-from pydantic.env_settings import SettingsSourceCallable
+from pydantic import Extra, Field, MongoDsn, PositiveInt, SecretStr, validator
+from pydantic_core import MultiHostUrl
+from pydantic_settings import BaseSettings, PydanticBaseSettingsSource
+
+from pydantic.networks import UrlConstraints
 
 from util.typing import LoggerLevel
 
-
-class MongoDsnWithSrv(MongoDsn):
-    allowed_schemes = {"mongodb", "mongodb+srv"}
-
+MongoSRVDsn = Annotated[MultiHostUrl, UrlConstraints(allowed_schemes=['mongodb+srv'])]
 
 class SettingsBase(BaseSettings):
     class Config:
         @classmethod
         def customize_sources(
             cls,
-            init_settings: SettingsSourceCallable,
-            env_settings: SettingsSourceCallable,
-            file_secret_settings: SettingsSourceCallable,
-        ) -> tuple[SettingsSourceCallable, ...]:
+            init_settings: PydanticBaseSettingsSource,
+            env_settings: PydanticBaseSettingsSource,
+            file_secret_settings: PydanticBaseSettingsSource,
+        ) -> tuple[PydanticBaseSettingsSource, ...]:
             return env_settings, init_settings, file_secret_settings
 
         extra = Extra.ignore
@@ -50,7 +50,7 @@ class BotSettings(SettingsBase):
     talk_api: str | None = Field(default=None, min_length=1)
 
     # データベース周り
-    database_url: MongoDsnWithSrv
+    database_url: MongoSRVDsn
     database_name: str = Field(default="nira-bot", min_length=1)
 
     # Bot の起動に必要だがデフォルト値を提供できるもの
