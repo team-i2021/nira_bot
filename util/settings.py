@@ -1,7 +1,7 @@
 import sys
 from typing import Any, Annotated
 
-from pydantic import Extra, Field, MongoDsn, PositiveInt, SecretStr, validator
+from pydantic import Extra, Field, PositiveInt, SecretStr, validator
 from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, PydanticBaseSettingsSource
 

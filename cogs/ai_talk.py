@@ -5,7 +5,6 @@ import nextcord
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
 
-from util import n_fc
 from util.nira import NIRA
 
 from typing import Any
