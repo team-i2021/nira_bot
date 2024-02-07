@@ -1,4 +1,4 @@
-nextcord==2.6.0
+nextcord~=2.6.0
 click>=8.0.3
 jaconv==0.3
 onami==2.6.3
@@ -21,9 +21,9 @@ deepl==1.14.0
 git+http://github.com/abosamoor/pycld2.git@c71aa20a5cb04c93ac434abafea53bd570c9c1dc
 googletrans==4.0.0-rc1
 distro==1.8.0
-motor>=3.3.2
+motor>=3.3.2,<4
 typing_extensions>=4.6.1,<5
 cachetools==5.3.0
-pydantic>=2.6.0
+pydantic>=2.6.0,<3
 a3rt-talkpy==1.0.0
-pydantic-settings>=2.1.0
+pydantic-settings>=2.1.0,<3
