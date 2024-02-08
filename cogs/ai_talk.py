@@ -98,26 +98,18 @@ class Talk(commands.Cog):
         try:
             resp = await self.get_response(prompt)
             if resp is None:
-                return (
-                    [""],
-                    nextcord.Embed(title=self.get_embed_title, description="返答がありませんでした。", color=0xFFFF00).set_footer(
-                        text=self.footer_text, icon_url=self.footer_icon
-                    ),
-                )
+                contents = [""]
+                result = nextcord.Embed(description="返答がありませんでした。", color=self.bot.color.ATTENTION)
             else:
-                return (
-                    self.split_content(resp),
-                    nextcord.Embed(
-                        title=self.get_embed_title, description="AIから返答が返ってきました。", color=0x00FF00
-                    ).set_footer(text=self.footer_text, icon_url=self.footer_icon),
-                )
+                contents = self.split_content(resp)
+                result = nextcord.Embed(description="AIから返答が返ってきました。", color=self.bot.color.NORMAL)
         except Exception as err:
-            return (
-                [""],
-                nextcord.Embed(
-                    title=self.get_embed_title, description=f"エラーが発生しました。\n`{err}`", color=0xFF0000
-                ).set_footer(text=self.footer_text, icon_url=self.footer_icon),
-            )
+            contents = [""]
+            result = nextcord.Embed(description=f"エラーが発生しました。\n`{err}`", color=self.bot.color.ERROR)
+
+        result.title = self.get_embed_title
+        result.set_footer(text=self.footer_text, icon_url=self.footer_icon)
+        return contents, result
 
     @nextcord.slash_command(
         name="talk",
