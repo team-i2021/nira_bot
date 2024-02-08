@@ -1,17 +1,18 @@
-import a3rt_talkpy
-
 import enum
+from typing import Any
+
+import a3rt_talkpy
 import nextcord
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
 
 from util.nira import NIRA
 
-from typing import Any
 
 class TalkProvider(enum.Enum):
     A3RT = "a3rt"
     GEMINI = "gemini"
+
 
 class Talk(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs: Any):
@@ -22,7 +23,9 @@ class Talk(commands.Cog):
         a3rt_talk_token: str = self.bot.settings["talk_api"]
         self.a3rt_client = a3rt_talkpy.AsyncTalkClient(a3rt_talk_token)
         self.gcloud_token: str | None = self.bot.settings["gcloud_api"]
-        self.GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={TOKEN}"
+        self.GEMINI_URL = (
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={TOKEN}"
+        )
         if self.gcloud_token is not None:
             self.ai_provider = TalkProvider.GEMINI
 
@@ -53,7 +56,7 @@ class Talk(commands.Cog):
         """Google CloudのGemini APIを使用して返答を取得します。"""
         payload = {
             "contents": [
-                {"role": "user", "parts": {"text": prompt}}
+                {"role": "user", "parts": {"text": prompt}},
             ]
         }
         async with self.bot.session.post(self.GEMINI_URL.format(TOKEN=self.gcloud_token), json=payload) as resp:
@@ -80,9 +83,15 @@ class Talk(commands.Cog):
         if len(content) <= 2000:
             return [content]
         elif len(content) <= 10000:
-            return [content[i:i+2000] for i in range(0, len(content), 2000)]
+            return [content[i : i + 2000] for i in range(0, len(content), 2000)]
         else:
-            return [content[:2000], content[2000:4000], content[4000:6000], content[6000:8000], content[8000:9990] + "..."]
+            return [
+                content[:2000],
+                content[2000:4000],
+                content[4000:6000],
+                content[6000:8000],
+                content[8000:9990] + "...",
+            ]
 
     async def create_response(self, prompt: str) -> tuple[list[str], nextcord.Embed]:
         """AIからの返答を取得して返します。"""
@@ -91,38 +100,23 @@ class Talk(commands.Cog):
             if resp is None:
                 return (
                     [""],
-                    nextcord.Embed(
-                        title=self.get_embed_title,
-                        description="返答がありませんでした。",
-                        color=0xffff00
-                    ).set_footer(
-                        text=self.footer_text,
-                        icon_url=self.footer_icon
-                    )
+                    nextcord.Embed(title=self.get_embed_title, description="返答がありませんでした。", color=0xFFFF00).set_footer(
+                        text=self.footer_text, icon_url=self.footer_icon
+                    ),
                 )
             else:
                 return (
                     self.split_content(resp),
                     nextcord.Embed(
-                        title=self.get_embed_title,
-                        description="AIから返答が返ってきました。",
-                        color=0x00ff00
-                    ).set_footer(
-                        text=self.footer_text,
-                        icon_url=self.footer_icon
-                    )
+                        title=self.get_embed_title, description="AIから返答が返ってきました。", color=0x00FF00
+                    ).set_footer(text=self.footer_text, icon_url=self.footer_icon),
                 )
         except Exception as err:
             return (
                 [""],
                 nextcord.Embed(
-                    title=self.get_embed_title,
-                    description=f"エラーが発生しました。\n`{err}`",
-                    color=0xff0000
-                ).set_footer(
-                    text=self.footer_text,
-                    icon_url=self.footer_icon
-                )
+                    title=self.get_embed_title, description=f"エラーが発生しました。\n`{err}`", color=0xFF0000
+                ).set_footer(text=self.footer_text, icon_url=self.footer_icon),
             )
 
     @nextcord.slash_command(
@@ -133,17 +127,15 @@ class Talk(commands.Cog):
         },
     )
     async def talk_slash(
-            self,
-            interaction: Interaction,
-            prompt: str = SlashOption(
-                name="prompt",
-                description="Conversation content",
-                description_localizations={
-                    nextcord.Locale.ja: "会話内容"
-                },
-                required=True,
-            )
-        ):
+        self,
+        interaction: Interaction,
+        prompt: str = SlashOption(
+            name="prompt",
+            description="Conversation content",
+            description_localizations={nextcord.Locale.ja: "会話内容"},
+            required=True,
+        ),
+    ):
         assert not isinstance(interaction.channel, (nextcord.CategoryChannel, nextcord.ForumChannel))
         assert interaction.channel is not None
         await interaction.response.defer(ephemeral=False)
@@ -159,7 +151,7 @@ AIと会話してみましょう。
 `n!talk [prompt]`
 
 引数1: str
-お話内容"""
+お話内容""",
     )
     async def talk_command(self, ctx: commands.Context, *, prompt: str):
         async with ctx.typing():

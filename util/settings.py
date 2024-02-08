@@ -2,14 +2,14 @@ import sys
 from typing import Any, Annotated
 
 from pydantic import Extra, Field, PositiveInt, SecretStr, validator
+from pydantic.networks import UrlConstraints
 from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, PydanticBaseSettingsSource
 
-from pydantic.networks import UrlConstraints
-
 from util.typing import LoggerLevel
 
-MongoSRVDsn = Annotated[MultiHostUrl, UrlConstraints(allowed_schemes=['mongodb+srv'])]
+MongoSRVDsn = Annotated[MultiHostUrl, UrlConstraints(allowed_schemes=["mongodb+srv"])]
+
 
 class SettingsBase(BaseSettings):
     class Config:
