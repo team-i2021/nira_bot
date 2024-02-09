@@ -223,8 +223,8 @@ class Reaction(commands.Cog):
             },
             choice_localizations={
                 nextcord.Locale.ja: {
-                    "有効": True,
-                    "無効": False
+                    "有効": "True",
+                    "無効": "False"
                 }
             },
             default=False
