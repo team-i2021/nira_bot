@@ -15,7 +15,6 @@ websockets==10.3
 youtube-dl==2021.6.6
 youtube-dlc==2020.11.11.post3
 alkana==0.0.3
-# genshin==1.2.1
 # pyngrok==5.1.0
 deepl==1.14.0
 git+http://github.com/abosamoor/pycld2.git@c71aa20a5cb04c93ac434abafea53bd570c9c1dc

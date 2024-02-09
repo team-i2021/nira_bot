@@ -72,7 +72,3 @@ class BotSettings(SettingsBase):
     # デバッグ用: Cog
     unload_cogs: tuple[NonEmptyStr, ...] = ()
     load_cogs: tuple[NonEmptyStr, ...] = ()
-
-    # hoyo.py: HoYoverse 通行証のログインに使用するトークンと ID
-    ltuid: NonNegativeInt | None = None  # 通行証 ID (public)
-    ltoken: NonEmptySecretStr | None = None  # ログイントークン (VERY private)
