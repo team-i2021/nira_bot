@@ -227,7 +227,6 @@ class AutoEmoji(commands.Cog):
     )
     async def list_autoemoji_slash(self, interaction: Interaction):
         assert interaction.channel is not None
-        channel = interaction.channel
 
         await interaction.response.defer(ephemeral=False)
 
