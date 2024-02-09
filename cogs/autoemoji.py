@@ -1,6 +1,6 @@
 import asyncio
+import logging
 from motor import motor_asyncio
-from typing import Any
 
 import nextcord
 from nextcord import Interaction, SlashOption
@@ -235,14 +235,8 @@ class AutoEmoji(commands.Cog):
         for emoji in emoji_list:
             try:
                 await message.add_reaction(emoji)
-            except nextcord.Forbidden:
-                pass
-            except nextcord.NotFound:
-                pass
-            except nextcord.InvalidArgument:
-                pass
-            except nextcord.HTTPException:
-                pass
+            except Exception as e:
+                logging.error(f"AutoEmoji - Error: {e}")
             await asyncio.sleep(1)
 
 
