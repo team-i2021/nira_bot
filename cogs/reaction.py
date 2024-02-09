@@ -107,14 +107,14 @@ class Reaction(commands.Cog):
                 await ctx.reply(embed=nextcord.Embed(title="Error", description=f"管理者権限がありません。", color=0xff0000))
                 return
             if mention in n_fc.on_ali:
-                mention = True
+                mention_setting = True
             elif mention in n_fc.off_ali:
-                mention = False
+                mention_setting = False
             else:
                 await ctx.reply(embed=nextcord.Embed(title="Error", description=f"返信に対するメンションの指定が不正です。\n`yes`や`True`又は、`off`や`False`で指定してください。", color=0xff0000))
                 return
-            await self.er_collection.update_one({"guild_id": ctx.guild.id, "trigger": trigger}, {"$set": {"return": return_text, "mention": mention}}, upsert=True)
-            await ctx.reply(embed=nextcord.Embed(title="Success", description=f"トリガー`{trigger}`を追加しました。\nメンションは{'有効' if mention else '無効'}です。\n{self._atdb}", color=0x00ff00))
+            await self.er_collection.update_one({"guild_id": ctx.guild.id, "trigger": trigger}, {"$set": {"return": return_text, "mention": mention_setting}}, upsert=True)
+            await ctx.reply(embed=nextcord.Embed(title="Success", description=f"トリガー`{trigger}`を追加しました。\nメンションは{'有効' if mention_setting else '無効'}です。\n{self._atdb}", color=0x00ff00))
 
     @commands.has_permissions(manage_guild=True)
     @er_command.command(name="del")
