@@ -103,54 +103,26 @@ class AutoEmoji(commands.Cog):
             try:
                 await message.add_reaction(emoji)
             except nextcord.Forbidden:
-                await message.edit(
-                    embed=nextcord.Embed(
-                        title="AutoEmoji - Error",
-                        description=(
-                            f"絵文字 {emoji} (`{emoji}`)の確認時にエラーが発生しました。\n"
-                            "絵文字を追加する権限がありませんでした。"
-                        ),
-                        color=self.bot.color.ERROR,
-                    )
-                )
-                return
+                description = "絵文字を追加する権限がありませんでした。"
             except nextcord.NotFound:
-                await message.edit(
-                    embed=nextcord.Embed(
-                        title="AutoEmoji - Error",
-                        description=(
-                            f"絵文字 {emoji} (`{emoji}`)の確認時にエラーが発生しました。\n"
-                            "絵文字が見つかりませんでした。"
-                        ),
-                        color=self.bot.color.ERROR,
-                    )
-                )
-                return
+                description = "絵文字が見つかりませんでした。"
             except nextcord.InvalidArgument:
-                await message.edit(
-                    embed=nextcord.Embed(
-                        title="AutoEmoji - Error",
-                        description=(
-                            f"絵文字 {emoji} (`{emoji}`)の確認時にエラーが発生しました。\n"
-                            "絵文字が無効です。"
-                        ),
-                        color=self.bot.color.ERROR,
-                    )
-                )
-                return
+                description = "絵文字が無効です。"
             except nextcord.HTTPException:
-                await message.edit(
-                    embed=nextcord.Embed(
-                        title="AutoEmoji - Error",
-                        description=(
-                            f"絵文字 {emoji} (`{emoji}`)の確認時にエラーが発生しました。\n"
-                            "絵文字はカンマ区切りで入力されているかご確認ください。\n"
-                            "または...一時的なネットワークエラーが発生している可能性があります。"
-                        ),
-                        color=self.bot.color.ERROR,
-                    )
+                description = (
+                    "絵文字はカンマ区切りで入力されているかご確認ください。\n"
+                    "または...一時的なネットワークエラーが発生している可能性があります。"
                 )
-                return
+            else:
+                continue
+            await message.edit(
+                embed=nextcord.Embed(
+                    title="AutoEmoji - Error",
+                    description=f"絵文字 {emoji} (`{emoji}`)の確認時にエラーが発生しました。\n{description}",
+                    color=self.bot.color.ERROR,
+                )
+            )
+            return
         try:
             await self.autoemoji_collection.update_one(
                 filter={"channel_id": interaction.channel.id},
