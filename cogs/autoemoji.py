@@ -109,7 +109,7 @@ class AutoEmoji(commands.Cog):
                 description = "絵文字が無効です。"
             except nextcord.HTTPException:
                 description = (
-                    "絵文字はカンマ区切りで入力されているかご確認ください。\n"
+                    "絵文字がカンマ区切りで入力されているかご確認ください。\n"
                     "または...一時的なネットワークエラーが発生している可能性があります。"
                 )
             else:
