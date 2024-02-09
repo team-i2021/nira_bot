@@ -210,7 +210,6 @@ class AutoEmoji(commands.Cog):
         if not message.guild:
             return
         autoemoji_settings = list(filter(lambda x: x["channel_id"] == message.channel.id, self.autoemoji_list))
-        print(autoemoji_settings)
         if len(autoemoji_settings) == 0:
             return
         autoemoji_setting = autoemoji_settings[0]
