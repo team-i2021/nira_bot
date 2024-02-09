@@ -1,43 +1,48 @@
 import sys
-from typing import Any
+from typing import Any, Annotated
 
-from pydantic import BaseSettings, Extra, Field, MongoDsn, PositiveInt, SecretStr, validator
-from pydantic.env_settings import SettingsSourceCallable
+from pydantic import BeforeValidator, Field, NonNegativeInt, PositiveInt, SecretStr
+from pydantic.networks import UrlConstraints
+from pydantic_core import MultiHostUrl
+from pydantic_settings import BaseSettings, PydanticBaseSettingsSource
 
 from util.typing import LoggerLevel
 
-
-class MongoDsnWithSrv(MongoDsn):
-    allowed_schemes = {"mongodb", "mongodb+srv"}
+NonEmptyStr = Annotated[str, Field(min_length=1)]
+NonEmptySecretStr = Annotated[SecretStr, Field(min_length=1)]
+MongoSRVDsn = Annotated[MultiHostUrl, UrlConstraints(allowed_schemes=["mongodb+srv"])]
 
 
 class SettingsBase(BaseSettings):
-    class Config:
-        @classmethod
-        def customize_sources(
-            cls,
-            init_settings: SettingsSourceCallable,
-            env_settings: SettingsSourceCallable,
-            file_secret_settings: SettingsSourceCallable,
-        ) -> tuple[SettingsSourceCallable, ...]:
-            return env_settings, init_settings, file_secret_settings
+    model_config = {
+        "extra": "ignore",
+        "frozen": True,
+    }
 
-        extra = Extra.ignore
-        frozen = True
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
+        return env_settings, dotenv_settings, file_secret_settings, init_settings
 
 
 class Tokens(SettingsBase):
-    nira_bot: SecretStr = Field(min_length=1, env="BOT_TOKEN")
+    nira_bot: Annotated[SecretStr, Field(min_length=1)]
+
+
+def _upper_level(level: Any) -> Any:
+    return level.upper() if isinstance(level, str) else level
 
 
 class Logging(SettingsBase):
-    filepath: str = f"{sys.path[0]}/nira.log"
+    filepath: NonEmptyStr = f"{sys.path[0]}/nira.log"
     format: str = "%(asctime)s$%(filename)s$%(lineno)d$%(funcName)s$%(levelname)s:%(message)s"
-    level: int | LoggerLevel = "INFO"
-
-    @validator("level", pre=True)
-    def upper_level(cls, level: Any) -> Any:
-        return level.upper() if isinstance(level, str) else level
+    level: Annotated[int | LoggerLevel, BeforeValidator(_upper_level)] = "INFO"
 
 
 class BotSettings(SettingsBase):
@@ -45,28 +50,29 @@ class BotSettings(SettingsBase):
     tokens: Tokens
 
     # API キー
-    translate: str | None = Field(default=None, min_length=1)
-    voicevox: tuple[str, ...] = ()
-    talk_api: str | None = Field(default=None, min_length=1)
+    translate: NonEmptyStr | None = None
+    voicevox: tuple[NonEmptyStr, ...] = ()
+    talk_api: NonEmptyStr | None = None
+    gcloud_api: NonEmptyStr | None = None
 
     # データベース周り
-    database_url: MongoDsnWithSrv
-    database_name: str = Field(default="nira-bot", min_length=1)
+    database_url: MongoSRVDsn
+    database_name: NonEmptyStr = "nira-bot"
 
     # Bot の起動に必要だがデフォルト値を提供できるもの
     prefix: str = "n!"
-    shard_id: int = Field(default=0, ge=0)
+    shard_id: NonNegativeInt = 0
     shard_count: PositiveInt = 1
     logging: Logging = Logging()
 
     # 上同だが任意のもの
-    py_admin: tuple[int, ...] = ()
-    guild_ids: tuple[int, ...] = ()
+    py_admin: tuple[NonNegativeInt, ...] = ()
+    guild_ids: tuple[NonNegativeInt, ...] = ()
 
     # デバッグ用: Cog
-    unload_cogs: tuple[str, ...] = ()
-    load_cogs: tuple[str, ...] = ()
+    unload_cogs: tuple[NonEmptyStr, ...] = ()
+    load_cogs: tuple[NonEmptyStr, ...] = ()
 
     # hoyo.py: HoYoverse 通行証のログインに使用するトークンと ID
-    ltuid: int | None = None  # 見ようと思えば他人から見れる...はず
-    ltoken: SecretStr | None = Field(default=None, min_length=1)  # 絶対アカン (private)
+    ltuid: NonNegativeInt | None = None  # 通行証 ID (public)
+    ltoken: NonEmptySecretStr | None = None  # ログイントークン (VERY private)
