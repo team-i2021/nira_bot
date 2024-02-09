@@ -8,11 +8,13 @@ from nextcord.ext import commands, application_checks, tasks
 
 from util.nira import NIRA
 
+
 class AutoEmoji(commands.Cog):
     """
     AutoEmojiは、設定チャンネルにメッセージが投稿された際に、自動で絵文字リアクションを行う機能です。
     これを行うことでチャンネル運用がもしかしたら便利になるかもしれません。
     """
+
     def __init__(self, bot: NIRA, **kwargs: Any):
         self.bot = bot
         self.autoemoji_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["autoemoji_setting"]
@@ -41,7 +43,7 @@ class AutoEmoji(commands.Cog):
         description="Set autoemoji to this channel",
         description_localizations={
             nextcord.Locale.ja: "このチャンネルに自動絵文字を設定します。",
-        }
+        },
     )
     async def set_autoemoji_slash(
         self,
@@ -56,7 +58,7 @@ class AutoEmoji(commands.Cog):
                 nextcord.Locale.ja: "設定したい絵文字をカンマ区切りで指定してください。",
             },
             required=True,
-        )
+        ),
     ):
         assert interaction.guild is not None
         assert interaction.channel is not None
@@ -72,9 +74,9 @@ class AutoEmoji(commands.Cog):
                         "このチャンネルには既に自動絵文字が設定されています。\n"
                         "削除するには`/autoemoji del`を使用してください。"
                     ),
-                    color=self.bot.color.ERROR
+                    color=self.bot.color.ERROR,
                 ),
-                ephemeral=True
+                ephemeral=True,
             )
             return
 
@@ -82,9 +84,9 @@ class AutoEmoji(commands.Cog):
             embed=nextcord.Embed(
                 title="しばらくお待ちください...",
                 description="絵文字のチェックを行っています。",
-                color=self.bot.color.ATTENTION
+                color=self.bot.color.ATTENTION,
             ),
-            wait=True
+            wait=True,
         )
         emojis = emojis.replace(" ", "")
         emoji_list = emojis.split(",")
@@ -93,7 +95,7 @@ class AutoEmoji(commands.Cog):
                 embed=nextcord.Embed(
                     title="AutoEmoji - Error",
                     description="設定できる絵文字は10個までです。",
-                    color=self.bot.color.ERROR
+                    color=self.bot.color.ERROR,
                 )
             )
             return
@@ -108,7 +110,7 @@ class AutoEmoji(commands.Cog):
                             f"絵文字 {emoji} (`{emoji}`)の確認時にエラーが発生しました。\n"
                             "絵文字を追加する権限がありませんでした。"
                         ),
-                        color=self.bot.color.ERROR
+                        color=self.bot.color.ERROR,
                     )
                 )
                 return
@@ -120,7 +122,7 @@ class AutoEmoji(commands.Cog):
                             f"絵文字 {emoji} (`{emoji}`)の確認時にエラーが発生しました。\n"
                             "絵文字が見つかりませんでした。"
                         ),
-                        color=self.bot.color.ERROR
+                        color=self.bot.color.ERROR,
                     )
                 )
                 return
@@ -132,7 +134,7 @@ class AutoEmoji(commands.Cog):
                             f"絵文字 {emoji} (`{emoji}`)の確認時にエラーが発生しました。\n"
                             "絵文字が無効です。"
                         ),
-                        color=self.bot.color.ERROR
+                        color=self.bot.color.ERROR,
                     )
                 )
                 return
@@ -145,7 +147,7 @@ class AutoEmoji(commands.Cog):
                             "絵文字はカンマ区切りで入力されているかご確認ください。\n"
                             "または...一時的なネットワークエラーが発生している可能性があります。"
                         ),
-                        color=self.bot.color.ERROR
+                        color=self.bot.color.ERROR,
                     )
                 )
                 return
@@ -153,7 +155,7 @@ class AutoEmoji(commands.Cog):
             await self.autoemoji_collection.update_one(
                 filter={"channel_id": interaction.channel.id},
                 update={"$set": {"emojis": emoji_list}},
-                upsert=True
+                upsert=True,
             )
             self.autoemoji_cache[interaction.channel.id] = emoji_list
         except Exception as e:
@@ -161,7 +163,7 @@ class AutoEmoji(commands.Cog):
                 embed=nextcord.Embed(
                     title="AutoEmoji - Error",
                     description=f"エラーが発生しました。\n```{e}```",
-                    color=self.bot.color.ERROR
+                    color=self.bot.color.ERROR,
                 )
             )
             return
@@ -173,7 +175,7 @@ class AutoEmoji(commands.Cog):
                     f"絵文字 {emojis} (`{emojis}`)をこのチャンネルに追加しました。\n"
                     "このチャンネルにメッセージが送信されると自動で絵文字リアクションが行われます。"
                 ),
-                color=self.bot.color.NORMAL
+                color=self.bot.color.NORMAL,
             )
         )
 
@@ -183,7 +185,7 @@ class AutoEmoji(commands.Cog):
         description="Delete autoemoji from this channel",
         description_localizations={
             nextcord.Locale.ja: "このチャンネルの自動絵文字を削除します。",
-        }
+        },
     )
     async def del_autoemoji_slash(self, interaction: Interaction):
         assert interaction.guild is not None
@@ -197,9 +199,9 @@ class AutoEmoji(commands.Cog):
                 embed=nextcord.Embed(
                     title="AutoEmoji - Error",
                     description="このチャンネルには自動絵文字が設定されていません。",
-                    color=self.bot.color.ERROR
+                    color=self.bot.color.ERROR,
                 ),
-                ephemeral=True
+                ephemeral=True,
             )
             return
         await interaction.send(
@@ -209,9 +211,9 @@ class AutoEmoji(commands.Cog):
                     "このチャンネルの自動絵文字を削除しました。\n"
                     "このメッセージにつく絵文字が最後の絵文字だよ..."
                 ),
-                color=self.bot.color.NORMAL
+                color=self.bot.color.NORMAL,
             ),
-            ephemeral=True
+            ephemeral=True,
         )
         self.autoemoji_cache.pop(interaction.channel.id, None)
 
@@ -221,7 +223,7 @@ class AutoEmoji(commands.Cog):
         description="List autoemoji settings",
         description_localizations={
             nextcord.Locale.ja: "自動絵文字の設定を表示します。",
-        }
+        },
     )
     async def list_autoemoji_slash(self, interaction: Interaction):
         assert interaction.channel is not None
@@ -234,9 +236,9 @@ class AutoEmoji(commands.Cog):
                 embed=nextcord.Embed(
                     title="AutoEmoji - List",
                     description="このチャンネルには自動絵文字が設定されていません。",
-                    color=self.bot.color.NORMAL
+                    color=self.bot.color.NORMAL,
                 ),
-                ephemeral=True
+                ephemeral=True,
             )
             return
         emoji_list = self.autoemoji_cache[interaction.channel.id]
@@ -248,9 +250,9 @@ class AutoEmoji(commands.Cog):
                     f"{', '.join(emoji_list)}\n"
                     f"(`{', '.join(emoji_list)}`)"
                 ),
-                color=self.bot.color.NORMAL
+                color=self.bot.color.NORMAL,
             ),
-            ephemeral=True
+            ephemeral=True,
         )
 
     @commands.Cog.listener()
@@ -272,6 +274,7 @@ class AutoEmoji(commands.Cog):
             except nextcord.HTTPException:
                 pass
             await asyncio.sleep(1)
+
 
 def setup(bot: NIRA, **kwargs: Any):
     bot.add_cog(AutoEmoji(bot, **kwargs))
