@@ -131,7 +131,8 @@ def _get_janken_result(player_hand: JankenHand) -> nextcord.Embed:
 
 def _get_divination_result() -> nextcord.Embed:
     message = random.choices(DIVINATION_MESSAGES, weights=DIVINATION_PROBABILITIES)[0]
-    star = DIVINATION_STAR * (DIVINATION_MESSAGES.index(message) + 1)
+    star_count = DIVINATION_MESSAGES.index(message) + 1
+    star = DIVINATION_STAR * star_count
 
     embed = nextcord.Embed(
         title="うらない",
@@ -139,7 +140,7 @@ def _get_divination_result() -> nextcord.Embed:
         color=0x00ff00,
     )
     embed.add_field(
-        name=f"あなたの運勢は**星10個中の{star}個**です！",
+        name=f"あなたの運勢は**星10個中の{star_count}個**です！",
         value=f"> {message}",
     )
     return embed
