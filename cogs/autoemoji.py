@@ -75,8 +75,7 @@ class AutoEmoji(commands.Cog):
                         "削除するには`/autoemoji del`を使用してください。"
                     ),
                     color=self.bot.color.ERROR,
-                ),
-                ephemeral=True,
+                )
             )
             return
 
