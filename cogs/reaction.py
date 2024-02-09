@@ -217,15 +217,9 @@ class Reaction(commands.Cog):
                 nextcord.Locale.ja: "メンションするかどうかです"
             },
             required=False,
-            choices={
-                "True": True,
-                "False": False
-            },
+            choices={"Enable": True, "Disable": False},
             choice_localizations={
-                nextcord.Locale.ja: {
-                    "有効": "True",
-                    "無効": "False"
-                }
+                nextcord.Locale.ja: {"Enable": "有効", "Disable": "無効"}
             },
             default=False
         )
@@ -312,7 +306,7 @@ class Reaction(commands.Cog):
             },
             required=True
         ),
-        mention: str = SlashOption(
+        mention: bool = SlashOption(
             name="mention",
             name_localizations={
                 nextcord.Locale.ja: "メンション"
@@ -321,25 +315,16 @@ class Reaction(commands.Cog):
             description_localizations={
                 nextcord.Locale.ja: "メンションをするかどうかです"
             },
-            required=False,
-            default="None",
-            choices={
-                "Enable": "True",
-                "Disable": "False"
-            },
+            choices={"Enable": True, "Disable": False},
             choice_localizations={
-                nextcord.Locale.ja: {
-                    "有効": "True",
-                    "無効": "False"
-                }
-            }
+                nextcord.Locale.ja: {"Enable": "有効", "Disable": "無効"}
+            },
+            required=False,
+            default=False
         )
     ):
         await interaction.response.defer(ephemeral=True)
-        if mention == "None":
-            update_value = {"return": returnMessage}
-        else:
-            update_value = {"return": returnMessage, "mention": True if mention == "True" else False}
+        update_value = {"return": returnMessage, "mention": mention}
         edit_result = await self.er_collection.update_one({"guild_id": interaction.guild.id, "trigger": triggerMessage}, {"$set": update_value})
         if edit_result.modified_count == 0:
             await interaction.followup.send(embed=nextcord.Embed(title="Error", description=f"追加反応が存在しませんでした。", color=0xff0000))
@@ -423,7 +408,7 @@ class Reaction(commands.Cog):
                 },
                 choices={"Enable": True, "Disable": False},
                 choice_localizations={
-                    nextcord.Locale.ja: {"有効": False, "無効": True}
+                    nextcord.Locale.ja: {"Enable": "有効", "Disable": "無効"}
                 },
                 required=True
             )
@@ -448,7 +433,7 @@ class Reaction(commands.Cog):
                 },
                 choices={"Enable": True, "Disable": False},
                 choice_localizations={
-                    nextcord.Locale.ja: {"有効": True, "無効": False}
+                    nextcord.Locale.ja: {"Enable": "有効", "Disable": "無効"}
                 },
                 required=True
             )
@@ -503,7 +488,7 @@ class Reaction(commands.Cog):
                 },
                 choices={"Enable": True, "Disable": False},
                 choice_localizations={
-                    nextcord.Locale.ja: {"有効": False, "無効": True}
+                    nextcord.Locale.ja: {"Enable": "有効", "Disable": "無効"}
                 }
             )
         ):
