@@ -1,19 +1,12 @@
 import asyncio
 from motor import motor_asyncio
-from typing import Any, TypedDict
+from typing import Any
 
 import nextcord
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands, application_checks, tasks
 
 from util.nira import NIRA
-
-class AutoEmojiSetting(TypedDict):
-    """
-    `AutoEmoji.autoemoji_list`に使用される、AutoEmojiの設定を表す型です。
-    """
-    channel_id: int
-    emojis: list[str]
 
 class AutoEmoji(commands.Cog):
     """
@@ -23,7 +16,7 @@ class AutoEmoji(commands.Cog):
     def __init__(self, bot: NIRA, **kwargs: Any):
         self.bot = bot
         self.autoemoji_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["autoemoji_setting"]
-        self.autoemoji_list: list[AutoEmojiSetting] = []
+        self.autoemoji_cache: dict[int, list[str]] = {}
         self.load_autoemoji_settings.start()
 
     @tasks.loop(hours=1.0)
@@ -31,9 +24,9 @@ class AutoEmoji(commands.Cog):
         """
         AutoEmojiの設定を、データベースからローカルへロードします。
         """
-        self.autoemoji_list = []
+        self.autoemoji_cache = {}
         async for autoemoji in self.autoemoji_collection.find():
-            self.autoemoji_list.append(autoemoji)
+            self.autoemoji_cache[int(autoemoji["channel_id"])] = autoemoji["emojis"]
 
     @nextcord.slash_command(
         name="autoemoji",
@@ -44,13 +37,13 @@ class AutoEmoji(commands.Cog):
 
     @application_checks.guild_only()
     @autoemoji_slash.subcommand(
-        name="add",
-        description="Add a new autoemoji",
+        name="set",
+        description="Set autoemoji to this channel",
         description_localizations={
-            nextcord.Locale.ja: "新しい自動絵文字を追加します。",
+            nextcord.Locale.ja: "このチャンネルに自動絵文字を設定します。",
         }
     )
-    async def add_autoemoji_slash(
+    async def set_autoemoji_slash(
         self,
         interaction: Interaction,
         emojis: str = SlashOption(
@@ -58,9 +51,9 @@ class AutoEmoji(commands.Cog):
             name_localizations={
                 nextcord.Locale.ja: "絵文字",
             },
-            description="Comma separated emojis to add",
+            description="Comma separated emojis to set",
             description_localizations={
-                nextcord.Locale.ja: "カンマ区切りで絵文字を指定してください。",
+                nextcord.Locale.ja: "設定したい絵文字をカンマ区切りで指定してください。",
             },
             required=True,
         )
@@ -69,6 +62,21 @@ class AutoEmoji(commands.Cog):
         assert interaction.channel is not None
 
         await interaction.response.defer(ephemeral=False)
+
+        exist_status = await self.autoemoji_collection.find_one({"channel_id": interaction.channel.id})
+        if exist_status is not None:
+            await interaction.send(
+                embed=nextcord.Embed(
+                    title="AutoEmoji - Error",
+                    description=(
+                        "このチャンネルには既に自動絵文字が設定されています。\n"
+                        "削除するには`/autoemoji del`を使用してください。"
+                    ),
+                    color=self.bot.color.ERROR
+                ),
+                ephemeral=True
+            )
+            return
 
         message = await interaction.followup.send(
             embed=nextcord.Embed(
@@ -147,7 +155,7 @@ class AutoEmoji(commands.Cog):
                 update={"$set": {"emojis": emoji_list}},
                 upsert=True
             )
-            self.autoemoji_list.append({"channel_id": interaction.channel.id, "emojis": emoji_list})
+            self.autoemoji_cache[interaction.channel.id] = emoji_list
         except Exception as e:
             await message.edit(
                 embed=nextcord.Embed(
@@ -205,10 +213,7 @@ class AutoEmoji(commands.Cog):
             ),
             ephemeral=True
         )
-        for autoemoji in self.autoemoji_list:
-            if autoemoji["channel_id"] == interaction.channel.id:
-                self.autoemoji_list.remove(autoemoji)
-                break
+        self.autoemoji_cache.pop(interaction.channel.id, None)
 
     @application_checks.guild_only()
     @autoemoji_slash.subcommand(
@@ -224,8 +229,7 @@ class AutoEmoji(commands.Cog):
 
         await interaction.response.defer(ephemeral=False)
 
-        autoemoji_settings = list(filter(lambda x: x["channel_id"] == channel.id, self.autoemoji_list))
-        if len(autoemoji_settings) == 0:
+        if interaction.channel.id not in self.autoemoji_cache:
             await interaction.send(
                 embed=nextcord.Embed(
                     title="AutoEmoji - List",
@@ -235,8 +239,7 @@ class AutoEmoji(commands.Cog):
                 ephemeral=True
             )
             return
-        autoemoji_setting = autoemoji_settings[0]
-        emoji_list = autoemoji_setting["emojis"]
+        emoji_list = self.autoemoji_cache[interaction.channel.id]
         await interaction.send(
             embed=nextcord.Embed(
                 title="AutoEmoji - List",
@@ -254,11 +257,9 @@ class AutoEmoji(commands.Cog):
     async def on_message(self, message: nextcord.Message):
         if not message.guild:
             return
-        autoemoji_settings = list(filter(lambda x: x["channel_id"] == message.channel.id, self.autoemoji_list))
-        if len(autoemoji_settings) == 0:
+        if message.channel.id not in self.autoemoji_cache:
             return
-        autoemoji_setting = autoemoji_settings[0]
-        emoji_list = autoemoji_setting["emojis"]
+        emoji_list = self.autoemoji_cache[message.channel.id]
         for emoji in emoji_list:
             try:
                 await message.add_reaction(emoji)
