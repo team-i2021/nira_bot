@@ -205,6 +205,44 @@ class AutoEmoji(commands.Cog):
                 self.autoemoji_list.remove(autoemoji)
                 break
 
+    @application_checks.guild_only()
+    @autoemoji_slash.subcommand(
+        name="list",
+        description="List autoemoji settings",
+        description_localizations={
+            nextcord.Locale.ja: "自動絵文字の設定を表示します。",
+        }
+    )
+    async def list_autoemoji_slash(self, interaction: Interaction):
+        await interaction.response.defer(ephemeral=False)
+        assert interaction.channel is not None
+
+        autoemoji_settings = list(filter(lambda x: x["channel_id"] == interaction.channel.id, self.autoemoji_list))
+        if len(autoemoji_settings) == 0:
+            await interaction.send(
+                embed=nextcord.Embed(
+                    title="AutoEmoji - List",
+                    description="このチャンネルには自動絵文字が設定されていません。",
+                    color=self.bot.color.NORMAL
+                ),
+                ephemeral=True
+            )
+            return
+        autoemoji_setting = autoemoji_settings[0]
+        emoji_list = autoemoji_setting["emojis"]
+        await interaction.send(
+            embed=nextcord.Embed(
+                title="AutoEmoji - List",
+                description=(
+                    "このチャンネルでリアクションするように設定されている絵文字は以下の通りです。\n"
+                    f"{', '.join(emoji_list)}\n"
+                    f"(`{', '.join(emoji_list)}`)"
+                ),
+                color=self.bot.color.NORMAL
+            ),
+            ephemeral=True
+        )
+
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
         if not message.guild:
