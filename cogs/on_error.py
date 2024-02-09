@@ -247,7 +247,7 @@ class error(commands.Cog):
 
         if add_trace:
             trace = "".join(traceback.TracebackException.from_exception(error).format())
-            description += f"\n```py\n{trace.replace(self.bot.settings['database_url'], '[URL]')}```"
+            description += f"\n```py\n{trace.replace(str(self.bot.settings['database_url'], '[URL]'))}```"
         # Interaction.application_command は Optional[ApplicationCommand]
         if add_help and (command := interaction.application_command):
             while getattr(command, "parent_cmd", None) is not None:
