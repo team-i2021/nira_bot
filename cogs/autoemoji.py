@@ -65,9 +65,11 @@ class AutoEmoji(commands.Cog):
             required=True,
         )
     ):
-        assert isinstance(interaction.guild, nextcord.Guild)
+        assert interaction.guild is not None
         assert interaction.channel is not None
+
         await interaction.response.defer(ephemeral=False)
+
         message = await interaction.followup.send(
             embed=nextcord.Embed(
                 title="しばらくお待ちください...",
@@ -126,7 +128,7 @@ class AutoEmoji(commands.Cog):
                     )
                 )
                 return
-            except nextcord.HTTPException as e:
+            except nextcord.HTTPException:
                 await message.edit(
                     embed=nextcord.Embed(
                         title="AutoEmoji - Error",
@@ -155,6 +157,7 @@ class AutoEmoji(commands.Cog):
                 )
             )
             return
+
         await message.edit(
             embed=nextcord.Embed(
                 title="AutoEmoji - Success",
@@ -175,9 +178,11 @@ class AutoEmoji(commands.Cog):
         }
     )
     async def del_autoemoji_slash(self, interaction: Interaction):
-        await interaction.response.defer(ephemeral=False)
-        assert isinstance(interaction.guild, nextcord.Guild)
+        assert interaction.guild is not None
         assert interaction.channel is not None
+
+        await interaction.response.defer(ephemeral=False)
+
         delete_status = await self.autoemoji_collection.delete_one({"channel_id": interaction.channel.id})
         if delete_status.deleted_count == 0:
             await interaction.send(
@@ -214,10 +219,12 @@ class AutoEmoji(commands.Cog):
         }
     )
     async def list_autoemoji_slash(self, interaction: Interaction):
-        await interaction.response.defer(ephemeral=False)
         assert interaction.channel is not None
+        channel = interaction.channel
 
-        autoemoji_settings = list(filter(lambda x: x["channel_id"] == interaction.channel.id, self.autoemoji_list))
+        await interaction.response.defer(ephemeral=False)
+
+        autoemoji_settings = list(filter(lambda x: x["channel_id"] == channel.id, self.autoemoji_list))
         if len(autoemoji_settings) == 0:
             await interaction.send(
                 embed=nextcord.Embed(
