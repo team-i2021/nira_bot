@@ -15,7 +15,7 @@ from util.nira import NIRA
 
 
 class UserJoin(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs):
+    def __init__(self, bot: NIRA):
         self.bot = bot
         self.winfo_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["welcome_info"]
         self.rk_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["role_keeper"]
@@ -195,6 +195,5 @@ class UserJoin(commands.Cog):
             return
 
 
-def setup(bot, **kwargs):
-    bot.add_cog(UserJoin(bot, **kwargs))
-
+def setup(bot):
+    bot.add_cog(UserJoin(bot))

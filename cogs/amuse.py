@@ -168,7 +168,7 @@ def _get_retry_button(dice_id: DiceId, value_a: int, value_b: int) -> _DiceRetry
 
 
 class Amuse(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs):
+    def __init__(self, bot: NIRA):
         self.bot = bot
 
     @commands.command(name="dice", help="""\
@@ -435,5 +435,5 @@ https://discord.gg/awfFpCYTcP"""
         await interaction.send(embed=embed, view=_get_retry_button(dice_id, value_a, value_b))
 
 
-def setup(bot, **kwargs):
-    bot.add_cog(Amuse(bot, **kwargs))
+def setup(bot):
+    bot.add_cog(Amuse(bot))

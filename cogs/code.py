@@ -31,7 +31,7 @@ class CodeInsert(nextcord.ui.Modal):
 
 
 class Code(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs):
+    def __init__(self, bot: NIRA):
         self.bot = bot
 
     @nextcord.slash_command(name="html", description="HTMLを入力してページを返します。")
@@ -52,5 +52,5 @@ class Code(commands.Cog):
         await ctx.reply(embed=embed)
 
 
-def setup(bot, **kwargs):
-    bot.add_cog(Code(bot, **kwargs))
+def setup(bot):
+    bot.add_cog(Code(bot))

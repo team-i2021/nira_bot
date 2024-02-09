@@ -448,7 +448,7 @@ class Recheck_SS_Embed(nextcord.ui.View):
 
 
 class server_status(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs):
+    def __init__(self, bot: NIRA):
         self.bot = bot
         self.ss_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database[STEAM_SERVER_COLLECTION_NAME]
         self.auto_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["auto_ss"]
@@ -1026,9 +1026,9 @@ Steam非公式サーバーのステータスを表示します
                     )
                 continue
 
-def setup(bot: NIRA, **kwargs):
-    bot.add_cog(server_status(bot, **kwargs))
+def setup(bot: NIRA):
     importlib.reload(server_check)
+    bot.add_cog(server_status(bot))
     logging.info("Setup `server_status` cog.")
 
 

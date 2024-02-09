@@ -20,7 +20,7 @@ ROLE_ID = compile(r"<@&[0-9]+?>")
 
 
 class autorole(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs):
+    def __init__(self, bot: NIRA):
         self.bot = bot
         self.collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["autorole"]
 
@@ -191,5 +191,5 @@ class autorole(commands.Cog):
             await member.add_roles(role, reason="NiraBOT AutoRole")
 
 
-def setup(bot, **kwargs):
-    bot.add_cog(autorole(bot, **kwargs))
+def setup(bot):
+    bot.add_cog(autorole(bot))

@@ -156,7 +156,7 @@ class RolePanelButton(nextcord.ui.Button):
 
 
 class Rolepanel(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs):
+    def __init__(self, bot: NIRA):
         self.bot = bot
         self.add_role_mes = "ロール「`{role_name}`」をあなたに追加しました！\n（もう一度同じボタンを押すと、ロール「`{role_name}`」を削除します。）"
         self.remove_role_mes = "ロール「`{role_name}`」をあなたから削除しました！\n（もう一度同じボタンを押すと、ロール「`{role_name}`」を追加します。）"
@@ -336,5 +336,5 @@ n!rolepanel [*メッセージ内容]
 
 
 
-def setup(bot, **kwargs):
-    bot.add_cog(Rolepanel(bot, **kwargs))
+def setup(bot):
+    bot.add_cog(Rolepanel(bot))

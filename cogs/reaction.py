@@ -70,7 +70,7 @@ class NotifyTokenSet(nextcord.ui.Modal):
 
 
 class Reaction(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs):
+    def __init__(self, bot: NIRA):
         self.bot = bot
         self.er_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["er_setting"]
         self.nr_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["nr_setting"]
@@ -532,5 +532,5 @@ TOKENとは簡単に言えばパスワードです。LINE Notifyのページか�
         await interaction.response.send_message(f"LINE Notifyのトークンを削除しました。\nこれでこのチャンネルのメッセージがLINEに送信されなくなりました。\n{self._atdb}")
 
 
-def setup(bot, **kwargs):
-    bot.add_cog(Reaction(bot, **kwargs))
+def setup(bot):
+    bot.add_cog(Reaction(bot))

@@ -15,7 +15,7 @@ class TalkProvider(enum.Enum):
 
 
 class Talk(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs: Any):
+    def __init__(self, bot: NIRA):
         self.bot = bot
 
         self.ai_provider = TalkProvider.A3RT
@@ -155,5 +155,5 @@ AIと会話してみましょう。
                     await ctx.send(content=contents[i])
 
 
-def setup(bot: NIRA, **kwargs: Any):
-    bot.add_cog(Talk(bot, **kwargs))
+def setup(bot: NIRA):
+    bot.add_cog(Talk(bot))

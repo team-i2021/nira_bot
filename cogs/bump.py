@@ -166,5 +166,5 @@ Disboardの通知設定を行います。
                 await message.channel.send(messageContent, embed=nextcord.Embed(title="Bumpしましょう！", description=f"Bumpの時間ですよ！\n```/bump```", color=0x00ff00))
 
 
-def setup(bot, **kwargs):
-    bot.add_cog(Bump(bot, **kwargs))
+def setup(bot):
+    bot.add_cog(Bump(bot))

@@ -15,7 +15,7 @@ class AutoEmoji(commands.Cog):
     これを行うことでチャンネル運用がもしかしたら便利になるかもしれません。
     """
 
-    def __init__(self, bot: NIRA, **kwargs: Any):
+    def __init__(self, bot: NIRA):
         self.bot = bot
         self.autoemoji_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["autoemoji_setting"]
         self.autoemoji_cache: dict[int, list[str]] = {}
@@ -246,5 +246,5 @@ class AutoEmoji(commands.Cog):
             await asyncio.sleep(1)
 
 
-def setup(bot: NIRA, **kwargs: Any):
-    bot.add_cog(AutoEmoji(bot, **kwargs))
+def setup(bot: NIRA):
+    bot.add_cog(AutoEmoji(bot))

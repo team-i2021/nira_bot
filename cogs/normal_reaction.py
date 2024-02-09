@@ -248,7 +248,7 @@ async def n_reaction(message: nextcord.Message, *custom: int) -> nextcord.Messag
 
 
 class normal_reaction(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs):
+    def __init__(self, bot: NIRA):
         self.bot = bot
         self.all_reaction_list = []
         self.ex_reaction_list = []
@@ -384,7 +384,7 @@ class normal_reaction(commands.Cog):
         await self.database_update()
 
 
-def setup(bot, **kwargs):
-    bot.add_cog(normal_reaction(bot, **kwargs))
+def setup(bot):
+    bot.add_cog(normal_reaction(bot))
     importlib.reload(srtr)
     importlib.reload(web_api)

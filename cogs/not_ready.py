@@ -6,7 +6,7 @@ from util.nira import NIRA
 
 
 class not_ready(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs):
+    def __init__(self, bot: NIRA):
         self.bot = bot
 
     @commands.Cog.listener()
@@ -16,5 +16,5 @@ class not_ready(commands.Cog):
             await message.reply("現在起動準備中です。")
 
 
-def setup(bot, **kwargs):
-    bot.add_cog(not_ready(bot, **kwargs))
+def setup(bot):
+    bot.add_cog(not_ready(bot))

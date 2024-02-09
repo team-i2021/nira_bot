@@ -58,7 +58,7 @@ class MessageCommandPulldown(nextcord.ui.Select):
 
 
 class MessageCommands(commands.Cog):
-    def __init__(self, bot: nira.NIRA, **kwargs):
+    def __init__(self, bot: nira.NIRA):
         self.bot = bot
 
     @nextcord.message_command(name="その他")
@@ -67,5 +67,5 @@ class MessageCommands(commands.Cog):
         view.add_item(MessageCommandPulldown(self.bot, interaction, message))
         await interaction.response.send_message("実行したいメッセージコマンドを選択してください。", view=view, ephemeral=True)
 
-def setup(bot: nira.NIRA, **kwargs):
-    bot.add_cog(MessageCommands(bot, **kwargs))
+def setup(bot: nira.NIRA):
+    bot.add_cog(MessageCommands(bot))

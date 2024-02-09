@@ -660,5 +660,5 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
 
 
 
-def setup(bot, **kwargs):
-    bot.add_cog(Text2Speech(bot, **kwargs))
+def setup(bot):
+    bot.add_cog(Text2Speech(bot))

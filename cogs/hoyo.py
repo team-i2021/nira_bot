@@ -256,7 +256,7 @@ def create_paginator(
     )
 
 class Genshin(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs):
+    def __init__(self, bot: NIRA):
         self.bot = bot
         self.collection = self.bot.database["genshin"]
         asyncio.ensure_future(self._init_clients())
@@ -433,9 +433,9 @@ class Genshin(commands.Cog):
                 logging.error(e)
 
 
-def setup(bot: NIRA, **kwargs):
+def setup(bot: NIRA):
     if bot.debug:
-        bot.add_cog(Genshin(bot, **kwargs))
+        bot.add_cog(Genshin(bot))
 
 # await GenshinClients[interaction.user.id].genshin_accounts()
 # [GenshinAccount(game_biz=????(str), uid=UID, level=冒険者ランク, nickname=ユーザー名, server="os_asia", server_name="Asia Server")]

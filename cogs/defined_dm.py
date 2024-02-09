@@ -56,7 +56,7 @@ class DefinedDMSET(nextcord.ui.Modal):
         await interaction.send(embed=nextcord.Embed(title="DefinedDM SET", description=f"設定しました。\n定型文名は`{self.dm_title.value}`です。\n(現在`{len(settings)}`個設定中)", color=0x00ff00))
 
 class DefinedDM(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs):
+    def __init__(self, bot: NIRA):
         self.bot = bot
         self.collection = self.bot.database["defined_dm"]
 
@@ -171,5 +171,5 @@ class DefinedDM(commands.Cog):
         else:
             await interaction.response.send_autocomplete([setting for setting in result["settings"] if setting.lower().startswith(title.lower())])
 
-def setup(bot, **kwargs):
-    bot.add_cog(DefinedDM(bot, **kwargs))
+def setup(bot):
+    bot.add_cog(DefinedDM(bot))

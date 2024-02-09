@@ -53,7 +53,7 @@ async def ErrorSend(ctx: commands.Context):
 
 
 class UpNotify(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs):
+    def __init__(self, bot: NIRA):
         self.bot = bot
         self.collection = self.bot.database["up_notify"]
 
@@ -191,5 +191,5 @@ DissokuのUpをしたら、その1時間後に通知します。
                 return
 
 
-def setup(bot, **kwargs):
-    bot.add_cog(UpNotify(bot, **kwargs))
+def setup(bot):
+    bot.add_cog(UpNotify(bot))

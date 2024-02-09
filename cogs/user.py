@@ -13,7 +13,7 @@ SET, DEL, STATUS = (0, 1, 2)
 
 
 class User(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs):
+    def __init__(self, bot: NIRA):
         self.bot = bot
         self.rk_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["role_keeper"]
         self.winfo_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["welcome_info"]
@@ -314,5 +314,5 @@ AutoMod等の機能を活用したうえで、過信しすぎずに使用して�
 
 
 
-def setup(bot, **kwargs):
-    bot.add_cog(User(bot, **kwargs))
+def setup(bot):
+    bot.add_cog(User(bot))

@@ -42,5 +42,5 @@ class check(commands.Cog):
         return
 
 
-def setup(bot, **kwargs):
-    bot.add_cog(check(bot, **kwargs))
+def setup(bot):
+    bot.add_cog(check(bot))

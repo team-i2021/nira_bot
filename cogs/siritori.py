@@ -18,7 +18,7 @@ STOP = ["stop", "off", "end", "exit", "ストップ", "おわり"]
 
 
 class Siritori(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs):
+    def __init__(self, bot: NIRA):
         self.bot = bot
         self.collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["siritori_game"]
 
@@ -114,6 +114,6 @@ class Siritori(commands.Cog):
 
 
 
-def setup(bot, **kwargs):
+def setup(bot):
     importlib.reload(srtr)
-    bot.add_cog(Siritori(bot, **kwargs))
+    bot.add_cog(Siritori(bot))

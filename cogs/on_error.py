@@ -13,7 +13,7 @@ from util.nira import NIRA
 
 # エラー時のイベント！
 class error(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs):
+    def __init__(self, bot: NIRA):
         self.bot = bot
 
     @commands.Cog.listener()
@@ -274,6 +274,6 @@ class error(commands.Cog):
             logging.exception("エラーメッセージを送信できませんでした")
 
 
-def setup(bot, **kwargs):
-    bot.add_cog(error(bot, **kwargs))
+def setup(bot):
+    bot.add_cog(error(bot))
     importlib.reload(nira_commands)
