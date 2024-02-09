@@ -44,7 +44,7 @@ class Talk(commands.Cog):
             return "https://a3rt.recruit.co.jp/common/images/logo_header.png"
 
     @property
-    def get_embed_title(self) -> str:
+    def embed_title(self) -> str:
         if self.ai_provider == TalkProvider.A3RT:
             return "Talk API"
         elif self.ai_provider == TalkProvider.GEMINI:
@@ -107,7 +107,7 @@ class Talk(commands.Cog):
             contents = [""]
             result = nextcord.Embed(description=f"エラーが発生しました。\n`{err}`", color=self.bot.color.ERROR)
 
-        result.title = self.get_embed_title
+        result.title = self.embed_title
         result.set_footer(text=self.footer_text, icon_url=self.footer_icon)
         return contents, result
 
