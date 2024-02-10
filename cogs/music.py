@@ -4,9 +4,6 @@ import json
 import logging
 import re
 import sys
-import traceback
-import urllib.parse
-import urllib.request
 
 import nextcord
 import niconico_dl
