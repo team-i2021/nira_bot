@@ -1,5 +1,4 @@
 import logging
-import traceback
 from difflib import get_close_matches
 from http import HTTPStatus as Codes
 
@@ -161,8 +160,8 @@ class error(commands.Cog):
             add_support = True
 
         if add_trace:
-            trace = "".join(traceback.TracebackException.from_exception(error_inner).format())
-            description += f"\n```py\n{trace.replace(str(self.bot.settings['database_url']), '[URL]')}```"
+            trace = self.bot.format_exc(error_inner)
+            description += f"\n```py\n{trace}```"
         # Context.command は Optional[Command]
         if add_help and ctx.command:
             name = ctx.invoked_parents[0] if ctx.invoked_parents else ctx.command.name
@@ -259,8 +258,8 @@ class error(commands.Cog):
             add_support = True
 
         if add_trace:
-            trace = "".join(traceback.TracebackException.from_exception(error_inner).format())
-            description += f"\n```py\n{trace.replace(str(self.bot.settings['database_url']), '[URL]')}```"
+            trace = self.bot.format_exc(error_inner)
+            description += f"\n```py\n{trace}```"
         # Interaction.application_command は Optional[ApplicationCommand]
         if add_help and (command := interaction.application_command):
             while getattr(command, "parent_cmd", None) is not None:
