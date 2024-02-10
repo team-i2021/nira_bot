@@ -1,16 +1,15 @@
-import listre
 import random
 import re
 import urllib.parse
 from enum import Enum, auto
 
+import listre
 import nextcord
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
 
-from util.n_fc import GUILD_IDS
-from util.wordle_data import words
 from util.nira import NIRA
+from util.wordle_data import words
 
 # 娯楽系
 
