@@ -33,6 +33,10 @@ class JankenResult(Enum):
 
 
 DICE_ID_PREFIX = "cogs.amuse.dice"
+DICE_NORMAL_MIN_VALUE = -9_007_199_254_740_991  # Number.MIN_SAFE_INTEGER
+DICE_NORMAL_MAX_VALUE = 9_007_199_254_740_991  # Number.MAX_SAFE_INTEGER
+DICE_TRPG_MAX_DICE = 170
+DICE_TRPG_MAX_VALUE = 9999
 
 JANKEN_RULES_URL = r"https://ja.wikipedia.org/wiki/%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E3%82%93#%E3%83%AB%E3%83%BC%E3%83%AB"
 JANKEN_HAND_NAMES = {
@@ -68,42 +72,78 @@ DIVINATION_MESSAGES = [
 ]
 
 
-def _get_dice_result(dice_id: DiceId, value_a: int, value_b: int) -> nextcord.Embed:
+class _DiceRetryButtonView(nextcord.ui.View):
+    def __init__(self, dice_id: DiceId, value_a: int, value_b: int):
+        super().__init__(timeout=None)
+
+        self.add_item(nextcord.ui.Button(
+            style=nextcord.ButtonStyle.green,
+            label="もう一度",
+            emoji="\N{Rightwards Arrow with Hook}",
+            custom_id=f"{DICE_ID_PREFIX}:{dice_id.value}:{value_a},{value_b}",
+        ))
+
+        self.stop()
+
+
+def _get_dice_result(dice_id: DiceId, value_a: int, value_b: int) -> tuple[nextcord.Embed, _DiceRetryButtonView]:
+    button = _DiceRetryButtonView(dice_id, value_a, value_b)
+
     match dice_id:
         case DiceId.NORMAL:
             min_value, max_value = value_a, value_b
 
-            if max_value < min_value:
-                return nextcord.Embed(
-                    title="エラー",
-                    description="最大値が最小値より小さいよ！",
-                    color=0xff0000,
-                )
+            description = None
+            if min_value < DICE_NORMAL_MIN_VALUE:
+                description = f"最小値が小さすぎます。\n{DICE_NORMAL_MIN_VALUE:,} 以上である必要があります。"
+            elif max_value > DICE_NORMAL_MAX_VALUE:
+                description = f"最大値が大きすぎます。\n{DICE_NORMAL_MAX_VALUE:,} 以下である必要があります。"
+            elif max_value < min_value:
+                description = "最大値が最小値より小さいよ！"
+            if description:
+                return nextcord.Embed(title="エラー", description=description, color=0xff0000), nextcord.utils.MISSING
 
             value = random.randint(min_value, max_value)
-            return nextcord.Embed(
-                title=f"サイコロ\n`{min_value}-{max_value}`",
-                description=f"```{value}```",
-                color=0x00ff00,
+            return (
+                nextcord.Embed(
+                    title=f"サイコロ: {min_value:,}〜{max_value:,}",
+                    description=f"# {value:,}",
+                    color=0x00ff00,
+                ),
+                button,
             )
 
         case DiceId.TRPG:
             number_dice, max_value = value_a, value_b
 
+            # 古い埋め込みのリトライボタンからだと範囲外の値が渡される可能性がある
+            # (以前はどちらとも 1〜10000 まで入力を受け付けていた)
+            if number_dice > DICE_TRPG_MAX_DICE or max_value < 2 or max_value > DICE_TRPG_MAX_VALUE:
+                return (
+                    nextcord.Embed(
+                        title="エラー",
+                        description="指定された値は範囲外です。\nお手数ですが、もう一度コマンドを実行してください。",
+                        color=0xff0000,
+                    ),
+                    nextcord.utils.MISSING,
+                )
+
             results = [random.randint(1, max_value) for _ in range(number_dice)]
 
             embed = nextcord.Embed(
-                title=f"サイコロ\n`{number_dice}D{max_value}`",
-                description=f"```{sum(results)}```",
+                title=f"ダイスロール: `{number_dice}d{max_value}`",
+                description=f"# {sum(results):,}",
                 color=0x00ff00,
             )
 
-            results_str = str(results)
-            if len(results_str) > 1000:
-                results_str = f"{results_str[:1000]}..."
-            embed.add_field(name="ダイスの目の詳細", value=f"```{results_str}```", inline=False)
+            # 170d9999 の結果が全て 1000 以上になった場合ちょうど 1024 文字になる
+            # len("1000") * 170 + len(", ") * 169 + len("```") * 2 = 1024
+            # 埋め込みのフィールドに入れられる上限の文字数なので１文字も増やしてはいけない！
+            if number_dice > 1:
+                results_str = str(results)[1:-1]
+                embed.add_field(name="詳細", value=f"```{results_str}```", inline=False)
 
-            return embed
+            return embed, button
 
     raise ValueError(f"Unknown dice id: {dice_id}")
 
@@ -146,49 +186,26 @@ def _get_divination_result() -> nextcord.Embed:
     return embed
 
 
-class _DiceRetryButtonView(nextcord.ui.View):
-    def __init__(self, dice_id: DiceId, value_a: int, value_b: int):
-        super().__init__(timeout=None)
-
-        self.add_item(nextcord.ui.Button(
-            style=nextcord.ButtonStyle.green,
-            label="もう一度",
-            emoji="\N{Rightwards Arrow with Hook}",
-            custom_id=f"{DICE_ID_PREFIX}:{dice_id.value}:{value_a},{value_b}",
-        ))
-
-        self.stop()
-
-
-def _get_retry_button(dice_id: DiceId, value_a: int, value_b: int) -> _DiceRetryButtonView | None:
-    return (
-        _DiceRetryButtonView(dice_id, value_a, value_b)
-        if dice_id is not DiceId.NORMAL or value_a < value_b
-        else nextcord.utils.MISSING
-    )
-
-
 class Amuse(commands.Cog):
     def __init__(self, bot: NIRA):
         self.bot = bot
 
-    @commands.command(name="dice", help="""\
-指定した最大目のダイスを振ります。
-例: `n!dice 10` (1-10のダイス)
-例: `n!dice 12 2` (2-12のダイス)
+    @commands.command(name="dice", help=f"""\
+指定した範囲のダイスを振るというか乱数を生成します。
+需要は無いでしょうが一応 {DICE_NORMAL_MIN_VALUE:,} から {DICE_NORMAL_MAX_VALUE:,} まで振ることができます。
+例: `n!dice 10` (1〜10のダイス)
+例: `n!dice 12 2` (2〜12のダイス)
 
 引数1: int（省略可能）
 ダイスの最大値。
 デフォルト: 6
 
 引数2: int（省略可能）
-ダイスの最小値
+ダイスの最小値。
 デフォルト: 1""")
-    async def dice_ctx(self, ctx: commands.Context, max_count: int = 6, min_count: int = 1):
-        await ctx.reply(
-            embed=_get_dice_result(DiceId.NORMAL, min_count, max_count),
-            view=_get_retry_button(DiceId.NORMAL, min_count, max_count),
-        )
+    async def dice_ctx(self, ctx: commands.Context, max_value: int = 6, min_value: int = 1):
+        embed, view = _get_dice_result(DiceId.NORMAL, min_value, max_value)
+        await ctx.reply(embed=embed, view=view)
 
     @nextcord.slash_command(name="amuse", description="The command of amuse")
     async def amuse(self, interaction: Interaction):
@@ -202,47 +219,40 @@ class Amuse(commands.Cog):
     async def normal(
         self,
         interaction: Interaction,
-        max_count: int = SlashOption(
-            name="max_count",
-            description="ダイスの最大目の数です",
-            required=True
-        ),
-        min_count: int = SlashOption(
-            name="min_count",
-            description="ダイスの最小目の数です デフォルトは1です",
+        max_value: int = SlashOption(
+            description="ダイスの最大目の数です。省略時は6です。",
             required=False,
-            default=1
+            default=6,
+        ),
+        min_value: int = SlashOption(
+            description="ダイスの最小目の数です。省略時は1です。",
+            required=False,
+            default=1,
         ),
     ):
-        await interaction.send(
-            embed=_get_dice_result(DiceId.NORMAL, min_count, max_count),
-            view=_get_retry_button(DiceId.NORMAL, min_count, max_count),
-        )
+        embed, view = _get_dice_result(DiceId.NORMAL, min_value, max_value)
+        await interaction.send(embed=embed, view=view)
 
-    @dice.subcommand(name="trpg", description="TRPG用のサイコロ「nDr」を振ります")
+    @dice.subcommand(name="trpg", description="TRPGのダイスロールができます")
     async def trpg(
         self,
         interaction: Interaction,
         number_dice: int = SlashOption(
-            name="number_dice",
-            description="ダイスの数です。「n」の部分です。",
+            description=f"ダイスの数です。(1〜{DICE_TRPG_MAX_DICE})",
             required=True,
             min_value=1,
-            max_value=10000
+            max_value=DICE_TRPG_MAX_DICE,
         ),
-        dice_count: int = SlashOption(
-            name="dice_count",
-            description="ダイスの最大目の数です。「r」の部分です。",
+        max_value: int = SlashOption(
+            description=f"ダイスの最大目の数です。(2〜{DICE_TRPG_MAX_VALUE})",
             required=True,
-            min_value=1,
-            max_value=10000
+            min_value=2,
+            max_value=DICE_TRPG_MAX_VALUE,
         ),
     ):
         await interaction.response.defer()
-        await interaction.send(
-            embed=_get_dice_result(DiceId.TRPG, number_dice, dice_count),
-            view=_get_retry_button(DiceId.TRPG, number_dice, dice_count),
-        )
+        embed, view = _get_dice_result(DiceId.TRPG, number_dice, max_value)
+        await interaction.send(embed=embed, view=view)
 
     @commands.command(name="janken", help=f"""\
 じゃんけんで遊びます。
@@ -429,11 +439,11 @@ https://discord.gg/awfFpCYTcP"""
 
         await interaction.response.defer()
 
-        embed = _get_dice_result(dice_id, value_a, value_b)
+        embed, view = _get_dice_result(dice_id, value_a, value_b)
         if (user := interaction.user):
             embed.set_author(name=user.display_name, icon_url=user.display_avatar.url)
 
-        await interaction.send(embed=embed, view=_get_retry_button(dice_id, value_a, value_b))
+        await interaction.send(embed=embed, view=view)
 
 
 def setup(bot):
