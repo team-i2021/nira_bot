@@ -50,8 +50,8 @@ def url_search(url):
 
 async def end_mes(
     message: nextcord.Message,
-    close_obj: niconico_dl.NicoNicoVideo or None,
-    bot: nextcord.ext.commands.bot,
+    close_obj: niconico_dl.NicoNicoVideo | None,
+    bot: commands.Bot,
 ):
     try:
         if re.search("nicovideo.jp", music_list[message.guild.id][0]) or re.search(
@@ -72,7 +72,7 @@ async def end_mes(
         logging.error(err)
 
 
-async def play_source(message: nextcord.Message, bot: nextcord.ext.commands.bot):
+async def play_source(message: nextcord.Message, bot: commands.Bot):
     try:
         await message.add_reaction("\U00002705")
         if re.search("nicovideo.jp", music_list[message.guild.id][0]) or re.search(
