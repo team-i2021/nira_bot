@@ -1,14 +1,11 @@
 import asyncio
 import datetime
-import json
 import logging
 import re
 import sys
 
 import nextcord
 import niconico_dl
-import youtube_dl
-import youtube_dlc
 from nextcord.ext import commands
 
 from cogs import tts
@@ -22,36 +19,10 @@ music_list = dict()
 music_f = dict()
 url_type = dict()
 
-youtube_dl.utils.bug_reports_message = lambda: ""
-
 options = {
     "before_options": "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5",
     "options": "-vn",
 }
-
-ytdl_format_options = {
-    "format": "bestaudio/best",
-    "outtmpl": "%(extractor)s-%(id)s-%(title)s.%(ext)s",
-    "restrictfilenames": True,
-    "noplaylist": True,
-    "nocheckcertificate": True,
-    "ignoreerrors": False,
-    "logtostderr": False,
-    "quiet": True,
-    "no_warnings": True,
-    "default_search": "auto",
-    "source_address": "0.0.0.0",
-    "cookiefile": f"{SYSDIR}/util/youtube-cookies.txt",
-}
-
-# ヨシ！
-ffmpeg_options = {"options": "-vn"}
-
-flat_list = {
-    "extract_flat": True,
-}
-
-ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 
 
 def url_search(url):
@@ -75,20 +46,6 @@ def url_search(url):
 # async def get_sclink(url):
 #    track_url = urllib.parse.unquote(get_redirect(f"https://w.soundcloud.com/player/?url={url}")[37:])
 #    track_id = track_url[]
-
-
-def flat_playlist(url):
-    if url_search(url) == "yt":
-        with youtube_dlc.YoutubeDL(flat_list) as ydl:
-            try:
-                info_dict = ydl.extract_info(url, download=False)
-            except Exception as err:
-                return err
-            o = json.loads(json.dumps(info_dict, ensure_ascii=False))
-        urllist = []
-        for items in o["entries"]:
-            urllist.append("https://www.youtube.com/watch?v=" + items["id"])
-        return urllist
 
 
 async def end_mes(
@@ -136,26 +93,6 @@ async def play_source(message: nextcord.Message, bot: nextcord.ext.commands.bot)
         await message.add_reaction("\U0001F197")
     except Exception as err:
         logging.error(err)
-
-
-class YTDLSource(nextcord.PCMVolumeTransformer):
-    def __init__(self, source, *, data, volume=0.5):
-        super().__init__(source, volume)
-        self.data = data
-        self.title = data.get("title")
-        self.url = data.get("url")
-
-    @classmethod
-    async def from_url(cls, url, *, loop=None, stream=False):
-        loop = loop or asyncio.get_event_loop()
-        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
-
-        if "entries" in data:
-            # take first item from a playlist
-            data = data["entries"][0]
-
-        filename = data["url"] if stream else ytdl.prepare_filename(data)
-        return cls(nextcord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
 
 class music(commands.Cog):
@@ -281,28 +218,12 @@ Discord及びGoogleは、DiscordのボイスチャンネルでのYouTube再生BO
                         music_f[ctx.guild.id] = []
                         if re.search("playlist", url) or re.search("mylist", url):
                             await ctx.reply(
-                                "曲を追加しています。しばらくお待ちください。\n（プレイリストの曲が多い場合は時間がかかることがあります。エラーの場合はエラーが表示されるのでしばらくお待ちください。）"
+                                "曲を追加しています。しばらくお待ちください。\n"
+                                "（プレイリストの曲が多い場合は時間がかかることがあります。エラーの場合はエラーが表示されるのでしばらくお待ちください。）"
                             )
                             if url_search(url) == "yt":
                                 await self.rm_youtube(ctx)
                                 return
-
-                                with youtube_dlc.YoutubeDL(flat_list) as ydl:
-                                    try:
-                                        info_dict = ydl.extract_info(url, download=False)
-                                    except Exception as err:
-                                        await ctx.reply(f"エラーが発生しました。\n`{err}`")
-                                    o = json.loads(json.dumps(info_dict, ensure_ascii=False))
-                                i = 0
-                                for items in o["entries"]:
-                                    music_f[ctx.guild.id].append(
-                                        await YTDLSource.from_url(
-                                            "https://www.youtube.com/watch?v=" + items["id"], stream=True
-                                        )
-                                    )
-                                    music_list[ctx.guild.id].append(music_f[ctx.guild.id][i].url)
-                                    i = i + 1
-                                await ctx.reply(f"曲を追加しました。プレイリストには全部で`{len(music_list[ctx.guild.id])}`曲あります。)")
                             else:
                                 await ctx.reply("プレイリスト及びマイリストの再生には現在対応しておりません。")
                                 return
@@ -314,9 +235,6 @@ Discord及びGoogleは、DiscordのボイスチャンネルでのYouTube再生BO
                             elif re.search("youtube.com", url) or re.search("youtu.be", url):
                                 await self.rm_youtube(ctx)
                                 return
-
-                                music_f[ctx.guild.id].append(await YTDLSource.from_url(url, stream=True))
-                                music_list[ctx.guild.id].append(music_f[ctx.guild.id][0].url)
                             else:
                                 await ctx.message.reply(
                                     embed=nextcord.Embed(
@@ -346,24 +264,6 @@ Discord及びGoogleは、DiscordのボイスチャンネルでのYouTube再生BO
                             if url_search(url) == "yt":
                                 await self.rm_youtube(ctx)
                                 return
-
-                                with youtube_dlc.YoutubeDL(flat_list) as ydl:
-                                    try:
-                                        info_dict = ydl.extract_info(url, download=False)
-                                    except Exception as err:
-                                        await ctx.reply(f"エラーが発生しました。\n`{err}`")
-                                    o = json.loads(json.dumps(info_dict, ensure_ascii=False))
-                                i = len(music_list[ctx.guild.id]) + 1
-                                for items in o["entries"]:
-                                    music_f[ctx.guild.id].append(
-                                        await YTDLSource.from_url(
-                                            "https://www.youtube.com/watch?v=" + items["id"], stream=True
-                                        )
-                                    )
-                                    music_list[ctx.guild.id].append(music_f[ctx.guild.id][i].url)
-                                    i = i + 1
-                                await ctx.reply(f"曲を追加しました。プレイリストには全部で`{len(music_list[ctx.guild.id])}`曲あります。")
-                                return
                             else:
                                 await ctx.reply("プレイリスト及びマイリストの再生には現在対応しておりません。")
                                 return
@@ -375,9 +275,6 @@ Discord及びGoogleは、DiscordのボイスチャンネルでのYouTube再生BO
                             elif re.search("youtube.com", url) or re.search("youtu.be", url):
                                 await self.rm_youtube(ctx)
                                 return
-
-                                music_f[ctx.guild.id].append(await YTDLSource.from_url(url, stream=True))
-                                music_list[ctx.guild.id].append(music_f[ctx.guild.id][-1].url)
                             else:
                                 await ctx.message.reply(
                                     embed=nextcord.Embed(
@@ -526,7 +423,10 @@ Discord及びGoogleは、DiscordのボイスチャンネルでのYouTube再生BO
                     await ctx.reply(
                         embed=nextcord.Embed(
                             title="エラー",
-                            description="TTSで接続しています。`n!tts leave`と入力して切断してください。\n何が起きてるのかよくわからず、強制的に切断する必要がある場合は、`n!leave f`と入力してください。",
+                            description=(
+                                "TTSで接続しています。`n!tts leave`と入力して切断してください。\n"
+                                "何が起きてるのかよくわからず、強制的に切断する必要がある場合は、`n!leave f`と入力してください。"
+                            ),
                             color=0xFF0000,
                         )
                     )
