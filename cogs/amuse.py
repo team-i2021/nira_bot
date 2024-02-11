@@ -97,8 +97,8 @@ def _get_dice_result(dice_id: DiceId, value_a: int, value_b: int) -> tuple[nextc
                 description = f"最小値が小さすぎます。\n{DICE_NORMAL_MIN_VALUE:,} 以上である必要があります。"
             elif max_value > DICE_NORMAL_MAX_VALUE:
                 description = f"最大値が大きすぎます。\n{DICE_NORMAL_MAX_VALUE:,} 以下である必要があります。"
-            elif max_value < min_value:
-                description = "最大値が最小値より小さいよ！"
+            elif min_value > max_value:
+                min_value, max_value = max_value, min_value
             if description:
                 return nextcord.Embed(title="エラー", description=description, color=0xff0000), nextcord.utils.MISSING
 
@@ -192,6 +192,7 @@ class Amuse(commands.Cog):
     @commands.command(name="dice", help=f"""\
 指定した範囲のダイスを振るというか乱数を生成します。
 需要は無いでしょうが一応 {DICE_NORMAL_MIN_VALUE:,} から {DICE_NORMAL_MAX_VALUE:,} まで振ることができます。
+最大値が最小値より小さい場合は暗黙的に入れ替えられます。
 例: `n!dice 10` (1〜10のダイス)
 例: `n!dice 12 2` (2〜12のダイス)
 
