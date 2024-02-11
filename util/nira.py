@@ -1,7 +1,7 @@
 import os
 import sys
 import traceback
-from typing import Any
+from typing import Any, cast
 
 import aiohttp
 import nextcord
@@ -11,6 +11,7 @@ from nextcord.ext import commands
 from util.n_fc import py_admin
 from util.typing import GeneralChannel
 from util.colors import Color
+
 
 class NIRA(commands.Bot):
     """
@@ -86,9 +87,21 @@ class NIRA(commands.Bot):
     def error_embed(self, err) -> nextcord.Embed:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        er = str(err).replace(self.settings["database_url"], "[URL]")
-        tb = str(traceback.format_exc()).replace(self.settings["database_url"], "[URL]")
+        er = self.format_exc(err)
+        tb = self.format_exc()
         return nextcord.Embed(title="Error",description=f"大変申し訳ございません。ニラがエラーが発生させました。\n```{er}```\n```sh\n{tb}```\nfile:`{fname}`\nline:{exc_tb.tb_lineno}\n\n[サポートサーバー](https://discord.gg/awfFpCYTcP)", color=self.color.ERROR)
+
+    def format_exc(self, exception: Exception | None = None) -> str:
+        db_url = str(self.settings["database_url"])  # type: ignore
+        if exception:
+            tb = "".join(traceback.format_exception(exception))
+        else:
+            tb = traceback.format_exc()
+        tb = tb.replace(db_url, "[URL]")
+        for node in cast(frozenset[tuple[str, int | None]], self.__mongo.nodes):
+            host, _ = node
+            tb = tb.replace(host, "[HOST]")
+        return tb
 
     class Forbidden(Exception):
         """Exception of default Forbidden (not Server Admin)"""

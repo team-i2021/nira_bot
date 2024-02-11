@@ -84,7 +84,7 @@ class EmbedMaker(nextcord.ui.Modal):
 
 
 class SendEmbed(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs):
+    def __init__(self, bot: NIRA):
         self.bot = bot
         self.mscommands = self.embed_message_command
 
@@ -146,5 +146,5 @@ Embedの本文です。
             return
 
 
-def setup(bot, **kwargs):
-    bot.add_cog(SendEmbed(bot, **kwargs))
+def setup(bot):
+    bot.add_cog(SendEmbed(bot))

@@ -38,7 +38,7 @@ BOTの設定ファイルが見つかりませんでした。
 HOME = os.path.dirname(os.path.abspath(__file__))
 
 with open(f"{sys.path[0]}/setting.json", "r") as file:
-    settings = BotSettings.parse_obj(json.load(file))
+    settings = BotSettings.model_validate(json.load(file))
 
 
 n_fc.GUILD_IDS = settings.guild_ids
@@ -53,7 +53,7 @@ if args.debug:
 
 
 # データベースの設定
-_MONGO_CLIENT = motor_asyncio.AsyncIOMotorClient(settings.database_url)
+_MONGO_CLIENT = motor_asyncio.AsyncIOMotorClient(str(settings.database_url))
 
 
 # BOTの設定
@@ -71,7 +71,7 @@ bot = NIRA(
     database_name=settings.database_name,
     shard_id=settings.shard_id,
     shard_count=settings.shard_count,
-    settings=settings.dict(),
+    settings=settings.model_dump(),
     command_prefix=settings.prefix,
     intents=intents,
     help_command=None,

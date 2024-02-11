@@ -26,7 +26,7 @@ GODS = [
 ]
 
 class Gacha(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs):
+    def __init__(self, bot: NIRA):
         self.bot = bot
 
     @nextcord.slash_command(name="gacha", description="The command of amuse")
@@ -65,5 +65,5 @@ class Gacha(commands.Cog):
         await interaction.send(embed=embed)
 
 
-def setup(bot, **kwargs):
-    bot.add_cog(Gacha(bot, **kwargs))
+def setup(bot):
+    bot.add_cog(Gacha(bot))

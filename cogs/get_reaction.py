@@ -8,7 +8,7 @@ from util.nira import NIRA
 SYSDIR = sys.path[0]
 
 class GetReaction(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs):
+    def __init__(self, bot: NIRA):
         self.bot = bot
 
     @commands.Cog.listener()
@@ -18,5 +18,5 @@ class GetReaction(commands.Cog):
             return
 
 
-def setup(bot, **kwargs):
-    bot.add_cog(GetReaction(bot, **kwargs))
+def setup(bot):
+    bot.add_cog(GetReaction(bot))

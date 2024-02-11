@@ -36,7 +36,7 @@ def sysinfo() -> str:
 
 
 class Debug(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs):
+    def __init__(self, bot: NIRA):
         self.bot = bot
         self.ws_task = None
         self.ws_port = None
@@ -428,6 +428,6 @@ class Debug(commands.Cog):
         return
 
 
-def setup(bot, **kwargs):
-    bot.add_cog(Debug(bot, **kwargs))
+def setup(bot):
+    bot.add_cog(Debug(bot))
     importlib.reload(slash_tool)

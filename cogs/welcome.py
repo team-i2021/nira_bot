@@ -76,7 +76,7 @@ class WelcomeMaker(nextcord.ui.Modal):
 
 
 class Welcome(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs):
+    def __init__(self, bot: NIRA):
         self.bot = bot
         self.collection = self.bot.database["welcome_message"]
 
@@ -240,5 +240,5 @@ n!welcome leave off
             return
 
 
-def setup(bot, **kwargs):
-    bot.add_cog(Welcome(bot, **kwargs))
+def setup(bot):
+    bot.add_cog(Welcome(bot))

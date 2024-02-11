@@ -66,7 +66,7 @@ class RemindMaker(nextcord.ui.Modal):
 
 
 class Remind(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs):
+    def __init__(self, bot: NIRA):
         self.bot = bot
         self.collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["remind_data"]
         self.sendReminds.start()
@@ -258,8 +258,8 @@ n!remind on 8:25 おはようございます！
                 logging.error(f"ERR:{err}\n{remind['channel_id']}")
 
 
-def setup(bot: NIRA, **kwargs):
-    bot.add_cog(Remind(bot, **kwargs))
+def setup(bot: NIRA):
+    bot.add_cog(Remind(bot))
 
 
 def teardown(bot: NIRA):

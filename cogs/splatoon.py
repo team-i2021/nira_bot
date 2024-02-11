@@ -17,7 +17,7 @@ class MatchType(enum.Enum):
 
 
 class Splatoon(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs):
+    def __init__(self, bot: NIRA):
         self.bot = bot
         self.urls = {
             "schedule": "https://splatoon3.ink/data/schedules.json",
@@ -85,5 +85,5 @@ class Splatoon(commands.Cog):
         await interaction.send(embed=(await self.scheduleEmbed(MatchType(matchtype), (await self.getSchedule()))))
 
 
-def setup(bot, **kwargs):
-    bot.add_cog(Splatoon(bot, **kwargs))
+def setup(bot):
+    bot.add_cog(Splatoon(bot))

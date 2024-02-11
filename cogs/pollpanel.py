@@ -196,7 +196,7 @@ class PollPanelEnd(nextcord.ui.Button):
         ...
 
 class Pollpanel(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs):
+    def __init__(self, bot: NIRA):
         self.bot = bot
 
     @nextcord.message_command(name="Edit Pollpanel", name_localizations={nextcord.Locale.ja: "投票パネル編集"})
@@ -421,5 +421,5 @@ n!pollpanel [on/off] [メッセージ内容]
 # args = [["ButtonLabel", "Role_Id"]]
 
 
-def setup(bot, **kwargs):
-    bot.add_cog(Pollpanel(bot, **kwargs))
+def setup(bot):
+    bot.add_cog(Pollpanel(bot))

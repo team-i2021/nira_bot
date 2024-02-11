@@ -268,7 +268,7 @@ async def server_list(bot: NIRA, collection: motor_asyncio.AsyncIOMotorCollectio
 
 
 class Minecraft(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs):
+    def __init__(self, bot: NIRA):
         self.bot = bot
         self.__BE = ("b", "be", "bedrock")
         self.__JAVA = ("j", "java")
@@ -399,6 +399,6 @@ class Minecraft(commands.Cog):
 
 
 
-def setup(bot, **kwargs):
-    bot.add_cog(Minecraft(bot, **kwargs))
+def setup(bot):
     importlib.reload(mc)
+    bot.add_cog(Minecraft(bot))

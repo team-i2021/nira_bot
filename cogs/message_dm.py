@@ -18,7 +18,7 @@ SYSDIR = sys.path[0]
 
 
 class MessageDM(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs):
+    def __init__(self, bot: NIRA):
         self.bot = bot
         self.collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["message_dm"]
 
@@ -199,5 +199,5 @@ class MessageDM(commands.Cog):
                     )
                 await ctx.reply(embed=embed)
 
-def setup(bot, **kwargs):
-    bot.add_cog(MessageDM(bot, **kwargs))
+def setup(bot):
+    bot.add_cog(MessageDM(bot))

@@ -14,7 +14,7 @@ from util.nira import NIRA
 # n!mod
 # /mod
 class MessageModeration(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs):
+    def __init__(self, bot: NIRA):
         self.bot = bot
         self.collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["message_mod"]
         self.MOD_LIST = {}
@@ -220,5 +220,5 @@ remove: ロールの剥奪を行うかどうか（`on`/`off`）（指定され�
         self.messageCounter = {}
 
 
-def setup(bot, **kwargs):
-    bot.add_cog(MessageModeration(bot, **kwargs))
+def setup(bot):
+    bot.add_cog(MessageModeration(bot))

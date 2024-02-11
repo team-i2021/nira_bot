@@ -18,7 +18,7 @@ ROLE_ID = re.compile(r"<@&[\d]+?>")
 SYSDIR = sys.path[0]
 
 class MessageRole(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs):
+    def __init__(self, bot: NIRA):
         self.bot = bot
         self.collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["message_role"]
 
@@ -207,5 +207,5 @@ class MessageRole(commands.Cog):
                     )
                 await ctx.reply(embed=embed)
 
-def setup(bot, **kwargs):
-    bot.add_cog(MessageRole(bot, **kwargs))
+def setup(bot):
+    bot.add_cog(MessageRole(bot))

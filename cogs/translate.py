@@ -195,7 +195,7 @@ class TranslateModal(nextcord.ui.Modal):
 
 
 class Translate(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs):
+    def __init__(self, bot: NIRA):
         self.bot = bot
         if "translate" not in self.bot.settings or self.bot.settings["translate"] == "":
             self.deepl_tr = None
@@ -402,5 +402,5 @@ Powered by DeepL Translate/Google Translate.""")
                 await message.reply(embed=make_embed(result[1], result[0], "...", TARGET))
 
 
-def setup(bot, **kwargs):
-    bot.add_cog(Translate(bot, **kwargs))
+def setup(bot):
+    bot.add_cog(Translate(bot))

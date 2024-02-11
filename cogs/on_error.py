@@ -1,23 +1,21 @@
-import importlib
 import logging
-import traceback
 from difflib import get_close_matches
 from http import HTTPStatus as Codes
 
 import nextcord
 from nextcord.ext import application_checks, commands
 
-import nira_commands
 from util.nira import NIRA
 
 
 # エラー時のイベント！
 class error(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs):
+    def __init__(self, bot: NIRA):
         self.bot = bot
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx: commands.Context, error: commands.CommandError):
+        error_inner = error
         code, description = None, None
         add_trace, add_help, add_support = False, False, False
 
@@ -38,18 +36,21 @@ class error(commands.Cog):
         # よくありそうなエラー
         if isinstance(error, commands.CommandNotFound):
             # 仮
-            suggestion = ''
+            suggestion = ""
             try:
                 command_list = [i.name for i in list(self.bot.commands)]
-                close_command = get_close_matches(word=error.command_name, possibilities=command_list, n=1, cutoff=0)[0]
+                close_command = get_close_matches(word=error.command_name, possibilities=command_list, n=1, cutoff=0)
+                close_command = close_command[0]
                 close_description = [i.help for i in list(self.bot.commands) if i.name == close_command][0]
-                close_oneline = ("(ヘルプがないコマンド)" if close_description is None else close_description.splitlines()[0])
+                close_oneline = "(ヘルプがないコマンド)" if close_description is None else close_description.splitlines()[0]
                 suggestion = f"\n\nもしかして：\n`{ctx.prefix}{close_command}`: {close_oneline}"
             except Exception:
                 logging.exception("コマンド検索中のエラー")
 
             code = Codes.NOT_FOUND
-            description = f"`{ctx.prefix}{error.command_name}`というコマンドはありません。\n`{ctx.prefix}help`でコマンドを確認してください。{suggestion}"
+            description = (
+                f"`{ctx.prefix}{error.command_name}`というコマンドはありません。\n`{ctx.prefix}help`でコマンドを確認してください。{suggestion}"
+            )
         elif isinstance(error, commands.CommandOnCooldown):
             code = Codes.TOO_MANY_REQUESTS
             description = f"このコマンドは現在クールタイム中です。\n残り：**{error.retry_after:.2f}**秒"
@@ -121,35 +122,37 @@ class error(commands.Cog):
             description = "このコマンドの実行に必要なロールを持っていません。"
         elif isinstance(error, commands.BotMissingRole):
             # ロールIDの場合、名前の取得を試みる
-            if type(role := error.missing_role) is int:
-                role = r.name if (r := ctx.guild.get_role(role)) else f"(ID) {role}"
+            if isinstance(role := error.missing_role, int):
+                role = r.name if ctx.guild and (r := ctx.guild.get_role(role)) else f"(ID) {role}"
             description = f"このコマンドの実行に必要なロールをBotが持っていません。\n実行には`{role}`が必要です。"
         elif isinstance(error, commands.BotMissingAnyRole):
             roles = "`, `".join(
-                (r.name if (r := ctx.guild.get_role(role)) else f"(ID) {role}") if type(role) is int else role
+                (r.name if ctx.guild and (r := ctx.guild.get_role(role)) else f"(ID) {role}")
+                if isinstance(role, int)
+                else role
                 for role in error.missing_roles
             )
             description = f"このコマンドの実行に必要なロールをBotが持っていません。\n実行にはこれらのロールが必要です：\n`{roles}`"
 
         # 内部エラー
         elif isinstance(error, commands.ConversionError):
-            error = error.original
-            logging.error("コンバーターエラー", exc_info=error)
+            error_inner = error.original
+            logging.error("コンバーターエラー", exc_info=error_inner)
 
             code = Codes.INTERNAL_SERVER_ERROR
             description = "コマンド呼び出しに失敗しました。"
             add_trace = True
             add_support = True
         elif isinstance(error, commands.CommandInvokeError):
-            error = error.original
-            logging.error("コマンド内部エラー", exc_info=error)
+            error_inner = error.original
+            logging.error("コマンド内部エラー", exc_info=error_inner)
 
             code = Codes.INTERNAL_SERVER_ERROR
             description = "コマンド内部でエラーが発生しました。"
             add_trace = True
             add_support = True
-        elif code is None or description is None:
-            logging.error("不明なエラー", exc_info=error)
+        if code is None or description is None:
+            logging.error("不明なエラー", exc_info=error_inner)
 
             code = Codes.INTERNAL_SERVER_ERROR
             description = "予期しない不明なエラーが発生しました。"
@@ -157,11 +160,11 @@ class error(commands.Cog):
             add_support = True
 
         if add_trace:
-            trace = "".join(traceback.TracebackException.from_exception(error).format())
-            description += f"\n```py\n{trace.replace(self.bot.settings['database_url'], '[URL]')}```"
+            trace = self.bot.format_exc(error_inner)
+            description += f"\n```py\n{trace}```"
         # Context.command は Optional[Command]
         if add_help and ctx.command:
-            name = ctx.invoked_parents[0]
+            name = ctx.invoked_parents[0] if ctx.invoked_parents else ctx.command.name
             description += f"\n`{ctx.prefix}help {name}`でヘルプを表示できます。"
         if add_support:
             description += "\n[サポートサーバー](https://discord.gg/awfFpCYTcP)"
@@ -169,7 +172,7 @@ class error(commands.Cog):
         embed = nextcord.Embed(
             title=f"{code.value} - {code.phrase}",
             description=description,
-            color=0xff0000,
+            color=0xFF0000,
         )
 
         try:
@@ -187,6 +190,7 @@ class error(commands.Cog):
 
     @commands.Cog.listener()
     async def on_application_command_error(self, interaction: nextcord.Interaction, error: nextcord.ApplicationError):
+        error_inner = error
         code, description = None, None
         add_trace, add_help, add_support = False, False, False
 
@@ -212,24 +216,32 @@ class error(commands.Cog):
         elif isinstance(error, application_checks.ApplicationBotMissingPermissions):
             perms = "`, `".join(error.missing_permissions)
             description = f"このコマンドの実行に必要な権限がBotにありません。\n実行にはこれらの権限が必要です：\n`{perms}`"
-        elif isinstance(error, application_checks.ApplicationMissingRole | application_checks.ApplicationMissingAnyRole):
+        elif isinstance(
+            error, application_checks.ApplicationMissingRole | application_checks.ApplicationMissingAnyRole
+        ):
             description = "このコマンドの実行に必要なロールを持っていません。"
         elif isinstance(error, application_checks.ApplicationBotMissingRole):
-            if type(role := error.missing_role) is int:
-                role = f"(ID) {role}" if (role_ := interaction.guild.get_role(role)) is None else role_.name
+            if isinstance(role := error.missing_role, int):
+                role = (
+                    f"(ID) {role}"
+                    if interaction.guild and (role_ := interaction.guild.get_role(role)) is None
+                    else role_.name
+                )
             description = f"このコマンドの実行に必要なロールをBotが持っていません。\n実行には`{role}`が必要です。"
         elif isinstance(error, application_checks.ApplicationBotMissingAnyRole):
             roles = "`, `".join(
-                (f"(ID) {role}" if (r := interaction.guild.get_role(role)) is None else r.name) if type(role) is int else role
+                (f"(ID) {role}" if interaction.guild and (r := interaction.guild.get_role(role)) is None else r.name)
+                if isinstance(role, int)
+                else role
                 for role in error.missing_roles
             )
             description = f"このコマンドの実行に必要なロールをBotが持っていません。\n実行にはこれらのロールが必要です：\n`{roles}`"
 
         # 内部エラー
         elif isinstance(error, nextcord.ApplicationInvokeError):
-            error = error.original
-            if isinstance(error, nextcord.ApplicationError):
-                return await self.on_application_command_error(interaction, error)
+            error_inner = error.original
+            if isinstance(error_inner, nextcord.ApplicationError):
+                return await self.on_application_command_error(interaction, error_inner)
 
             logging.error("コマンド内部エラー", exc_info=error)
 
@@ -237,7 +249,7 @@ class error(commands.Cog):
             description = "コマンド内部でエラーが発生しました。"
             add_trace = True
             add_support = True
-        elif code is None or description is None:
+        if code is None or description is None:
             logging.error("不明なエラー", exc_info=error)
 
             code = Codes.INTERNAL_SERVER_ERROR
@@ -246,20 +258,21 @@ class error(commands.Cog):
             add_support = True
 
         if add_trace:
-            trace = "".join(traceback.TracebackException.from_exception(error).format())
-            description += f"\n```py\n{trace.replace(self.bot.settings['database_url'], '[URL]')}```"
+            trace = self.bot.format_exc(error_inner)
+            description += f"\n```py\n{trace}```"
         # Interaction.application_command は Optional[ApplicationCommand]
         if add_help and (command := interaction.application_command):
             while getattr(command, "parent_cmd", None) is not None:
-                command = command.parent_cmd
-            description += f"\n`/help {command.name}`でヘルプを表示できます。"
+                command = command.parent_cmd  # type: ignore
+            if command:
+                description += f"\n`/help {command.name}`でヘルプを表示できます。"
         if add_support:
             description += "\n[サポートサーバー](https://discord.gg/awfFpCYTcP)"
 
         embed = nextcord.Embed(
             title=f"{code.value} - {code.phrase}",
             description=description,
-            color=0xff0000,
+            color=0xFF0000,
         )
 
         try:
@@ -274,6 +287,5 @@ class error(commands.Cog):
             logging.exception("エラーメッセージを送信できませんでした")
 
 
-def setup(bot, **kwargs):
-    bot.add_cog(error(bot, **kwargs))
-    importlib.reload(nira_commands)
+def setup(bot: NIRA):
+    bot.add_cog(error(bot))

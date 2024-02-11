@@ -18,7 +18,7 @@ inviteUrlTemplate = compile(r'https://discord.gg/([0-9a-zA-Z]+)')
 
 
 class Invite(commands.Cog):
-    def __init__(self, bot: NIRA, **kwargs):
+    def __init__(self, bot: NIRA):
         self.bot = bot
         self.collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["invite_data"]
 
@@ -216,5 +216,5 @@ class Invite(commands.Cog):
         asyncio.ensure_future(self.collection.update_one({"guild_id": Interaction.guild.id}, {"$set": InviteData}))
 
 
-def setup(bot, **kwargs):
-    bot.add_cog(Invite(bot, **kwargs))
+def setup(bot):
+    bot.add_cog(Invite(bot))

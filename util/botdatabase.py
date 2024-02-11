@@ -7,8 +7,7 @@ from typing import Any, ClassVar, Final, Generic, TypeVar, cast
 import nextcord
 from cachetools import Cache
 from motor.motor_asyncio import AsyncIOMotorCollection
-from pydantic import Extra
-from pydantic.generics import GenericModel
+from pydantic import BaseModel
 from typing_extensions import Self
 
 from util.nira import NIRA
@@ -20,21 +19,20 @@ PrimaryKeyT = TypeVar("PrimaryKeyT")
 IDValueT = TypeVar("IDValueT", bound=Hashable)
 ChannelT = TypeVar("ChannelT", bound=GeneralChannel)
 
-# FIXME: ところどころ苦し紛れに書いたのでカオスコードになっている (ほぼ型周り)
-# FIXME: docstring もかなり苦し紛れに書いたのでもっと良い書き方あれば変更してほしい
+# TODO: もう何がしたかったのかよくわからんので時間があったら書き直すかも
 
 
-class DocumentBase(GenericModel, ABC):
+class DocumentBase(BaseModel, ABC):
     """基本的な MongoDB ドキュメントを表す ABC です。
 
     ドキュメントのそれぞれのフィールドは Pydantic によって解析・検証されます。
     """
 
-    class Config:
-        arbitrary_types_allowed = True
-        extra = Extra.forbid
-        underscore_attrs_are_private = True
-        use_enum_values = True
+    model_config = {
+        "arbitrary_types_allowed": True,
+        "extra": "forbid",
+        "use_enum_values": True,
+    }
 
     @abstractmethod
     async def encode(self) -> dict[str, Any]:
@@ -93,7 +91,7 @@ class DocumentBase(GenericModel, ABC):
         :class:`KeyError`
             指定した名前のフィールドが見つからなかった。
         """
-        return cls.__fields__[name].type_
+        return cls.model_fields[name].annotation or Any
 
 
 class UniqueDocument(DocumentBase, Generic[PrimaryKeyT, IDValueT]):
@@ -149,7 +147,7 @@ class UniqueChannelDocument(UniqueDocument[ChannelT, int], ChannelDocument[Chann
     _key_name = "channel"
 
     async def encode(self) -> dict[str, Any]:
-        doc = self.dict(exclude_unset=True)
+        doc = self.model_dump(exclude_unset=True)
         doc.pop(self._key_name)
         doc[ID_KEY_NAME] = self.channel.id
         return doc
@@ -182,7 +180,7 @@ class UniqueUserDocument(UniqueDocument[GeneralUser, int], UserDocument):
     _key_name = "user"
 
     async def encode(self) -> dict[str, Any]:
-        doc = self.dict(exclude_unset=True)
+        doc = self.model_dump(exclude_unset=True)
         doc.pop(self._key_name)
         doc[ID_KEY_NAME] = self.user.id
         return doc
