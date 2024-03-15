@@ -48,7 +48,7 @@ class autorole(commands.Cog):
                 return ("サーバーで自動ロールを無効にしました。", None)
 
         else:
-            result = await self.collection.delete_one({"guild_id": guild.id})
+            result = await self.collection.find_one({"guild_id": guild.id})
             if result is not None:
                 msg = f"自動ロールは有効です。\n自動付与されるロールは{guild.get_role(result['role_id']).mention}です。"
             else:
