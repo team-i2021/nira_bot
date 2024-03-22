@@ -552,6 +552,8 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                     asyncio.ensure_future(self.collection.update_one({"user_id": interaction.user.id, "type": "speaker"}, {"$set": {"speaker": "2"}}, upsert=True))
                 if interaction.guild.voice_client.is_playing():
                     while True:
+                        if message.guild.voice_client is None:
+                            return
                         if interaction.guild.voice_client.is_playing():
                             await asyncio.sleep(0.1)
                         else:
@@ -594,6 +596,8 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                 return
             if message.guild.voice_client.is_playing():
                 while True:
+                    if message.guild.voice_client is None:
+                        return
                     if message.guild.voice_client.is_playing():
                         await asyncio.sleep(0.1)
                     else:
