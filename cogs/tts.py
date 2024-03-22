@@ -83,6 +83,7 @@ class Text2Speech(commands.Cog):
             self.parent = parent
             self.author = author
             options = [
+                nextcord.SelectOption(label="8期生", value="8"),
                 nextcord.SelectOption(label="7期生", value="7"),
                 nextcord.SelectOption(label="6期生", value="6"),
                 nextcord.SelectOption(label="5期生", value="5"),
@@ -119,6 +120,13 @@ class Text2Speech(commands.Cog):
             self.generation = generation
 
             match generation:
+                case "8":
+                    options = [
+                        nextcord.SelectOption(label="栗田まろん", value="26"),
+                        nextcord.SelectOption(label="あいえるたん", value="27"),
+                        nextcord.SelectOption(label="満別花丸", value="28"),
+                        nextcord.SelectOption(label="琴詠ニア", value="29"),
+                    ]
                 case "7":
                     options = [
                         nextcord.SelectOption(label="†聖騎士紅桜†", value="19"),
