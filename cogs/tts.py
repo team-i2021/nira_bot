@@ -83,6 +83,7 @@ class Text2Speech(commands.Cog):
             self.parent = parent
             self.author = author
             options = [
+                nextcord.SelectOption(label="8期生", value="8"),
                 nextcord.SelectOption(label="7期生", value="7"),
                 nextcord.SelectOption(label="6期生", value="6"),
                 nextcord.SelectOption(label="5期生", value="5"),
@@ -119,6 +120,13 @@ class Text2Speech(commands.Cog):
             self.generation = generation
 
             match generation:
+                case "8":
+                    options = [
+                        nextcord.SelectOption(label="栗田まろん", value="26"),
+                        nextcord.SelectOption(label="あいえるたん", value="27"),
+                        nextcord.SelectOption(label="満別花丸", value="28"),
+                        nextcord.SelectOption(label="琴詠ニア", value="29"),
+                    ]
                 case "7":
                     options = [
                         nextcord.SelectOption(label="†聖騎士紅桜†", value="19"),
@@ -552,6 +560,8 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                     asyncio.ensure_future(self.collection.update_one({"user_id": interaction.user.id, "type": "speaker"}, {"$set": {"speaker": "2"}}, upsert=True))
                 if interaction.guild.voice_client.is_playing():
                     while True:
+                        if message.guild.voice_client is None:
+                            return
                         if interaction.guild.voice_client.is_playing():
                             await asyncio.sleep(0.1)
                         else:
@@ -594,6 +604,8 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                 return
             if message.guild.voice_client.is_playing():
                 while True:
+                    if message.guild.voice_client is None:
+                        return
                     if message.guild.voice_client.is_playing():
                         await asyncio.sleep(0.1)
                     else:
