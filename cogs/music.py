@@ -3,13 +3,16 @@ import datetime
 import logging
 import re
 import sys
+import typing
 
 import nextcord
 import niconico_dl
 from nextcord.ext import commands
 
-from cogs import tts
 from util import n_fc
+
+if typing.TYPE_CHECKING:
+    from cogs.tts import Text2Speech
 
 # 音楽再生
 
@@ -158,7 +161,8 @@ Discord及びGoogleは、DiscordのボイスチャンネルでのYouTube再生BO
                 return
             else:
                 if ctx.guild.voice_client is not None:
-                    if ctx.guild.id not in tts.tts_channel:
+                    tts = typing.cast("Text2Speech | None", self.bot.get_cog("Text2Speech"))
+                    if not tts or ctx.guild.id not in tts.TTS_CHANNEL:
                         await ctx.message.reply(
                             embed=nextcord.Embed(title="エラー", description="既にVCに入っています。", color=0xFF0000)
                         )
@@ -378,11 +382,13 @@ Discord及びGoogleは、DiscordのボイスチャンネルでのYouTube再生BO
     音楽系のコマンドの詳細は[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)からご確認ください。""",
     )
     async def leave(self, ctx: commands.Context):
+        tts = typing.cast("Text2Speech | None", self.bot.get_cog("Text2Speech"))
         if len(ctx.message.content.split(" ", 1)) > 1 and ctx.message.content.split(" ", 1)[1] == "f":
-            try:
-                del tts.tts_list[ctx.guild.id]
-            except Exception:
-                pass
+            if tts:
+                try:
+                    del tts.TTS_CHANNEL[ctx.guild.id]
+                except Exception:
+                    pass
             try:
                 del music_list[ctx.guild.id]
             except Exception:
@@ -412,7 +418,7 @@ Discord及びGoogleは、DiscordのボイスチャンネルでのYouTube再生BO
                 )
                 return
             else:
-                if ctx.guild.id not in tts.tts_channel.value:
+                if not tts or ctx.guild.id not in tts.TTS_CHANNEL:
                     await ctx.guild.voice_client.disconnect()
                     await ctx.message.reply(
                         embed=nextcord.Embed(title="Music Player", description="切断しました。", color=0x00FF00)
