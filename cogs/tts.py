@@ -39,7 +39,7 @@ class Text2Speech(commands.Cog):
             title="声の種類選択",
             description="VOICEVOXには多種多様なキャラクターがいます！",
             color=0xa5d4ad
-        ).add_firld(
+        ).add_field(
             name="8期生",
             value="栗田まろん、あいえるたん、満別花丸、琴詠ニア",
             inline=False
