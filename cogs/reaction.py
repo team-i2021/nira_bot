@@ -1,4 +1,3 @@
-import aiohttp
 import asyncio
 import datetime
 import importlib
@@ -10,15 +9,13 @@ import sys
 import typing
 
 import nextcord
-from nextcord import Interaction, SlashOption
-from nextcord.ext import commands, application_checks, tasks
-
 from bson import ObjectId
 from motor import motor_asyncio
+from nextcord import Interaction, SlashOption
+from nextcord.ext import application_checks, commands, tasks
 
 import util.srtr as srtr
-
-from util import admin_check, n_fc, web_api
+from util import n_fc
 from util.nira import NIRA
 
 SYSDIR = sys.path[0]
@@ -46,75 +43,6 @@ DBDelayMessage: typing.Final[str] = (
     "(データベースへの接続の最適化のため、実際に設定が適応されるまでに最大で30秒程かかる場合があります。)"
 )
 
-
-class NotifyTokenSet(nextcord.ui.Modal):
-
-    def __init__(
-        self,
-        collection: motor_asyncio.AsyncIOMotorCollection,
-        session: aiohttp.ClientSession,
-    ):
-        super().__init__("LINE Notify設定", timeout=None)
-        self.session = session
-
-        self.collection = collection
-
-        self.token = nextcord.ui.TextInput(
-            label="LINE Notify TOKEN",
-            style=nextcord.TextInputStyle.short,
-            placeholder="トークンを入力してください",
-            required=True,
-        )
-        self.add_item(self.token)
-
-    async def callback(self, interaction: Interaction) -> None:
-        if isinstance(interaction.user, nextcord.User):
-            await interaction.response.send_message(
-                "このコマンドはサーバー内でのみ実行できます。", ephemeral=True
-            )
-            return
-
-        assert interaction.user
-        assert interaction.guild
-        assert interaction.channel
-
-        await interaction.response.defer()
-        if self.token.value == "" or self.token.value is None:
-            await interaction.send("トークンは必須です。", ephemeral=True)
-            return
-        if not admin_check.admin_check(interaction.guild, interaction.user):
-            await interaction.send(
-                "あなたにはサーバーの管理権限がないため実行できません。", ephemeral=True
-            )
-        else:
-            token_result = await web_api.line_token_check(
-                self.session, self.token.value
-            )
-            if token_result[0] is False:
-                await interaction.send(
-                    f"そのトークンは無効なようです。\n```sh\n{token_result[1]}```",
-                    ephemeral=True,
-                )
-                return
-            await self.collection.update_one(
-                {
-                    "channel_id": interaction.channel.id,
-                    "guild_id": interaction.guild.id,
-                },
-                {"$set": {"token": self.token.value}},
-                upsert=True,
-            )
-            await interaction.send(
-                (
-                    f"<#{interaction.channel.id}>でLINE Notifyのトークンを保存します。\n"
-                    "トークンは他のユーザーに見られないように注意してください。\n"
-                    "これで、このチャンネルのメッセージがLINEに送信されるようになりました。\n"
-                    f"{DBDelayMessage}"
-                ),
-                ephemeral=True,
-            )
-
-
 class ReactionControll(commands.Cog):
     def __init__(self, bot: NIRA):
         self.bot = bot
@@ -123,9 +51,6 @@ class ReactionControll(commands.Cog):
         ]
         self.nr_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database[
             "nr_setting"
-        ]
-        self.line_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database[
-            "notify_token"
         ]
 
     @commands.has_permissions(manage_guild=True)
@@ -956,76 +881,6 @@ class ReactionControll(commands.Cog):
                 "現在このBOTでは反応する機能は有効化されていません。", ephemeral=True
             )
 
-    @commands.command(
-        name="line",
-        help="""\
-DiscordのメッセージをLINEに送信します。
-LINE Notifyという機能を用いて、DiscordのメッセージをLINEに送信します。
-
-データベースへの接続の最適化のため、実際に設定が適応されるまでに最大で30秒程かかる場合があります。""",
-    )
-    async def line(self, ctx: commands.Context):
-        embed = nextcord.Embed(
-            title="DiscordのメッセージをLINEに送信する機能",
-            description="使い方",
-            color=0x00FF00,
-        )
-        embed.add_field(
-            name="このコマンドはスラッシュコマンドです！",
-            value=(
-                "`/line set`というスラッシュコマンドを実行すると、トークンを入力する画面が表示されるので、そこにTOKENを入力してください。\n"
-                "※トークンは外部に流出しないように注意してください。"
-            ),
-            inline=False,
-        )
-        embed.add_field(
-            name="トークンって何？",
-            value=(
-                "トークンとは簡単に言えばパスワードです。LINE Notifyのページから発行することが出来ます。。\n"
-                "[TOKENの発行方法](https://qiita.com/nattyan_tv/items/33ac7a7269fe12e49198)"
-            ),
-            inline=False,
-        )
-        embed.add_field(
-            name="Q. LINEのオープンチャットで使えますか？",
-            value="A. 申し訳ありませんが使えません。\n個人チャットまたはグループチャットのみです。",
-            inline=False,
-        )
-        await ctx.reply(embed=embed)
-
-    @nextcord.slash_command(name="line", description="Setting of Line Notify")
-    async def line_slash(self, interaction: Interaction):
-        pass
-
-    @application_checks.guild_only()
-    @application_checks.has_permissions(manage_guild=True)
-    @line_slash.subcommand(
-        name="set",
-        description="Set LINE Notify's TOKEN",
-        description_localizations={
-            nextcord.Locale.ja: "LINE Notifyのトークンを設定します。"
-        },
-    )
-    async def line_set_slash(self, interaction: Interaction):
-        modal = NotifyTokenSet(self.line_collection, self.bot.session)
-        await interaction.response.send_modal(modal=modal)
-
-    @application_checks.guild_only()
-    @application_checks.has_permissions(manage_guild=True)
-    @line_slash.subcommand(
-        name="del",
-        description="Delete LINE Notify's TOKEN",
-        description_localizations={
-            nextcord.Locale.ja: "LINE Notifyのトークンを削除します。"
-        },
-    )
-    async def line_del_slash(self, interaction: Interaction):
-        assert interaction.guild
-        await self.line_collection.delete_one({"guild_id": interaction.guild.id})
-        await interaction.response.send_message(
-            f"LINE Notifyのトークンを削除しました。\nこれでこのチャンネルのメッセージがLINEに送信されなくなりました。\n{DBDelayMessage}"
-        )
-
 
 class Reaction:
     "リアクションの基底クラス。"
@@ -1228,7 +1083,6 @@ class NormalReaction(commands.Cog):
         self.bot = bot
         self.ex_reaction_list: list[ERSetting] = []
         self.nr_setting_list: list[NRSetting] = []
-        self.notify_token = []
         self.SLEEP_TIMER = 3
         self.REACTION_ID = "<:trash:908565976407236608>"
         self.last_update: str | None = None
@@ -1243,11 +1097,6 @@ class NormalReaction(commands.Cog):
         ]
         "にらBOTのリアクションを制御する設定コレクション"
 
-        self.line_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database[
-            "notify_token"
-        ]
-        "LINE Notifyでの通知を行うためのトークンが保存されているコレクション"
-
         self.database_update_loop.start()
 
     def cog_unload(self):
@@ -1259,7 +1108,6 @@ class NormalReaction(commands.Cog):
         """
         self.ex_reaction_list = await self.er_collection.find().to_list(length=None)
         self.nr_setting_list = await self.nr_collection.find().to_list(length=None)
-        self.notify_token = await self.line_collection.find().to_list(length=None)
         self.last_update = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
 
     async def after_reaction(self, message: nextcord.Message) -> None:
@@ -1317,27 +1165,6 @@ class NormalReaction(commands.Cog):
         if self.bot.debug and message.guild.id not in n_fc.GUILD_IDS:
             # BOTがデバッグモードの際は、指定されたサーバー以外には反応しない。
             return
-
-        notify_tokens = [
-            d for d in self.notify_token if d["channel_id"] == message.channel.id
-        ]
-
-        if len(notify_tokens) > 0:
-            notify_token = notify_tokens[0]
-            # LINE Notifyで通知を行う。
-            await web_api.notify_line(self.bot.session, message, notify_token["token"])
-
-            if len(notify_tokens) > 1:
-                self.notify_token = [
-                    d
-                    for d in self.notify_token
-                    if d["channel_id"] != message.channel.id
-                ]
-                await self.line_collection.delete_many(
-                    {"channel_id": message.channel.id}
-                )
-                self.notify_token.append(notify_token)
-                await self.line_collection.insert_one(notify_token)
 
         if (
             isinstance(self.bot.command_prefix, str)
@@ -1485,6 +1312,5 @@ class NormalReaction(commands.Cog):
 
 def setup(bot: NIRA):
     importlib.reload(srtr)
-    importlib.reload(web_api)
     bot.add_cog(ReactionControll(bot))
     bot.add_cog(NormalReaction(bot))
