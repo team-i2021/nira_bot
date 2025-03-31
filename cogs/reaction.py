@@ -52,9 +52,6 @@ class ReactionControll(commands.Cog):
         self.nr_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database[
             "nr_setting"
         ]
-        self.line_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database[
-            "notify_token"
-        ]
 
     @commands.has_permissions(manage_guild=True)
     @commands.group(
@@ -1086,7 +1083,6 @@ class NormalReaction(commands.Cog):
         self.bot = bot
         self.ex_reaction_list: list[ERSetting] = []
         self.nr_setting_list: list[NRSetting] = []
-        self.notify_token = []
         self.SLEEP_TIMER = 3
         self.REACTION_ID = "<:trash:908565976407236608>"
         self.last_update: str | None = None
@@ -1101,11 +1097,6 @@ class NormalReaction(commands.Cog):
         ]
         "にらBOTのリアクションを制御する設定コレクション"
 
-        self.line_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database[
-            "notify_token"
-        ]
-        "LINE Notifyでの通知を行うためのトークンが保存されているコレクション"
-
         self.database_update_loop.start()
 
     def cog_unload(self):
@@ -1117,7 +1108,6 @@ class NormalReaction(commands.Cog):
         """
         self.ex_reaction_list = await self.er_collection.find().to_list(length=None)
         self.nr_setting_list = await self.nr_collection.find().to_list(length=None)
-        self.notify_token = await self.line_collection.find().to_list(length=None)
         self.last_update = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
 
     async def after_reaction(self, message: nextcord.Message) -> None:
