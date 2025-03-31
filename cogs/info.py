@@ -220,11 +220,6 @@ class HelpSelect(nextcord.ui.Select):
                     description=f"{prefix}nr",
                     value="6-3",
                 ),
-                nextcord.SelectOption(
-                    label='特定のチャンネルのメッセージをLINEに送る',
-                    description=f"{prefix}line",
-                    value="6-4",
-                ),
             ]
         elif opt == VoiceClient:
             options = [
