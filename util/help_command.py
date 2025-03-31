@@ -608,24 +608,6 @@ Powered by DeepL Translate/Google Translate
 
 ・例
 `%CommandPrefix%nr off`
-""",
-        4: """\
-特定のチャンネルのメッセージをLINEに送る
-コマンドを送信したチャンネルのメッセージを、LINEに送信することが可能です。
-ここで指す**LINE**とは、1対1のチャットおよび、(**オープンチャットを除く**)グループチャットのことです。
-**LINE**はLINE株式会社の商標または登録商標です。
-事前にLINE Notifyからトークンを発行しておく必要があります。
-トークンの発行などについては[こちら](https://qiita.com/nattyan_tv/items/33ac7a7269fe12e49198)をご確認ください。
-
-・使い方
-追加: `/line [トークン]`
-削除: `/line_del`
-(スラッシュコマンドです。)
-
-・引数
-`[トークン]`
-事前にLINE Notifyからトークンを発行しておく必要があります。
-トークンの発行などについては[こちら](https://qiita.com/nattyan_tv/items/33ac7a7269fe12e49198)をご確認ください。
 """},
     VoiceClient: {
         1: """\
