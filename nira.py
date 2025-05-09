@@ -78,7 +78,7 @@ bot = NIRA(
     status=nextcord.Status.dnd,
     activity=nextcord.Game(name="Connecting...", type=1),
     rollout_delete_unknown=not DEBUG,
-    default_guild_ids=list(settings.guild_ids) if settings.guild_ids else None
+    default_guild_ids=list(settings.guild_ids) if DEBUG else None
 )
 
 bot.load_extension("onami")
