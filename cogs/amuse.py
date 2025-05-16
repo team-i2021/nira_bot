@@ -170,7 +170,7 @@ def _get_janken_result(player_hand: JankenHand) -> nextcord.Embed:
 
 def _get_divination_result() -> nextcord.Embed:
     message = random.choices(DIVINATION_MESSAGES, weights=DIVINATION_PROBABILITIES)[0]
-    star_count = DIVINATION_MESSAGES.index(message) + 1
+    star_count = DIVINATION_MESSAGES.index(message)
     star = DIVINATION_STAR * star_count
 
     embed = nextcord.Embed(

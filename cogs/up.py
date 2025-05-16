@@ -4,18 +4,20 @@ import math
 import random
 import time
 from re import compile
+from typing import Final
 
 import nextcord
-from nextcord import Interaction, SlashOption
-from nextcord.ext import commands, tasks, application_checks
-
 from motor import motor_asyncio
+from nextcord import Interaction, SlashOption
+from nextcord.ext import application_checks, commands, tasks
 
-from util.n_fc import on_ali, off_ali
+from util.n_fc import off_ali, on_ali
 from util.nira import NIRA
 
 SET, DEL, STATUS = (0, 1, 2)
 ROLE_ID = compile(r"<@&[\d]+?>")
+
+UP_COOLTIME: Final = 60 * 60 * 2  # 2h
 
 class UpNotify(commands.Cog):
     def __init__(self, bot: NIRA):
@@ -127,13 +129,9 @@ DissokuのUpをしたら、その1時間後に通知します。
                 color=0xff0000
             ))
 
-
-    @application_checks.guild_only()
-    @application_checks.has_permissions(manage_guild=True)
     @nextcord.slash_command(name="up", description="Dissoku notification")
     async def up_slash(self, interaction: Interaction):
         pass
-
 
     @application_checks.guild_only()
     @application_checks.has_permissions(manage_guild=True)
@@ -164,7 +162,6 @@ DissokuのUpをしたら、その1時間後に通知します。
             color=0x00ff00
         ))
 
-
     @application_checks.guild_only()
     @application_checks.has_permissions(manage_guild=True)
     @up_slash.subcommand(name="off", description="Turn OFF notification of Dissoku", description_localizations={nextcord.Locale.ja: "Dissoku通知を無効にします"})
@@ -186,7 +183,6 @@ DissokuのUpをしたら、その1時間後に通知します。
                 description=f"この`{interaction.guild.name}`でのUp通知設定を解除しました。",
                 color=0x00ff00
             ))
-
 
     @application_checks.guild_only()
     @application_checks.has_permissions(manage_guild=True)
@@ -216,7 +212,6 @@ DissokuのUpをしたら、その1時間後に通知します。
                     color=0x00ff00
                 ))
 
-
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
         if isinstance(message.channel, nextcord.DMChannel):
@@ -241,20 +236,65 @@ DissokuのUpをしたら、その1時間後に通知します。
             if message.embeds[0].fields[0].name == f"`{message.guild.name}` をアップしたよ!":
                 try:
                     logging.info(f"Up通知 {message.guild.id} をセット")
-                    await message.channel.send(embed=nextcord.Embed(title="Up通知設定", description=f"<t:{math.floor(time.time())+3600}:f>、<t:{math.floor(time.time())+3600}:R>に通知します。", color=0x00ff00))
-                    await asyncio.sleep(3600)
-                    up_rnd = random.randint(1, 3)
+                    await message.channel.send(
+                        embed=nextcord.Embed(
+                            title="Up通知設定",
+                            description=f"<t:{math.floor(time.time())+UP_COOLTIME}:f>、<t:{math.floor(time.time())+UP_COOLTIME}:R>に通知します。",
+                            color=0x00FF00,
+                        )
+                    )
+                    await asyncio.sleep(UP_COOLTIME)
+                    up_rnd = random.randint(1, 5)
                     messageContent = ""
                     if result["role_id"] is None:
                         messageContent = "にらBOT Up通知"
                     else:
                         messageContent = f"<@&{result['role_id']}>"
                     if up_rnd == 1:
-                        await message.channel.send(messageContent, embed=nextcord.Embed(title="Upの時間だけどぉ！？！？", description=f"ほらほら～Upしないのぉ？？？\n```/dissoku up```", color=0x00ff00))
+                        await message.channel.send(
+                            messageContent,
+                            embed=nextcord.Embed(
+                                title="Upの時間だけどぉ！？！？",
+                                description=f"ほらほら～Upしないのぉ？？？\n```/up```",
+                                color=0x00FF00,
+                            ),
+                        )
                     elif up_rnd == 2:
-                        await message.channel.send(messageContent, embed=nextcord.Embed(title="Upしやがれください！", description=f"お前がUpするんだよ、あくしろよ！\n```/dissoku up```", color=0x00ff00))
+                        await message.channel.send(
+                            messageContent,
+                            embed=nextcord.Embed(
+                                title="Upしやがれください！",
+                                description=f"お前がUpするんだよ、あくしろよ！\n```/up```",
+                                color=0x00FF00,
+                            ),
+                        )
                     elif up_rnd == 3:
-                        await message.channel.send(messageContent, embed=nextcord.Embed(title="Upしましょう！", description=f"Upしてみませんか！\n```/dissoku up```", color=0x00ff00))
+                        await message.channel.send(
+                            messageContent,
+                            embed=nextcord.Embed(
+                                title="Upしましょう！",
+                                description=f"Upしてみませんか！\n```/up```",
+                                color=0x00FF00,
+                            ),
+                        )
+                    elif up_rnd == 4:
+                        await message.channel.send(
+                            messageContent,
+                            embed=nextcord.Embed(
+                                title="Upしてくださいまし！",
+                                description=f"このサーバーをUpするのですよ！\n```/up```",
+                                color=0x00FF00,
+                            ),
+                        )
+                    elif up_rnd == 5:
+                        await message.channel.send(
+                            messageContent,
+                            embed=nextcord.Embed(
+                                title="あの...Upしませんか...！",
+                                description=f"是非...ね...あの...Upみたいなことを...して...ね...？\n```/up```",
+                                color=0x00FF00,
+                            ),
+                        )
                     return
                 except Exception as err:
                     logging.error(err)
