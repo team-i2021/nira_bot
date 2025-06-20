@@ -23,10 +23,12 @@ class Talk(commands.Cog):
         a3rt_talk_token: str = self.bot.settings["talk_api"]
         self.a3rt_client = a3rt_talkpy.AsyncTalkClient(a3rt_talk_token)
         self.gcloud_token: str | None = self.bot.settings["gcloud_api"]
-        self.GEMINI_URL = (
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={TOKEN}"
+        self.GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={TOKEN}"
+        self.gemini_model: str = self.bot.settings.get(
+            "gemini_model", "gemini-2.0-flash-lite"
         )
-        if self.gcloud_token is not None:
+
+        if self.gcloud_token:
             self.ai_provider = TalkProvider.GEMINI
 
     @property
@@ -52,14 +54,23 @@ class Talk(commands.Cog):
         else:
             return "Talk AI"
 
-    async def get_gemini_response(self, prompt: str) -> str | None:
+    async def get_gemini_response(
+        self, prompt: str, backprompt: str | None
+    ) -> str | None:
         """Google CloudのGemini APIを使用して返答を取得します。"""
         payload = {
             "contents": [
                 {"role": "user", "parts": {"text": prompt}},
             ]
         }
-        async with self.bot.session.post(self.GEMINI_URL.format(TOKEN=self.gcloud_token), json=payload) as resp:
+        if backprompt:
+            payload["contents"].insert(
+                0, {"role": "model", "parts": {"text": backprompt}}
+            )
+        async with self.bot.session.post(
+            self.GEMINI_URL.format(TOKEN=self.gcloud_token, MODEL=self.gemini_model),
+            json=payload,
+        ) as resp:
             data = await resp.json()
             if "error" in data:
                 raise Exception(data["error"]["message"])
@@ -72,12 +83,12 @@ class Talk(commands.Cog):
             return resp.reply
         return
 
-    async def get_response(self, prompt: str) -> str | None:
+    async def get_response(self, prompt: str, backprompt: str | None) -> str | None:
         """現在設定されているAIプロバイダから返答を取得します。"""
         if self.ai_provider == TalkProvider.A3RT:
             return await self.get_a3rt_response(prompt)
         elif self.ai_provider == TalkProvider.GEMINI:
-            return await self.get_gemini_response(prompt)
+            return await self.get_gemini_response(prompt, backprompt)
 
     def split_content(self, content: str) -> list[str]:
         if len(content) <= 2000:
@@ -93,10 +104,12 @@ class Talk(commands.Cog):
                 content[8000:9990] + "...",
             ]
 
-    async def create_response(self, prompt: str) -> tuple[list[str], nextcord.Embed]:
+    async def create_response(
+        self, prompt: str, backprompt: str | None = None
+    ) -> tuple[list[str], nextcord.Embed]:
         """AIからの返答を取得して返します。"""
         try:
-            resp = await self.get_response(prompt)
+            resp = await self.get_response(prompt, backprompt)
             if resp is None:
                 contents = [""]
                 result = nextcord.Embed(description="返答がありませんでした。", color=self.bot.color.ATTENTION)
@@ -143,11 +156,21 @@ AIと会話してみましょう。
 `n!talk [prompt]`
 
 引数1: str
-お話内容""",
+
+AIが返答した内容（のメッセージ）に対して、リプライを飛ばす形でこのコマンドを使用すると、疑似的に前の話から会話を続けることが出来ます。
+それ以外のメッセージにリプライを飛ばす形でこのコマンドを使うことも出来ますが、AIが困惑するかもしれません。""",
     )
     async def talk_command(self, ctx: commands.Context, *, prompt: str):
+        if (
+            ctx.message.reference
+            and ctx.message.reference.cached_message
+            and ctx.message.reference.cached_message.content
+        ):
+            backprompt = ctx.message.reference.cached_message.content
+        else:
+            backprompt = None
         async with ctx.typing():
-            contents, embed = await self.create_response(prompt)
+            contents, embed = await self.create_response(prompt, backprompt)
             for i in range(len(contents)):
                 if i == len(contents) - 1:
                     await ctx.send(content=contents[i], embed=embed)
