@@ -15,5 +15,7 @@
     "shard_id": シャードID,
     "talk_api": TalkAPIのAPIキー,
     "ltuid": HoYoverse通行証のUID,
-    "ltoken": HoYoverse通行証のトークン
+    "ltoken": HoYoverse通行証のトークン,
+    "gcloud_api": Google Cloud PlatformのAPIキー,
+    "gemini_model": 使用するGeminiのモデル
 }
