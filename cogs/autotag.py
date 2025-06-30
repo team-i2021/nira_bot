@@ -193,9 +193,11 @@ class AutoTag(commands.Cog):
             return
         result = await self.collection.find_one({"channel_id": channel.id})
         if result:
-            tags = [channel.get_tag(tid) for tid in result.get("tags", []) if tid]
+            new_tags = [channel.get_tag(tid) for tid in result.get("tags", []) if tid]
+            current_tags = thread.applied_tags
+            tags = [t for t in new_tags if t and t not in current_tags] + current_tags
             if tags:
-                await thread.edit(applied_tags=[t for t in tags if t])
+                await thread.edit(applied_tags=tags)
 
 
 def setup(bot: NIRA):
