@@ -1,9 +1,10 @@
+import asyncio
 import re
 import sys
 
 import deepl
+import fast_langdetect  # pyright: ignore[reportMissingTypeStubs]
 import nextcord
-import pycld2
 from googletrans import Translator
 from nextcord import Interaction, SlashOption, ChannelType
 from nextcord.ext import commands
@@ -110,12 +111,16 @@ async def translation(bot: commands.Bot, deepl_tr: deepl.Translator, google_tr: 
     return (result.text, translate)
 
 
-def languageCheck(text: str) -> str:
-    isReliable, textBytesFound, details = pycld2.detect(text)
-    if "ja" == details[0][1]:
-        return "JA"
-    else:
-        return "EN"
+_lock_langdetect = asyncio.Lock()
+
+
+async def languageCheck(text: str) -> str:
+    # 恐らくスレッドセーフではないのでロックをかける
+    async with _lock_langdetect:
+        # ローカルに学習済みモデルが存在しない場合はダウンロードする仕様であるが、
+        # 同期コードでありイベントループをブロックしてしまうので、スレッドに逃がして回避する
+        result = await asyncio.to_thread(fast_langdetect.detect, text, model="auto")
+    return "JA" if result[0]["lang"] == "ja" else "EN"
 
 
 def contentCheck(message: nextcord.Message) -> bool:
@@ -282,7 +287,7 @@ class Translate(commands.Cog):
             )
             return
 
-        sLang = languageCheck(message.content)
+        sLang = await languageCheck(message.content)
         if sLang == "EN":
             sLang, tLang = ("EN", "JA")
         else:
@@ -368,7 +373,7 @@ Powered by DeepL Translate/Google Translate.""")
             elif re.search(u"nira-tl-(ja|en|auto)", message.channel.topic).group() == "nira-tl-en":
                 TARGET = "EN-US"
             elif re.search(u"nira-tl-(ja|en|auto)", message.channel.topic).group() == "nira-tl-auto":
-                sLang = languageCheck(message.content)
+                sLang = await languageCheck(message.content)
                 TARGET = "JA"
                 if sLang == "JA":
                     TARGET = "EN-US"
@@ -391,7 +396,7 @@ Powered by DeepL Translate/Google Translate.""")
             elif re.search(u"nira-tlb-(ja|en|auto)", message.channel.topic).group() == "nira-tlb-en":
                 TARGET = "EN-US"
             elif re.search(u"nira-tlb-(ja|en|auto)", message.channel.topic).group() == "nira-tlb-auto":
-                sLang = languageCheck(message.content)
+                sLang = await languageCheck(message.content)
                 TARGET = "JA"
                 if sLang == "JA":
                     TARGET = "EN-US"
