@@ -5,7 +5,7 @@ import sys
 import deepl
 import fast_langdetect  # pyright: ignore[reportMissingTypeStubs]
 import nextcord
-from googletrans import Translator
+from googletrans import Translator  # pyright: ignore[reportMissingTypeStubs]
 from nextcord import Interaction, SlashOption, ChannelType
 from nextcord.ext import commands
 
@@ -48,12 +48,12 @@ def deepl_translate(deepl_tr: deepl.Translator, content, source_lang, target_lan
         raise Exception("DeepL Translatie isn't active.")
 
 
-def google_translate(google_tr: Translator, content, source_lang, target_lang):
+async def google_translate(google_tr: Translator, content: str, source_lang: str | None, target_lang: str):
     if PROVIDER["GOOGLE"]["ACTIVE"]:
         if source_lang is None:
-            return google_tr.translate(content, dest=target_lang)
+            return await google_tr.translate(content, dest=target_lang)
         else:
-            return google_tr.translate(content, src=source_lang, dest=target_lang)
+            return await google_tr.translate(content, src=source_lang, dest=target_lang)
     else:
         raise Exception("Google Translate isn't active.")
 
@@ -72,7 +72,7 @@ def make_embed(provider: int, translated_content: str, source: str, target: str)
     return nextcord.Embed(title="翻訳結果", description=translated_content, color=color).set_footer(text=f"{text} ([{source}]->[{target}])", icon_url=url)
 
 
-async def translation(bot: commands.Bot, deepl_tr: deepl.Translator, google_tr: Translator, content: str, source_lang: str, target_lang: str) -> tuple:
+async def translation(bot: commands.Bot, deepl_tr: deepl.Translator, google_tr: Translator, content: str, source_lang: str | None, target_lang: str) -> tuple:
     translate = PROVIDER["DEEPL"]["ID"]
     try:
         if deepl_tr is not None:
@@ -90,24 +90,7 @@ async def translation(bot: commands.Bot, deepl_tr: deepl.Translator, google_tr: 
         translate = PROVIDER["GOOGLE"]["ID"]
         if target_lang in ["EN-US", "EN-GB"]:
             target_lang = "en"
-        if source_lang is not None:
-            result = await bot.loop.run_in_executor(
-                None,
-                google_translate,
-                google_tr,
-                content,
-                source_lang,
-                target_lang
-            )
-        else:
-            result = await bot.loop.run_in_executor(
-                None,
-                google_translate,
-                google_tr,
-                content,
-                None,
-                target_lang,
-            )
+        result = await google_translate(google_tr, content, source_lang, target_lang)
     return (result.text, translate)
 
 
@@ -168,7 +151,7 @@ class ProviderSwitchGoogle(nextcord.ui.Button):
 
 
 class TranslateModal(nextcord.ui.Modal):
-    def __init__(self, bot: commands.Bot, deepl_tr: deepl.Translator, google_tr: Translator, source_lang: str or None, target_lang: str):
+    def __init__(self, bot: commands.Bot, deepl_tr: deepl.Translator, google_tr: Translator, source_lang: str | None, target_lang: str):
         super().__init__(
             "翻訳",
             timeout=None,

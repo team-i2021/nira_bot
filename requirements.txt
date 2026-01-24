@@ -28,7 +28,7 @@ python-a2s ~= 1.3.0  # unmaintained
 
 # Translate
 deepl ~= 1.17.0
-googletrans == 4.0.0-rc1  # unmaintained
+googletrans ~= 4.0.2
 fast-langdetect ~= 1.0.0
 
 # TTS
