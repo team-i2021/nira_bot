@@ -45,8 +45,9 @@ class Debug(commands.Cog):
         if self.ws_task is not None:
             self.ws_task.cancel()
 
-    async def ws_handler(self, websocket, path):
-        print(path)
+    async def ws_handler(self, websocket: websockets.ServerConnection):
+        assert websocket.request
+        print(websocket.request.path)
         async for message in websocket:
             await websocket.send(f"にら「{message}」")
 
