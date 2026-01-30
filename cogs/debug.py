@@ -15,7 +15,7 @@ import nextcord
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
 
-from util import n_fc, slash_tool
+from util import slash_tool
 from util.nira import NIRA
 
 
@@ -193,97 +193,6 @@ class Debug(commands.Cog):
             embed = nextcord.Embed(
                 title="Error", description=f"You don't have the required permission.", color=0xff0000)
             await ctx.reply(embed=embed)
-            return
-
-    @commands.command()
-    async def py(self, ctx: commands.Context):
-        if ctx.author.id not in n_fc.py_admin:
-            embed = nextcord.Embed(
-                title="Error", description=f"You don't have the required permission.", color=0xff0000)
-            await ctx.reply(embed=embed)
-            await ctx.message.add_reaction("\U0000274C")
-            return
-        if ctx.message.content == f"{self.bot.command_prefix}py":
-            embed = nextcord.Embed(
-                title="Error", description="The command has no enough arguments!", color=0xff0000)
-            await ctx.reply(embed=embed)
-            await ctx.message.add_reaction("\U0000274C")
-            return
-        if ctx.message.content.startswith(f"{self.bot.command_prefix}py await"):
-            if ctx.author.id not in n_fc.py_admin:
-                embed = nextcord.Embed(
-                    title="Error", description=f"You don't have the required permission.", color=0xff0000)
-                await ctx.message.repcly(embed=embed)
-                await ctx.message.add_reaction("\U0000274C")
-                return
-            if ctx.message.content == f"{self.bot.command_prefix}py await":
-                embed = nextcord.Embed(
-                    title="Error", description="The command has no enough arguments!", color=0xff0000)
-                await ctx.reply(embed=embed)
-                await ctx.message.add_reaction("\U0000274C")
-                return
-        mes = ctx.message.content[5:].splitlines()
-        cmd_nm = len(mes)
-        cmd_rt = []
-        print(mes)
-        for i in range(cmd_nm):
-            if re.search(r'(?:await)', mes[i]):
-                try:
-                    mes_py = mes[i].split(" ", 1)[1]
-                    cmd_rt.append(await eval(mes_py))
-                except Exception as err:
-                    await ctx.message.add_reaction("\U0000274C")
-                    embed = nextcord.Embed(
-                        title="Error", description=f"Python error has occurred!\n```{err}```\n```sh\n{sys.exc_info()}```", color=0xff0000)
-                    await ctx.reply(embed=embed)
-                    return
-            else:
-                try:
-                    exec(mes[i])
-                    cmd_rt.append("")
-                except Exception as err:
-                    await ctx.message.add_reaction("\U0000274C")
-                    embed = nextcord.Embed(
-                        title="Error", description=f"Python error has occurred!\n```{err}```\n```sh\n{sys.exc_info()}```", color=0xff0000)
-                    await ctx.reply(embed=embed)
-                    return
-        await ctx.message.add_reaction("\U0001F197")
-        return
-
-    @commands.command()
-    async def sh(self, ctx: commands.Context):
-        if ctx.author.id not in n_fc.py_admin:
-            embed = nextcord.Embed(
-                title="Error", description=f"You don't have the required permission.", color=0xff0000)
-            await ctx.reply(embed=embed)
-            await ctx.message.add_reaction("\U0000274C")
-            return
-        else:
-            if ctx.message.content == f"{self.bot.command_prefix}sh":
-                embed = nextcord.Embed(
-                    title="Error", description="The command has no enough arguments!", color=0xff0000)
-                await ctx.reply(embed=embed)
-                await ctx.message.add_reaction("\U0000274C")
-                return
-            mes_sh = ctx.message.content[5:].splitlines()
-            sh_nm = len(mes_sh)
-            sh_rt = []
-            print(mes_sh)
-            for i in range(sh_nm):
-                try:
-                    export = subprocess.run(
-                        f'{mes_sh[i]}', stdout=PIPE, stderr=PIPE, shell=True, text=True)
-                    sh_rt.append(export.stdout)
-                except Exception as err:
-                    await ctx.message.add_reaction("\U0000274C")
-                    embed = nextcord.Embed(
-                        title="Error", description=f"Shell error has occurred!\n・Pythonエラー```{err}```\n・スクリプトエラー```{export.stdout}```", color=0xff0000)
-                    await ctx.reply(embed=embed)
-                    return
-            await ctx.message.add_reaction("\U0001F197")
-            for i in range(len(sh_rt)):
-                rt_sh = "\n".join(sh_rt)
-            await ctx.reply(f"```{rt_sh}```")
             return
 
     @nextcord.slash_command(name="debug", description="Debug commands")
