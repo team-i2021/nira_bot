@@ -81,7 +81,7 @@ bot = NIRA(
     default_guild_ids=list(settings.guild_ids) if DEBUG else None
 )
 
-bot.load_extension("onami")
+bot.load_extension("ncjishaku")
 
 print("BOTの設定完了")
 

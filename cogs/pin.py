@@ -406,11 +406,8 @@ Webhookは使いたくない精神なので、にらBOTが直々に送ってあ�
     async def _refresh_channel(self, ch: MessageableGuildChannel) -> None:
         lock = self._get_lock(ch.id)
         async with lock.save:
-            last_message = None
             try:
-                last_message = (await ch.history(limit=1).flatten())[0]
-            except IndexError:
-                pass
+                last_message = await anext(ch.history(limit=1), None)
             except nextcord.Forbidden:
                 return
             except Exception:
