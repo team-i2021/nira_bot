@@ -3,13 +3,10 @@ import distro
 import importlib
 import logging
 import platform
-import re
-import subprocess
 import sys
 import traceback
 import psutil
 import websockets
-from subprocess import PIPE
 
 import nextcord
 from nextcord import Interaction, SlashOption
@@ -113,87 +110,6 @@ class Debug(commands.Cog):
                         ))
         else:
             await ctx.reply(embed=nextcord.Embed(title="WebSocket Server Manager", description=f"Sorry. You don't have the required permission."))
-
-    @commands.command()
-    async def restart(self, ctx: commands.Context):
-        if not self.bot.debug:
-            await ctx.reply(f"本番環境においてリスタートコマンドを使用することはできません。")
-            return
-        if (await self.bot.is_owner(ctx.author)):
-            def check(m):
-                return (m.content == 'y' or m.content == 'n') and m.author == ctx.author and m.channel == ctx.channel
-            restart_code = await ctx.reply("```\nnira@nira-bot $ sudo restart nira-bot\nAre you sure want to restart nira-bot?[y/n]```")
-            try:
-                msg = await self.bot.wait_for('message', check=check, timeout=10)
-            except asyncio.TimeoutError:
-                await restart_code.edit(content="```\nnira@nira-bot $ sudo restart nira-bot\nAre you sure want to restart nira-bot?[y/n]\nTimed out.\nThe restart operation has been canceled.(timed out)```")
-                return
-            if msg.content == "n":
-                await restart_code.edit(content="```\nnira@nira-bot $ sudo restart nira-bot\nAre you sure want to restart nira-bot?[y/n]\nn\nThe restart operation has been canceled.(user operation)```")
-                return
-            await self.bot.change_presence(activity=nextcord.Game(name="再起動中...", type=1), status=nextcord.Status.dnd)
-            try:
-                await restart_code.edit(content="```\nnira@nira-bot $ sudo restart nira-bot\nAre you sure want to restart nira-bot?[y/n]\ny\nRestarting nira-bot now...```")
-                logging.info(
-                    f"-----[{self.bot.command_prefix}restart]コマンドが実行されたため、再起動します。-----")
-                subprocess.run(
-                    f'sudo systemctl restart nira',
-                    stdout=PIPE,
-                    stderr=PIPE,
-                    shell=True,
-                    text=True
-                )
-                return
-            except Exception as err:
-                await ctx.reply(f"An error has occurred during restart operation.\n```\n{err}```")
-                await self.bot.change_presence(activity=nextcord.Game(name=f"{self.bot.command_prefix}help", type=1), status=nextcord.Status.idle)
-                return
-        else:
-            embed = nextcord.Embed(
-                title="Error", description=f"You don't have the required permission.", color=0xff0000)
-            await ctx.reply(embed=embed)
-            return
-
-    @commands.command()
-    async def exit(self, ctx: commands.Context):
-        if not self.bot.debug:
-            await ctx.reply(f"本番環境においてリスタートコマンドを使用することはできません。")
-            return
-        if (await self.bot.is_owner(ctx.author)):
-            def check(m):
-                return (m.content == 'y' or m.content == 'n') and m.author == ctx.author and m.channel == ctx.channel
-            exit_code = await ctx.reply("```\nnira@nira-bot $ sudo shutdown nira-bot\nAre you sure want to shutdown nira-bot?[y/n]```")
-            try:
-                msg = await self.bot.wait_for('message', check=check, timeout=10)
-            except asyncio.TimeoutError:
-                await exit_code.edit(content="```\nnira@nira-bot $ sudo shutdown nira-bot\nAre you sure want to shutdown nira-bot?[y/n]\nTimed out.\nThe shutdown operation has been canceled.(timed out)```")
-                return
-            if msg.content == "n":
-                await exit_code.edit(content="```\nnira@nira-bot $ sudo shutdown nira-bot\nAre you sure want to shutdown nira-bot?[y/n]\nn\nThe shutdown operation has been canceled.(user operation)```")
-                return
-            await self.bot.change_presence(activity=nextcord.Game(name="終了中...", type=1), status=nextcord.Status.dnd)
-            try:
-                await exit_code.edit(content="```\nnira@nira-bot $ sudo shutdown nira-bot\nAre you sure want to shutdown nira-bot?[y/n]\ny\nShutdowning nira-bot now...```")
-                logging.info(
-                    f"-----[{self.bot.command_prefix}exit]コマンドが実行されたため、終了します。-----")
-                await self.bot.close()
-                subprocess.run(
-                    f'sudo systemctl stop nira',
-                    stdout=PIPE,
-                    stderr=PIPE,
-                    shell=True,
-                    text=True
-                )
-                return
-            except Exception as err:
-                await ctx.reply(f"An error has occurred during shutdown operation.\n```\n{err}```")
-                await self.bot.change_presence(activity=nextcord.Game(name=f"{self.bot.command_prefix}help", type=1), status=nextcord.Status.idle)
-                return
-        else:
-            embed = nextcord.Embed(
-                title="Error", description=f"You don't have the required permission.", color=0xff0000)
-            await ctx.reply(embed=embed)
-            return
 
     @nextcord.slash_command(name="debug", description="Debug commands")
     async def debug_slash(self, interaction):
