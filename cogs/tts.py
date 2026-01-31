@@ -23,10 +23,10 @@ class Text2Speech(commands.Cog):
         self.VOICEVOX_VERSION = "0.14.4"
         self.collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["tts_database"]
         self.dict_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["tts_dictionary"]
-        self.keys: list[str] | None = self.bot.settings["voicevox"]
+        self.keys: list[str] = list(self.bot.settings.voicevox)
         self.Effective = True
         self.Reason = ""
-        if self.keys is None or len(self.keys) == 0:
+        if not self.keys:
             self.Effective = False
             self.Reason = "VOICEVOX API Key doesn't exist."
         self.SPEAKER_AUTHOR = {}

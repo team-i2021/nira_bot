@@ -8,9 +8,10 @@ import nextcord
 from motor.motor_asyncio import AsyncIOMotorClient
 from nextcord.ext import commands
 
-from util.n_fc import py_admin
-from util.typing import GeneralChannel
 from util.colors import Color
+from util.n_fc import py_admin
+from util.settings import BotSettings
+from util.typing import GeneralChannel
 
 
 class NIRA(commands.Bot):
@@ -22,14 +23,14 @@ class NIRA(commands.Bot):
 
     def __init__(
         self,
+        *args: Any,
         mongo: AsyncIOMotorClient,
         debug: bool = False,
         token: str | None = None,
         database_name: str = "nira-bot",
         shard_id: int = 0,
         shard_count: int = 1,
-        settings: dict[str, dict[str, str] | list[str | int] | str | int] | None = None,
-        *args: Any,
+        settings: BotSettings,
         **kwargs: Any,
     ):
         self.debug = debug

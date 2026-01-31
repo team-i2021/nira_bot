@@ -1,5 +1,4 @@
 import enum
-from typing import Any
 
 import a3rt_talkpy
 import nextcord
@@ -20,9 +19,10 @@ class Talk(commands.Cog):
 
         self.ai_provider = TalkProvider.A3RT
 
-        a3rt_talk_token: str = self.bot.settings["talk_api"]
+        # FIXME: A3RT を削除する
+        a3rt_talk_token: str = self.bot.settings.talk_api  # type: ignore
         self.a3rt_client = a3rt_talkpy.AsyncTalkClient(a3rt_talk_token)
-        self.gcloud_token: str | None = self.bot.settings["gcloud_api"]
+        self.gcloud_token: str | None = self.bot.settings.gcloud_api
         self.GEMINI_URL = (
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={TOKEN}"
         )

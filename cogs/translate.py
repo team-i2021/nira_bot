@@ -185,13 +185,13 @@ class TranslateModal(nextcord.ui.Modal):
 class Translate(commands.Cog):
     def __init__(self, bot: NIRA):
         self.bot = bot
-        if "translate" not in self.bot.settings or self.bot.settings["translate"] == "":
+        if not self.bot.settings.translate:
             self.deepl_tr = None
             PROVIDER['DEEPL']['ACTIVE'] = False
             print(
                 "[Extension: Translate]\nDeepL API Key doesn't exist.\nWe use google Tranlate.")
         else:
-            self.deepl_tr = deepl.Translator(self.bot.settings["translate"])
+            self.deepl_tr = deepl.Translator(self.bot.settings.translate)
         self.google_tr = Translator()
         self.mscommand = self.translation_message_command
 

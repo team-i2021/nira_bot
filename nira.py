@@ -63,7 +63,6 @@ intents.presences = False  # 未認証なのでPresence Intentは無効化
 intents.members = True  # Members Intentを有効化
 intents.message_content = True  # Message Content Intentを有効化
 
-# TODO: BotSettings を直接渡せるようにする
 bot = NIRA(
     mongo=_MONGO_CLIENT,  # mongo_db
     debug=DEBUG,
@@ -71,7 +70,7 @@ bot = NIRA(
     database_name=settings.database_name,
     shard_id=settings.shard_id,
     shard_count=settings.shard_count,
-    settings=settings.model_dump(),
+    settings=settings,
     command_prefix=settings.prefix,
     intents=intents,
     help_command=None,
