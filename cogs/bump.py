@@ -24,7 +24,7 @@ class Bump(commands.Cog):
 
     async def bump_config(
         self,
-        interaction: Interaction or commands.Context,
+        interaction: Interaction | commands.Context,
         action: int,
         item
     ):

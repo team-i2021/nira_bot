@@ -18,7 +18,7 @@ class User(commands.Cog):
         self.rk_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["role_keeper"]
         self.winfo_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["welcome_info"]
 
-    def UserInfoEmbed(self, member: nextcord.Member or nextcord.User):
+    def UserInfoEmbed(self, member: nextcord.Member | nextcord.User):
         if member.bot:
             embed = nextcord.Embed(
                 title="User Info",
@@ -211,7 +211,7 @@ AutoMod等の機能を活用したうえで、過信しすぎずに使用して�
         else:
             await ctx.reply(f"引数が不正です。\n`{ctx.prefix}rk [on/off]`")
 
-    async def ui_config(self, interaction: Interaction or commands.Context, type: int, guild_id: int, channel: nextcord.abc.GuildChannel | None):
+    async def ui_config(self, interaction: Interaction | commands.Context, type: int, guild_id: int, channel: nextcord.abc.GuildChannel | None):
         if isinstance(channel, nextcord.ForumChannel):
             await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description="フォーラムチャンネルは指定できません。", color=self.bot.color.ERROR), ephemeral=True)
             return

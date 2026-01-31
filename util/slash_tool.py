@@ -2,10 +2,12 @@ import sys
 import logging
 
 import nextcord
+import nextcord.ext.commands
 
 
 class messages:
-    def mreply(message: nextcord.ext.commands.Context or nextcord.Message or nextcord.Interaction, reply_message: str, **kwargs):
+    @staticmethod
+    def mreply(message: nextcord.ext.commands.Context | nextcord.Message | nextcord.Interaction, reply_message: str, **kwargs):
         """
 第1引数: 返信元のメッセージやコンテキストやインタラクション
 第2引数: 返信するメッセージ
@@ -30,6 +32,7 @@ class messages:
         else:
             raise TypeError
 
+    @staticmethod
     def content_check(message):
         if type(message) == nextcord.Message:
             return message.content
