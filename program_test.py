@@ -7,6 +7,7 @@ import traceback
 from motor import motor_asyncio
 
 from util import nira
+from util.settings import BotSettings
 
 SETTING = json.load(open(f"{sys.path[0]}/setting.json", "r"))
 
@@ -15,11 +16,11 @@ _MONGO_CLIENT = motor_asyncio.AsyncIOMotorClient(SETTING["database_url"])
 
 bot = nira.NIRA(
     help_command=None,
-    mongo=_MONGO_CLIENT, # mongo_db
+    mongo=_MONGO_CLIENT,  # mongo_db
     database_name=SETTING["database_name"],
     shard_id=SETTING["shard_id"],
     shard_count=SETTING["shard_count"],
-    settings=SETTING,
+    settings=BotSettings.model_validate(SETTING),
 )
 
 print("NIRA Test")

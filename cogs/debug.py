@@ -3,19 +3,16 @@ import distro
 import importlib
 import logging
 import platform
-import re
-import subprocess
 import sys
 import traceback
 import psutil
 import websockets
-from subprocess import PIPE
 
 import nextcord
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
 
-from util import n_fc, slash_tool
+from util import slash_tool
 from util.nira import NIRA
 
 
@@ -45,8 +42,9 @@ class Debug(commands.Cog):
         if self.ws_task is not None:
             self.ws_task.cancel()
 
-    async def ws_handler(self, websocket, path):
-        print(path)
+    async def ws_handler(self, websocket: websockets.ServerConnection):
+        assert websocket.request
+        print(websocket.request.path)
         async for message in websocket:
             await websocket.send(f"にら「{message}」")
 
@@ -112,178 +110,6 @@ class Debug(commands.Cog):
                         ))
         else:
             await ctx.reply(embed=nextcord.Embed(title="WebSocket Server Manager", description=f"Sorry. You don't have the required permission."))
-
-    @commands.command()
-    async def restart(self, ctx: commands.Context):
-        if not self.bot.debug:
-            await ctx.reply(f"本番環境においてリスタートコマンドを使用することはできません。")
-            return
-        if (await self.bot.is_owner(ctx.author)):
-            def check(m):
-                return (m.content == 'y' or m.content == 'n') and m.author == ctx.author and m.channel == ctx.channel
-            restart_code = await ctx.reply("```\nnira@nira-bot $ sudo restart nira-bot\nAre you sure want to restart nira-bot?[y/n]```")
-            try:
-                msg = await self.bot.wait_for('message', check=check, timeout=10)
-            except asyncio.TimeoutError:
-                await restart_code.edit(content="```\nnira@nira-bot $ sudo restart nira-bot\nAre you sure want to restart nira-bot?[y/n]\nTimed out.\nThe restart operation has been canceled.(timed out)```")
-                return
-            if msg.content == "n":
-                await restart_code.edit(content="```\nnira@nira-bot $ sudo restart nira-bot\nAre you sure want to restart nira-bot?[y/n]\nn\nThe restart operation has been canceled.(user operation)```")
-                return
-            await self.bot.change_presence(activity=nextcord.Game(name="再起動中...", type=1), status=nextcord.Status.dnd)
-            try:
-                await restart_code.edit(content="```\nnira@nira-bot $ sudo restart nira-bot\nAre you sure want to restart nira-bot?[y/n]\ny\nRestarting nira-bot now...```")
-                logging.info(
-                    f"-----[{self.bot.command_prefix}restart]コマンドが実行されたため、再起動します。-----")
-                subprocess.run(
-                    f'sudo systemctl restart nira',
-                    stdout=PIPE,
-                    stderr=PIPE,
-                    shell=True,
-                    text=True
-                )
-                return
-            except Exception as err:
-                await ctx.reply(f"An error has occurred during restart operation.\n```\n{err}```")
-                await self.bot.change_presence(activity=nextcord.Game(name=f"{self.bot.command_prefix}help", type=1), status=nextcord.Status.idle)
-                return
-        else:
-            embed = nextcord.Embed(
-                title="Error", description=f"You don't have the required permission.", color=0xff0000)
-            await ctx.reply(embed=embed)
-            return
-
-    @commands.command()
-    async def exit(self, ctx: commands.Context):
-        if not self.bot.debug:
-            await ctx.reply(f"本番環境においてリスタートコマンドを使用することはできません。")
-            return
-        if (await self.bot.is_owner(ctx.author)):
-            def check(m):
-                return (m.content == 'y' or m.content == 'n') and m.author == ctx.author and m.channel == ctx.channel
-            exit_code = await ctx.reply("```\nnira@nira-bot $ sudo shutdown nira-bot\nAre you sure want to shutdown nira-bot?[y/n]```")
-            try:
-                msg = await self.bot.wait_for('message', check=check, timeout=10)
-            except asyncio.TimeoutError:
-                await exit_code.edit(content="```\nnira@nira-bot $ sudo shutdown nira-bot\nAre you sure want to shutdown nira-bot?[y/n]\nTimed out.\nThe shutdown operation has been canceled.(timed out)```")
-                return
-            if msg.content == "n":
-                await exit_code.edit(content="```\nnira@nira-bot $ sudo shutdown nira-bot\nAre you sure want to shutdown nira-bot?[y/n]\nn\nThe shutdown operation has been canceled.(user operation)```")
-                return
-            await self.bot.change_presence(activity=nextcord.Game(name="終了中...", type=1), status=nextcord.Status.dnd)
-            try:
-                await exit_code.edit(content="```\nnira@nira-bot $ sudo shutdown nira-bot\nAre you sure want to shutdown nira-bot?[y/n]\ny\nShutdowning nira-bot now...```")
-                logging.info(
-                    f"-----[{self.bot.command_prefix}exit]コマンドが実行されたため、終了します。-----")
-                await self.bot.close()
-                subprocess.run(
-                    f'sudo systemctl stop nira',
-                    stdout=PIPE,
-                    stderr=PIPE,
-                    shell=True,
-                    text=True
-                )
-                return
-            except Exception as err:
-                await ctx.reply(f"An error has occurred during shutdown operation.\n```\n{err}```")
-                await self.bot.change_presence(activity=nextcord.Game(name=f"{self.bot.command_prefix}help", type=1), status=nextcord.Status.idle)
-                return
-        else:
-            embed = nextcord.Embed(
-                title="Error", description=f"You don't have the required permission.", color=0xff0000)
-            await ctx.reply(embed=embed)
-            return
-
-    @commands.command()
-    async def py(self, ctx: commands.Context):
-        if ctx.author.id not in n_fc.py_admin:
-            embed = nextcord.Embed(
-                title="Error", description=f"You don't have the required permission.", color=0xff0000)
-            await ctx.reply(embed=embed)
-            await ctx.message.add_reaction("\U0000274C")
-            return
-        if ctx.message.content == f"{self.bot.command_prefix}py":
-            embed = nextcord.Embed(
-                title="Error", description="The command has no enough arguments!", color=0xff0000)
-            await ctx.reply(embed=embed)
-            await ctx.message.add_reaction("\U0000274C")
-            return
-        if ctx.message.content.startswith(f"{self.bot.command_prefix}py await"):
-            if ctx.author.id not in n_fc.py_admin:
-                embed = nextcord.Embed(
-                    title="Error", description=f"You don't have the required permission.", color=0xff0000)
-                await ctx.message.repcly(embed=embed)
-                await ctx.message.add_reaction("\U0000274C")
-                return
-            if ctx.message.content == f"{self.bot.command_prefix}py await":
-                embed = nextcord.Embed(
-                    title="Error", description="The command has no enough arguments!", color=0xff0000)
-                await ctx.reply(embed=embed)
-                await ctx.message.add_reaction("\U0000274C")
-                return
-        mes = ctx.message.content[5:].splitlines()
-        cmd_nm = len(mes)
-        cmd_rt = []
-        print(mes)
-        for i in range(cmd_nm):
-            if re.search(r'(?:await)', mes[i]):
-                try:
-                    mes_py = mes[i].split(" ", 1)[1]
-                    cmd_rt.append(await eval(mes_py))
-                except Exception as err:
-                    await ctx.message.add_reaction("\U0000274C")
-                    embed = nextcord.Embed(
-                        title="Error", description=f"Python error has occurred!\n```{err}```\n```sh\n{sys.exc_info()}```", color=0xff0000)
-                    await ctx.reply(embed=embed)
-                    return
-            else:
-                try:
-                    exec(mes[i])
-                    cmd_rt.append("")
-                except Exception as err:
-                    await ctx.message.add_reaction("\U0000274C")
-                    embed = nextcord.Embed(
-                        title="Error", description=f"Python error has occurred!\n```{err}```\n```sh\n{sys.exc_info()}```", color=0xff0000)
-                    await ctx.reply(embed=embed)
-                    return
-        await ctx.message.add_reaction("\U0001F197")
-        return
-
-    @commands.command()
-    async def sh(self, ctx: commands.Context):
-        if ctx.author.id not in n_fc.py_admin:
-            embed = nextcord.Embed(
-                title="Error", description=f"You don't have the required permission.", color=0xff0000)
-            await ctx.reply(embed=embed)
-            await ctx.message.add_reaction("\U0000274C")
-            return
-        else:
-            if ctx.message.content == f"{self.bot.command_prefix}sh":
-                embed = nextcord.Embed(
-                    title="Error", description="The command has no enough arguments!", color=0xff0000)
-                await ctx.reply(embed=embed)
-                await ctx.message.add_reaction("\U0000274C")
-                return
-            mes_sh = ctx.message.content[5:].splitlines()
-            sh_nm = len(mes_sh)
-            sh_rt = []
-            print(mes_sh)
-            for i in range(sh_nm):
-                try:
-                    export = subprocess.run(
-                        f'{mes_sh[i]}', stdout=PIPE, stderr=PIPE, shell=True, text=True)
-                    sh_rt.append(export.stdout)
-                except Exception as err:
-                    await ctx.message.add_reaction("\U0000274C")
-                    embed = nextcord.Embed(
-                        title="Error", description=f"Shell error has occurred!\n・Pythonエラー```{err}```\n・スクリプトエラー```{export.stdout}```", color=0xff0000)
-                    await ctx.reply(embed=embed)
-                    return
-            await ctx.message.add_reaction("\U0001F197")
-            for i in range(len(sh_rt)):
-                rt_sh = "\n".join(sh_rt)
-            await ctx.reply(f"```{rt_sh}```")
-            return
 
     @nextcord.slash_command(name="debug", description="Debug commands")
     async def debug_slash(self, interaction):
