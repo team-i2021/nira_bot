@@ -1,7 +1,7 @@
 # Core
 cachetools >= 6.0.0, < 7
 motor >= 3.7.0, < 4
-nextcord [voice] ~= 3.1.1
+nextcord [voice] ~= 3.2.0
 ncjishaku ~= 3.0.0rc1
 pydantic-settings >= 2.12.0, < 3
 pydantic >= 2.12.0, < 3
