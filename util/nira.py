@@ -93,7 +93,7 @@ class NIRA(commands.Bot):
         return nextcord.Embed(title="Error",description=f"大変申し訳ございません。ニラがエラーが発生させました。\n```{er}```\n```sh\n{tb}```\nfile:`{fname}`\nline:{exc_tb.tb_lineno}\n\n[サポートサーバー](https://discord.gg/awfFpCYTcP)", color=self.color.ERROR)
 
     def format_exc(self, exception: Exception | None = None) -> str:
-        db_url = str(self.settings["database_url"])  # type: ignore
+        db_url = str(self.settings.database_url)
         if exception:
             tb = "".join(traceback.format_exception(exception))
         else:
