@@ -11,6 +11,8 @@ from util.nira import NIRA
 
 # インフォ系
 
+COMPONENT_ID_PREFIX = "cogs.info"
+
 CTX = 0
 SLASH = 1
 
@@ -365,6 +367,7 @@ class HelpSelect(nextcord.ui.Select):
             ]
 
         super().__init__(
+            custom_id=f"{COMPONENT_ID_PREFIX}.help",
             placeholder='Please select help content.',
             min_values=1,
             max_values=1,

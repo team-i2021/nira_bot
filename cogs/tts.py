@@ -17,6 +17,9 @@ from util.nira import NIRA
 
 # Text To Speech
 
+COMPONENT_ID_PREFIX = "cogs.tts"
+
+
 class Text2Speech(commands.Cog):
     def __init__(self, bot: NIRA):
         self.bot = bot
@@ -97,6 +100,7 @@ class Text2Speech(commands.Cog):
                 nextcord.SelectOption(label="1期生", value="1"),
             ]
             super().__init__(
+                custom_id=f"{COMPONENT_ID_PREFIX}.voicevox:generation",
                 placeholder=f"世代: {generation}期生" if generation else 'キャラクターの世代を選択してください。',
                 min_values=1,
                 max_values=1,
@@ -188,6 +192,7 @@ class Text2Speech(commands.Cog):
                 chara = None
                 placeholder = f'{self.generation}期生のキャラクターを選択してください。'
             super().__init__(
+                custom_id=f"{COMPONENT_ID_PREFIX}.voicevox:speaker",
                 placeholder=placeholder,
                 min_values=1,
                 max_values=1,
@@ -221,6 +226,7 @@ class Text2Speech(commands.Cog):
                 options.append(nextcord.SelectOption(label=self.chara["styles"][i]["name"], value=f'{self.chara["styles"][i]["name"]}:{self.chara["styles"][i]["id"]}'))
 
             super().__init__(
+                custom_id=f"{COMPONENT_ID_PREFIX}.voicevox:voice_type",
                 placeholder=f"{self.chara['name']}の声の種類を選んでください。",
                 min_values=1,
                 max_values=1,
