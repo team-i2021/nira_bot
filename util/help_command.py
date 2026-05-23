@@ -198,38 +198,6 @@ disboardのBumpが出来る時間(2時間)になったらお知らせしてく�
 ・例
 `%CommandPrefix%bump on`
 """,
-        9: """\
-ボタンで投票するパネル
-ボタンを押すことで投票することが出来るパネルです。
-特にバグリやすそうなコマンドな気がするので気を付けてください。（気づいたらボタンが反応しなくなってるとか...）
-
-・使い方
-```
-%CommandPrefix%pollpanel [on/off] [*タイトル]
-[選択肢1]
-[選択肢2]
-[選択肢3]...
-```
-
-・引数
-`[on/off]`
-onにすると、一人一票になります。
-
-`[*タイトル]`
-あってもなくてもかまいません。
-特定のメッセージをロールパネルのタイトルにしたい場合は入力してください。
-
-`[選択肢]`
-選択肢です。
-
-・例
-```
-%CommandPrefix%pollpanel on 好きなねこ教えてね
-しろねこ
-くろねこ
-みけねこ
-```
-""",
         10: """\
 DissokuのUp通知を行います
 
@@ -808,16 +776,6 @@ AutoSSを選択されたメッセージで開始します。
 にらBOTが送信した`%CommandPrefix%rolepanel`または`/rolepanel`で生成したロールパネル
 
 ロールパネルは`%CommandPrefix%rolepanel`で生成可能です。(`%CommandPrefix%help rolepanel`)
-""",
-        5: """\
-投票パネル編集
-作成された投票パネルを編集することができます。
-すでに票が入っている選択肢を削除/編集した場合は、その票は削除されます。
-
-・対象メッセージ
-にらBOTが送信した`%CommandPrefix%pollpanel`または`/pollpanel`で生成した投票パネル
-
-ロールパネルは`%CommandPrefix%pollpanel`で生成可能です。(`%CommandPrefix%help pollpanel`)
 """,
         6: """\
 下部ピン留めする

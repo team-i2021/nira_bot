@@ -83,11 +83,6 @@ class HelpSelect(nextcord.ui.Select):
                     value="1-8",
                 ),
                 nextcord.SelectOption(
-                    label='ボタンで投票するパネル',
-                    description=f"{prefix}pollpanel",
-                    value="1-9",
-                ),
-                nextcord.SelectOption(
                     label='Dissoku Up通知機能',
                     description=f"{prefix}up",
                     value="1-10"
@@ -340,10 +335,6 @@ class HelpSelect(nextcord.ui.Select):
                 nextcord.SelectOption(
                     label='ロールパネル編集',
                     value="10-4"
-                ),
-                nextcord.SelectOption(
-                    label='投票パネル編集',
-                    value="10-5"
                 ),
                 nextcord.SelectOption(
                     label='下部ピン留めする',
