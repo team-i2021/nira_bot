@@ -124,11 +124,6 @@ class HelpSelect(nextcord.ui.Select):
                     description=f"{prefix}admin",
                     value="2-2",
                 ),
-                nextcord.SelectOption(
-                    label='Invite機能',
-                    description=f"{prefix}invite",
-                    value="2-3",
-                ),
             ]
         elif opt == Amuse:
             options = [

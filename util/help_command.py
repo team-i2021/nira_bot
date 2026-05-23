@@ -345,32 +345,6 @@ DissokuのUpをしたら、その1時間後に通知します。
 
 ・例
 `%CommandPrefix%admin`
-""",
-        3: """\
-招待リンクに名前を付けて管理する
-招待リンクに名前を付けます。
-この名前はにらBOT内のみで管理されます。
-この機能は単体ではあんま強みがないですが、`サーバー便利/管理`の`加入/離脱者情報表示`を使用すると、どの招待リンクを使って来たかが分かりやすくなると思います。
-
-・使い方
-`%CommandPrefix%invite set [招待リンクまたはコード] [つけたい名前]`
-`%CommandPrefix%invite del [招待リンクまたはコード]`
-`%CommandPrefix%invite`（リスト表示）
-
-サーバー参加者がどのURLを使用したかは、頑張って検知するようにしますが、場合によっては検知出来ない場合があります。その場合は優しく見守ってください。
-
-・引数
-`[招待リンクまたはコード]`
-招待リンクまたはコードです。
-`https://discord.gg/aBcD1234`のような形または`aBcD1234`のような形です。
-
-`[つけたい名前]`
-つけたい名前です。
-
-・例
-`%CommandPrefix%invite set awfFpCYTcP メイン`
-`%CommandPrefix%invite del awfFpCYTcP`
-`%CommandPrefix%invite list`
 """},
     Amuse: {
         1: """\

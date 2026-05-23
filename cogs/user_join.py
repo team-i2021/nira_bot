@@ -19,7 +19,6 @@ class UserJoin(commands.Cog):
         self.bot = bot
         self.winfo_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["welcome_info"]
         self.rk_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["role_keeper"]
-        self.invite_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["invite_data"]
         asyncio.ensure_future(self.fetch_role_keeper())
 
     async def fetch_role_keeper(self):
@@ -37,7 +36,6 @@ class UserJoin(commands.Cog):
     async def on_member_join(self, member: nextcord.Member):
         welcomeinfo = await self.winfo_collection.find_one({"guild_id": member.guild.id})
         rolekeeper = await self.rk_collection.find_one({"guild_id": member.guild.id})
-        invites = await self.invite_collection.find_one({"guild_id": member.guild.id})
 
         if welcomeinfo is None:
             channel = None
@@ -82,31 +80,6 @@ class UserJoin(commands.Cog):
             )
         except Exception as err:
             logging.error(err, traceback.format_exc())
-
-        try:
-            Invites = await member.guild.invites()
-            if invites is None:
-                invites = {i.url: [None, i.uses] for i in Invites}
-            else:
-                invitedUrl = None
-                for key, value in invites.items():
-                    for i in Invites:
-                        if i.url == key and i.uses != value[1]:
-                            invitedUrl = i
-                            invites[invitedUrl.url][1] = invitedUrl.uses
-                            break
-                invitedFrom = f"[{invites[invitedUrl.url][0]}]({invitedUrl.url})"
-                if invites[invitedUrl.url][0] is None:
-                    invitedFrom = f"[{invitedUrl.url}]({invitedUrl.url})"
-                embed.add_field(
-                    name="招待リンク",
-                    value=f"{invitedFrom}から招待を受けました！",
-                    inline=False
-                )
-            asyncio.ensure_future(self.invite_collection.update_one({"guild_id": member.guild.id}, {"$set": invites}, upsert=True))
-
-        except Exception as err:
-            logging.error(f"{err}\n{traceback.format_exc()}")
 
         try:
             if channel is not None:
