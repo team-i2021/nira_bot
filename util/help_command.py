@@ -38,7 +38,7 @@ Steam非公式サーバーやMinecraftサーバーのステータスに関する
 """,
         7: """\
 VC系
-音楽再生や読み上げなど、VCに関する機能があります。
+読み上げなど、VCに関する機能があります。
 """,
         8: """\
 にらBOT全般
@@ -552,38 +552,6 @@ Powered by DeepL Translate/Google Translate
 `%CommandPrefix%nr off`
 """},
     VoiceClient: {
-        1: """\
-VCにBOTを参加させる
-音楽再生をする際に、VCにBOTを参加させることができます。
-なお、読み上げ機能を使う際は`%CommandPrefix%tts join`を使う必要があります。
-
-音楽再生のコマンドについては[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)にもまとめてあります。
-
-・使い方
-`%CommandPrefix%join`
-
-・例
-`%CommandPrefix%join`
-""",
-        2: """\
-VCからBOTを離脱させる
-音楽再生などが終わった際に、VCからBOTを離脱させることができます。
-なお、読み上げから切断する場合は`%CommandPrefix%tts leave`を使う必要があります。
-また、BOTがバグってしまって、VCに取り残されてる場合にもこのコマンドを使うことができます。
-
-音楽再生のコマンドについては[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)にもまとめてあります。
-
-・使い方
-`%CommandPrefix%leave [*f]`
-
-・引数
-`[*f]`
-`＊通常は指定しません。`
-BOTを強制的に離脱させたい場合は、`f`を指定してください。
-
-・例
-`%CommandPrefix%leave`
-""",
         3: """\
 読み上げ機能
 聞き専などで、しゃべりたいけどマイクが使えないみたいなときに、特定のチャンネルでのメッセージを読み上げてくれる機能です。
@@ -604,42 +572,6 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
 
 ・例
 `%CommandPrefix%tts join`
-""",
-        4: """\
-音楽を再生する
-音楽再生を開始します。
-
-音楽再生のコマンドについては[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)にまとめてあります。
-""",
-        5: """\
-音楽再生を全部止める
-現在再生中の音楽を止め、プレイリストからも全曲を削除して、完璧に停止します。
-
-音楽再生のコマンドについては[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)にまとめてあります。
-""",
-        6: """\
-音楽を一時停止する
-音楽再生を一時停止します。
-
-音楽再生のコマンドについては[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)にまとめてあります。
-""",
-        7: """\
-音楽再生を再開する
-一時停止した音楽を再開させます。
-
-音楽再生のコマンドについては[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)にまとめてあります。
-""",
-        8: """\
-曲のリスト表示
-現在プレイリストに入っている曲数を表示します。
-
-音楽再生のコマンドについては[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)にまとめてあります。
-""",
-        9: """\
-リストの一番後ろを消す
-プレイリストの一番最後の曲を削除します。
-
-音楽再生のコマンドについては[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)にまとめてあります。
 """},
     BotUtility: {
         1: """\

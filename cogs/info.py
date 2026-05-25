@@ -220,49 +220,9 @@ class HelpSelect(nextcord.ui.Select):
                     value="0"
                 ),
                 nextcord.SelectOption(
-                    label='VCにBOTを参加させる',
-                    description=f"{prefix}join",
-                    value="7-1",
-                ),
-                nextcord.SelectOption(
-                    label='VCからBOTを離脱させる',
-                    description=f"{prefix}leave",
-                    value="7-2",
-                ),
-                nextcord.SelectOption(
                     label='読み上げ機能',
                     description=f"{prefix}tts",
                     value="7-3",
-                ),
-                nextcord.SelectOption(
-                    label='音楽を再生する',
-                    description=f"{prefix}play",
-                    value="7-4",
-                ),
-                nextcord.SelectOption(
-                    label='音楽再生を全部止める',
-                    description=f"{prefix}stop",
-                    value="7-5",
-                ),
-                nextcord.SelectOption(
-                    label='音楽再生を一時停止する',
-                    description=f"{prefix}pause",
-                    value="7-6",
-                ),
-                nextcord.SelectOption(
-                    label='音楽再生を再開する',
-                    description=f"{prefix}resume",
-                    value="7-7",
-                ),
-                nextcord.SelectOption(
-                    label='曲のリスト表示',
-                    description=f"{prefix}list",
-                    value="7-8",
-                ),
-                nextcord.SelectOption(
-                    label='リストの一番後ろを消す',
-                    description=f"{prefix}pop",
-                    value="7-9",
                 ),
             ]
         elif opt == BotUtility:
