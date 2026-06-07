@@ -2,6 +2,7 @@ import asyncio
 import datetime
 import logging
 import traceback
+from typing import Any
 
 import nextcord
 from nextcord.ext import commands
@@ -25,7 +26,7 @@ class UserJoin(commands.Cog):
         await self.bot.wait_until_ready()
 
         for guild in self.bot.guilds:
-            rolekeeper = await self.rk_collection.find_one({"guild_id": guild.id})
+            rolekeeper: dict[str, Any] | None = await self.rk_collection.find_one({"guild_id": guild.id})
             if not rolekeeper:
                 rolekeeper = {"setting": False}
             for member in guild.members:
@@ -35,7 +36,7 @@ class UserJoin(commands.Cog):
     @commands.Cog.listener()
     async def on_member_join(self, member: nextcord.Member):
         welcomeinfo = await self.winfo_collection.find_one({"guild_id": member.guild.id})
-        rolekeeper = await self.rk_collection.find_one({"guild_id": member.guild.id})
+        rolekeeper: dict[str, Any] | None = await self.rk_collection.find_one({"guild_id": member.guild.id})
 
         if welcomeinfo is None:
             channel = None
@@ -44,15 +45,15 @@ class UserJoin(commands.Cog):
             channel = member.guild.get_channel(welcomeinfo["channel_id"])
             if rolekeeper is None:
                 rolekeeper = {"setting": False}
-                for i in range(len(member.guild.members)):
-                    if member.guild.members[i].id != member.id:
-                        rolekeeper[member.guild.members[i].id] = [j.id for j in member.guild.members[i].roles if j.id != member.guild.id]
+                for m in member.guild.members:
+                    if m.id != member.id:
+                        rolekeeper[str(m.id)] = [role.id for role in m.roles if role.id != member.guild.id]
                 asyncio.ensure_future(self.rk_collection.update_one({"guild_id": member.guild.id}, {"$set": rolekeeper}, upsert=True))
         except Exception as err:
             logging.error(err, traceback.format_exc())
 
         try:
-            if not rolekeeper or member.id not in rolekeeper:
+            if not rolekeeper or str(member.id) not in rolekeeper:
                 # ロールキーパーデータにない場合
                 embed = nextcord.Embed(
                     title="こんにちは！",
@@ -94,14 +95,14 @@ class UserJoin(commands.Cog):
 
         if rolekeeper and rolekeeper["setting"]:
             try:
-                if member.id in rolekeeper:
-                    for i in range(len(rolekeeper[member.id])):
-                        role = member.guild.get_role(rolekeeper[member.id][i])
+                if role_ids := rolekeeper.get(str(member.id)):
+                    for role_id in role_ids:
+                        role = member.guild.get_role(role_id)
                         if role is not None: await member.add_roles(role)
 
                     embed.add_field(
                         name="付与済みロール",
-                        value=f"{' '.join([f'<@&{i}>' for i in rolekeeper[member.id]])}"
+                        value=f"{' '.join([f'<@&{i}>' for i in role_ids])}"
                     )
                     if members_message is not None: await members_message.edit(embed=embed)
 
@@ -154,11 +155,10 @@ class UserJoin(commands.Cog):
 
             # After send...
 
-            rolekeeper = await self.rk_collection.find_one({"guild_id": member.guild.id})
+            rolekeeper: dict[str, Any] | None = await self.rk_collection.find_one({"guild_id": member.guild.id})
 
             if rolekeeper is None:
                 rolekeeper = {"setting": False}
-                return
             rolekeeper[str(member.id)] = role_ids
             await self.rk_collection.update_one({"guild_id": member.guild.id}, {"$set": rolekeeper}, upsert=True)
             return
