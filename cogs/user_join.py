@@ -26,7 +26,7 @@ class UserJoin(commands.Cog):
 
         for guild in self.bot.guilds:
             rolekeeper = await self.rk_collection.find_one({"guild_id": guild.id})
-            if guild.id not in rolekeeper:
+            if not rolekeeper or guild.id not in rolekeeper:
                 rolekeeper = {"rk": 0}
             for member in guild.members:
                 rolekeeper[str(member.id)] = [role.id for role in member.roles if role.id != guild.id]
