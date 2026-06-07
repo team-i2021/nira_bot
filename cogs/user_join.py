@@ -26,8 +26,8 @@ class UserJoin(commands.Cog):
 
         for guild in self.bot.guilds:
             rolekeeper = await self.rk_collection.find_one({"guild_id": guild.id})
-            if not rolekeeper or guild.id not in rolekeeper:
-                rolekeeper = {"rk": 0}
+            if not rolekeeper:
+                rolekeeper = {"setting": False}
             for member in guild.members:
                 rolekeeper[str(member.id)] = [role.id for role in member.roles if role.id != guild.id]
             asyncio.ensure_future(self.rk_collection.update_one({"guild_id": guild.id}, {"$set": rolekeeper}, upsert=True))
@@ -43,7 +43,7 @@ class UserJoin(commands.Cog):
         try:
             channel = member.guild.get_channel(welcomeinfo["channel_id"])
             if rolekeeper is None:
-                rolekeeper = {"rk": False}
+                rolekeeper = {"setting": False}
                 for i in range(len(member.guild.members)):
                     if member.guild.members[i].id != member.id:
                         rolekeeper[member.guild.members[i].id] = [j.id for j in member.guild.members[i].roles if j.id != member.guild.id]
@@ -52,7 +52,7 @@ class UserJoin(commands.Cog):
             logging.error(err, traceback.format_exc())
 
         try:
-            if member.id not in rolekeeper:
+            if not rolekeeper or member.id not in rolekeeper:
                 # ロールキーパーデータにない場合
                 embed = nextcord.Embed(
                     title="こんにちは！",
@@ -92,7 +92,7 @@ class UserJoin(commands.Cog):
 
         await asyncio.sleep(3)
 
-        if rolekeeper["rk"]:
+        if rolekeeper and rolekeeper["setting"]:
             try:
                 if member.id in rolekeeper:
                     for i in range(len(rolekeeper[member.id])):
@@ -157,7 +157,7 @@ class UserJoin(commands.Cog):
             rolekeeper = await self.rk_collection.find_one({"guild_id": member.guild.id})
 
             if rolekeeper is None:
-                rolekeeper = {"rk": 0}
+                rolekeeper = {"setting": False}
                 return
             rolekeeper[str(member.id)] = role_ids
             await self.rk_collection.update_one({"guild_id": member.guild.id}, {"$set": rolekeeper}, upsert=True)
