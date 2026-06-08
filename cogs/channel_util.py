@@ -125,9 +125,6 @@ class ChannelUtil(commands.Cog):
             c for c in sorted_channels if isinstance(c, nextcord.VoiceChannel) or isinstance(c, nextcord.StageChannel)
         ]
 
-        print(text_channels)
-        print(voice_channels)
-
         for pos in range(len(text_channels)):
             if text_channels[pos].position == pos:
                 continue

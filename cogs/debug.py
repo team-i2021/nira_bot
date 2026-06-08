@@ -44,7 +44,7 @@ class Debug(commands.Cog):
 
     async def ws_handler(self, websocket: websockets.ServerConnection):
         assert websocket.request
-        print(websocket.request.path)
+        logging.debug(websocket.request.path)
         async for message in websocket:
             await websocket.send(f"にら「{message}」")
 

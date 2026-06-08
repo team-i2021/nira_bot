@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import re
 import sys
 
@@ -36,6 +37,8 @@ PROVIDER = {
         "ID": 1
     }
 }
+
+_logger = logging.getLogger("cogs.translate")
 
 
 def deepl_translate(deepl_tr: deepl.Translator, content, source_lang, target_lang):
@@ -188,8 +191,7 @@ class Translate(commands.Cog):
         if not self.bot.settings.translate:
             self.deepl_tr = None
             PROVIDER['DEEPL']['ACTIVE'] = False
-            print(
-                "[Extension: Translate]\nDeepL API Key doesn't exist.\nWe use google Tranlate.")
+            _logger.info("DeepL API Key doesn't exist. We use Google Translate.")
         else:
             self.deepl_tr = deepl.Translator(self.bot.settings.translate)
         self.google_tr = Translator()

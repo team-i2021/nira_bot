@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import math
 import random
 import re
@@ -16,6 +17,9 @@ from util import admin_check, n_fc, slash_tool
 
 SET, DEL, STATUS = [0, 1, 2]
 BN = "Bump通知"
+
+_logger = logging.getLogger("cogs.bump")
+
 
 class Bump(commands.Cog):
     def __init__(self, bot: commands.Bot, **kwagrs):
@@ -149,7 +153,7 @@ Disboardの通知設定を行います。
         if message.embeds[0].title != "DISBOARD: The Public Server List" and message.embeds[0].title != "DISBOARD: Discordサーバー掲示板":
             return
         if re.search("Bump done!", message.embeds[0].description) or re.search("表示順をアップしたよ", message.embeds[0].description):
-            print("bump set.")
+            _logger.info("bump set.")
             await message.channel.send(embed=nextcord.Embed(title="Bump通知設定", description=f"<t:{math.floor(time.time())+7200}:f>、<t:{math.floor(time.time())+7200}:R>に通知します。", color=0x00ff00))
             await asyncio.sleep(7200)
             bump_rnd = random.randint(1, 3)
