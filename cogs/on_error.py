@@ -223,14 +223,14 @@ class error(commands.Cog):
         elif isinstance(error, application_checks.ApplicationBotMissingRole):
             if isinstance(role := error.missing_role, int):
                 role = (
-                    f"(ID) {role}"
-                    if interaction.guild and (role_ := interaction.guild.get_role(role)) is None
-                    else role_.name
+                    r.name
+                    if interaction.guild and (r := interaction.guild.get_role(role)) is not None
+                    else f"ID:{role}"
                 )
             description = f"このコマンドの実行に必要なロールをBotが持っていません。\n実行には`{role}`が必要です。"
         elif isinstance(error, application_checks.ApplicationBotMissingAnyRole):
             roles = "`, `".join(
-                (f"(ID) {role}" if interaction.guild and (r := interaction.guild.get_role(role)) is None else r.name)
+                (r.name if interaction.guild and (r := interaction.guild.get_role(role)) is not None else f"ID:{role}")
                 if isinstance(role, int)
                 else role
                 for role in error.missing_roles
