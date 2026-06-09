@@ -45,6 +45,11 @@ class Logging(SettingsBase):
     level: Annotated[int | LoggerLevel, BeforeValidator(_upper_level)] = "INFO"
 
 
+# logging.config.dictConfig用
+class LoggingDict(SettingsBase, extra="allow"):
+    version: int
+
+
 class BotSettings(SettingsBase):
     # トークンとか (必須)
     tokens: Tokens
@@ -63,7 +68,7 @@ class BotSettings(SettingsBase):
     prefix: str = "n!"
     shard_id: NonNegativeInt = 0
     shard_count: PositiveInt = 1
-    logging: Logging = Logging()
+    logging: LoggingDict | Logging = Logging()
 
     # 上同だが任意のもの
     py_admin: tuple[NonNegativeInt, ...] = ()

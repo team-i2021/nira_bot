@@ -1,6 +1,7 @@
 # 沢山のインポート
 import json
 import logging
+import logging.config
 import os
 import sys
 from argparse import ArgumentParser
@@ -10,7 +11,7 @@ from motor import motor_asyncio
 
 from util import n_fc
 from util.nira import NIRA
-from util.settings import BotSettings
+from util.settings import BotSettings, Logging
 
 sys.setrecursionlimit(10000)  # エラー回避
 
@@ -40,11 +41,14 @@ with open(f"{sys.path[0]}/setting.json", "r") as file:
 
 
 # loggingの設定
-logging.basicConfig(
-    format=settings.logging.format,
-    filename=settings.logging.filepath,
-    level=settings.logging.level,
-)
+if isinstance(settings.logging, Logging):
+    logging.basicConfig(
+        format=settings.logging.format,
+        filename=settings.logging.filepath,
+        level=settings.logging.level,
+    )
+else:
+    logging.config.dictConfig(settings.logging.model_dump())
 
 _logger = logging.getLogger("main")
 _logger.info("Starting NIRA Bot...")
