@@ -8,6 +8,8 @@ from nextcord.ext import commands, application_checks, tasks
 
 from util.nira import NIRA
 
+_logger = logging.getLogger(__name__)
+
 
 class AutoEmoji(commands.Cog):
     """
@@ -236,7 +238,7 @@ class AutoEmoji(commands.Cog):
             try:
                 await message.add_reaction(emoji)
             except Exception as e:
-                logging.error(f"AutoEmoji - Error: {e}")
+                _logger.error(f"AutoEmoji - Error: {e}")
             await asyncio.sleep(1)
 
 

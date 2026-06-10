@@ -148,7 +148,7 @@ for cog in cogs_list:
         _logger.debug(f"Loading cog {cog}...")
         bot.load_extension(cog)
     except Exception:
-        logging.exception(f"Failed to load cog {cog}")
+        _logger.exception(f"Failed to load cog {cog}")
     else:
         cogs_num_loaded += 1
 _logger.info(f"{cogs_num_loaded} cogs are loaded")

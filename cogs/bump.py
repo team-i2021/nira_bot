@@ -18,7 +18,7 @@ from util import admin_check, n_fc, slash_tool
 SET, DEL, STATUS = [0, 1, 2]
 BN = "Bump通知"
 
-_logger = logging.getLogger("cogs.bump")
+_logger = logging.getLogger(__name__)
 
 
 class Bump(commands.Cog):

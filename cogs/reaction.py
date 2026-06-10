@@ -20,6 +20,8 @@ from util.nira import NIRA
 
 SYSDIR = sys.path[0]
 
+_logger = logging.getLogger(__name__)
+
 image_loc = f"{SYSDIR}/images"
 
 ERSetting = typing.TypedDict(
@@ -1307,7 +1309,7 @@ class NormalReaction(commands.Cog):
         try:
             await self.database_update()
         except Exception as err:
-            logging.error(err)
+            _logger.error(err)
 
 
 def setup(bot: NIRA):

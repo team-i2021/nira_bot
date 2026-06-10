@@ -38,7 +38,7 @@ PROVIDER = {
     }
 }
 
-_logger = logging.getLogger("cogs.translate")
+_logger = logging.getLogger(__name__)
 
 
 def deepl_translate(deepl_tr: deepl.Translator, content, source_lang, target_lang):

@@ -15,6 +15,8 @@ from util.nira import NIRA
 import motor
 from motor import motor_asyncio
 
+_logger = logging.getLogger(__name__)
+
 mcMessage = {
     "ja": {
         "forbidden": "申し訳ございませんが、このコマンドは現在管理者のみ使用可能です。",
@@ -251,7 +253,7 @@ async def server_list(bot: NIRA, collection: motor_asyncio.AsyncIOMotorCollectio
         return
 
     except Exception:
-        logging.error(
+        _logger.error(
             f"An error has occured during the execution of the function `{bot.command_prefix}mc list`/`/mc list`\n{traceback.format_exc()}"
         )
         await messages.mreply(
@@ -392,7 +394,7 @@ class Minecraft(commands.Cog):
         if server == "" or server is None:
             server = "status"
         await server_check(self.bot, self.collection, interaction, server)
-    
+
     # @tasks.loop(minutes=5)
     async def server_panel(self):
         return

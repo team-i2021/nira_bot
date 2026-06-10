@@ -14,6 +14,8 @@ from util.nira import NIRA
 
 TIME_CHECK = compile(r"[0-9]{1,2}:[0-9]{1,2}")
 
+_logger = logging.getLogger(__name__)
+
 
 class RemindMaker(nextcord.ui.Modal):
     def __init__(self, collection):
@@ -255,7 +257,7 @@ n!remind on 8:25 おはようございます！
                 CHANNEL = await self.bot.fetch_channel(int(remind["channel_id"]))
                 await CHANNEL.send(message)
             except Exception as err:
-                logging.error(f"ERR:{err}\n{remind['channel_id']}")
+                _logger.error(f"ERR:{err}\n{remind['channel_id']}")
 
 
 def setup(bot: NIRA):
@@ -263,4 +265,4 @@ def setup(bot: NIRA):
 
 
 def teardown(bot: NIRA):
-    logging.info("Remind Cog Teardown.")
+    _logger.info("Remind Cog Teardown.")

@@ -19,6 +19,9 @@ ROLE_ID = compile(r"<@&[\d]+?>")
 
 UP_COOLTIME: Final = 60 * 60 * 2  # 2h
 
+_logger = logging.getLogger(__name__)
+
+
 class UpNotify(commands.Cog):
     def __init__(self, bot: NIRA):
         self.bot = bot
@@ -235,7 +238,7 @@ DissokuのUpをしたら、その1時間後に通知します。
                 continue
             if message.embeds[0].fields[0].name == f"`{message.guild.name}` をアップしたよ!":
                 try:
-                    logging.info(f"Up通知 {message.guild.id} をセット")
+                    _logger.info(f"Up通知 {message.guild.id} をセット")
                     await message.channel.send(
                         embed=nextcord.Embed(
                             title="Up通知設定",
@@ -297,7 +300,7 @@ DissokuのUpをしたら、その1時間後に通知します。
                         )
                     return
                 except Exception as err:
-                    logging.error(err)
+                    _logger.error(err)
                     return
             else:
                 return

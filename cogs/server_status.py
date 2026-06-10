@@ -17,6 +17,8 @@ from util.semiembed import SemiEmbed
 
 STEAM_SERVER_COLLECTION_NAME = "steam_server"
 
+_logger = logging.getLogger(__name__)
+
 
 async def ss_force(bot: NIRA, message: nextcord.Message):
     await message.edit(content="Loading status...", view=None)
@@ -42,9 +44,9 @@ async def ss_force(bot: NIRA, message: nextcord.Message):
             embeds=semi_embed.get_embeds(),
             view=Reload_SS_Auto(bot, message),
         )
-        logging.info("Status loaded.(Not scheduled)")
+        _logger.info("Status loaded.(Not scheduled)")
     except Exception as err:
-        logging.error(err, exc_info=True)
+        _logger.error(err, exc_info=True)
         await message.edit(content=f"err:{err}")
 
 
@@ -176,7 +178,7 @@ async def ss_base(
                 try:
                     messs = await (await bot.fetch_channel(cl)).fetch_message(ms)
                 except Exception as err:
-                    logging.error(err)
+                    _logger.error(err)
                     await ctx.reply("メッセージが見つかりませんでした。")
                     return
                 await messs.edit(content="現在変更をしています...")
@@ -328,7 +330,7 @@ async def ss_base(
                         )
                     )
                 except Exception as err:
-                    logging.error(traceback.format_exc())
+                    _logger.error(traceback.format_exc())
                     await ctx.reply(embed=bot.error_embed(err))
                     return
             else:
@@ -414,7 +416,7 @@ class Reload_SS_Auto(nextcord.ui.View):
                 f"エラーが発生しました。\n`{err}`\n```sh\n{traceback.format_exc()}```",
                 ephemeral=True,
             )
-            logging.error(traceback.format_exc())
+            _logger.error(traceback.format_exc())
 
 
 class Recheck_SS_Embed(nextcord.ui.View):
@@ -440,11 +442,11 @@ class Recheck_SS_Embed(nextcord.ui.View):
                 embeds=semi_embed.get_embeds(),
                 view=Recheck_SS_Embed(self.bot),
             )
-            logging.info("rechecked")
+            _logger.info("rechecked")
 
         except Exception:
             await interaction.followup.send(f"エラーが発生しました。\n```\n{traceback.format_exc()}```")
-            logging.error(traceback.format_exc())
+            _logger.error(traceback.format_exc())
 
 
 class server_status(commands.Cog):
@@ -977,7 +979,7 @@ Steam非公式サーバーのステータスを表示します
             try:
                 servers = await self.ss_collection.find({"guild_id": autoConfig["guild_id"]}).to_list(length=None)
                 if len(servers) == 0:
-                    logging.info(f"Steam非公式サーバーが設定されていないため、設定を削除します。\nGuildID:{autoConfig['guild_id']}\nChannelID:{autoConfig['channel_id']}\nMessageID:{autoConfig['message_id']}")
+                    _logger.info(f"Steam非公式サーバーが設定されていないため、設定を削除します。\nGuildID:{autoConfig['guild_id']}\nChannelID:{autoConfig['channel_id']}\nMessageID:{autoConfig['message_id']}")
                     await self.auto_collection.delete_one({"guild_id": autoConfig["guild_id"]})
                     continue
 
@@ -1002,19 +1004,19 @@ Steam非公式サーバーのステータスを表示します
                     embeds=semi_embed.get_embeds(),
                     view=Reload_SS_Auto(self.bot, message),
                 )
-                logging.info("Status loaded.(Scheduled)")
+                _logger.info("Status loaded.(Scheduled)")
             except (nextcord.errors.NotFound, nextcord.errors.Forbidden, nextcord.errors.InvalidData, AssertionError):
                 # auto_collectionのデータベースから指定Guildのデータを消す
-                logging.info(f"チャンネルにアクセスできなかったため、設定を削除します。\nGuildID:{autoConfig['guild_id']}\nChannelID:{autoConfig['channel_id']}\nMessageID:{autoConfig['message_id']}")
+                _logger.info(f"チャンネルにアクセスできなかったため、設定を削除します。\nGuildID:{autoConfig['guild_id']}\nChannelID:{autoConfig['channel_id']}\nMessageID:{autoConfig['message_id']}")
                 await self.auto_collection.delete_one({"guild_id": autoConfig["guild_id"]})
                 continue
             except nextcord.errors.HTTPException:
                 # HTTPのエラーのため本当はやめなきゃいけないけどとりあえず10秒で進めておく
-                logging.error("HTTPException", traceback.format_exc())
+                _logger.error("HTTPException", traceback.format_exc())
                 await asyncio.sleep(10)
                 continue
             except Exception as err:
-                logging.error("ServerStatusAutoSSError", err, traceback.format_exc())
+                _logger.error("ServerStatusAutoSSError", err, traceback.format_exc())
                 if message is not None:
                     await message.edit(
                         content=(
@@ -1029,8 +1031,8 @@ Steam非公式サーバーのステータスを表示します
 def setup(bot: NIRA):
     importlib.reload(server_check)
     bot.add_cog(server_status(bot))
-    logging.info("Setup `server_status` cog.")
+    _logger.info("Setup `server_status` cog.")
 
 
 def teardown(bot):
-    logging.info("Teardown `server_status` cog.")
+    _logger.info("Teardown `server_status` cog.")

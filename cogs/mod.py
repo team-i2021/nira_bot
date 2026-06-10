@@ -10,6 +10,9 @@ from motor import motor_asyncio
 from util import admin_check, n_fc
 from util.nira import NIRA
 
+_logger = logging.getLogger(__name__)
+
+
 # 規定秒数以内に指定数メッセージを送信した人をミュートするモデレーター的な機能
 # n!mod
 # /mod
@@ -53,7 +56,7 @@ class MessageModeration(commands.Cog):
                 return
             except Exception as err:
                 await message.channel.send(f"{message.author.name}をミュートしようとしましたがエラーが発生しました。\n```sh\n{err}```")
-                logging.error(err, exc_info=True)
+                _logger.error(err, exc_info=True)
                 return
 
 

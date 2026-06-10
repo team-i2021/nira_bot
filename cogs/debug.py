@@ -18,6 +18,9 @@ from util.nira import NIRA
 
 SYSDIR = sys.path[0]
 
+_logger = logging.getLogger(__name__)
+
+
 # 管理者向けdebug
 
 def sysinfo() -> str:
@@ -44,19 +47,19 @@ class Debug(commands.Cog):
 
     async def ws_handler(self, websocket: websockets.ServerConnection):
         assert websocket.request
-        logging.debug(websocket.request.path)
+        _logger.debug(websocket.request.path)
         async for message in websocket:
             await websocket.send(f"にら「{message}」")
 
     async def ws_main(self):
         if self.ws_port is None:
             raise ValueError("Port not set.")
-        logging.info(f"Start Websocket at {self.ws_port}....")
+        _logger.info(f"Start Websocket at {self.ws_port}....")
         try:
             async with websockets.serve(self.ws_handler, "0.0.0.0", self.ws_port):
                 await asyncio.Future()
         except asyncio.CancelledError:
-            logging.info("WebSocket server task cancelled.")
+            _logger.info("WebSocket server task cancelled.")
 
     @commands.command()
     async def websocket(self, ctx: commands.Context, arg: str | None = None, port: int | None = 32568):
