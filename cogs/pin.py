@@ -374,14 +374,14 @@ Webhookは使いたくない精神なので、にらBOTが直々に送ってあ�
             msg = await document.channel.send(document.text)
         except Exception as e:
             if isinstance(e, nextcord.Forbidden):
-                _logger.exception("Error while sending message")
+                _logger.exception("An error has occurred when sending message")
             return False
 
         try:
             document.last_message = msg
             await self.collection.update(document)
         except Exception:
-            _logger.exception("Error while updating database")
+            _logger.exception("An error has occurred when updating database")
 
         return True
 
@@ -394,14 +394,14 @@ Webhookは使いたくない精神なので、にらBOTが直々に送ってあ�
         except (nextcord.NotFound, nextcord.Forbidden):
             pass
         except Exception:
-            _logger.exception("Error while deleting message")
+            _logger.exception("An error has occurred when deleting message")
             return False
 
         try:
             document.last_message = None
             await self.collection.update(document)
         except Exception:
-            _logger.exception("Error while updating database")
+            _logger.exception("An error has occurred when updating database")
 
         return True
 
@@ -413,7 +413,7 @@ Webhookは使いたくない精神なので、にらBOTが直々に送ってあ�
             except nextcord.Forbidden:
                 return
             except Exception:
-                _logger.exception("Error while fetching message history")
+                _logger.exception("An error has occurred when fetching message history")
                 return
 
             if lock.sleep.locked():
@@ -433,7 +433,7 @@ Webhookは使いたくない精神なので、にらBOTが直々に送ってあ�
                 if isinstance(document, PinDocument):
                     await self._refresh_channel(document.channel)
                 else:
-                    _logger.exception("Error while fetching channel", exc_info=document)
+                    _logger.exception("An error has occurred when fetching channel", exc_info=document)
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:

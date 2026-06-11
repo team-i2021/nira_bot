@@ -1,4 +1,5 @@
 import importlib
+import logging
 import traceback
 
 import nextcord
@@ -8,6 +9,8 @@ from nextcord.ext import commands
 import util.help_command as hc
 from util import n_fc
 from util.nira import NIRA
+
+_logger = logging.getLogger(__name__)
 
 # インフォ系
 
@@ -370,6 +373,7 @@ class HelpSelect(nextcord.ui.Select):
             await interaction.message.edit(embed=embed, view=view)
             return
         except Exception:
+            _logger.exception("An error has occurred")
             await interaction.response.send_message(f"エラーが発生しました。\n```\n{traceback.format_exc()}```", ephemeral=True)
             return
 

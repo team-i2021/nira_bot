@@ -1,4 +1,5 @@
 import enum
+import logging
 
 import a3rt_talkpy
 import nextcord
@@ -6,6 +7,8 @@ from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
 
 from util.nira import NIRA
+
+_logger = logging.getLogger(__name__)
 
 
 class TalkProvider(enum.Enum):
@@ -104,6 +107,7 @@ class Talk(commands.Cog):
                 contents = self.split_content(resp)
                 result = nextcord.Embed(description="AIから返答が返ってきました。", color=self.bot.color.NORMAL)
         except Exception as err:
+            _logger.exception("An error has occurred")
             contents = [""]
             result = nextcord.Embed(description=f"エラーが発生しました。\n`{err}`", color=self.bot.color.ERROR)
 

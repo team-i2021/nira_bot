@@ -55,8 +55,9 @@ class MessageModeration(commands.Cog):
                 await message.channel.send(f"{message.author.mention}は、メッセージ数が規定オーバーのため、ミュート用ロールを付与しました。\n{'なお、ミュート用ロール以外の全ロールを剥奪しました。' if self.MOD_LIST[message.guild.id]['remove_role'] else ''}")
                 return
             except Exception as err:
+                if not isinstance(err, nextcord.NotFound | nextcord.Forbidden):
+                    _logger.exception("An error has occurred")
                 await message.channel.send(f"{message.author.name}をミュートしようとしましたがエラーが発生しました。\n```sh\n{err}```")
-                _logger.error(err, exc_info=True)
                 return
 
 
@@ -169,6 +170,7 @@ remove: ロールの剥奪を行うかどうか（`on`/`off`）（指定され�
                 }
                 await self.collection.update_one({"guild_id": interaction.guild.id}, {"$set": self.MOD_LIST[interaction.guild.id]}, upsert=True)
             except Exception as err:
+                _logger.exception("An error has occurred")
                 await interaction.response.send_message(embed=nextcord.Embed(title="荒らし対策", description=f"エラーが発生しました。\n```\n{err}```", color=0xff0000), ephemeral=True)
                 return
             await interaction.response.send_message(embed=nextcord.Embed(title="荒らし対策", description=f"サーバーで機能を有効にしました。\nメッセージカウンター:`{counter}`\nミュート用ロール:<@&{role.id}>\nロールを剥奪するか:{remove_role}", color=0x00ff00), ephemeral=True)
@@ -188,6 +190,7 @@ remove: ロールの剥奪を行うかどうか（`on`/`off`）（指定され�
                     del self.MOD_LIST[interaction.guild.id]
                     await self.collection.delete_one({"guild_id": interaction.guild.id})
                 except Exception as err:
+                    _logger.exception("An error has occurred")
                     await interaction.response.send_message(embed=nextcord.Embed(title="荒らし対策", description=f"エラーが発生しました。\n```\n{err}```", color=0xff0000), ephemeral=True)
                     return
                 await interaction.response.send_message(embed=nextcord.Embed(title="荒らし対策", description="サーバーで機能を無効にしました。", color=0x00ff00), ephemeral=True)

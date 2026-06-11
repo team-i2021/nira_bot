@@ -38,6 +38,7 @@ async def status_embed(
             status = await mc.java_status(host=server["host"], port=server["port"])
 
             if isinstance(status, Exception):
+                _logger.debug("MCJE server check failure", exc_info=status)
                 embed.add_field(
                     name=f"サーバー名:`{server['name']}`(Java)",
                     value=f":ng: Offline\n\n\n",
@@ -63,6 +64,7 @@ async def status_embed(
             status = await mc.bedrock_status(host=server["host"], port=server["port"])
 
             if isinstance(status, Exception):
+                _logger.debug("MCBE server check failure", exc_info=status)
                 embed.add_field(
                     name=f"サーバー名:`{server['name']}`(Bedrock)",
                     value=f":ng: Offline\n\n\n",
@@ -85,6 +87,7 @@ async def status_embed(
                     )
 
         else:
+            _logger.error(f"Invalid MC server type: {server['server_type']}")
             embed.add_field(
                 name=f"サーバー名:`{server['name']}`",
                 value=f":exclamation: このサーバーのデータは異常です。開発者へお問い合わせください。 `{server['server_type']}`",
@@ -93,12 +96,14 @@ async def status_embed(
 
     except Exception as err:
         if value_type == NORMAL:
+            _logger.exception("MCJE server check failure (unexpected error has occurred)")
             embed.add_field(
                 name=f"サーバー名:`{server['name']}`({server['server_type']})",
                 value=f":ng: Offline\n\n\n",
                 inline=False
             )
         else:
+            _logger.exception("MCBE server check failure (unexpected error has occurred)")
             embed.add_field(
                 name=f"サーバー名:`{server['name']}`({server['server_type']})",
                 value=f":ng: Offline\n```py\n{err}\n\n{traceback.format_exc()}```\n\n\n",
@@ -119,6 +124,7 @@ async def server_add(bot: NIRA, collection: motor_asyncio.AsyncIOMotorCollection
         })
 
     except Exception:
+        _logger.exception("An error has occurred")
         await messages.mreply(ctx, f"サーバー追加時にエラーが発生しました。", embed=nextcord.Embed(title="An error has occurred...", description=f"```sh\n{traceback.format_exc()}```", color=0xff0000), ephemeral=True)
         return
     await messages.mreply(ctx, "", embed=nextcord.Embed(title="サーバーを追加しました。", description=f"サーバー名:`{name}`\nサーバーアドレス:`{host}:{port}`\nサーバー種類:`{server_type}`", color=0x00ff00), ephemeral=True)
@@ -136,6 +142,7 @@ async def server_delete(bot: NIRA, collection: motor_asyncio.AsyncIOMotorCollect
         try:
             await collection.delete_many({"guild_id": ctx.guild.id})
         except Exception:
+            _logger.exception("An error has occurred")
             await messages.mreply(ctx, "サーバー削除時にエラーが発生しました。", embed=nextcord.Embed(title="An error has occurred...", description=f"```sh\n{traceback.format_exc()}```", color=0xff0000), ephemeral=True)
             return
         await messages.mreply(ctx, f"`{ctx.guild.name}`のMinecraftサーバーデータを削除しました。")
@@ -149,6 +156,7 @@ async def server_delete(bot: NIRA, collection: motor_asyncio.AsyncIOMotorCollect
         try:
             await collection.delete_one({"guild_id": ctx.guild.id, "server_id": select_id})
         except Exception:
+            _logger.exception("An error has occurred")
             await messages.mreply(ctx, "サーバー削除時にエラーが発生しました。", embed=nextcord.Embed(title="An error has occurred...", description=f"```sh\n{traceback.format_exc()}```", color=0xff0000), ephemeral=True)
             return
         await messages.mreply(ctx, "サーバーを削除しました。", ephemeral=True)
@@ -162,6 +170,7 @@ async def server_delete(bot: NIRA, collection: motor_asyncio.AsyncIOMotorCollect
                 {"$inc": {"server_id": -1}}
             )
         except Exception:
+            _logger.exception("An error has occurred")
             await messages.mreply(ctx, f"サーバー削除時にエラーが発生しました。", embed=nextcord.Embed(title="An error has occurred...", description=f"```sh\n{traceback.format_exc()}```", color=0xff0000), ephemeral=True)
             return
         await messages.mreply(ctx, f"ID`{select_id}`のサーバーを削除しました。")
@@ -253,8 +262,8 @@ async def server_list(bot: NIRA, collection: motor_asyncio.AsyncIOMotorCollectio
         return
 
     except Exception:
-        _logger.error(
-            f"An error has occured during the execution of the function `{bot.command_prefix}mc list`/`/mc list`\n{traceback.format_exc()}"
+        _logger.exception(
+            f"An error has occurred during the execution of the function `{bot.command_prefix}mc list`/`/mc list`"
         )
         await messages.mreply(
             ctx,

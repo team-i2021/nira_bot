@@ -256,8 +256,8 @@ n!remind on 8:25 おはようございます！
                 message = remind["message"].replace("%date%", dt.strftime("%m/%d"))
                 CHANNEL = await self.bot.fetch_channel(int(remind["channel_id"]))
                 await CHANNEL.send(message)
-            except Exception as err:
-                _logger.error(f"ERR:{err}\n{remind['channel_id']}")
+            except Exception:
+                _logger.exception(f"An error has occurred in channel {remind['channel_id']}")
 
 
 def setup(bot: NIRA):

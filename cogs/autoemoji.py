@@ -110,6 +110,7 @@ class AutoEmoji(commands.Cog):
             except nextcord.InvalidArgument:
                 description = "絵文字が無効です。"
             except nextcord.HTTPException:
+                _logger.exception("An HTTP error has occurred")
                 description = (
                     "絵文字がカンマ区切りで入力されているかご確認ください。\n"
                     "または...一時的なネットワークエラーが発生している可能性があります。"
@@ -132,6 +133,7 @@ class AutoEmoji(commands.Cog):
             )
             self.autoemoji_cache[interaction.channel.id] = emoji_list
         except Exception as e:
+            _logger.exception("An error has occurred")
             await message.edit(
                 embed=nextcord.Embed(
                     title="AutoEmoji - Error",
@@ -237,8 +239,8 @@ class AutoEmoji(commands.Cog):
         for emoji in emoji_list:
             try:
                 await message.add_reaction(emoji)
-            except Exception as e:
-                _logger.error(f"AutoEmoji - Error: {e}")
+            except Exception:
+                _logger.exception("AutoEmoji - Error")
             await asyncio.sleep(1)
 
 

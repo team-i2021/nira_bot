@@ -46,7 +46,7 @@ async def ss_force(bot: NIRA, message: nextcord.Message):
         )
         _logger.info("Status loaded.(Not scheduled)")
     except Exception as err:
-        _logger.error(err, exc_info=True)
+        _logger.exception("An error has occurred when loading server status")
         await message.edit(content=f"err:{err}")
 
 
@@ -116,6 +116,7 @@ async def ss_base(
                 )
                 return
             except Exception as err:
+                _logger.exception("An error has occurred")
                 await ctx.reply(f"サーバー追加時にエラーが発生しました。\n```sh\n{err}```")
                 return
 
@@ -178,7 +179,8 @@ async def ss_base(
                 try:
                     messs = await (await bot.fetch_channel(cl)).fetch_message(ms)
                 except Exception as err:
-                    _logger.error(err)
+                    if not isinstance(err, nextcord.NotFound | nextcord.Forbidden):
+                        _logger.exception("An error has occurred")
                     await ctx.reply("メッセージが見つかりませんでした。")
                     return
                 await messs.edit(content="現在変更をしています...")
@@ -206,6 +208,7 @@ async def ss_base(
                 )
                 return
             except Exception as err:
+                _logger.exception("An error has occurred")
                 await ctx.reply(embed=bot.error_embed(err))
                 return
 
@@ -246,6 +249,7 @@ async def ss_base(
             )
             return
         except Exception as err:
+            _logger.exception("An error has occurred")
             await ctx.reply(embed=bot.error_embed(err))
             return
 
@@ -284,6 +288,7 @@ async def ss_base(
             await ctx.reply("入れ替えが完了しました。")
             return
         except Exception as err:
+            _logger.exception("An error has occurred")
             await ctx.reply(f"入れ替え中にエラーが発生しました。\n{err}")
             return
 
@@ -295,6 +300,7 @@ async def ss_base(
             try:
                 del_num = int(ctx.message.content[9:])
             except Exception as err:
+                _logger.exception("An error has occurred")
                 await ctx.reply(embed=bot.error_embed(err))
                 return
             if admin_check.admin_check(ctx.guild, ctx.author):
@@ -330,7 +336,7 @@ async def ss_base(
                         )
                     )
                 except Exception as err:
-                    _logger.error(traceback.format_exc())
+                    _logger.exception("An error has occurred")
                     await ctx.reply(embed=bot.error_embed(err))
                     return
             else:
@@ -412,11 +418,11 @@ class Reload_SS_Auto(nextcord.ui.View):
             await interaction.followup.send("Reloaded!", ephemeral=True)
 
         except Exception as err:
+            _logger.exception("An error has occurred")
             await interaction.followup.send(
                 f"エラーが発生しました。\n`{err}`\n```sh\n{traceback.format_exc()}```",
                 ephemeral=True,
             )
-            _logger.error(traceback.format_exc())
 
 
 class Recheck_SS_Embed(nextcord.ui.View):
@@ -445,8 +451,8 @@ class Recheck_SS_Embed(nextcord.ui.View):
             _logger.info("rechecked")
 
         except Exception:
+            _logger.exception("An error has occurred")
             await interaction.followup.send(f"エラーが発生しました。\n```\n{traceback.format_exc()}```")
-            _logger.error(traceback.format_exc())
 
 
 class server_status(commands.Cog):
@@ -486,6 +492,7 @@ class server_status(commands.Cog):
             asyncio.ensure_future(ss_force(self.bot, message))
             await interaction.followup.send("指定されたメッセージでAutoSSをスタートしました。")
         except Exception as err:
+            _logger.exception("An error has occurred")
             await interaction.followup.send(f"エラーが発生しました。\n```\n{err}```")
 
     @commands.guild_only()
@@ -565,6 +572,7 @@ Steam非公式サーバーのステータスを表示します
                 )
                 return
         except Exception as err:
+            _logger.exception("An error has occurred")
             await interaction.followup.send(f"Steam非公式サーバー追加時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
@@ -630,6 +638,7 @@ Steam非公式サーバーのステータスを表示します
                 )
                 return
         except Exception as err:
+            _logger.exception("An error has occurred")
             await interaction.followup.send(f"サーバー削除時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
@@ -672,6 +681,7 @@ Steam非公式サーバーのステータスを表示します
                 )
                 return
         except Exception as err:
+            _logger.exception("An error has occurred")
             await interaction.followup.send(f"Steam非公式サーバーの一覧表示時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
@@ -759,6 +769,7 @@ Steam非公式サーバーのステータスを表示します
                 )
                 return
         except Exception as err:
+            _logger.exception("An error has occurred")
             await interaction.followup.send(f"ソート時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
@@ -841,6 +852,7 @@ Steam非公式サーバーのステータスを表示します
                 )
                 return
         except Exception as err:
+            _logger.exception("An error has occurred")
             await interaction.followup.send(f"編集時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
@@ -888,6 +900,7 @@ Steam非公式サーバーのステータスを表示します
             await interaction.followup.send("AutoSSを無効にしました。", ephemeral=True)
             return
         except Exception as err:
+            _logger.exception("An error has occurred")
             await interaction.followup.send(embed=self.bot.error_embed(err), ephemeral=True)
             return
 
@@ -951,6 +964,7 @@ Steam非公式サーバーのステータスを表示します
                 return
 
         except Exception as err:
+            _logger.exception("An error has occurred")
             await interaction.followup.send(f"ステータス取得時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
@@ -1012,11 +1026,11 @@ Steam非公式サーバーのステータスを表示します
                 continue
             except nextcord.errors.HTTPException:
                 # HTTPのエラーのため本当はやめなきゃいけないけどとりあえず10秒で進めておく
-                _logger.error("HTTPException", traceback.format_exc())
+                _logger.exception("An HTTP error occurred")
                 await asyncio.sleep(10)
                 continue
-            except Exception as err:
-                _logger.error("ServerStatusAutoSSError", err, traceback.format_exc())
+            except Exception:
+                _logger.exception("ServerStatusAutoSSError")
                 if message is not None:
                     await message.edit(
                         content=(

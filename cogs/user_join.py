@@ -50,8 +50,8 @@ class UserJoin(commands.Cog):
                     if m.id != member.id:
                         rolekeeper[str(m.id)] = [role.id for role in m.roles if role.id != member.guild.id]
                 asyncio.ensure_future(self.rk_collection.update_one({"guild_id": member.guild.id}, {"$set": rolekeeper}, upsert=True))
-        except Exception as err:
-            _logger.error(err, traceback.format_exc())
+        except Exception:
+            _logger.exception("An error has occurred")
 
         try:
             if not rolekeeper or str(member.id) not in rolekeeper:
@@ -80,8 +80,8 @@ class UserJoin(commands.Cog):
                 name="現在のユーザー数",
                 value=f"`{len(member.guild.members)}`人"
             )
-        except Exception as err:
-            _logger.error(err, traceback.format_exc())
+        except Exception:
+            _logger.exception("An error has occurred")
 
         try:
             if channel is not None:
@@ -89,8 +89,8 @@ class UserJoin(commands.Cog):
             else:
                 members_message = None
 
-        except Exception as err:
-            _logger.error(err)
+        except Exception:
+            _logger.exception("An error has occurred")
 
         await asyncio.sleep(3)
 
@@ -108,8 +108,8 @@ class UserJoin(commands.Cog):
                     if members_message is not None: await members_message.edit(embed=embed)
 
             except Exception as err:
+                _logger.exception("An error has occurred")
                 if members_message is not None: await members_message.edit(f"ロール付与時に何かしらのエラーが発生しました。\n何度も発生する場合はお問い合わせください。\n`{err}`", embed=embed)
-                _logger.error(err)
 
 
     @commands.Cog.listener()
@@ -164,8 +164,8 @@ class UserJoin(commands.Cog):
             await self.rk_collection.update_one({"guild_id": member.guild.id}, {"$set": rolekeeper}, upsert=True)
             return
         except Exception as err:
+            _logger.exception("An error has occurred when processing the Guild Member Remove event")
             if channel is not None: await removed_message.edit(f"おっと...これは大変ですね...\nユーザー離脱時の処理時にエラーが発生しました。\n`{err}`", embed=embed)
-            _logger.error(f"ユーザー離脱時の情報表示システムのエラー\n{err}\n`{traceback.format_exc()}`")
             return
 
 

@@ -100,5 +100,5 @@ async def on_srtr(message: nextcord.Message, collection: motor_asyncio.AsyncIOMo
                         continue
             return
     except Exception:
+        _logger.exception("An error has occurred")
         await message.reply(f"エラーが発生しました。\n```sh\n{traceback.format_exc()}```")
-        _logger.error("Error", exc_info=True)

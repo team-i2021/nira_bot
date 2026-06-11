@@ -90,6 +90,7 @@ async def translation(bot: commands.Bot, deepl_tr: deepl.Translator, google_tr: 
         else:
             raise Exception("DeepL API Key doesn't exist.")
     except Exception:
+        _logger.debug("An error has occurred in DeepL Translate, we will fall back to Google Translate", exc_info=True)
         translate = PROVIDER["GOOGLE"]["ID"]
         if target_lang in ["EN-US", "EN-GB"]:
             target_lang = "en"
@@ -182,6 +183,7 @@ class TranslateModal(nextcord.ui.Modal):
                     self._source_lang = "..."
                 await interaction.followup.send(embed=make_embed(result[1], result[0], self._source_lang, self._target_lang))
         except Exception as err:
+            _logger.exception("An error has occurred")
             await interaction.followup.send(embed=nextcord.Embed(title="エラー", description=f"エラー。\n```\n{err}```", color=0xFF0000))
 
 
@@ -331,6 +333,7 @@ Powered by DeepL Translate/Google Translate.""")
                     await ctx.reply(embed=make_embed(result[1], result[0], "...", lang))
                     return
             except Exception as err:
+                _logger.exception("An error has occurred")
                 await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"エラー。\n```\n{err}```", color=0xFF0000))
         return
 

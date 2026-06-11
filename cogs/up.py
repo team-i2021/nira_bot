@@ -299,8 +299,8 @@ DissokuのUpをしたら、その1時間後に通知します。
                             ),
                         )
                     return
-                except Exception as err:
-                    _logger.error(err)
+                except Exception:
+                    _logger.exception("An error has occurred")
                     return
             else:
                 return

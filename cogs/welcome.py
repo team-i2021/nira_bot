@@ -73,6 +73,7 @@ class WelcomeMaker(nextcord.ui.Modal):
             await interaction.followup.send(embed=nextcord.Embed(title=f"{self.message_type}メッセージ表示", description=self.main_content.value, color=0x00ff00), ephemeral=True)
             return
         except Exception as err:
+            _logger.exception("An error has occurred")
             await interaction.followup.send("コマンド実行時にエラーが発生しました。", embed=nextcord.Embed(title=f"An error has occurred during `/welcome set [join/leave]`", description=f"```py\n{err}```\n```py\n{traceback.format_exc()}```", color=0xff0000), ephemeral=True)
             return
 
@@ -178,6 +179,7 @@ n!welcome leave off
             await interaction.followup.send(embed=embed)
             return
         except Exception as err:
+            _logger.exception("An error has occurred")
             await interaction.followup.send("コマンド実行時にエラーが発生しました。", embed=nextcord.Embed(title=f"An error has occurred during `/welcome del`", description=f"```py\n{err}```\n```py\n{traceback.format_exc()}```", color=0xff0000))
             return
 
@@ -195,7 +197,7 @@ n!welcome leave off
             embed.add_field(name="leaveメッセージ", value=("設定されていません。" if result2 == 2 else result2), inline=False)
             await interaction.send(embed=embed)
         except Exception as err:
-            _logger.error(err)
+            _logger.exception("An error has occurred")
             await interaction.followup.send("コマンド実行時にエラーが発生しました。", embed=nextcord.Embed(title=f"An error has occurred during `/welcome status`", description=f"```py\n{err}```\n```py\n{traceback.format_exc()}```", color=0xff0000))
             return
 
@@ -210,7 +212,7 @@ n!welcome leave off
             if CHANNEL is None:
                 try:
                     CHANNEL = await member.guild.fetch_channel(channel)
-                except Exception as err:
+                except (nextcord.NotFound, nextcord.Forbidden) as err:
                     _logger.info(f"join:{member.guild.id}に{channel}というチャンネルが見つかりませんでした。\n{err}\nSkipped.")
                     continue
             message = item["message"]
@@ -231,7 +233,7 @@ n!welcome leave off
             if CHANNEL is None:
                 try:
                     CHANNEL = await member.guild.fetch_channel(channel)
-                except Exception as err:
+                except (nextcord.NotFound, nextcord.Forbidden) as err:
                     _logger.info(f"join:{member.guild.id}に{channel}というチャンネルが見つかりませんでした。\n{err}\nSkipped.")
                     continue
             message = item["message"]

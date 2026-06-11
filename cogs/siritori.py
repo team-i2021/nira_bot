@@ -1,5 +1,6 @@
 import asyncio
 import importlib
+import logging
 import sys
 
 import nextcord
@@ -9,6 +10,8 @@ from motor import motor_asyncio
 
 from util import srtr
 from util.nira import NIRA
+
+_logger = logging.getLogger(__name__)
 
 SYSDIR = sys.path[0]
 START = ["start", "on", "play", "スタート", "はじめ"]
@@ -43,6 +46,7 @@ class Siritori(commands.Cog):
             try:
                 await self.collection.update_one({"guild_id": guild.id}, {"$set": srtr_data}, upsert=True)
             except Exception as err:
+                _logger.exception("An error has occurred")
                 return self.bot.error_embed(err)
 
             return nextcord.Embed(title="しりとり", description=f"{channel.name}でしりとりを始めます。", color=0x00ff00)
@@ -57,6 +61,7 @@ class Siritori(commands.Cog):
                 asyncio.ensure_future(self.collection.update_one({"guild_id": guild.id}, {"$set": srtr_data}, upsert=True))
 
             except Exception as err:
+                _logger.exception("An error has occurred")
                 return self.bot.error_embed(err)
 
             return nextcord.Embed(title="しりとり", description=f"{channel.name}でのしりとりを終了します。", color=0x00ff00)

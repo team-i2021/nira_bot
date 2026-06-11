@@ -1308,8 +1308,8 @@ class NormalReaction(commands.Cog):
     async def database_update_loop(self):
         try:
             await self.database_update()
-        except Exception as err:
-            _logger.error(err)
+        except Exception:
+            _logger.exception("An error has occurred")
 
 
 def setup(bot: NIRA):
