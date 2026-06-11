@@ -50,6 +50,8 @@ if isinstance(settings.logging, Logging):
 else:
     logging.config.dictConfig(settings.logging.model_dump())
 
+logging.captureWarnings(True)
+
 _logger = logging.getLogger("main")
 _logger.info("Starting NIRA Bot...")
 
