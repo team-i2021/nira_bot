@@ -339,7 +339,7 @@ class Text2Speech(commands.Cog):
             await self.pull_dictionary(interaction.guild.id)
             await interaction.user.voice.channel.connect()
             self.TTS_CHANNEL[interaction.guild.id] = interaction.channel.id
-            asyncio.ensure_future(self.collection.update_one({"guild_id": interaction.guild.id, "type": "channel"}, {"$set": {"channel_id": interaction.channel.id}}, upsert=True))
+            await self.collection.update_one({"guild_id": interaction.guild.id, "type": "channel"}, {"$set": {"channel_id": interaction.channel.id}}, upsert=True)
             await interaction.response.send_message("接続しました", embed=nextcord.Embed(title="TTS", description="""\
 TTSの読み上げ音声には、VOICEVOXが使われています。
 ご利用の際は、[VOICEVOXホームページ](https://voicevox.hiroshiba.jp/)から、VOICEVOX利用規約及びキャラクターや音声ライブラリなどの利用規約などをご確認ください。
@@ -563,7 +563,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
                     return
                 if interaction.user.id not in self.SPEAKER_AUTHOR:
                     self.SPEAKER_AUTHOR[interaction.user.id] = "2"
-                    asyncio.ensure_future(self.collection.update_one({"user_id": interaction.user.id, "type": "speaker"}, {"$set": {"speaker": "2"}}, upsert=True))
+                    await self.collection.update_one({"user_id": interaction.user.id, "type": "speaker"}, {"$set": {"speaker": "2"}}, upsert=True)
                 if interaction.guild.voice_client.is_playing():
                     while True:
                         if message.guild.voice_client is None:
@@ -605,7 +605,7 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
         try:
             if message.author.id not in self.SPEAKER_AUTHOR:
                 self.SPEAKER_AUTHOR[message.author.id] = 2
-                asyncio.ensure_future(self.collection.update_one({"user_id": message.author.id, "type": "speaker"}, {"$set": {"speaker": 2}}, upsert=True))
+                await self.collection.update_one({"user_id": message.author.id, "type": "speaker"}, {"$set": {"speaker": 2}}, upsert=True)
             if not isinstance(message.guild.voice_client, nextcord.VoiceClient):
                 return
             if message.guild.voice_client.is_playing():

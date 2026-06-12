@@ -172,7 +172,7 @@ async def ss_base(
                     {"$set": {"channel_id": ctx.channel.id, "message_id": mes_ss.id}},
                     upsert=True,
                 )
-                asyncio.ensure_future(ss_force(bot, mes_ss))
+                await ss_force(bot, mes_ss)
                 return
             else:
                 cl, ms = int(ctx.message.content[16:].split(" ", 1)[0]), int(ctx.message.content[16:].split(" ", 1)[1])
@@ -194,7 +194,7 @@ async def ss_base(
                     },
                     upsert=True,
                 )
-                asyncio.ensure_future(ss_force(bot, messs))
+                await ss_force(bot, messs)
                 return
 
         elif ctx.message.content[10:13] == "off":
@@ -414,7 +414,7 @@ class Reload_SS_Auto(nextcord.ui.View):
     async def reload(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
         await interaction.response.defer(ephemeral=True)
         try:
-            asyncio.ensure_future(ss_force(self.bot, self.message))
+            await ss_force(self.bot, self.message)
             await interaction.followup.send("Reloaded!", ephemeral=True)
 
         except Exception as err:
@@ -489,7 +489,7 @@ class server_status(commands.Cog):
                 {"$set": {"channel_id": CHANNEL_ID, "message_id": MESSAGE_ID}},
                 upsert=True,
             )
-            asyncio.ensure_future(ss_force(self.bot, message))
+            await ss_force(self.bot, message)
             await interaction.followup.send("指定されたメッセージでAutoSSをスタートしました。")
         except Exception as err:
             _logger.exception("An error has occurred")
@@ -876,7 +876,7 @@ Steam非公式サーバーのステータスを表示します
             await interaction.followup.send(f"既に{interaction.guild.name}で他のAutoSSタスクが実行されています。", ephemeral=True)
             return
         mes_ss = await interaction.channel.send("AutoSSの準備をしています...")
-        asyncio.ensure_future(ss_force(self.bot, mes_ss))
+        await ss_force(self.bot, mes_ss)
         await self.auto_collection.update_one(
             {"guild_id": interaction.guild.id},
             {"$set": {"channel_id": interaction.channel.id, "message_id": mes_ss.id}},
@@ -982,7 +982,7 @@ Steam非公式サーバーのステータスを表示します
         else:
             channel = await self.bot.resolve_channel(auto_doc["channel_id"])
             message = await channel.fetch_message(auto_doc["message_id"])
-            asyncio.ensure_future(ss_force(self.bot, message))
+            await ss_force(self.bot, message)
             await interaction.send("リロードしました。", ephemeral=True)
 
     @tasks.loop(minutes=5.0)

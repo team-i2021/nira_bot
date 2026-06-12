@@ -58,7 +58,7 @@ class Siritori(commands.Cog):
 
             try:
                 srtr_data["channels"].remove(channel.id)
-                asyncio.ensure_future(self.collection.update_one({"guild_id": guild.id}, {"$set": srtr_data}, upsert=True))
+                await self.collection.update_one({"guild_id": guild.id}, {"$set": srtr_data}, upsert=True)
 
             except Exception as err:
                 _logger.exception("An error has occurred")

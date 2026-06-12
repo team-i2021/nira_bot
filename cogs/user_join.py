@@ -32,7 +32,7 @@ class UserJoin(commands.Cog):
                 rolekeeper = {"setting": False}
             for member in guild.members:
                 rolekeeper[str(member.id)] = [role.id for role in member.roles if role.id != guild.id]
-            asyncio.ensure_future(self.rk_collection.update_one({"guild_id": guild.id}, {"$set": rolekeeper}, upsert=True))
+            await self.rk_collection.update_one({"guild_id": guild.id}, {"$set": rolekeeper}, upsert=True)
 
     @commands.Cog.listener()
     async def on_member_join(self, member: nextcord.Member):
@@ -49,7 +49,7 @@ class UserJoin(commands.Cog):
                 for m in member.guild.members:
                     if m.id != member.id:
                         rolekeeper[str(m.id)] = [role.id for role in m.roles if role.id != member.guild.id]
-                asyncio.ensure_future(self.rk_collection.update_one({"guild_id": member.guild.id}, {"$set": rolekeeper}, upsert=True))
+                await self.rk_collection.update_one({"guild_id": member.guild.id}, {"$set": rolekeeper}, upsert=True)
         except Exception:
             _logger.exception("An error has occurred")
 
