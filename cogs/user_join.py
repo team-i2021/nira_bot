@@ -21,7 +21,7 @@ class UserJoin(commands.Cog):
         self.bot = bot
         self.winfo_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["welcome_info"]
         self.rk_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["role_keeper"]
-        asyncio.ensure_future(self.fetch_role_keeper())
+        self.bot.schedule_task(self.fetch_role_keeper())
 
     async def fetch_role_keeper(self):
         await self.bot.wait_until_ready()

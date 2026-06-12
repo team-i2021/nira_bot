@@ -82,9 +82,9 @@ class Text2Speech(commands.Cog):
 
         self.api_url = "https://deprecatedapis.tts.quest/v2/voicevox"
 
-        asyncio.ensure_future(self.__recover_channel())
-        asyncio.ensure_future(self.__recover_speaker())
-        asyncio.ensure_future(self.__fetch_speakers())
+        self.bot.schedule_task(self.__recover_channel())
+        self.bot.schedule_task(self.__recover_speaker())
+        self.bot.schedule_task(self.__fetch_speakers())
 
 
     class VOICEVOXGenerationSelect(nextcord.ui.Select):

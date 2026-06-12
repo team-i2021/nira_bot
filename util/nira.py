@@ -1,7 +1,10 @@
+import logging
 import os
 import sys
 import traceback
-from typing import Any, cast
+from asyncio import Task
+from collections.abc import Coroutine
+from typing import TYPE_CHECKING, Any, cast
 
 import aiohttp
 import nextcord
@@ -12,6 +15,11 @@ from util.colors import Color
 from util.n_fc import py_admin
 from util.settings import BotSettings
 from util.typing import GeneralChannel
+
+if TYPE_CHECKING:
+    from contextvars import Context
+
+_logger = logging.getLogger(__name__)
 
 
 class NIRA(commands.Bot):
@@ -49,6 +57,7 @@ class NIRA(commands.Bot):
         self.color = Color
 
         self._session: aiohttp.ClientSession | None = None
+        self._scheduled_tasks: set[Task[Any]] = set()
         # self.main_prefix: str = (lambda x: x[0] if type(x) in [list, tuple, set] else x)(**kwargs[""])
         return super().__init__(*args, **kwargs)
 
@@ -84,6 +93,25 @@ class NIRA(commands.Bot):
         if channel is None or isinstance(channel, nextcord.PartialMessageable):
             channel = await self.fetch_channel(channel_id)
         return channel
+
+    def schedule_task[T](
+        self,
+        coro: Coroutine[Any, Any, T],
+        *,
+        name: str | None = None,
+        context: "Context | None" = None,
+    ) -> Task[T]:
+        def task_callback(task: Task[T]) -> None:
+            if task.cancelled():
+                _logger.debug(f"Task {task!r} has been cancelled")
+            elif (exc := task.exception()) is not None:
+                _logger.exception(f"An error has occurred in task {task!r}", exc_info=exc)
+            self._scheduled_tasks.discard(task)
+
+        task = self.loop.create_task(coro, name=name, context=context)
+        task.add_done_callback(task_callback)
+        self._scheduled_tasks.add(task)
+        return task
 
     def error_embed(self, err) -> nextcord.Embed:
         exc_type, exc_obj, exc_tb = sys.exc_info()

@@ -1,4 +1,3 @@
-import asyncio
 import logging
 
 import nextcord
@@ -23,7 +22,7 @@ class MessageModeration(commands.Cog):
         self.MOD_LIST = {}
         self.message_counter = {}
         self.counter_reset.start()
-        asyncio.ensure_future(self.__load_configs())
+        self.bot.schedule_task(self.__load_configs())
 
     async def __load_configs(self):
         """Load configs from database"""
