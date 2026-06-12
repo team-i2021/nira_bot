@@ -331,7 +331,7 @@ class Text2Speech(commands.Cog):
         else:
             if interaction.guild.voice_client is not None:
                 if interaction.guild.voice_client.channel.id == interaction.user.voice.channel.id:
-                    await interaction.response.send_message(embed=nextcord.Embed(title="TTSエラー", description=f"既にVCに入っています。\n音楽再生から切り替える場合は、`{self.bot.command_prefix}leave`->`{self.bot.command_prefix}tts join`の順に入力してください。", color=0xff0000), ephemeral=True)
+                    await interaction.response.send_message(embed=nextcord.Embed(title="TTSエラー", description="既にVCに入っています。", color=0xff0000), ephemeral=True)
                     return
                 else:
                     await interaction.response.send_message(embed=nextcord.Embed(title="TTSエラー", description=f"BOTが別のVCに参加しています。\nBOTが参加しているVCに参加して、切断コマンドを実行してください。", color=0xff0000), ephemeral=True)
@@ -447,8 +447,6 @@ VCに乱入して、代わりに読み上げてくれる機能。
 あとは、コマンドを打ったチャンネルでテキストを入力すれば、それを読み上げます。
 `n!tts leave`で、乱入しているVCチャンネルから出ます。
 
-なお、既に音楽再生機能としてにらBOTがVCに入っている場合は、どっちかしか使えないので、どっちかにしてください。はい。
-
 声の種類を選ぶには`n!tts voice`と入力してください。
 
 TTSは、(暫定的だけど)[WEB版VOICEVOX](https://voicevox.su-shiki.com/)のAPIを使用させていただいております。
@@ -473,7 +471,7 @@ API制限などが来た場合はご了承ください。許せ。""")
                     return
                 else:
                     if ctx.guild.voice_client is not None:
-                        await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description=f"既にVCに入っています。\n音楽再生から読み上げに切り替える場合は、`{ctx.prefix}leave`->`{ctx.prefix}tts join`の順に入力してください。", color=0xff0000))
+                        await ctx.reply(embed=nextcord.Embed(title="TTSエラー", description="既にVCに入っています。", color=0xff0000))
                         return
                     await ctx.author.voice.channel.connect()
                     self.TTS_CHANNEL[ctx.guild.id] = ctx.channel.id
