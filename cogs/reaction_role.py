@@ -63,7 +63,6 @@ class ReactionRole(commands.Cog):
             {
                 "guild_id": interaction.guild.id,
                 "channel_id": interaction.channel.id,
-                "emoji": emoji,
             },
             {"$set": data},
             upsert=True,
