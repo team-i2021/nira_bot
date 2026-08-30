@@ -17,6 +17,8 @@ from util.semiembed import SemiEmbed
 
 STEAM_SERVER_COLLECTION_NAME = "steam_server"
 
+_logger = logging.getLogger(__name__)
+
 
 async def ss_force(bot: NIRA, message: nextcord.Message):
     await message.edit(content="Loading status...", view=None)
@@ -42,9 +44,9 @@ async def ss_force(bot: NIRA, message: nextcord.Message):
             embeds=semi_embed.get_embeds(),
             view=Reload_SS_Auto(bot, message),
         )
-        logging.info("Status loaded.(Not scheduled)")
+        _logger.info("Status loaded.(Not scheduled)")
     except Exception as err:
-        logging.error(err, exc_info=True)
+        _logger.exception("An error has occurred when loading server status")
         await message.edit(content=f"err:{err}")
 
 
@@ -114,6 +116,7 @@ async def ss_base(
                 )
                 return
             except Exception as err:
+                _logger.exception("An error has occurred")
                 await ctx.reply(f"サーバー追加時にエラーが発生しました。\n```sh\n{err}```")
                 return
 
@@ -169,14 +172,15 @@ async def ss_base(
                     {"$set": {"channel_id": ctx.channel.id, "message_id": mes_ss.id}},
                     upsert=True,
                 )
-                asyncio.ensure_future(ss_force(bot, mes_ss))
+                await ss_force(bot, mes_ss)
                 return
             else:
                 cl, ms = int(ctx.message.content[16:].split(" ", 1)[0]), int(ctx.message.content[16:].split(" ", 1)[1])
                 try:
                     messs = await (await bot.fetch_channel(cl)).fetch_message(ms)
                 except Exception as err:
-                    logging.error(err)
+                    if not isinstance(err, nextcord.NotFound | nextcord.Forbidden):
+                        _logger.exception("An error has occurred")
                     await ctx.reply("メッセージが見つかりませんでした。")
                     return
                 await messs.edit(content="現在変更をしています...")
@@ -190,7 +194,7 @@ async def ss_base(
                     },
                     upsert=True,
                 )
-                asyncio.ensure_future(ss_force(bot, messs))
+                await ss_force(bot, messs)
                 return
 
         elif ctx.message.content[10:13] == "off":
@@ -204,6 +208,7 @@ async def ss_base(
                 )
                 return
             except Exception as err:
+                _logger.exception("An error has occurred")
                 await ctx.reply(embed=bot.error_embed(err))
                 return
 
@@ -244,6 +249,7 @@ async def ss_base(
             )
             return
         except Exception as err:
+            _logger.exception("An error has occurred")
             await ctx.reply(embed=bot.error_embed(err))
             return
 
@@ -282,6 +288,7 @@ async def ss_base(
             await ctx.reply("入れ替えが完了しました。")
             return
         except Exception as err:
+            _logger.exception("An error has occurred")
             await ctx.reply(f"入れ替え中にエラーが発生しました。\n{err}")
             return
 
@@ -293,6 +300,7 @@ async def ss_base(
             try:
                 del_num = int(ctx.message.content[9:])
             except Exception as err:
+                _logger.exception("An error has occurred")
                 await ctx.reply(embed=bot.error_embed(err))
                 return
             if admin_check.admin_check(ctx.guild, ctx.author):
@@ -328,7 +336,7 @@ async def ss_base(
                         )
                     )
                 except Exception as err:
-                    logging.error(traceback.format_exc())
+                    _logger.exception("An error has occurred")
                     await ctx.reply(embed=bot.error_embed(err))
                     return
             else:
@@ -406,15 +414,15 @@ class Reload_SS_Auto(nextcord.ui.View):
     async def reload(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
         await interaction.response.defer(ephemeral=True)
         try:
-            asyncio.ensure_future(ss_force(self.bot, self.message))
+            await ss_force(self.bot, self.message)
             await interaction.followup.send("Reloaded!", ephemeral=True)
 
         except Exception as err:
+            _logger.exception("An error has occurred")
             await interaction.followup.send(
                 f"エラーが発生しました。\n`{err}`\n```sh\n{traceback.format_exc()}```",
                 ephemeral=True,
             )
-            logging.error(traceback.format_exc())
 
 
 class Recheck_SS_Embed(nextcord.ui.View):
@@ -440,11 +448,11 @@ class Recheck_SS_Embed(nextcord.ui.View):
                 embeds=semi_embed.get_embeds(),
                 view=Recheck_SS_Embed(self.bot),
             )
-            logging.info("rechecked")
+            _logger.info("rechecked")
 
         except Exception:
+            _logger.exception("An error has occurred")
             await interaction.followup.send(f"エラーが発生しました。\n```\n{traceback.format_exc()}```")
-            logging.error(traceback.format_exc())
 
 
 class server_status(commands.Cog):
@@ -481,9 +489,10 @@ class server_status(commands.Cog):
                 {"$set": {"channel_id": CHANNEL_ID, "message_id": MESSAGE_ID}},
                 upsert=True,
             )
-            asyncio.ensure_future(ss_force(self.bot, message))
+            await ss_force(self.bot, message)
             await interaction.followup.send("指定されたメッセージでAutoSSをスタートしました。")
         except Exception as err:
+            _logger.exception("An error has occurred")
             await interaction.followup.send(f"エラーが発生しました。\n```\n{err}```")
 
     @commands.guild_only()
@@ -563,6 +572,7 @@ Steam非公式サーバーのステータスを表示します
                 )
                 return
         except Exception as err:
+            _logger.exception("An error has occurred")
             await interaction.followup.send(f"Steam非公式サーバー追加時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
@@ -628,6 +638,7 @@ Steam非公式サーバーのステータスを表示します
                 )
                 return
         except Exception as err:
+            _logger.exception("An error has occurred")
             await interaction.followup.send(f"サーバー削除時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
@@ -670,6 +681,7 @@ Steam非公式サーバーのステータスを表示します
                 )
                 return
         except Exception as err:
+            _logger.exception("An error has occurred")
             await interaction.followup.send(f"Steam非公式サーバーの一覧表示時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
@@ -757,6 +769,7 @@ Steam非公式サーバーのステータスを表示します
                 )
                 return
         except Exception as err:
+            _logger.exception("An error has occurred")
             await interaction.followup.send(f"ソート時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
@@ -839,6 +852,7 @@ Steam非公式サーバーのステータスを表示します
                 )
                 return
         except Exception as err:
+            _logger.exception("An error has occurred")
             await interaction.followup.send(f"編集時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
@@ -862,7 +876,7 @@ Steam非公式サーバーのステータスを表示します
             await interaction.followup.send(f"既に{interaction.guild.name}で他のAutoSSタスクが実行されています。", ephemeral=True)
             return
         mes_ss = await interaction.channel.send("AutoSSの準備をしています...")
-        asyncio.ensure_future(ss_force(self.bot, mes_ss))
+        await ss_force(self.bot, mes_ss)
         await self.auto_collection.update_one(
             {"guild_id": interaction.guild.id},
             {"$set": {"channel_id": interaction.channel.id, "message_id": mes_ss.id}},
@@ -886,6 +900,7 @@ Steam非公式サーバーのステータスを表示します
             await interaction.followup.send("AutoSSを無効にしました。", ephemeral=True)
             return
         except Exception as err:
+            _logger.exception("An error has occurred")
             await interaction.followup.send(embed=self.bot.error_embed(err), ephemeral=True)
             return
 
@@ -949,6 +964,7 @@ Steam非公式サーバーのステータスを表示します
                 return
 
         except Exception as err:
+            _logger.exception("An error has occurred")
             await interaction.followup.send(f"ステータス取得時にエラーが発生しました。\n```sh\n{err}```", ephemeral=True)
             return
 
@@ -966,7 +982,7 @@ Steam非公式サーバーのステータスを表示します
         else:
             channel = await self.bot.resolve_channel(auto_doc["channel_id"])
             message = await channel.fetch_message(auto_doc["message_id"])
-            asyncio.ensure_future(ss_force(self.bot, message))
+            await ss_force(self.bot, message)
             await interaction.send("リロードしました。", ephemeral=True)
 
     @tasks.loop(minutes=5.0)
@@ -977,7 +993,7 @@ Steam非公式サーバーのステータスを表示します
             try:
                 servers = await self.ss_collection.find({"guild_id": autoConfig["guild_id"]}).to_list(length=None)
                 if len(servers) == 0:
-                    logging.info(f"Steam非公式サーバーが設定されていないため、設定を削除します。\nGuildID:{autoConfig['guild_id']}\nChannelID:{autoConfig['channel_id']}\nMessageID:{autoConfig['message_id']}")
+                    _logger.info(f"Steam非公式サーバーが設定されていないため、設定を削除します。\nGuildID:{autoConfig['guild_id']}\nChannelID:{autoConfig['channel_id']}\nMessageID:{autoConfig['message_id']}")
                     await self.auto_collection.delete_one({"guild_id": autoConfig["guild_id"]})
                     continue
 
@@ -1002,19 +1018,19 @@ Steam非公式サーバーのステータスを表示します
                     embeds=semi_embed.get_embeds(),
                     view=Reload_SS_Auto(self.bot, message),
                 )
-                logging.info("Status loaded.(Scheduled)")
+                _logger.info("Status loaded.(Scheduled)")
             except (nextcord.errors.NotFound, nextcord.errors.Forbidden, nextcord.errors.InvalidData, AssertionError):
                 # auto_collectionのデータベースから指定Guildのデータを消す
-                logging.info(f"チャンネルにアクセスできなかったため、設定を削除します。\nGuildID:{autoConfig['guild_id']}\nChannelID:{autoConfig['channel_id']}\nMessageID:{autoConfig['message_id']}")
+                _logger.info(f"チャンネルにアクセスできなかったため、設定を削除します。\nGuildID:{autoConfig['guild_id']}\nChannelID:{autoConfig['channel_id']}\nMessageID:{autoConfig['message_id']}")
                 await self.auto_collection.delete_one({"guild_id": autoConfig["guild_id"]})
                 continue
             except nextcord.errors.HTTPException:
                 # HTTPのエラーのため本当はやめなきゃいけないけどとりあえず10秒で進めておく
-                logging.error("HTTPException", traceback.format_exc())
+                _logger.exception("An HTTP error occurred")
                 await asyncio.sleep(10)
                 continue
-            except Exception as err:
-                logging.error("ServerStatusAutoSSError", err, traceback.format_exc())
+            except Exception:
+                _logger.exception("ServerStatusAutoSSError")
                 if message is not None:
                     await message.edit(
                         content=(
@@ -1029,8 +1045,8 @@ Steam非公式サーバーのステータスを表示します
 def setup(bot: NIRA):
     importlib.reload(server_check)
     bot.add_cog(server_status(bot))
-    logging.info("Setup `server_status` cog.")
+    _logger.info("Setup `server_status` cog.")
 
 
 def teardown(bot):
-    logging.info("Teardown `server_status` cog.")
+    _logger.info("Teardown `server_status` cog.")

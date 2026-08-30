@@ -1,4 +1,3 @@
-import asyncio
 import logging
 
 import nextcord
@@ -10,6 +9,9 @@ from motor import motor_asyncio
 from util import admin_check, n_fc
 from util.nira import NIRA
 
+_logger = logging.getLogger(__name__)
+
+
 # 規定秒数以内に指定数メッセージを送信した人をミュートするモデレーター的な機能
 # n!mod
 # /mod
@@ -20,7 +22,7 @@ class MessageModeration(commands.Cog):
         self.MOD_LIST = {}
         self.message_counter = {}
         self.counter_reset.start()
-        asyncio.ensure_future(self.__load_configs())
+        self.bot.schedule_task(self.__load_configs())
 
     async def __load_configs(self):
         """Load configs from database"""
@@ -31,12 +33,11 @@ class MessageModeration(commands.Cog):
     def cog_unload(self):
         self.counter_reset.stop()
 
-    @commands.guild_only()
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
         if message.author.bot:
             return
-        if message.guild.id not in self.MOD_LIST:
+        if not message.guild or message.guild.id not in self.MOD_LIST:
             return
         if message.author.id not in self.messageCounter:
             self.messageCounter[message.author.id] = 0
@@ -53,8 +54,9 @@ class MessageModeration(commands.Cog):
                 await message.channel.send(f"{message.author.mention}は、メッセージ数が規定オーバーのため、ミュート用ロールを付与しました。\n{'なお、ミュート用ロール以外の全ロールを剥奪しました。' if self.MOD_LIST[message.guild.id]['remove_role'] else ''}")
                 return
             except Exception as err:
+                if not isinstance(err, nextcord.NotFound | nextcord.Forbidden):
+                    _logger.exception("An error has occurred")
                 await message.channel.send(f"{message.author.name}をミュートしようとしましたがエラーが発生しました。\n```sh\n{err}```")
-                logging.error(err, exc_info=True)
                 return
 
 
@@ -167,6 +169,7 @@ remove: ロールの剥奪を行うかどうか（`on`/`off`）（指定され�
                 }
                 await self.collection.update_one({"guild_id": interaction.guild.id}, {"$set": self.MOD_LIST[interaction.guild.id]}, upsert=True)
             except Exception as err:
+                _logger.exception("An error has occurred")
                 await interaction.response.send_message(embed=nextcord.Embed(title="荒らし対策", description=f"エラーが発生しました。\n```\n{err}```", color=0xff0000), ephemeral=True)
                 return
             await interaction.response.send_message(embed=nextcord.Embed(title="荒らし対策", description=f"サーバーで機能を有効にしました。\nメッセージカウンター:`{counter}`\nミュート用ロール:<@&{role.id}>\nロールを剥奪するか:{remove_role}", color=0x00ff00), ephemeral=True)
@@ -186,6 +189,7 @@ remove: ロールの剥奪を行うかどうか（`on`/`off`）（指定され�
                     del self.MOD_LIST[interaction.guild.id]
                     await self.collection.delete_one({"guild_id": interaction.guild.id})
                 except Exception as err:
+                    _logger.exception("An error has occurred")
                     await interaction.response.send_message(embed=nextcord.Embed(title="荒らし対策", description=f"エラーが発生しました。\n```\n{err}```", color=0xff0000), ephemeral=True)
                     return
                 await interaction.response.send_message(embed=nextcord.Embed(title="荒らし対策", description="サーバーで機能を無効にしました。", color=0x00ff00), ephemeral=True)

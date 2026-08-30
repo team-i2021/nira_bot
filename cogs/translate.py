@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import re
 import sys
 
@@ -36,6 +37,8 @@ PROVIDER = {
         "ID": 1
     }
 }
+
+_logger = logging.getLogger(__name__)
 
 
 def deepl_translate(deepl_tr: deepl.Translator, content, source_lang, target_lang):
@@ -87,6 +90,7 @@ async def translation(bot: commands.Bot, deepl_tr: deepl.Translator, google_tr: 
         else:
             raise Exception("DeepL API Key doesn't exist.")
     except Exception:
+        _logger.debug("An error has occurred in DeepL Translate, we will fall back to Google Translate", exc_info=True)
         translate = PROVIDER["GOOGLE"]["ID"]
         if target_lang in ["EN-US", "EN-GB"]:
             target_lang = "en"
@@ -179,6 +183,7 @@ class TranslateModal(nextcord.ui.Modal):
                     self._source_lang = "..."
                 await interaction.followup.send(embed=make_embed(result[1], result[0], self._source_lang, self._target_lang))
         except Exception as err:
+            _logger.exception("An error has occurred")
             await interaction.followup.send(embed=nextcord.Embed(title="エラー", description=f"エラー。\n```\n{err}```", color=0xFF0000))
 
 
@@ -188,8 +193,7 @@ class Translate(commands.Cog):
         if not self.bot.settings.translate:
             self.deepl_tr = None
             PROVIDER['DEEPL']['ACTIVE'] = False
-            print(
-                "[Extension: Translate]\nDeepL API Key doesn't exist.\nWe use google Tranlate.")
+            _logger.info("DeepL API Key doesn't exist. We use Google Translate.")
         else:
             self.deepl_tr = deepl.Translator(self.bot.settings.translate)
         self.google_tr = Translator()
@@ -329,6 +333,7 @@ Powered by DeepL Translate/Google Translate.""")
                     await ctx.reply(embed=make_embed(result[1], result[0], "...", lang))
                     return
             except Exception as err:
+                _logger.exception("An error has occurred")
                 await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"エラー。\n```\n{err}```", color=0xFF0000))
         return
 
