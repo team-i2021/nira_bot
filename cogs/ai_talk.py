@@ -1,6 +1,3 @@
-import enum
-
-import a3rt_talkpy
 import nextcord
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
@@ -8,76 +5,45 @@ from nextcord.ext import commands
 from util.nira import NIRA
 
 
-class TalkProvider(enum.Enum):
-    A3RT = "a3rt"
-    GEMINI = "gemini"
-
-
 class Talk(commands.Cog):
     def __init__(self, bot: NIRA):
         self.bot = bot
-
-        self.ai_provider = TalkProvider.A3RT
-
-        # FIXME: A3RT を削除する
-        a3rt_talk_token: str = self.bot.settings.talk_api  # type: ignore
-        self.a3rt_client = a3rt_talkpy.AsyncTalkClient(a3rt_talk_token)
-        self.gcloud_token: str | None = self.bot.settings.gcloud_api
         self.GEMINI_URL = (
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={TOKEN}"
+            "https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={TOKEN}"
         )
-        if self.gcloud_token is not None:
-            self.ai_provider = TalkProvider.GEMINI
+
+        self.gcloud_token = self.bot.settings.gcloud_api
+        self.gemini_model = self.bot.settings.gemini_model
 
     @property
     def footer_text(self) -> str:
-        if self.ai_provider == TalkProvider.A3RT:
-            return "Talk API Powered by A3RT"
-        elif self.ai_provider == TalkProvider.GEMINI:
-            return "Gemini AI Powered by Google Cloud API"
-        else:
-            return "Talk AI"
-
-    @property
-    def footer_icon(self) -> str | None:
-        if self.ai_provider == TalkProvider.A3RT:
-            return "https://a3rt.recruit.co.jp/common/images/logo_header.png"
+        return "Gemini AI Powered by Google Cloud API"
 
     @property
     def embed_title(self) -> str:
-        if self.ai_provider == TalkProvider.A3RT:
-            return "Talk API"
-        elif self.ai_provider == TalkProvider.GEMINI:
-            return "Gemini AI"
-        else:
-            return "Talk AI"
+        return "Gemini AI"
 
-    async def get_gemini_response(self, prompt: str) -> str | None:
-        """Google CloudのGemini APIを使用して返答を取得します。"""
+    async def get_gemini_response(
+        self, prompt: str, backprompt: str | None
+    ) -> str | None:
+        "Google CloudのGemini APIを使用して返答を取得します。"
         payload = {
             "contents": [
                 {"role": "user", "parts": {"text": prompt}},
             ]
         }
-        async with self.bot.session.post(self.GEMINI_URL.format(TOKEN=self.gcloud_token), json=payload) as resp:
+        if backprompt:
+            payload["contents"].insert(
+                0, {"role": "model", "parts": {"text": backprompt}}
+            )
+        async with self.bot.session.post(
+            self.GEMINI_URL.format(TOKEN=self.gcloud_token, MODEL=self.gemini_model),
+            json=payload,
+        ) as resp:
             data = await resp.json()
             if "error" in data:
                 raise Exception(data["error"]["message"])
             return data["candidates"][0]["content"]["parts"][0]["text"]
-
-    async def get_a3rt_response(self, prompt: str) -> str | None:
-        """A3RTのTalk APIを使用して返答を取得します。"""
-        resp = await self.a3rt_client.talk(query=prompt)
-        if not resp.is_empty():
-            return resp.reply
-        return
-
-    async def get_response(self, prompt: str) -> str | None:
-        """現在設定されているAIプロバイダから返答を取得します。"""
-        if self.ai_provider == TalkProvider.A3RT:
-            return await self.get_a3rt_response(prompt)
-        elif self.ai_provider == TalkProvider.GEMINI:
-            return await self.get_gemini_response(prompt)
 
     def split_content(self, content: str) -> list[str]:
         if len(content) <= 2000:
@@ -93,10 +59,12 @@ class Talk(commands.Cog):
                 content[8000:9990] + "...",
             ]
 
-    async def create_response(self, prompt: str) -> tuple[list[str], nextcord.Embed]:
+    async def create_response(
+        self, prompt: str, backprompt: str | None = None
+    ) -> tuple[list[str], nextcord.Embed]:
         """AIからの返答を取得して返します。"""
         try:
-            resp = await self.get_response(prompt)
+            resp = await self.get_gemini_response(prompt, backprompt)
             if resp is None:
                 contents = [""]
                 result = nextcord.Embed(description="返答がありませんでした。", color=self.bot.color.ATTENTION)
@@ -108,7 +76,7 @@ class Talk(commands.Cog):
             result = nextcord.Embed(description=f"エラーが発生しました。\n`{err}`", color=self.bot.color.ERROR)
 
         result.title = self.embed_title
-        result.set_footer(text=self.footer_text, icon_url=self.footer_icon)
+        result.set_footer(text=self.footer_text)
         return contents, result
 
     @nextcord.slash_command(
@@ -143,11 +111,22 @@ AIと会話してみましょう。
 `n!talk [prompt]`
 
 引数1: str
-お話内容""",
+お話内容
+
+AIが返答した内容（のメッセージ）に対して、リプライを飛ばす形でこのコマンドを使用すると、疑似的に前の話から会話を続けることが出来ます。
+それ以外のメッセージにリプライを飛ばす形でこのコマンドを使うことも出来ますが、AIに喋らせたという前提上AIが困惑するかもしれません。""",
     )
     async def talk_command(self, ctx: commands.Context, *, prompt: str):
+        if (
+            ctx.message.reference
+            and ctx.message.reference.cached_message
+            and ctx.message.reference.cached_message.content
+        ):
+            backprompt = ctx.message.reference.cached_message.content
+        else:
+            backprompt = None
         async with ctx.typing():
-            contents, embed = await self.create_response(prompt)
+            contents, embed = await self.create_response(prompt, backprompt)
             for i in range(len(contents)):
                 if i == len(contents) - 1:
                     await ctx.send(content=contents[i], embed=embed)

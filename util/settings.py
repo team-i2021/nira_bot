@@ -1,5 +1,5 @@
 import sys
-from typing import Any, Annotated
+from typing import Annotated, Any
 
 from pydantic import BeforeValidator, Field, NonNegativeInt, PositiveInt, SecretStr
 from pydantic.networks import UrlConstraints
@@ -52,8 +52,8 @@ class BotSettings(SettingsBase):
     # API キー
     translate: NonEmptyStr | None = None
     voicevox: tuple[NonEmptyStr, ...] = ()
-    talk_api: NonEmptyStr | None = None
     gcloud_api: NonEmptyStr | None = None
+    gemini_model: NonEmptyStr = "gemini-pro"
 
     # データベース周り
     database_url: MongoSRVDsn
