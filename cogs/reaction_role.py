@@ -97,7 +97,7 @@ class ReactionRole(commands.Cog):
         except nextcord.InvalidArgument:
             description = "絵文字が無効です。"
         except nextcord.HTTPException:
-            description = "一時的なネットワークエラーが発生している可能性があります。"
+            description = "絵文字が不正です。"
 
         if description:
             await message.edit(
