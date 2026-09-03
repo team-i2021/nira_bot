@@ -31,17 +31,15 @@ class ReactionDM(commands.Cog):
             required=True,
             description="判定する絵文字",
         ),
+        dm_message: str = SlashOption(
+            required=True, description="送信したいDMのメッセージ本文です"
+        ),
         target_role: nextcord.Role | None = SlashOption(
-            name="この操作を行えるロール",
             required=False,
             description="ここにロールを指定すると、そのロールが付いている人がリアクションを行ったときのみロール付与/剥奪が行われます",
             default=None,
         ),
-        dm_message: str = SlashOption(
-            required=True, description="送信したいDMのメッセージ本文です"
-        ),
         fallback_channel: nextcord.TextChannel | None = SlashOption(
-            name="DM送信失敗時のフォールバックチャンネル",
             required=False,
             description="DM送信に失敗した場合、ここに指定したチャンネルにて、DMに送信する予定だったメッセージをメンション付きで送信します。指定しない場合は、DM送信に失敗した場合は何も行いません。",
             default=None,

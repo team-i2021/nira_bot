@@ -31,12 +31,6 @@ class ReactionRole(commands.Cog):
             required=True,
             description="判定する絵文字",
         ),
-        target_role: nextcord.Role | None = SlashOption(
-            name="この操作を行えるロール",
-            required=False,
-            description="ここにロールを指定すると、そのロールが付いている人がリアクションを行ったときのみロール付与/剥奪が行われます",
-            default=None,
-        ),
         action_type: int = SlashOption(
             required=True,
             description="ロールを付与するか剥奪するか",
@@ -44,6 +38,11 @@ class ReactionRole(commands.Cog):
         ),
         grant_role: nextcord.Role = SlashOption(
             required=True, description="付与/剥奪するロール"
+        ),
+        target_role: nextcord.Role | None = SlashOption(
+            required=False,
+            description="ここにロールを指定すると、そのロールが付いている人がリアクションを行ったときのみロール付与/剥奪が行われます",
+            default=None,
         ),
     ):
         await interaction.response.defer(ephemeral=True)
