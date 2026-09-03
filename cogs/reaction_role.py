@@ -83,13 +83,14 @@ class ReactionRole(commands.Cog):
     @slash_reaction_role.subcommand(
         name="del", description="チャンネルのリアクションロールの設定を削除します"
     )
-    async def slash_reaction_role_del(self, interaction: Interaction,
-
+    async def slash_reaction_role_del(
+        self,
+        interaction: Interaction,
         channel: nextcord.TextChannel | None = SlashOption(
             required=False,
             description="削除したいリアクションロールの設定があるチャンネルを指定します。指定しない場合は、コマンドを実行したチャンネルの設定を削除します。",
             default=None,
-        )
+        ),
     ):
         await interaction.response.defer(ephemeral=True)
 
