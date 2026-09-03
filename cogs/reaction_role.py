@@ -50,6 +50,8 @@ class ReactionRole(commands.Cog):
         assert isinstance(interaction.guild, nextcord.Guild)
         assert isinstance(interaction.channel, nextcord.TextChannel)
 
+        emoji = emoji.strip()
+
         action_type = (lambda x: True if x else False)(action_type)
 
         data = {

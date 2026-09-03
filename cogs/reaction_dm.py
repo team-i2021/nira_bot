@@ -50,6 +50,8 @@ class ReactionDM(commands.Cog):
         assert isinstance(interaction.guild, nextcord.Guild)
         assert isinstance(interaction.channel, nextcord.TextChannel)
 
+        emoji = emoji.strip()
+
         data = {
             "emoji": emoji,
             "target_role": target_role.id if target_role else None,
