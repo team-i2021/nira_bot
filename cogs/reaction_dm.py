@@ -84,14 +84,27 @@ class ReactionDM(commands.Cog):
     @slash_reaction_dm.subcommand(
         name="del", description="チャンネルのリアクションDMの設定を削除します"
     )
-    async def slash_reaction_dm_del(self, interaction: Interaction):
+    async def slash_reaction_dm_del(
+        self,
+        interaction: Interaction,
+        channel: nextcord.TextChannel | None = SlashOption(
+            required=False,
+            description="削除したいリアクションDMの設定があるチャンネルを指定します。指定しない場合は、コマンドを実行したチャンネルの設定を削除します。",
+            default=None,
+        ),
+    ):
         await interaction.response.defer(ephemeral=True)
 
         assert isinstance(interaction.guild, nextcord.Guild)
-        assert isinstance(interaction.channel, nextcord.TextChannel)
+
+        if channel is None:
+            assert isinstance(interaction.channel, nextcord.TextChannel)
+            channel = interaction.channel
+        else:
+            assert isinstance(channel, nextcord.TextChannel)
 
         result = await self.collection.delete_one(
-            {"guild_id": interaction.guild.id, "channel_id": interaction.channel.id}
+            {"guild_id": interaction.guild.id, "channel_id": channel.id}
         )
 
         if result.deleted_count == 0:
@@ -106,7 +119,7 @@ class ReactionDM(commands.Cog):
             await interaction.followup.send(
                 embed=nextcord.Embed(
                     title="リアクションDMの設定",
-                    description=f"チャンネル:<#{interaction.channel.id}>\nリアクションDMの設定を削除しました。",
+                    description=f"チャンネル:<#{channel.id}>\nリアクションDMの設定を削除しました。",
                     color=0x00FF00,
                 )
             )
