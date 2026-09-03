@@ -155,7 +155,7 @@ class ReactionRole(commands.Cog):
             for reactroledata in reactroledatas:
                 embed.add_field(
                     name=f"チャンネル: <#{reactroledata['channel_id']}>",
-                    value=f"判定リアクション絵文字: {reactroledata['emoji']}\nロール: <@&{reactroledata['role_id']}>を{'付与' if reactroledata['action_type'] else '剥奪'}する。\n{'<@&' + str(reactroledata['target_role']) + '>のロールを持つ人のみが対象です。' if reactroledata['target_role'] else ''}",
+                    value=f"判定リアクション絵文字: {reactroledata['emoji']}\nロール: <@&{reactroledata['grant_role']}>を{'付与' if reactroledata['action_type'] else '剥奪'}する。\n{'<@&' + str(reactroledata['target_role']) + '>のロールを持つ人のみが対象です。' if reactroledata['target_role'] else ''}",
                     inline=False,
                 )
             await interaction.followup.send(embed=embed)

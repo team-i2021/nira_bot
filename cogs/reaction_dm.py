@@ -161,7 +161,7 @@ class ReactionDM(commands.Cog):
                     value=(
                         f"判定リアクション絵文字: {reactdmdata['emoji']}"
                         f"{'\n<@&' + str(reactdmdata['target_role']) + '>のロールを持つ人のみが対象です。' if reactdmdata['target_role'] else ''}\n"
-                        f"送信するDM: ```\n{(lambda x: x if len(x) <= 100 else f'{x[:50]}...')(reactdmdata['message'])}```\n\n"
+                        f"送信するDM: ```\n{(lambda x: x if len(x) <= 100 else f'{x[:50]}...')(reactdmdata['dm_message'])}```\n\n"
                         f"DM送信に失敗した場合{'<#' + str(reactdmdata['fallback_channel']) + '>にフォールバックします。' if reactdmdata['fallback_channel'] else 'でも何も行いません。'}"
                     ),
                     inline=False,
