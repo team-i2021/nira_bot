@@ -1,3 +1,5 @@
+import asyncio
+
 import nextcord
 from motor import motor_asyncio
 from nextcord import Interaction, SlashOption
@@ -198,7 +200,15 @@ class ReactionRole(commands.Cog):
                 reason="nira-bot ReactionRole Service",
             )
 
-        await reaction.message.add_reaction("\u2705")
+        if "\u2705" not in [r.emoji for r in reaction.message.reactions]:
+            await reaction.message.add_reaction("\u2705")
+            await asyncio.sleep(5)
+            try:
+                await reaction.message.remove_reaction(
+                    "\u2705", reaction.message.guild.me
+                )
+            except nextcord.NotFound:
+                pass
 
 
 def setup(bot: NIRA):
