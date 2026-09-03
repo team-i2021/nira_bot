@@ -1,12 +1,21 @@
 import asyncio
+from typing import TypedDict
+
 import nextcord
 from motor import motor_asyncio
 from nextcord import Interaction, SlashOption
-from nextcord.ext import application_checks, commands
+from nextcord.ext import application_checks, commands, tasks
 
 from util.nira import NIRA
 
 # 特定のチャンネルにて特定のリアクションを付けたら、つけられた人にDMを送信する。
+
+
+class ReactionDMData(TypedDict):
+    emoji: str
+    target_role: int | None
+    dm_message: str
+    fallback_channel: int | None
 
 
 class ReactionDM(commands.Cog):
@@ -15,6 +24,22 @@ class ReactionDM(commands.Cog):
         self.collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database[
             "reaction_dm"
         ]
+        self.reaction_dm_cache: dict[int, ReactionDMData] = {}
+        self.load_reaction_dm_settings.start()
+
+    @tasks.loop(hours=1.0)
+    async def load_reaction_dm_settings(self):
+        """
+        ReactionDMの設定を、データベースからローカルへロードします。
+        """
+        self.reaction_dm_cache = {}
+        async for reaction_dm in self.collection.find():
+            self.reaction_dm_cache[int(reaction_dm["channel_id"])] = {
+                "emoji": reaction_dm["emoji"],
+                "target_role": reaction_dm.get("target_role"),
+                "dm_message": reaction_dm["dm_message"],
+                "fallback_channel": reaction_dm.get("fallback_channel"),
+            }
 
     @nextcord.slash_command(name="reactdm", description="Reaction DM command")
     async def slash_reaction_dm(self, interaction: Interaction):
@@ -46,14 +71,48 @@ class ReactionDM(commands.Cog):
             default=None,
         ),
     ):
-        await interaction.response.defer(ephemeral=True)
+        await interaction.response.defer(ephemeral=False)
 
         assert isinstance(interaction.guild, nextcord.Guild)
         assert isinstance(interaction.channel, nextcord.TextChannel)
 
         emoji = emoji.strip()
 
-        data = {
+        message = await interaction.followup.send(
+            embed=nextcord.Embed(
+                title="リアクションDMの設定",
+                description="しばらくお待ちください......\n絵文字のチェックを行っています......",
+                color=self.bot.color.ATTENTION,
+            ),
+            wait=True,
+        )
+
+        description = None
+
+        try:
+            await message.add_reaction(emoji)
+        except nextcord.Forbidden:
+            description = (
+                "絵文字を追加する権限がないため、絵文字の確認ができませんでした。"
+            )
+        except nextcord.NotFound:
+            description = "指定された絵文字が見つかりませんでした。"
+        except nextcord.InvalidArgument:
+            description = "絵文字が無効です。"
+        except nextcord.HTTPException:
+            description = "一時的なネットワークエラーが発生している可能性があります。"
+
+        if description:
+            await message.edit(
+                embed=nextcord.Embed(
+                    title="リアクションDMの設定",
+                    description=f"絵文字 {emoji} (`{emoji}`)の確認時にエラーが発生しました。\n{description}",
+                    color=self.bot.color.ERROR,
+                )
+            )
+            return
+
+        data: ReactionDMData = {
             "emoji": emoji,
             "target_role": target_role.id if target_role else None,
             "dm_message": dm_message,
@@ -68,7 +127,9 @@ class ReactionDM(commands.Cog):
             upsert=True,
         )
 
-        await interaction.followup.send(
+        self.reaction_dm_cache[interaction.channel.id] = data
+
+        await message.edit(
             embed=nextcord.Embed(
                 title="リアクションDMの設定",
                 description=(
@@ -77,9 +138,8 @@ class ReactionDM(commands.Cog):
                     f"```\n{(lambda x: x if len(x) <= 1000 else f'{x[:1000]}...')(dm_message)}```"
                     f"\n\nDM送信に失敗した場合{'<#' + str(fallback_channel.id) + '>にフォールバックします。' if fallback_channel else 'でも何も行いません。'}"
                 ),
-                color=0x00FF00,
-            ),
-            ephemeral=True,
+                color=self.bot.color.NORMAL,
+            )
         )
 
     @application_checks.guild_only()
@@ -115,15 +175,17 @@ class ReactionDM(commands.Cog):
                 embed=nextcord.Embed(
                     title="リアクションDMの設定",
                     description="このチャンネルにはリアクションDMの設定がありません。",
-                    color=0xFF0000,
+                    color=self.bot.color.ERROR,
                 )
             )
         else:
+            self.reaction_dm_cache.pop(channel.id, None)
+
             await interaction.followup.send(
                 embed=nextcord.Embed(
                     title="リアクションDMの設定",
                     description=f"チャンネル:<#{channel.id}>\nリアクションDMの設定を削除しました。",
-                    color=0x00FF00,
+                    color=self.bot.color.NORMAL,
                 )
             )
 
@@ -147,14 +209,14 @@ class ReactionDM(commands.Cog):
                 embed=nextcord.Embed(
                     title="リアクションDMの設定",
                     description="このサーバーにはリアクションDMの設定がありません。",
-                    color=0x00FF00,
+                    color=self.bot.color.NORMAL,
                 )
             )
         else:
             embed = nextcord.Embed(
                 title="リアクションDMの設定",
                 description=interaction.guild.name,
-                color=0x00FF00,
+                color=self.bot.color.NORMAL,
             )
             for reactdmdata in reactdmdatas:
                 embed.add_field(
@@ -180,15 +242,9 @@ class ReactionDM(commands.Cog):
         if member.bot:
             return
 
-        result = await self.collection.find_one(
-            {
-                "guild_id": reaction.message.guild.id,
-                "channel_id": reaction.message.channel.id,
-                "emoji": str(reaction.emoji),
-            }
-        )
-        if result is None:
+        if reaction.message.channel.id not in self.reaction_dm_cache:
             return
+        result = self.reaction_dm_cache[reaction.message.channel.id]
 
         if result["target_role"]:
             if not any(role.id == result["target_role"] for role in member.roles):

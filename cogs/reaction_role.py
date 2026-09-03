@@ -1,13 +1,21 @@
 import asyncio
+from typing import TypedDict
 
 import nextcord
 from motor import motor_asyncio
 from nextcord import Interaction, SlashOption
-from nextcord.ext import application_checks, commands
+from nextcord.ext import application_checks, commands, tasks
 
 from util.nira import NIRA
 
 # 特定のチャンネルにて特定のリアクションを付けたら、つけられた人にロールを付与するみたいな。ロールパネルとはまた少し違うやつ。
+
+
+class ReactionRoleData(TypedDict):
+    emoji: str
+    target_role: int | None
+    action_type: bool
+    grant_role: int
 
 
 class ReactionRole(commands.Cog):
@@ -16,6 +24,19 @@ class ReactionRole(commands.Cog):
         self.collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database[
             "reaction_role"
         ]
+        self.reaction_role_cache: dict[int, ReactionRoleData] = {}
+        self.load_reaction_role_settings.start()
+
+    @tasks.loop(hours=1.0)
+    async def load_reaction_role_settings(self):
+        self.reaction_role_cache = {}
+        async for reaction_role in self.collection.find():
+            self.reaction_role_cache[int(reaction_role["channel_id"])] = {
+                "emoji": reaction_role["emoji"],
+                "target_role": reaction_role.get("target_role"),
+                "action_type": reaction_role["action_type"],
+                "grant_role": reaction_role["grant_role"],
+            }
 
     @nextcord.slash_command(name="reactrole", description="Reaction role command")
     async def slash_reaction_role(self, interaction: Interaction):
@@ -47,16 +68,50 @@ class ReactionRole(commands.Cog):
             default=None,
         ),
     ):
-        await interaction.response.defer(ephemeral=True)
+        await interaction.response.defer(ephemeral=False)
 
         assert isinstance(interaction.guild, nextcord.Guild)
         assert isinstance(interaction.channel, nextcord.TextChannel)
 
         emoji = emoji.strip()
 
+        message = await interaction.followup.send(
+            embed=nextcord.Embed(
+                title="リアクションロールの設定",
+                description="しばらくお待ちください......\n絵文字のチェックを行っています......",
+                color=self.bot.color.ATTENTION,
+            ),
+            wait=True,
+        )
+
+        description = None
+
+        try:
+            await message.add_reaction(emoji)
+        except nextcord.Forbidden:
+            description = (
+                "絵文字を追加する権限がないため、絵文字の確認ができませんでした。"
+            )
+        except nextcord.NotFound:
+            description = "指定された絵文字が見つかりませんでした。"
+        except nextcord.InvalidArgument:
+            description = "絵文字が無効です。"
+        except nextcord.HTTPException:
+            description = "一時的なネットワークエラーが発生している可能性があります。"
+
+        if description:
+            await message.edit(
+                embed=nextcord.Embed(
+                    title="リアクションロールの設定",
+                    description=f"絵文字 {emoji} (`{emoji}`)の確認時にエラーが発生しました。\n{description}",
+                    color=self.bot.color.ERROR,
+                )
+            )
+            return
+
         action_type = (lambda x: True if x else False)(action_type)
 
-        data = {
+        data: ReactionRoleData = {
             "emoji": emoji,
             "target_role": target_role.id if target_role else None,
             "action_type": action_type,
@@ -71,13 +126,14 @@ class ReactionRole(commands.Cog):
             upsert=True,
         )
 
-        await interaction.followup.send(
+        self.reaction_role_cache[interaction.channel.id] = data
+
+        await message.edit(
             embed=nextcord.Embed(
                 title="リアクションロールの設定",
                 description=f"チャンネル:<#{interaction.channel.id}>に{f"<@&{target_role.id}>のロールを持つ人が" if target_role else ""}{emoji}のリアクションをしたとき、そのリアクションを受けた人に<@&{grant_role.id}>を{(lambda x: '付与' if x else '剥奪')(action_type)}します。",
-                color=0x00FF00,
+                color=self.bot.color.NORMAL,
             ),
-            ephemeral=True,
         )
 
     @application_checks.guild_only()
@@ -113,15 +169,17 @@ class ReactionRole(commands.Cog):
                 embed=nextcord.Embed(
                     title="リアクションロールの設定",
                     description="このチャンネルにはリアクションロールの設定がありません。",
-                    color=0xFF0000,
+                    color=self.bot.color.ERROR,
                 )
             )
         else:
+            self.reaction_role_cache.pop(channel.id, None)
+
             await interaction.followup.send(
                 embed=nextcord.Embed(
                     title="リアクションロールの設定",
                     description=f"チャンネル:<#{channel.id}>\nリアクションロールの設定を削除しました。",
-                    color=0x00FF00,
+                    color=self.bot.color.NORMAL,
                 )
             )
 
@@ -145,14 +203,14 @@ class ReactionRole(commands.Cog):
                 embed=nextcord.Embed(
                     title="リアクションロールの設定",
                     description="このサーバーにはリアクションロールの設定がありません。",
-                    color=0x00FF00,
+                    color=self.bot.color.NORMAL,
                 )
             )
         else:
             embed = nextcord.Embed(
                 title="リアクションロールの設定",
                 description=interaction.guild.name,
-                color=0x00FF00,
+                color=self.bot.color.NORMAL,
             )
             for reactroledata in reactroledatas:
                 embed.add_field(
@@ -173,15 +231,9 @@ class ReactionRole(commands.Cog):
         if member.bot:
             return
 
-        result = await self.collection.find_one(
-            {
-                "guild_id": reaction.message.guild.id,
-                "channel_id": reaction.message.channel.id,
-                "emoji": str(reaction.emoji),
-            }
-        )
-        if result is None:
+        if reaction.message.channel.id not in self.reaction_role_cache:
             return
+        result = self.reaction_role_cache[reaction.message.channel.id]
 
         if result["target_role"]:
             if not any(role.id == result["target_role"] for role in member.roles):
