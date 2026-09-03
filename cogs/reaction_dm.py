@@ -252,8 +252,12 @@ class ReactionDM(commands.Cog):
 
         message = result["dm_message"]
 
+        target_member = reaction.message.author
+        if target_member.bot:
+            return
+
         try:
-            await member.send(message)
+            await target_member.send(message)
         except nextcord.Forbidden:
             if result["fallback_channel"]:
                 fallback_channel = await self.bot.resolve_channel(
@@ -261,7 +265,7 @@ class ReactionDM(commands.Cog):
                 )
 
                 if isinstance(fallback_channel, nextcord.TextChannel):
-                    await fallback_channel.send(f"{member.mention}\n\n{message}")
+                    await fallback_channel.send(f"{target_member.mention}\n\n{message}")
 
         if "\u2705" not in [r.emoji for r in reaction.message.reactions]:
             await reaction.message.add_reaction("\u2705")

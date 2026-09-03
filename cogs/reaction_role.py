@@ -239,15 +239,21 @@ class ReactionRole(commands.Cog):
             if not any(role.id == result["target_role"] for role in member.roles):
                 return
 
+        target_member = reaction.message.author
+        if target_member.bot:
+            return
+
+        assert isinstance(target_member, nextcord.Member)
+
         role = await reaction.message.guild.fetch_role(result["grant_role"])
 
         if result["action_type"]:
-            await member.add_roles(
+            await target_member.add_roles(
                 role,
                 reason="nira-bot ReactionRole Service",
             )
         else:
-            await member.remove_roles(
+            await target_member.remove_roles(
                 role,
                 reason="nira-bot ReactionRole Service",
             )
