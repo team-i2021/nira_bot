@@ -27,6 +27,9 @@ class ReactionDM(commands.Cog):
         self.reaction_dm_cache: dict[int, ReactionDMData] = {}
         self.load_reaction_dm_settings.start()
 
+    def cog_unload(self):
+        self.load_reaction_dm_settings.cancel()
+
     @tasks.loop(hours=1.0)
     async def load_reaction_dm_settings(self):
         """

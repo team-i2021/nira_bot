@@ -27,6 +27,9 @@ class ReactionRole(commands.Cog):
         self.reaction_role_cache: dict[int, ReactionRoleData] = {}
         self.load_reaction_role_settings.start()
 
+    def cog_unload(self):
+        self.load_reaction_role_settings.cancel()
+
     @tasks.loop(hours=1.0)
     async def load_reaction_role_settings(self):
         self.reaction_role_cache = {}
