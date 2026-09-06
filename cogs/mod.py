@@ -63,6 +63,13 @@ class MessageModeration(commands.Cog):
         if not message.guild or message.guild.id not in self.MOD_LIST:
             return
 
+        if self.MOD_LIST[message.guild.id]["exempted_role"] is not None:
+            if isinstance(message.author, nextcord.Member) and any(
+                role.id == self.MOD_LIST[message.guild.id]["exempted_role"]
+                for role in message.author.roles
+            ):
+                return
+
         if message.author.id not in self.messageCounter:
             self.messageCounter[message.author.id] = 0
 
