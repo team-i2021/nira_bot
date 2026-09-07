@@ -270,14 +270,14 @@ class ReactionControll(commands.Cog):
     async def add_er_slash(
         self,
         interaction: Interaction,
-        triggerMessage: str = SlashOption(
+        trigger_message: str = SlashOption(
             name="trigger_message",
             name_localizations={nextcord.Locale.ja: "トリガーメッセージ"},
             description="Trigger message",
             description_localizations={nextcord.Locale.ja: "反応する部分です"},
             required=True,
         ),
-        returnMessage: str | None = SlashOption(
+        return_message: str | None = SlashOption(
             name="return_message",
             name_localizations={nextcord.Locale.ja: "返信メッセージ"},
             description="Return message",
@@ -287,7 +287,7 @@ class ReactionControll(commands.Cog):
             required=False,
             default=None,
         ),
-        reactionEmoji: str | None = SlashOption(
+        reaction_emoji: str | None = SlashOption(
             name="reaction_emoji",
             name_localizations={nextcord.Locale.ja: "リアクション絵文字"},
             description="Reaction emoji",
@@ -316,14 +316,14 @@ class ReactionControll(commands.Cog):
 
         message = await interaction.send(
             embed=nextcord.Embed(
-                title="Checking...",
-                description="指定された絵文字を確認しています......",
+                title="Setting...",
+                description="設定を行っています......",
                 color=0x00FFFF,
             ),
             ephemeral=False,
         )
 
-        if reactionEmoji is None and returnMessage is None:
+        if reaction_emoji is None and return_message is None:
             await message.edit(
                 embed=nextcord.Embed(
                     title="Error",
@@ -333,7 +333,7 @@ class ReactionControll(commands.Cog):
             )
             return
 
-        if reactionEmoji is not None:
+        if reaction_emoji is not None:
             await message.edit(
                 embed=nextcord.Embed(
                     title="Checking...",
@@ -343,9 +343,9 @@ class ReactionControll(commands.Cog):
             )
             try:
                 if isinstance(message, nextcord.PartialInteractionMessage):
-                    await (await message.fetch()).add_reaction(reactionEmoji)
+                    await (await message.fetch()).add_reaction(reaction_emoji)
                 else:
-                    await message.add_reaction(reactionEmoji)
+                    await message.add_reaction(reaction_emoji)
             except Exception as e:
                 await message.edit(
                     embed=nextcord.Embed(
@@ -357,12 +357,12 @@ class ReactionControll(commands.Cog):
                 return
 
         await self.er_collection.update_one(
-            {"guild_id": interaction.guild.id, "trigger": triggerMessage},
+            {"guild_id": interaction.guild.id, "trigger": trigger_message},
             {
                 "$set": {
-                    "return": returnMessage,
+                    "return": return_message,
                     "mention": mention,
-                    "reaction": reactionEmoji,
+                    "reaction": reaction_emoji,
                 }
             },
             upsert=True,
@@ -425,7 +425,7 @@ class ReactionControll(commands.Cog):
     async def del_er_slash(
         self,
         interaction: Interaction,
-        triggerMessage: str = SlashOption(
+        trigger_message: str = SlashOption(
             name="trigger_message",
             name_localizations={nextcord.Locale.ja: "トリガーメッセージ"},
             description="Trigger message.",
@@ -438,7 +438,7 @@ class ReactionControll(commands.Cog):
         await interaction.response.defer(ephemeral=True)
 
         delete_result = await self.er_collection.delete_one(
-            {"guild_id": interaction.guild.id, "trigger": triggerMessage}
+            {"guild_id": interaction.guild.id, "trigger": trigger_message}
         )
         if delete_result.deleted_count == 0:
             await interaction.followup.send(
