@@ -467,21 +467,32 @@ class ReactionControll(commands.Cog):
     async def edit_er_slash(
         self,
         interaction: Interaction,
-        triggerMessage: str = SlashOption(
+        trigger_message: str = SlashOption(
             name="trigger_message",
             name_localizations={nextcord.Locale.ja: "トリガーメッセージ"},
             description="Trigger message",
             description_localizations={nextcord.Locale.ja: "反応する部分です"},
             required=True,
         ),
-        returnMessage: str = SlashOption(
+        return_message: str | None = SlashOption(
             name="return_message",
             name_localizations={nextcord.Locale.ja: "返信メッセージ"},
             description="Return message",
             description_localizations={
                 nextcord.Locale.ja: "返信するメッセージ内容です"
             },
-            required=True,
+            required=False,
+            default=None,
+        ),
+        reaction_emoji: str | None = SlashOption(
+            name="reaction_emoji",
+            name_localizations={nextcord.Locale.ja: "リアクション絵文字"},
+            description="Reaction emoji",
+            description_localizations={
+                nextcord.Locale.ja: "リアクションする絵文字です"
+            },
+            required=False,
+            default=None,
         ),
         mention: bool = SlashOption(
             name="mention",
@@ -500,25 +511,67 @@ class ReactionControll(commands.Cog):
     ):
         assert interaction.guild
 
-        await interaction.response.defer(ephemeral=True)
-        update_value = {"return": returnMessage, "mention": mention}
-        edit_result = await self.er_collection.update_one(
-            {"guild_id": interaction.guild.id, "trigger": triggerMessage},
-            {"$set": update_value},
+        message = await interaction.send(
+            embed=nextcord.Embed(
+                title="Setting...",
+                description="設定を行っています......",
+                color=0x00FFFF,
+            ),
+            ephemeral=False,
         )
-        if edit_result.modified_count == 0:
-            await interaction.followup.send(
+
+        if reaction_emoji is None and return_message is None:
+            await message.edit(
                 embed=nextcord.Embed(
                     title="Error",
-                    description=f"追加反応が存在しませんでした。",
+                    description=f"返信文かリアクション絵文字のどちらかは指定してください。",
+                    color=0xFF0000,
+                )
+            )
+            return
+
+        if reaction_emoji is not None:
+            await message.edit(
+                embed=nextcord.Embed(
+                    title="Checking...",
+                    description="指定された絵文字を確認しています......",
+                    color=0x00FFFF,
+                ),
+            )
+            try:
+                if isinstance(message, nextcord.PartialInteractionMessage):
+                    await (await message.fetch()).add_reaction(reaction_emoji)
+                else:
+                    await message.add_reaction(reaction_emoji)
+            except Exception as e:
+                await message.edit(
+                    embed=nextcord.Embed(
+                        title="Error",
+                        description=f"リアクション絵文字の追加に失敗しました。\n{e}",
+                        color=0xFF0000,
+                    )
+                )
+                return
+
+        update_value = {"return": return_message, "mention": mention, "reaction": reaction_emoji}
+        edit_result = await self.er_collection.update_one(
+            {"guild_id": interaction.guild.id, "trigger": trigger_message},
+            {"$set": update_value},
+            upsert=False
+        )
+        if edit_result.modified_count == 0:
+            await message.edit(
+                embed=nextcord.Embed(
+                    title="Error",
+                    description=f"指定されたトリガーの追加反応が存在しませんでした。",
                     color=0xFF0000,
                 )
             )
         else:
-            await interaction.followup.send(
+            await message.edit(
                 embed=nextcord.Embed(
                     title="Success",
-                    description=f"追加反応を編集しました。\n{DBDelayMessage}",
+                    description=f"指定されたトリガーの追加反応を編集しました。\n{DBDelayMessage}",
                     color=0x00FF00,
                 )
             )
