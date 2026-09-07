@@ -1293,6 +1293,19 @@ class NormalReaction(commands.Cog):
             return
 
         if (
+            not isinstance(message.channel, nextcord.VoiceChannel)
+            and message.channel.topic
+            and "nira-auto-publish" in message.channel.topic
+        ):
+            try:
+                await message.publish()
+            except nextcord.Forbidden:
+                # `メッセージの管理`権限が足りないか、アナウンスチャンネルではない
+                pass
+            except Exception:
+                _logger.exception("メッセージの自動公開中にエラーが発生しました。")
+
+        if (
             isinstance(self.bot.command_prefix, str)
             and message.content.startswith(self.bot.command_prefix)
             or isinstance(self.bot.command_prefix, (list, tuple))
