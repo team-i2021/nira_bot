@@ -410,8 +410,8 @@ class ReactionControll(commands.Cog):
             for er in er_list:
                 embed.add_field(
                     name=er["trigger"],
-                    value=f"- 返信文\n{er.get("return", "(なし)")}\n\n- リアクション\n{er.get("reaction", "(なし)")}\n\n- メンション\n{'有効' if er['mention'] else '無効'}",
-                    inline=False,
+                    value=f"- 返信文\n{er.get("return", None) or "(なし)"}\n\n- リアクション\n{er.get("reaction", None) or "(なし)"}\n\n- メンション\n{'有効' if er['mention'] else '無効'}",
+                    inline=True,
                 )
 
             await interaction.user.send(embed=embed)
