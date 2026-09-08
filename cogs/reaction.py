@@ -334,6 +334,8 @@ class ReactionControll(commands.Cog):
             return
 
         if reaction_emoji is not None:
+            reaction_emoji = reaction_emoji.strip()
+
             await message.edit(
                 embed=nextcord.Embed(
                     title="Checking...",
@@ -531,6 +533,8 @@ class ReactionControll(commands.Cog):
             return
 
         if reaction_emoji is not None:
+            reaction_emoji = reaction_emoji.strip()
+
             await message.edit(
                 embed=nextcord.Embed(
                     title="Checking...",
