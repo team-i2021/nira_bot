@@ -242,6 +242,9 @@ class ReactionRole(commands.Cog):
             if not any(role.id == result["target_role"] for role in member.roles):
                 return
 
+        if str(reaction.emoji) != result["emoji"]:
+            return
+
         target_member = reaction.message.author
         if target_member.bot:
             return
