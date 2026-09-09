@@ -236,7 +236,7 @@ exempted_role: 免除されるロールのIDまたは名前
                         if roles[i].name == exempted_role:
                             role_id = roles[i].id
                             break
-                    if role_id == None:
+                    if role_id is None:
                         await ctx.reply(
                             f"指定されたロール `{exempted_role}` が見つかりませんでした。"
                         )
