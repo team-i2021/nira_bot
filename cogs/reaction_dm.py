@@ -70,7 +70,7 @@ class ReactionDM(commands.Cog):
         ),
         fallback_channel: nextcord.TextChannel | None = SlashOption(
             required=False,
-            description="DM送信に失敗した場合、ここに指定したチャンネルにて、DMに送信する予定だったメッセージをメンション付きで送信します。指定しない場合は、DM送信に失敗した場合は何も行いません。",
+            description="DM送信に失敗した場合、ここに指定したチャンネルにて、DMに送信する予定だったメッセージをメンション付きで送信します。指定しない場合は、DM送信に失敗しても何も行いません",
             default=None,
         ),
     ):
