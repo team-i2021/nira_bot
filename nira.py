@@ -96,6 +96,9 @@ bot = NIRA(
 
 _logger.debug("Loading jishaku...")
 bot.load_extension("ncjishaku")
+if jishaku := bot.remove_command("jishaku"):
+    jishaku.aliases = sorted(set(jishaku.aliases) | {"onami", "oni"})
+    bot.add_command(jishaku)
 
 
 @bot.event
