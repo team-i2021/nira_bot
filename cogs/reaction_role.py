@@ -134,7 +134,11 @@ class ReactionRole(commands.Cog):
         await message.edit(
             embed=nextcord.Embed(
                 title="リアクションロールの設定",
-                description=f"チャンネル:<#{interaction.channel.id}>に{f"<@&{target_role.id}>のロールを持つ人が" if target_role else ""}{emoji}のリアクションをしたとき、そのリアクションを受けた人に<@&{grant_role.id}>を{(lambda x: '付与' if x else '剥奪')(action_type)}します。",
+                description=(
+                    f"チャンネル:<#{interaction.channel.id}>に{f"<@&{target_role.id}>のロールを持つ人が" if target_role else ""}"
+                    f"{emoji}のリアクションをしたとき、そのリアクションを受けた人{"に" if action_type else "から"}"
+                    f"<@&{grant_role.id}>を{"付与" if action_type else "剥奪"}します。"
+                ),
                 color=self.bot.color.NORMAL,
             ),
         )
@@ -218,7 +222,11 @@ class ReactionRole(commands.Cog):
             for reactroledata in reactroledatas:
                 embed.add_field(
                     name=f"チャンネル: <#{reactroledata['channel_id']}>",
-                    value=f"判定リアクション絵文字: {reactroledata['emoji']}\nロール: <@&{reactroledata['grant_role']}>を{'付与' if reactroledata['action_type'] else '剥奪'}する。\n{'<@&' + str(reactroledata['target_role']) + '>のロールを持つ人のみが対象です。' if reactroledata['target_role'] else ''}",
+                    value=(
+                        f"判定リアクション絵文字: {reactroledata['emoji']}\n"
+                        f"ロール: <@&{reactroledata['grant_role']}>を{'付与' if reactroledata['action_type'] else '剥奪'}する。\n"
+                        f"{f'<@&{reactroledata['target_role']}>のロールを持つ人のみが対象です。' if reactroledata['target_role'] else ''}"
+                    ),
                     inline=False,
                 )
             await interaction.followup.send(embed=embed)
