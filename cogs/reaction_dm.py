@@ -65,7 +65,7 @@ class ReactionDM(commands.Cog):
         ),
         target_role: nextcord.Role | None = SlashOption(
             required=False,
-            description="ここにロールを指定すると、そのロールが付いている人がリアクションを行ったときのみロール付与/剥奪が行われます",
+            description="ここにロールを指定すると、そのロールが付いている人がリアクションを行ったときのみDM送信が行われます",
             default=None,
         ),
         fallback_channel: nextcord.TextChannel | None = SlashOption(
