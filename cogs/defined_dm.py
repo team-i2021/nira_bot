@@ -1,3 +1,4 @@
+import logging
 import traceback
 
 import nextcord
@@ -9,6 +10,8 @@ from motor import motor_asyncio
 
 from util import n_fc
 from util.nira import NIRA
+
+_logger = logging.getLogger(__name__)
 
 # 定型文を指定したユーザーのDMに送る機能
 
@@ -151,6 +154,8 @@ class DefinedDM(commands.Cog):
                 await member.send(embed=embed)
                 await interaction.send(embed=nextcord.Embed(title="送信完了", description=f"{member.name}#{member.discriminator} さんに`{title}`の定型文を送信しました。", color=0x00ff00))
             except Exception as err:
+                if not isinstance(err, nextcord.NotFound | nextcord.Forbidden):
+                    _logger.exception("An error has occurred")
                 await interaction.send(embed=nextcord.Embed(title="送信失敗", description=f"{member.name}#{member.discriminator} さんへのメッセージ送信に失敗しました。\nERR: `{err}`\n```py\n{traceback.format_exc()}```", color=0xff0000))
 
     @send_defined_slash.on_autocomplete("title")

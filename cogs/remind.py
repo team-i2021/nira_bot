@@ -14,6 +14,8 @@ from util.nira import NIRA
 
 TIME_CHECK = compile(r"[0-9]{1,2}:[0-9]{1,2}")
 
+_logger = logging.getLogger(__name__)
+
 
 class RemindMaker(nextcord.ui.Modal):
     def __init__(self, collection):
@@ -242,20 +244,32 @@ n!remind on 8:25 おはようございます！
             )
         await interaction.followup.send(embed=embed)
 
-
     @tasks.loop(minutes=1)
     async def sendReminds(self):
         await self.bot.wait_until_ready()
         dt = datetime.datetime.now()
         now_time = dt.strftime("%H:%M")
         reminds = await self.collection.find({"time": now_time}).to_list(length=None)
+        deletes: list[int] = []
         for remind in reminds:
+            channel_id = int(remind["channel_id"])
             try:
                 message = remind["message"].replace("%date%", dt.strftime("%m/%d"))
-                CHANNEL = await self.bot.fetch_channel(int(remind["channel_id"]))
-                await CHANNEL.send(message)
-            except Exception as err:
-                logging.error(f"ERR:{err}\n{remind['channel_id']}")
+                channel = self.bot.get_channel(channel_id)
+                if channel is None:
+                    channel = await self.bot.fetch_channel(channel_id)
+                assert isinstance(channel, nextcord.abc.Messageable)
+                await channel.send(message)
+            except (nextcord.NotFound, nextcord.Forbidden):
+                _logger.info(f"Deleting the settings for channel {channel_id} which is inaccessible")
+                deletes.append(channel_id)
+            except Exception:
+                _logger.exception(f"An error has occurred in channel {channel_id}")
+        if deletes:
+            try:
+                await self.collection.delete_many({"channel_id": {"$in": deletes}})
+            except Exception:
+                _logger.exception("An error has occurred when deleting inaccessible settings")
 
 
 def setup(bot: NIRA):
@@ -263,4 +277,4 @@ def setup(bot: NIRA):
 
 
 def teardown(bot: NIRA):
-    logging.info("Remind Cog Teardown.")
+    _logger.info("Remind Cog Teardown.")

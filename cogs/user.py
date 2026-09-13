@@ -1,3 +1,5 @@
+import logging
+
 import nextcord
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands, application_checks
@@ -6,6 +8,8 @@ from motor import motor_asyncio
 
 from util import slash_tool, n_fc
 from util.nira import NIRA
+
+_logger = logging.getLogger(__name__)
 
 SET, DEL, STATUS = (0, 1, 2)
 
@@ -18,7 +22,7 @@ class User(commands.Cog):
         self.rk_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["role_keeper"]
         self.winfo_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["welcome_info"]
 
-    def UserInfoEmbed(self, member: nextcord.Member or nextcord.User):
+    def UserInfoEmbed(self, member: nextcord.Member | nextcord.User):
         if member.bot:
             embed = nextcord.Embed(
                 title="User Info",
@@ -73,6 +77,8 @@ class User(commands.Cog):
             else:
                 await interaction.send("AFKを無効にしたよ。\n有効にするにはもっかい`/afk`ってやればいいと思うよ。")
         except Exception as err:
+            if not isinstance(err, nextcord.Forbidden):
+                _logger.exception("An error has occurred")
             await interaction.send(f"BOTにあなたのニックネームを変更できる権限がないなどの理由で、コマンドを実行できませんでした。\nサーバーの管理者にお問い合わせください。\nERR: `{err}`\n（あなたがサーバーの管理者の場合はこのコマンドが実行できません。仕様なんで。）")
 
     @nextcord.slash_command(name="user", description="Display user info", description_localizations={nextcord.Locale.ja: "ユーザー情報表示"})
@@ -171,6 +177,7 @@ class User(commands.Cog):
                         await ctx.reply(embed=embed)
                         return
                     except Exception:
+                        _logger.exception("An error has occurred")
                         await ctx.reply(embed=nextcord.Embed(title="Error", description="ユーザー、チャンネル、またはサーバーのデータが取得できませんでした。", color=0xff0000))
                         return
 
@@ -211,7 +218,7 @@ AutoMod等の機能を活用したうえで、過信しすぎずに使用して�
         else:
             await ctx.reply(f"引数が不正です。\n`{ctx.prefix}rk [on/off]`")
 
-    async def ui_config(self, interaction: Interaction or commands.Context, type: int, guild_id: int, channel: nextcord.abc.GuildChannel | None):
+    async def ui_config(self, interaction: Interaction | commands.Context, type: int, guild_id: int, channel: nextcord.abc.GuildChannel | None):
         if isinstance(channel, nextcord.ForumChannel):
             await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description="フォーラムチャンネルは指定できません。", color=self.bot.color.ERROR), ephemeral=True)
             return
@@ -229,6 +236,7 @@ AutoMod等の機能を活用したうえで、過信しすぎずに使用して�
                 await CHANNEL.send("このチャンネルが、ユーザー情報表示チャンネルとして指定されました。")
                 await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"<#{channel.id}>に指定されました。", color=self.bot.color.NORMAL), ephemeral=True)
             except Exception as err:
+                _logger.exception("An error has occurred")
                 await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"エラーが発生しました。\n```\n{err}```", color=self.bot.color.ERROR), ephemeral=True)
         elif type == DEL:
             try:
@@ -238,6 +246,7 @@ AutoMod等の機能を活用したうえで、過信しすぎずに使用して�
                 await self.winfo_collection.delete_one({"guild_id": guild_id})
                 await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"設定を削除しました。", color=self.bot.color.NORMAL), ephemeral=True)
             except Exception as err:
+                _logger.exception("An error has occurred")
                 await slash_tool.messages.mreply(interaction, "", embed=nextcord.Embed(title="ユーザー情報表示設定", description=f"エラーが発生しました。\n```\n{err}```", color=self.bot.color.ERROR), ephemeral=True)
         elif type == STATUS:
             if result is None:

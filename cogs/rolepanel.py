@@ -1,3 +1,4 @@
+import logging
 import re
 import traceback
 
@@ -8,6 +9,8 @@ from nextcord.ext import commands
 from util import n_fc
 from util.admin_check import admin_check
 from util.nira import NIRA
+
+_logger = logging.getLogger(__name__)
 
 rolepanel_compile = re.compile(r"[0-9]+: <@&[0-9]+>")
 
@@ -75,6 +78,7 @@ class RolePanelSlashInput(nextcord.ui.Modal):
         try:
             await interaction.followup.send(embed=nextcord.Embed(title=embed_title, description=embed_content, color=0x00ff00), view=RolePanelView(ViewArgs))
         except Exception:
+            _logger.exception("An error has occurred")
             await interaction.followup.send(f"申し訳ございません。エラーが発生しました。\n```\n{traceback.format_exc()}```")
             return
 
@@ -134,6 +138,7 @@ class RolePanelEditModal(nextcord.ui.Modal):
         try:
             await self.message.edit(embed=nextcord.Embed(title=EmbedTitle, description=embed_content, color=0x00ff00), view=RolePanelView(ViewArgs))
         except Exception as err:
+            _logger.exception("An error has occurred")
             await interaction.followup.send(f"エラー: `{err}`")
             return
 
@@ -288,6 +293,7 @@ n!rolepanel [*メッセージ内容]
         try:
             await ctx.send(embed=nextcord.Embed(title=f"{content}", description=embed_content, color=0x00ff00), view=RolePanelView(ViewArgs))
         except Exception:
+            _logger.exception("An error has occurred")
             await ctx.send(f"申し訳ございません。エラーが発生しました。\n```\n{traceback.format_exc()}```")
             return
 
@@ -324,6 +330,7 @@ n!rolepanel [*メッセージ内容]
             await interaction.send(self.add_role_mes.format(role_name=role.name), ephemeral=True)
             return
         except Exception as err:
+            _logger.exception("An error has occurred")
             await interaction.send(
                 "大変恐れ入りますが、エラーが発生しました。\n（BOTに適切な権限がないか、サーバーからロールが削除されているかもしれません。\n解決しない場合はBOT開発者へお問い合わせください。）",
                 embed=nextcord.Embed(

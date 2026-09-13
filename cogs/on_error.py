@@ -7,6 +7,8 @@ from nextcord.ext import application_checks, commands
 
 from util.nira import NIRA
 
+_logger = logging.getLogger(__name__)
+
 
 # エラー時のイベント！
 class error(commands.Cog):
@@ -45,7 +47,7 @@ class error(commands.Cog):
                 close_oneline = "(ヘルプがないコマンド)" if close_description is None else close_description.splitlines()[0]
                 suggestion = f"\n\nもしかして：\n`{ctx.prefix}{close_command}`: {close_oneline}"
             except Exception:
-                logging.exception("コマンド検索中のエラー")
+                _logger.exception("コマンド検索中のエラー")
 
             code = Codes.NOT_FOUND
             description = (
@@ -137,7 +139,7 @@ class error(commands.Cog):
         # 内部エラー
         elif isinstance(error, commands.ConversionError):
             error_inner = error.original
-            logging.error("コンバーターエラー", exc_info=error_inner)
+            _logger.error("コンバーターエラー", exc_info=error_inner)
 
             code = Codes.INTERNAL_SERVER_ERROR
             description = "コマンド呼び出しに失敗しました。"
@@ -145,14 +147,14 @@ class error(commands.Cog):
             add_support = True
         elif isinstance(error, commands.CommandInvokeError):
             error_inner = error.original
-            logging.error("コマンド内部エラー", exc_info=error_inner)
+            _logger.error("コマンド内部エラー", exc_info=error_inner)
 
             code = Codes.INTERNAL_SERVER_ERROR
             description = "コマンド内部でエラーが発生しました。"
             add_trace = True
             add_support = True
         if code is None or description is None:
-            logging.error("不明なエラー", exc_info=error_inner)
+            _logger.error("不明なエラー", exc_info=error_inner)
 
             code = Codes.INTERNAL_SERVER_ERROR
             description = "予期しない不明なエラーが発生しました。"
@@ -186,7 +188,7 @@ class error(commands.Cog):
             else:
                 await ctx.author.send(embed=embed)
         except (nextcord.Forbidden, nextcord.HTTPException):
-            logging.exception("エラーメッセージを送信できませんでした")
+            _logger.exception("エラーメッセージを送信できませんでした")
 
     @commands.Cog.listener()
     async def on_application_command_error(self, interaction: nextcord.Interaction, error: nextcord.ApplicationError):
@@ -223,14 +225,14 @@ class error(commands.Cog):
         elif isinstance(error, application_checks.ApplicationBotMissingRole):
             if isinstance(role := error.missing_role, int):
                 role = (
-                    f"(ID) {role}"
-                    if interaction.guild and (role_ := interaction.guild.get_role(role)) is None
-                    else role_.name
+                    r.name
+                    if interaction.guild and (r := interaction.guild.get_role(role)) is not None
+                    else f"ID:{role}"
                 )
             description = f"このコマンドの実行に必要なロールをBotが持っていません。\n実行には`{role}`が必要です。"
         elif isinstance(error, application_checks.ApplicationBotMissingAnyRole):
             roles = "`, `".join(
-                (f"(ID) {role}" if interaction.guild and (r := interaction.guild.get_role(role)) is None else r.name)
+                (r.name if interaction.guild and (r := interaction.guild.get_role(role)) is not None else f"ID:{role}")
                 if isinstance(role, int)
                 else role
                 for role in error.missing_roles
@@ -243,14 +245,14 @@ class error(commands.Cog):
             if isinstance(error_inner, nextcord.ApplicationError):
                 return await self.on_application_command_error(interaction, error_inner)
 
-            logging.error("コマンド内部エラー", exc_info=error)
+            _logger.error("コマンド内部エラー", exc_info=error)
 
             code = Codes.INTERNAL_SERVER_ERROR
             description = "コマンド内部でエラーが発生しました。"
             add_trace = True
             add_support = True
         if code is None or description is None:
-            logging.error("不明なエラー", exc_info=error)
+            _logger.error("不明なエラー", exc_info=error)
 
             code = Codes.INTERNAL_SERVER_ERROR
             description = "予期しない不明なエラーが発生しました。"
@@ -284,7 +286,7 @@ class error(commands.Cog):
                 else:
                     raise
         except (nextcord.HTTPException, nextcord.NotFound, nextcord.Forbidden):
-            logging.exception("エラーメッセージを送信できませんでした")
+            _logger.exception("エラーメッセージを送信できませんでした")
 
 
 def setup(bot: NIRA):
