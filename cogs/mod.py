@@ -284,7 +284,7 @@ class MessageModeration(commands.Cog):
                 )
 
                 await message.channel.send(
-                    f"{message.author.mention}は、メッセージ数が規定オーバーになったため60秒間タイムアウトされました。"
+                    f"{message.author.mention}は、メッセージ数が規定オーバーになったためタイムアウトされました。"
                 )
             except Exception as _:
                 contact_id = uuid.uuid4()
