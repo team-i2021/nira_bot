@@ -180,7 +180,7 @@ class ModSettingModal(nextcord.ui.Modal):
                 upsert=True,
             )
             await self.cog.load_config()
-        except Exception as _:
+        except Exception:
             contact_id = uuid.uuid4()
             _logger.exception(f"An error has occurred! Contact ID: {contact_id}")
             await interaction.followup.send(
@@ -286,7 +286,7 @@ class MessageModeration(commands.Cog):
                 await message.channel.send(
                     f"{message.author.mention}は、メッセージ数が規定オーバーになったためタイムアウトされました。"
                 )
-            except Exception as _:
+            except Exception:
                 contact_id = uuid.uuid4()
                 _logger.exception(f"An error has occurred! Contact ID: {contact_id}")
                 await message.channel.send(
@@ -325,7 +325,7 @@ class MessageModeration(commands.Cog):
             try:
                 del self.MOD_LIST[interaction.guild.id]
                 await self.collection.delete_one({"guild_id": interaction.guild.id})
-            except Exception as _:
+            except Exception:
                 contact_id = uuid.uuid4()
                 _logger.exception(f"An error has occurred! Contact ID: {contact_id}")
                 await interaction.response.send_message(
