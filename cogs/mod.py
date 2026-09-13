@@ -1,14 +1,14 @@
 import datetime
 import logging
 import uuid
-from typing import Any, TypedDict, override
+from typing import TypedDict
 
 import nextcord
 from motor import motor_asyncio
 from nextcord import Interaction
 from nextcord.ext import application_checks, commands, tasks
-from nextcord.types import interactions
 
+from util import modal
 from util.nira import NIRA
 
 _logger = logging.getLogger(__name__)
@@ -34,113 +34,58 @@ class ModConfigDB(ModConfig):
     "サーバーID"
 
 
-class ModSettingModal(nextcord.ui.Modal):
-    def __init__(self, cog: "MessageModeration"):
-        super().__init__(
-            "モデレーション設定",
-            timeout=None,
-        )
+class ModSettingModal(modal.Modal):
+    def __init__(self, cog: "MessageModeration") -> None:
+        super().__init__("モデレーション設定", timeout=None)
 
-        self.message_counter = nextcord.components.TextInput(
-            label="タイムアウトにする基準のメッセージ数 (20秒間の間の送信数)",
-            style=nextcord.TextInputStyle.short,
-            placeholder="15",
-            min_length=1,
-            max_length=5,
-            required=True,
-        )
-        self.exempted_roles = nextcord.components.RoleSelect(
-            min_values=0, max_values=25
-        )
-        self.timeout_timer = nextcord.components.TextInput(
-            label="ユーザーをタイムアウトする時間 (単位: 時間) (最大で 672 まで指定可能)",
-            style=nextcord.TextInputStyle.short,
-            placeholder="1",
-            min_length=1,
-            max_length=3,
-            required=True,
-        )
+        self.cog = cog
 
-        self.cog: "MessageModeration" = cog
-
-    @override
-    def to_dict(self) -> dict[str, Any]:
-        d = {
-            "title": self.title,
-            "custom_id": self.custom_id,
-            "components": [
-                nextcord.components.Label(
-                    label=self.message_counter.label,
-                    component=self.message_counter,
-                ).to_dict(),
-                nextcord.components.Label(
-                    label="このタイムアウトの制限を受けない除外ロール",
-                    component=self.exempted_roles,
-                ).to_dict(),
-                nextcord.components.Label(
-                    label=self.timeout_timer.label,
-                    component=self.timeout_timer,
-                ).to_dict(),
-            ],
-        }
-        try:  # 現状のDiscord側が要求しているコンポーネント型と、nextcordの現状の実装は少し異なるため修正
-            del d["components"][0]["component"]["label"]
-            d["components"][1]["component"]["required"] = False
-            del d["components"][2]["component"]["label"]
-        except (KeyError, IndexError, TypeError):
-            pass
-        return d
-
-    def get_component(
-        self, data: interactions.InteractionData, custom_id: str
-    ) -> interactions.ComponentInteractionData | None:
-        """インタラクションのレスポンスデータから、`custom_id`を使ってコンポーネントのデータを引きます。
-
-        Returns
-        -------
-        Optional[interactions.ComponentInteractionData]
-            コンポーネントの返答データ。
-
-            指定された`custom_id`のコンポーネントが返答データに見つからなかった場合には None になります。
-        """
-        return next(
-            (
-                c
-                for c in data.get("components", [])
-                if c.get("component", {}).get("custom_id") == custom_id
+        self.message_counter = modal.ModalLabel(
+            text="タイムアウトにする基準のメッセージ数 (20秒間の送信数)",
+            component=modal.ModalTextInput(
+                style=nextcord.TextInputStyle.short,
+                placeholder="15",
+                min_length=1,
+                max_length=5,
+                required=True,
             ),
-            {},
-        ).get("component", None)
+        )
+        self.exempted_roles = modal.ModalLabel(
+            text="このタイムアウトの制限を受けない除外ロール",
+            component=modal.ModalRoleSelect(max_values=25, required=False),
+        )
+        self.timeout_timer = modal.ModalLabel(
+            text="ユーザーをタイムアウトする時間 (単位: 時間)",
+            description="1～672時間 (28日) まで指定できます。",
+            component=modal.ModalTextInput(
+                style=nextcord.TextInputStyle.short,
+                placeholder="1",
+                min_length=1,
+                max_length=3,
+                required=True,
+            ),
+        )
 
-    async def callback(self, interaction: nextcord.Interaction) -> None:
+        self.add_item(self.message_counter)
+        self.add_item(self.exempted_roles)
+        self.add_item(self.timeout_timer)
+
+    async def callback(self, interaction: Interaction) -> None:
         await interaction.response.defer(ephemeral=True)
         assert isinstance(interaction.guild, nextcord.Guild)
-        assert interaction.data
-
-        counter_component = self.get_component(
-            interaction.data, self.message_counter.custom_id
-        )
-        role_component = self.get_component(
-            interaction.data, self.exempted_roles.custom_id
-        )
-        timeout_component = self.get_component(
-            interaction.data, self.timeout_timer.custom_id
-        )
-
-        assert counter_component and role_component and timeout_component
 
         try:
-            counter = int(
-                counter_component.get("value", "None")
-            )  # `str | None`なので、直で`int`キャストするには`None`を除外しなければいけない。
-
-            if counter <= 0:
-                raise ValueError("自然数 (0より大きい値) を指定してください。")
+            counter = int(self.message_counter.component.value or 0)
+            if counter < 1:
+                raise ValueError
         except (TypeError, ValueError):
             await interaction.followup.send(
                 embed=nextcord.Embed(
                     title="荒らし対策",
-                    description="エラーが発生しました。\n「タイムアウトにする基準のメッセージ数 (20秒間の間の送信数)」には有効な正の整数を入れてください。",
+                    description=(
+                        "エラーが発生しました。\n"
+                        "「タイムアウトにする基準のメッセージ数」には有効な1以上の整数を入れてください。"
+                    ),
                     color=0xFF0000,
                 ),
                 ephemeral=True,
@@ -148,24 +93,24 @@ class ModSettingModal(nextcord.ui.Modal):
             return
 
         try:
-            timeout_duration = int(timeout_component.get("value", "None"))
-
-            if timeout_duration <= 0:
-                raise ValueError("自然数 (0より大きい値) を指定してください。")
-            elif timeout_duration > 672:
-                raise ValueError("672 (28日間) までの値を指定してください。")
+            timeout_duration = int(self.timeout_timer.component.value or 0)
+            if not 1 <= timeout_duration <= 672:
+                raise ValueError
         except (TypeError, ValueError):
             await interaction.followup.send(
                 embed=nextcord.Embed(
                     title="荒らし対策",
-                    description="エラーが発生しました。\n「ユーザーをタイムアウトする時間 (単位: 時間)」には有効な672までの正の整数を入れてください。",
+                    description=(
+                        "エラーが発生しました。\n"
+                        "「ユーザーをタイムアウトする時間」には有効な1～672までの整数を入れてください。"
+                    ),
                     color=0xFF0000,
                 ),
                 ephemeral=True,
             )
             return
 
-        role_ids = [int(i) for i in role_component.get("values", [])]
+        roles = self.exempted_roles.component.values.roles
 
         try:
             await self.cog.collection.update_one(
@@ -173,7 +118,7 @@ class ModSettingModal(nextcord.ui.Modal):
                 {
                     "$set": {
                         "counter": counter,
-                        "exempted_roles": role_ids,
+                        "exempted_roles": [r.id for r in roles],
                         "timeout": timeout_duration,
                     }
                 },
@@ -186,7 +131,11 @@ class ModSettingModal(nextcord.ui.Modal):
             await interaction.followup.send(
                 embed=nextcord.Embed(
                     title="荒らし対策",
-                    description=f"エラーが発生しました。\n\n・問い合わせ用ID (問い合わせの際はこのスクリーンショット又は以下のIDをご提示ください)\n```\n{contact_id}```",
+                    description=(
+                        "エラーが発生しました。\n\n"
+                        "・問い合わせ用ID (問い合わせの際はこのスクリーンショット又は以下のIDをご提示ください)\n"
+                        f"```\n{contact_id}```"
+                    ),
                     color=0xFF0000,
                 ),
                 ephemeral=True,
@@ -197,12 +146,7 @@ class ModSettingModal(nextcord.ui.Modal):
                 title="荒らし対策",
                 description=(
                     f"20秒間に`{counter}`回メッセージを送ったユーザーは{timeout_duration}時間の間タイムアウトされます。\n"
-                    "免除されるロール: "
-                    + (
-                        ", ".join([f"<@&{r}>" for r in role_ids])
-                        if len(role_ids) > 0
-                        else "なし"
-                    )
+                    f"免除されるロール: {", ".join(r.mention for r in roles) or "なし"}"
                 ),
                 color=0x00FF00,
             ),
