@@ -187,10 +187,11 @@ class MessageModeration(commands.Cog):
         if not message.guild or message.guild.id not in self.MOD_LIST:
             return
 
+        assert isinstance(message.author, nextcord.Member)
+
         if len(self.MOD_LIST[message.guild.id]["exempted_roles"]) > 0:
-            if isinstance(message.author, nextcord.Member) and bool(
-                set([r.id for r in message.author.roles])
-                & set(self.MOD_LIST[message.guild.id]["exempted_roles"])
+            if set(r.id for r in message.author.roles) & set(
+                self.MOD_LIST[message.guild.id]["exempted_roles"]
             ):
                 return
 
@@ -217,9 +218,6 @@ class MessageModeration(commands.Cog):
             >= self.MOD_LIST[message.guild.id]["counter"]
         ):
             try:
-                assert isinstance(message.guild, nextcord.Guild)
-                assert isinstance(message.author, nextcord.Member)
-
                 await message.author.timeout(
                     timeout=datetime.timedelta(
                         hours=self.MOD_LIST[message.guild.id]["timeout"]
