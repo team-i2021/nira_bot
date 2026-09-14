@@ -1,4 +1,5 @@
 import importlib
+import logging
 import traceback
 
 import nextcord
@@ -9,7 +10,11 @@ import util.help_command as hc
 from util import n_fc
 from util.nira import NIRA
 
+_logger = logging.getLogger(__name__)
+
 # インフォ系
+
+COMPONENT_ID_PREFIX = "cogs.info"
 
 CTX = 0
 SLASH = 1
@@ -81,11 +86,6 @@ class HelpSelect(nextcord.ui.Select):
                     value="1-8",
                 ),
                 nextcord.SelectOption(
-                    label='ボタンで投票するパネル',
-                    description=f"{prefix}pollpanel",
-                    value="1-9",
-                ),
-                nextcord.SelectOption(
                     label='Dissoku Up通知機能',
                     description=f"{prefix}up",
                     value="1-10"
@@ -126,11 +126,6 @@ class HelpSelect(nextcord.ui.Select):
                     label='管理者権限の有無をチェック',
                     description=f"{prefix}admin",
                     value="2-2",
-                ),
-                nextcord.SelectOption(
-                    label='Invite機能',
-                    description=f"{prefix}invite",
-                    value="2-3",
                 ),
             ]
         elif opt == Amuse:
@@ -228,49 +223,9 @@ class HelpSelect(nextcord.ui.Select):
                     value="0"
                 ),
                 nextcord.SelectOption(
-                    label='VCにBOTを参加させる',
-                    description=f"{prefix}join",
-                    value="7-1",
-                ),
-                nextcord.SelectOption(
-                    label='VCからBOTを離脱させる',
-                    description=f"{prefix}leave",
-                    value="7-2",
-                ),
-                nextcord.SelectOption(
                     label='読み上げ機能',
                     description=f"{prefix}tts",
                     value="7-3",
-                ),
-                nextcord.SelectOption(
-                    label='音楽を再生する',
-                    description=f"{prefix}play",
-                    value="7-4",
-                ),
-                nextcord.SelectOption(
-                    label='音楽再生を全部止める',
-                    description=f"{prefix}stop",
-                    value="7-5",
-                ),
-                nextcord.SelectOption(
-                    label='音楽再生を一時停止する',
-                    description=f"{prefix}pause",
-                    value="7-6",
-                ),
-                nextcord.SelectOption(
-                    label='音楽再生を再開する',
-                    description=f"{prefix}resume",
-                    value="7-7",
-                ),
-                nextcord.SelectOption(
-                    label='曲のリスト表示',
-                    description=f"{prefix}list",
-                    value="7-8",
-                ),
-                nextcord.SelectOption(
-                    label='リストの一番後ろを消す',
-                    description=f"{prefix}pop",
-                    value="7-9",
                 ),
             ]
         elif opt == BotUtility:
@@ -340,10 +295,6 @@ class HelpSelect(nextcord.ui.Select):
                     value="10-4"
                 ),
                 nextcord.SelectOption(
-                    label='投票パネル編集',
-                    value="10-5"
-                ),
-                nextcord.SelectOption(
                     label='下部ピン留めする',
                     value="10-6"
                 ),
@@ -365,6 +316,7 @@ class HelpSelect(nextcord.ui.Select):
             ]
 
         super().__init__(
+            custom_id=f"{COMPONENT_ID_PREFIX}.help",
             placeholder='Please select help content.',
             min_values=1,
             max_values=1,
@@ -421,6 +373,7 @@ class HelpSelect(nextcord.ui.Select):
             await interaction.message.edit(embed=embed, view=view)
             return
         except Exception:
+            _logger.exception("An error has occurred")
             await interaction.response.send_message(f"エラーが発生しました。\n```\n{traceback.format_exc()}```", ephemeral=True)
             return
 

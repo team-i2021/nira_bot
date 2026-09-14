@@ -125,9 +125,6 @@ class ChannelUtil(commands.Cog):
             c for c in sorted_channels if isinstance(c, nextcord.VoiceChannel) or isinstance(c, nextcord.StageChannel)
         ]
 
-        print(text_channels)
-        print(voice_channels)
-
         for pos in range(len(text_channels)):
             if text_channels[pos].position == pos:
                 continue
@@ -279,7 +276,7 @@ class ChannelUtil(commands.Cog):
         vc_grants = await self.vclimit_channel_collection.find_one({"guild_id": interaction.guild.id})
         if vc_grants is None:
             vc_grants = {}
-            asyncio.ensure_future(self.vclimit_channel_collection.update_one({"guild_id": interaction.guild.id}, {"$set": vc_grants}, upsert=True))
+            await self.vclimit_channel_collection.update_one({"guild_id": interaction.guild.id}, {"$set": vc_grants}, upsert=True)
         if str(vc_channel.id) not in vc_grants:
             roledata = await self.vclimit_collection.find_one({"_id": interaction.guild.id})
             if roledata is None:
@@ -384,7 +381,7 @@ VCの人数制限を変更します。
         vc_grants = await self.vclimit_channel_collection.find_one({"guild_id": ctx.guild.id})
         if vc_grants is None:
             vc_grants = {}
-            asyncio.ensure_future(self.vclimit_channel_collection.update_one({"guild_id": ctx.guild.id}, {"$set": vc_grants}, upsert=True))
+            await self.vclimit_channel_collection.update_one({"guild_id": ctx.guild.id}, {"$set": vc_grants}, upsert=True)
         if str(vc_channel.id) not in vc_grants:
             roledata = await self.vclimit_collection.find_one({"_id": ctx.guild.id})
             if roledata is None:

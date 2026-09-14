@@ -20,11 +20,20 @@ from util.nira import NIRA
 
 SYSDIR = sys.path[0]
 
+_logger = logging.getLogger(__name__)
+
 image_loc = f"{SYSDIR}/images"
 
 ERSetting = typing.TypedDict(
     "ERSetting",
-    {"_id": ObjectId, "guild_id": int, "trigger": str, "return": str, "mention": bool},
+    {
+        "_id": ObjectId,
+        "guild_id": int,
+        "trigger": str,
+        "return": str | None,
+        "mention": bool,
+        "reaction": str | None,
+    },
 )
 
 
@@ -42,6 +51,7 @@ class NRSetting(typing.TypedDict):
 DBDelayMessage: typing.Final[str] = (
     "(データベースへの接続の最適化のため、実際に設定が適応されるまでに最大で30秒程かかる場合があります。)"
 )
+
 
 class ReactionControll(commands.Cog):
     def __init__(self, bot: NIRA):
@@ -260,21 +270,32 @@ class ReactionControll(commands.Cog):
     async def add_er_slash(
         self,
         interaction: Interaction,
-        triggerMessage: str = SlashOption(
+        trigger_message: str = SlashOption(
             name="trigger_message",
             name_localizations={nextcord.Locale.ja: "トリガーメッセージ"},
             description="Trigger message",
             description_localizations={nextcord.Locale.ja: "反応する部分です"},
             required=True,
         ),
-        returnMessage: str = SlashOption(
+        return_message: str | None = SlashOption(
             name="return_message",
             name_localizations={nextcord.Locale.ja: "返信メッセージ"},
             description="Return message",
             description_localizations={
                 nextcord.Locale.ja: "返信するメッセージ内容です"
             },
-            required=True,
+            required=False,
+            default=None,
+        ),
+        reaction_emoji: str | None = SlashOption(
+            name="reaction_emoji",
+            name_localizations={nextcord.Locale.ja: "リアクション絵文字"},
+            description="Reaction emoji",
+            description_localizations={
+                nextcord.Locale.ja: "リアクションする絵文字です"
+            },
+            required=False,
+            default=None,
         ),
         mention: bool = SlashOption(
             name="mention",
@@ -293,13 +314,62 @@ class ReactionControll(commands.Cog):
     ):
         assert interaction.guild
 
-        await interaction.response.defer(ephemeral=True)
+        message = await interaction.send(
+            embed=nextcord.Embed(
+                title="Setting...",
+                description="設定を行っています......",
+                color=0x00FFFF,
+            ),
+            ephemeral=False,
+        )
+
+        if reaction_emoji is None and return_message is None:
+            await message.edit(
+                embed=nextcord.Embed(
+                    title="Error",
+                    description=f"返信文かリアクション絵文字のどちらかは指定してください。",
+                    color=0xFF0000,
+                )
+            )
+            return
+
+        if reaction_emoji is not None:
+            reaction_emoji = reaction_emoji.strip()
+
+            await message.edit(
+                embed=nextcord.Embed(
+                    title="Checking...",
+                    description="指定された絵文字を確認しています......",
+                    color=0x00FFFF,
+                ),
+            )
+            try:
+                if isinstance(message, nextcord.PartialInteractionMessage):
+                    await (await message.fetch()).add_reaction(reaction_emoji)
+                else:
+                    await message.add_reaction(reaction_emoji)
+            except Exception as e:
+                await message.edit(
+                    embed=nextcord.Embed(
+                        title="Error",
+                        description=f"リアクション絵文字の追加に失敗しました。\n{e}",
+                        color=0xFF0000,
+                    )
+                )
+                return
+
         await self.er_collection.update_one(
-            {"guild_id": interaction.guild.id, "trigger": triggerMessage},
-            {"$set": {"return": returnMessage, "mention": mention}},
+            {"guild_id": interaction.guild.id, "trigger": trigger_message},
+            {
+                "$set": {
+                    "return": return_message,
+                    "mention": mention,
+                    "reaction": reaction_emoji,
+                }
+            },
             upsert=True,
         )
-        await interaction.send(
+        await message.edit(
             embed=nextcord.Embed(
                 title="Success",
                 description=f"追加反応を追加しました。\n{DBDelayMessage}",
@@ -340,8 +410,8 @@ class ReactionControll(commands.Cog):
             for er in er_list:
                 embed.add_field(
                     name=er["trigger"],
-                    value=f"- 返信文\n{er['return']}\n\n- メンション\n{'有効' if er['mention'] else '無効'}",
-                    inline=False,
+                    value=f"- 返信文\n{er.get("return", None) or "(なし)"}\n\n- リアクション\n{er.get("reaction", None) or "(なし)"}\n\n- メンション\n{'有効' if er['mention'] else '無効'}",
+                    inline=True,
                 )
 
             await interaction.user.send(embed=embed)
@@ -357,7 +427,7 @@ class ReactionControll(commands.Cog):
     async def del_er_slash(
         self,
         interaction: Interaction,
-        triggerMessage: str = SlashOption(
+        trigger_message: str = SlashOption(
             name="trigger_message",
             name_localizations={nextcord.Locale.ja: "トリガーメッセージ"},
             description="Trigger message.",
@@ -370,7 +440,7 @@ class ReactionControll(commands.Cog):
         await interaction.response.defer(ephemeral=True)
 
         delete_result = await self.er_collection.delete_one(
-            {"guild_id": interaction.guild.id, "trigger": triggerMessage}
+            {"guild_id": interaction.guild.id, "trigger": trigger_message}
         )
         if delete_result.deleted_count == 0:
             await interaction.followup.send(
@@ -399,21 +469,32 @@ class ReactionControll(commands.Cog):
     async def edit_er_slash(
         self,
         interaction: Interaction,
-        triggerMessage: str = SlashOption(
+        trigger_message: str = SlashOption(
             name="trigger_message",
             name_localizations={nextcord.Locale.ja: "トリガーメッセージ"},
             description="Trigger message",
             description_localizations={nextcord.Locale.ja: "反応する部分です"},
             required=True,
         ),
-        returnMessage: str = SlashOption(
+        return_message: str | None = SlashOption(
             name="return_message",
             name_localizations={nextcord.Locale.ja: "返信メッセージ"},
             description="Return message",
             description_localizations={
                 nextcord.Locale.ja: "返信するメッセージ内容です"
             },
-            required=True,
+            required=False,
+            default=None,
+        ),
+        reaction_emoji: str | None = SlashOption(
+            name="reaction_emoji",
+            name_localizations={nextcord.Locale.ja: "リアクション絵文字"},
+            description="Reaction emoji",
+            description_localizations={
+                nextcord.Locale.ja: "リアクションする絵文字です"
+            },
+            required=False,
+            default=None,
         ),
         mention: bool = SlashOption(
             name="mention",
@@ -432,25 +513,69 @@ class ReactionControll(commands.Cog):
     ):
         assert interaction.guild
 
-        await interaction.response.defer(ephemeral=True)
-        update_value = {"return": returnMessage, "mention": mention}
-        edit_result = await self.er_collection.update_one(
-            {"guild_id": interaction.guild.id, "trigger": triggerMessage},
-            {"$set": update_value},
+        message = await interaction.send(
+            embed=nextcord.Embed(
+                title="Setting...",
+                description="設定を行っています......",
+                color=0x00FFFF,
+            ),
+            ephemeral=False,
         )
-        if edit_result.modified_count == 0:
-            await interaction.followup.send(
+
+        if reaction_emoji is None and return_message is None:
+            await message.edit(
                 embed=nextcord.Embed(
                     title="Error",
-                    description=f"追加反応が存在しませんでした。",
+                    description=f"返信文かリアクション絵文字のどちらかは指定してください。",
+                    color=0xFF0000,
+                )
+            )
+            return
+
+        if reaction_emoji is not None:
+            reaction_emoji = reaction_emoji.strip()
+
+            await message.edit(
+                embed=nextcord.Embed(
+                    title="Checking...",
+                    description="指定された絵文字を確認しています......",
+                    color=0x00FFFF,
+                ),
+            )
+            try:
+                if isinstance(message, nextcord.PartialInteractionMessage):
+                    await (await message.fetch()).add_reaction(reaction_emoji)
+                else:
+                    await message.add_reaction(reaction_emoji)
+            except Exception as e:
+                await message.edit(
+                    embed=nextcord.Embed(
+                        title="Error",
+                        description=f"リアクション絵文字の追加に失敗しました。\n{e}",
+                        color=0xFF0000,
+                    )
+                )
+                return
+
+        update_value = {"return": return_message, "mention": mention, "reaction": reaction_emoji}
+        edit_result = await self.er_collection.update_one(
+            {"guild_id": interaction.guild.id, "trigger": trigger_message},
+            {"$set": update_value},
+            upsert=False
+        )
+        if edit_result.modified_count == 0:
+            await message.edit(
+                embed=nextcord.Embed(
+                    title="Error",
+                    description=f"指定されたトリガーの追加反応が存在しませんでした。",
                     color=0xFF0000,
                 )
             )
         else:
-            await interaction.followup.send(
+            await message.edit(
                 embed=nextcord.Embed(
                     title="Success",
-                    description=f"追加反応を編集しました。\n{DBDelayMessage}",
+                    description=f"指定されたトリガーの追加反応を編集しました。\n{DBDelayMessage}",
                     color=0x00FF00,
                 )
             )
@@ -854,6 +979,7 @@ class ReactionControll(commands.Cog):
 
         await interaction.send(embed=embed, ephemeral=True)
 
+    @application_checks.is_owner()
     @nr_slash.subcommand(
         name="updated",
         description="Displays the last time the reaction database was retrieved.",
@@ -907,6 +1033,7 @@ class Reaction:
 
 class FileReaction(Reaction):
     "ファイルを添付するリアクション。"
+
     file: list[str]
 
     def __init__(self, trigger: str, *file: str):
@@ -934,6 +1061,7 @@ class DesignatedFileReaction(FileReaction):
 
 class TextReaction(Reaction):
     "テキストを返信するリアクション。"
+
     text: list[str]
 
     def __init__(self, trigger: str, *text: str):
@@ -961,6 +1089,7 @@ class DesignatedTextReaction(TextReaction):
 
 class EmojiReaction(Reaction):
     "絵文字を付けるリアクション。"
+
     emoji: str
 
     def __init__(self, trigger: str, emoji: str):
@@ -1070,6 +1199,7 @@ Reactions: typing.Final[list[Reaction]] = [
             "結合せよ　反発せよ　地に満ち己の無力を知れ...\n"
             "破道の九十・黒棺！\n"
         ),
+        "まったく............やりにくい男だ............\n破道の九十......黒棺",
     ),
     TextReaction(
         "昼ごはん|ひるごはん|昼ご飯|ひるご飯",
@@ -1167,6 +1297,19 @@ class NormalReaction(commands.Cog):
             return
 
         if (
+            not isinstance(message.channel, nextcord.VoiceChannel)
+            and message.channel.topic
+            and "nira-auto-publish" in message.channel.topic
+        ):
+            try:
+                await message.publish()
+            except nextcord.Forbidden:
+                # `メッセージの管理`権限が足りないか、アナウンスチャンネルではない
+                pass
+            except Exception:
+                _logger.exception("メッセージの自動公開中にエラーが発生しました。")
+
+        if (
             isinstance(self.bot.command_prefix, str)
             and message.content.startswith(self.bot.command_prefix)
             or isinstance(self.bot.command_prefix, (list, tuple))
@@ -1250,31 +1393,40 @@ class NormalReaction(commands.Cog):
                 and re.search(d["trigger"], message.content)
             ]
             for reaction in ex_reaction_list:
-                reaction_content = reaction["return"]
-                reaction_contents: list[str] = []
-                join_check = False
-                for c in reaction_content.split("|"):
-                    if c == "":
-                        join_check = True
-                        continue
-                    if join_check:
-                        if len(reaction_contents) == 0:
-                            reaction_contents.append(c)
-                            join_check = False
+                reaction_content = reaction.get("return", None)
+                reaction_emoji = reaction.get("reaction", None)
+
+                if reaction_emoji is not None:
+                    try:
+                        await message.add_reaction(reaction_emoji)
+                    except Exception:
+                        pass
+
+                if reaction_content is not None:
+                    reaction_contents: list[str] = []
+                    join_check = False
+                    for c in reaction_content.split("|"):
+                        if c == "":
+                            join_check = True
+                            continue
+                        if join_check:
+                            if len(reaction_contents) == 0:
+                                reaction_contents.append(c)
+                                join_check = False
+                            else:
+                                reaction_contents[-1] += f"|{c}"
+                                join_check = False
                         else:
-                            reaction_contents[-1] += f"|{c}"
-                            join_check = False
-                    else:
-                        reaction_contents.append(c)
-                if len(reaction_contents) == 1:
-                    await message.reply(
-                        reaction_content, mention_author=reaction["mention"]
-                    )
-                elif len(reaction_contents) > 1:
-                    await message.reply(
-                        random.choice(reaction_contents),
-                        mention_author=reaction["mention"],
-                    )
+                            reaction_contents.append(c)
+                    if len(reaction_contents) == 1:
+                        await message.reply(
+                            reaction_content, mention_author=reaction["mention"]
+                        )
+                    elif len(reaction_contents) > 1:
+                        await message.reply(
+                            random.choice(reaction_contents),
+                            mention_author=reaction["mention"],
+                        )
 
         # 通常反応
         if normal_reaction:
@@ -1306,8 +1458,8 @@ class NormalReaction(commands.Cog):
     async def database_update_loop(self):
         try:
             await self.database_update()
-        except Exception as err:
-            logging.error(err)
+        except Exception:
+            _logger.exception("An error has occurred")
 
 
 def setup(bot: NIRA):

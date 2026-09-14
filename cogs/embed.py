@@ -1,3 +1,4 @@
+import logging
 import re
 from io import StringIO
 
@@ -6,6 +7,8 @@ from nextcord import Interaction
 from nextcord.ext import commands
 
 from util.nira import NIRA
+
+_logger = logging.getLogger(__name__)
 
 # embedを送信する機能
 
@@ -86,7 +89,7 @@ class EmbedMaker(nextcord.ui.Modal):
 class SendEmbed(commands.Cog):
     def __init__(self, bot: NIRA):
         self.bot = bot
-        self.mscommands = self.embed_message_command
+        self.mscommand = self.embed_message_command
 
     # @nextcord.message_command(name="Embedコンテンツの取得")
     async def embed_message_command(self, interaction: Interaction, message: nextcord.Message):
@@ -142,6 +145,7 @@ Embedの本文です。
             await ctx.send(embed=embed)
             return
         except Exception as err:
+            _logger.exception("An error has occurred")
             await ctx.reply(embed=self.bot.error_embed(err))
             return
 

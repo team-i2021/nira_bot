@@ -1,10 +1,12 @@
+import asyncio
+import logging
 import re
 import sys
 
 import deepl
+import fast_langdetect  # pyright: ignore[reportMissingTypeStubs]
 import nextcord
-import pycld2
-from googletrans import Translator
+from googletrans import Translator  # pyright: ignore[reportMissingTypeStubs]
 from nextcord import Interaction, SlashOption, ChannelType
 from nextcord.ext import commands
 
@@ -36,6 +38,8 @@ PROVIDER = {
     }
 }
 
+_logger = logging.getLogger(__name__)
+
 
 def deepl_translate(deepl_tr: deepl.Translator, content, source_lang, target_lang):
     if PROVIDER["DEEPL"]["ACTIVE"]:
@@ -47,12 +51,12 @@ def deepl_translate(deepl_tr: deepl.Translator, content, source_lang, target_lan
         raise Exception("DeepL Translatie isn't active.")
 
 
-def google_translate(google_tr: Translator, content, source_lang, target_lang):
+async def google_translate(google_tr: Translator, content: str, source_lang: str | None, target_lang: str):
     if PROVIDER["GOOGLE"]["ACTIVE"]:
         if source_lang is None:
-            return google_tr.translate(content, dest=target_lang)
+            return await google_tr.translate(content, dest=target_lang)
         else:
-            return google_tr.translate(content, src=source_lang, dest=target_lang)
+            return await google_tr.translate(content, src=source_lang, dest=target_lang)
     else:
         raise Exception("Google Translate isn't active.")
 
@@ -71,7 +75,7 @@ def make_embed(provider: int, translated_content: str, source: str, target: str)
     return nextcord.Embed(title="翻訳結果", description=translated_content, color=color).set_footer(text=f"{text} ([{source}]->[{target}])", icon_url=url)
 
 
-async def translation(bot: commands.Bot, deepl_tr: deepl.Translator, google_tr: Translator, content: str, source_lang: str, target_lang: str) -> tuple:
+async def translation(bot: commands.Bot, deepl_tr: deepl.Translator, google_tr: Translator, content: str, source_lang: str | None, target_lang: str) -> tuple:
     translate = PROVIDER["DEEPL"]["ID"]
     try:
         if deepl_tr is not None:
@@ -86,36 +90,24 @@ async def translation(bot: commands.Bot, deepl_tr: deepl.Translator, google_tr: 
         else:
             raise Exception("DeepL API Key doesn't exist.")
     except Exception:
+        _logger.debug("An error has occurred in DeepL Translate, we will fall back to Google Translate", exc_info=True)
         translate = PROVIDER["GOOGLE"]["ID"]
         if target_lang in ["EN-US", "EN-GB"]:
             target_lang = "en"
-        if source_lang is not None:
-            result = await bot.loop.run_in_executor(
-                None,
-                google_translate,
-                google_tr,
-                content,
-                source_lang,
-                target_lang
-            )
-        else:
-            result = await bot.loop.run_in_executor(
-                None,
-                google_translate,
-                google_tr,
-                content,
-                None,
-                target_lang,
-            )
+        result = await google_translate(google_tr, content, source_lang, target_lang)
     return (result.text, translate)
 
 
-def languageCheck(text: str) -> str:
-    isReliable, textBytesFound, details = pycld2.detect(text)
-    if "ja" == details[0][1]:
-        return "JA"
-    else:
-        return "EN"
+_lock_langdetect = asyncio.Lock()
+
+
+async def languageCheck(text: str) -> str:
+    # 恐らくスレッドセーフではないのでロックをかける
+    async with _lock_langdetect:
+        # ローカルに学習済みモデルが存在しない場合はダウンロードする仕様であるが、
+        # 同期コードでありイベントループをブロックしてしまうので、スレッドに逃がして回避する
+        result = await asyncio.to_thread(fast_langdetect.detect, text, model="auto")
+    return "JA" if result[0]["lang"] == "ja" else "EN"
 
 
 def contentCheck(message: nextcord.Message) -> bool:
@@ -163,7 +155,7 @@ class ProviderSwitchGoogle(nextcord.ui.Button):
 
 
 class TranslateModal(nextcord.ui.Modal):
-    def __init__(self, bot: commands.Bot, deepl_tr: deepl.Translator, google_tr: Translator, source_lang: str or None, target_lang: str):
+    def __init__(self, bot: commands.Bot, deepl_tr: deepl.Translator, google_tr: Translator, source_lang: str | None, target_lang: str):
         super().__init__(
             "翻訳",
             timeout=None,
@@ -191,19 +183,19 @@ class TranslateModal(nextcord.ui.Modal):
                     self._source_lang = "..."
                 await interaction.followup.send(embed=make_embed(result[1], result[0], self._source_lang, self._target_lang))
         except Exception as err:
+            _logger.exception("An error has occurred")
             await interaction.followup.send(embed=nextcord.Embed(title="エラー", description=f"エラー。\n```\n{err}```", color=0xFF0000))
 
 
 class Translate(commands.Cog):
     def __init__(self, bot: NIRA):
         self.bot = bot
-        if "translate" not in self.bot.settings or self.bot.settings["translate"] == "":
+        if not self.bot.settings.translate:
             self.deepl_tr = None
             PROVIDER['DEEPL']['ACTIVE'] = False
-            print(
-                "[Extension: Translate]\nDeepL API Key doesn't exist.\nWe use google Tranlate.")
+            _logger.info("DeepL API Key doesn't exist. We use Google Translate.")
         else:
-            self.deepl_tr = deepl.Translator(self.bot.settings["translate"])
+            self.deepl_tr = deepl.Translator(self.bot.settings.translate)
         self.google_tr = Translator()
         self.mscommand = self.translation_message_command
 
@@ -282,7 +274,7 @@ class Translate(commands.Cog):
             )
             return
 
-        sLang = languageCheck(message.content)
+        sLang = await languageCheck(message.content)
         if sLang == "EN":
             sLang, tLang = ("EN", "JA")
         else:
@@ -341,6 +333,7 @@ Powered by DeepL Translate/Google Translate.""")
                     await ctx.reply(embed=make_embed(result[1], result[0], "...", lang))
                     return
             except Exception as err:
+                _logger.exception("An error has occurred")
                 await ctx.reply(embed=nextcord.Embed(title="エラー", description=f"エラー。\n```\n{err}```", color=0xFF0000))
         return
 
@@ -368,7 +361,7 @@ Powered by DeepL Translate/Google Translate.""")
             elif re.search(u"nira-tl-(ja|en|auto)", message.channel.topic).group() == "nira-tl-en":
                 TARGET = "EN-US"
             elif re.search(u"nira-tl-(ja|en|auto)", message.channel.topic).group() == "nira-tl-auto":
-                sLang = languageCheck(message.content)
+                sLang = await languageCheck(message.content)
                 TARGET = "JA"
                 if sLang == "JA":
                     TARGET = "EN-US"
@@ -391,7 +384,7 @@ Powered by DeepL Translate/Google Translate.""")
             elif re.search(u"nira-tlb-(ja|en|auto)", message.channel.topic).group() == "nira-tlb-en":
                 TARGET = "EN-US"
             elif re.search(u"nira-tlb-(ja|en|auto)", message.channel.topic).group() == "nira-tlb-auto":
-                sLang = languageCheck(message.content)
+                sLang = await languageCheck(message.content)
                 TARGET = "JA"
                 if sLang == "JA":
                     TARGET = "EN-US"

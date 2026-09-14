@@ -1,5 +1,5 @@
 import sys
-from typing import Any, Annotated
+from typing import Annotated, Any
 
 from pydantic import BeforeValidator, Field, NonNegativeInt, PositiveInt, SecretStr
 from pydantic.networks import UrlConstraints
@@ -45,6 +45,11 @@ class Logging(SettingsBase):
     level: Annotated[int | LoggerLevel, BeforeValidator(_upper_level)] = "INFO"
 
 
+# logging.config.dictConfig用
+class LoggingDict(SettingsBase, extra="allow"):
+    version: int
+
+
 class BotSettings(SettingsBase):
     # トークンとか (必須)
     tokens: Tokens
@@ -52,8 +57,8 @@ class BotSettings(SettingsBase):
     # API キー
     translate: NonEmptyStr | None = None
     voicevox: tuple[NonEmptyStr, ...] = ()
-    talk_api: NonEmptyStr | None = None
     gcloud_api: NonEmptyStr | None = None
+    gemini_model: NonEmptyStr = "gemini-pro"
 
     # データベース周り
     database_url: MongoSRVDsn
@@ -63,7 +68,7 @@ class BotSettings(SettingsBase):
     prefix: str = "n!"
     shard_id: NonNegativeInt = 0
     shard_count: PositiveInt = 1
-    logging: Logging = Logging()
+    logging: LoggingDict | Logging = Logging()
 
     # 上同だが任意のもの
     py_admin: tuple[NonNegativeInt, ...] = ()

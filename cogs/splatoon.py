@@ -1,4 +1,3 @@
-import asyncio
 import enum
 
 import nextcord
@@ -24,7 +23,7 @@ class Splatoon(commands.Cog):
             "locale_ja-JP": "https://splatoon3.ink/data/locale/ja-JP.json"
         }
         self.locale = {}
-        asyncio.ensure_future(self.refresh_locale())
+        self.bot.schedule_task(self.refresh_locale())
 
     async def refresh_locale(self):
         async with self.bot.session.get(self.urls["locale_ja-JP"]) as resp:

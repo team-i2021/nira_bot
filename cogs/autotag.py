@@ -1,5 +1,5 @@
 import enum
-from typing import NamedTuple
+from typing import NamedTuple, TypedDict
 
 import nextcord
 from motor import motor_asyncio
@@ -20,13 +20,18 @@ class AutoTagResult(NamedTuple):
     embed: nextcord.Embed | None
 
 
+class AutoTagDocument(TypedDict):
+    channel_id: int
+    tags: list[int]
+
+
 # Autorole
 class AutoTag(commands.Cog):
     def __init__(self, bot: NIRA):
         self.bot = bot
-        self.collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database[
-            "autotag"
-        ]
+        self.collection: motor_asyncio.AsyncIOMotorCollection[AutoTagDocument] = (
+            self.bot.database["autotag"]
+        )
 
     async def autotag_message(
         self,
@@ -72,8 +77,26 @@ class AutoTag(commands.Cog):
 
         else:
             result = await self.collection.find_one({"channel_id": forum_id})
-            if result is not None:
-                msg = f"このフォーラムチャンネル自動タグ付けは有効です。\n自動で付けられるタグは {', '.join([t.name for t in tags])} です。"
+            if result:
+                assert forum_id is not None
+                forum_channel = await interaction.guild.fetch_channel(forum_id)
+                if not isinstance(forum_channel, nextcord.ForumChannel):
+                    return AutoTagResult(
+                        "このフォーラムチャンネルは存在しません。\nフォーラムチャンネルを削除した場合は、自動タグ付けの設定も削除されます。",
+                        None,
+                    )
+
+                fetched_tags = [
+                    t
+                    for t in [
+                        forum_channel.get_tag(tid)
+                        for tid in result.get("tags", [])
+                        if tid
+                    ]
+                    if t is not None
+                ]
+
+                msg = f"このフォーラムチャンネル自動タグ付けは有効です。\n自動で付けられるタグは {', '.join([t.name for t in fetched_tags])} です。"
             else:
                 msg = "このフォーラムチャンネルで自動タグ付けは設定されていません。"
 
@@ -194,7 +217,7 @@ class AutoTag(commands.Cog):
         result = await self.collection.find_one({"channel_id": channel.id})
         if result:
             new_tags = [channel.get_tag(tid) for tid in result.get("tags", []) if tid]
-            current_tags = thread.applied_tags
+            current_tags = thread.applied_tags or []
             tags = [t for t in new_tags if t and t not in current_tags] + current_tags
             if tags:
                 await thread.edit(applied_tags=tags)
