@@ -52,6 +52,7 @@ class ModSettingModal(modal.Modal):
         )
         self.exempted_roles = modal.ModalLabel(
             text="このタイムアウトの制限を受けない除外ロール",
+            description="この設定にかかわらず、管理者権限を持っているユーザー (サーバーオーナーを含む) にタイムアウトは適用されません。",
             component=modal.ModalRoleSelect(max_values=25, required=False),
         )
         self.timeout_timer = modal.ModalLabel(
@@ -188,6 +189,9 @@ class MessageModeration(commands.Cog):
             return
 
         assert isinstance(message.author, nextcord.Member)
+
+        if message.author.guild_permissions.administrator:
+            return
 
         if len(self.MOD_LIST[message.guild.id]["exempted_roles"]) > 0:
             if set(r.id for r in message.author.roles) & set(
