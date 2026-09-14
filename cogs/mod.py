@@ -236,7 +236,9 @@ class MessageModeration(commands.Cog):
                 contact_id = uuid.uuid4()
                 _logger.exception(f"An error has occurred! Contact ID: {contact_id}")
                 await message.channel.send(
-                    f"{message.author.name}をミュートしようとしましたがエラーが発生しました。\n\n・問い合わせ用ID (問い合わせの際はこのスクリーンショット又は以下のIDをご提示ください)\n```\n{contact_id}```"
+                    f"{message.author.name}をミュートしようとしましたがエラーが発生しました。\n\n"
+                    "・問い合わせ用ID (問い合わせの際はこのスクリーンショット又は以下のIDをご提示ください)\n"
+                    f"```\n{contact_id}```"
                 )
 
     @nextcord.slash_command(
@@ -277,7 +279,11 @@ class MessageModeration(commands.Cog):
                 await interaction.response.send_message(
                     embed=nextcord.Embed(
                         title="荒らし対策",
-                        description=f"エラーが発生しました。\n\n・問い合わせ用ID (問い合わせの際はこのスクリーンショット又は以下のIDをご提示ください)\n```\n{contact_id}```",
+                        description=(
+                            f"エラーが発生しました。\n\n"
+                            "・問い合わせ用ID (問い合わせの際はこのスクリーンショット又は以下のIDをご提示ください)\n"
+                            f"```\n{contact_id}```"
+                        ),
                         color=0xFF0000,
                     ),
                     ephemeral=True,
@@ -315,22 +321,17 @@ class MessageModeration(commands.Cog):
                     title="荒らし対策",
                     description=(
                         f"サーバーで機能は`有効`になっています。\n"
-                        f"20秒間に`{self.MOD_LIST[interaction.guild.id]['counter']}`回メッセージを送ったユーザーは{self.MOD_LIST[interaction.guild.id]['timeout']}時間の間タイムアウトされます。\n"
+                        f"20秒間に`{self.MOD_LIST[interaction.guild.id]['counter']}`回メッセージを送ったユーザーは"
+                        f"{self.MOD_LIST[interaction.guild.id]['timeout']}時間の間タイムアウトされます。\n"
                         "免除されるロール: "
                         + (
                             ", ".join(
-                                [
-                                    f"<@&{r}>"
-                                    for r in self.MOD_LIST[interaction.guild.id][
-                                        "exempted_roles"
-                                    ]
+                                f"<@&{r}>"
+                                for r in self.MOD_LIST[interaction.guild.id][
+                                    "exempted_roles"
                                 ]
                             )
-                            if len(
-                                self.MOD_LIST[interaction.guild.id]["exempted_roles"]
-                            )
-                            > 0
-                            else "なし"
+                            or "なし"
                         )
                     ),
                     color=0x00FF00,
