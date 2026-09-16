@@ -248,7 +248,7 @@ class ModalTextInput[V: ui.View](ui.TextInput[V]):
         )
 
 
-def _modal_select[S: nextcord.ui.select.base.SelectBase](cls: type[S]) -> type[S]:
+def _modal_select_required[S: nextcord.ui.select.base.SelectBase](cls: type[S]) -> type[S]:
     """コンポーネントに ``required`` フィールドを追加するためのデコレータ"""
 
     orig_to_component_dict = cls.to_component_dict
@@ -265,7 +265,7 @@ def _modal_select[S: nextcord.ui.select.base.SelectBase](cls: type[S]) -> type[S
     return cls
 
 
-@_modal_select
+@_modal_select_required
 class ModalStringSelect[V: ui.View](ui.StringSelect[V]):
     @override
     def __init__(
@@ -292,7 +292,7 @@ class ModalStringSelect[V: ui.View](ui.StringSelect[V]):
         self.required = required
 
 
-@_modal_select
+@_modal_select_required
 class ModalUserSelect[V: ui.View](ui.UserSelect[V]):
     @override
     def __init__(
@@ -317,7 +317,7 @@ class ModalUserSelect[V: ui.View](ui.UserSelect[V]):
         self.required = required
 
 
-@_modal_select
+@_modal_select_required
 class ModalRoleSelect[V: ui.View](ui.RoleSelect[V]):
     @override
     def __init__(
@@ -342,7 +342,7 @@ class ModalRoleSelect[V: ui.View](ui.RoleSelect[V]):
         self.required = required
 
 
-@_modal_select
+@_modal_select_required
 class ModalMentionableSelect[V: ui.View](ui.MentionableSelect[V]):
     @override
     def __init__(
@@ -367,7 +367,7 @@ class ModalMentionableSelect[V: ui.View](ui.MentionableSelect[V]):
         self.required = required
 
 
-@_modal_select
+@_modal_select_required
 class ModalChannelSelect[V: ui.View](ui.ChannelSelect[V]):
     @override
     def __init__(
