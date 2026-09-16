@@ -2,8 +2,8 @@
 
 import functools
 import time
-from collections.abc import Iterator
-from typing import Self, override
+from collections.abc import Iterable, Iterator
+from typing import Literal, Self, override
 
 import nextcord
 import nextcord.state
@@ -292,7 +292,63 @@ class ModalStringSelect[V: ui.View](ui.StringSelect[V]):
         self.required = required
 
 
+type _SelectDefaultValueBaseTypes = nextcord.SelectDefaultValue | nextcord.abc.Snowflake | int
+
+
+def _convert_default_values(
+    values: Iterable[
+        nextcord.User
+        | nextcord.Member
+        | nextcord.Role
+        | nextcord.abc.GuildChannel
+        | _SelectDefaultValueBaseTypes
+    ],
+    default_type: (
+        nextcord.SelectDefaultValueType | Literal["user", "role", "channel"] | None
+    ) = None,
+) -> list[nextcord.SelectDefaultValue]:
+    """nextcord モデルを ``default_values`` 用の値に変換する"""
+
+    default_values: list[nextcord.SelectDefaultValue] = []
+    for value in values:
+        match value:
+            case nextcord.SelectDefaultValue():
+                pass
+            case nextcord.User() | nextcord.Member():
+                value = nextcord.SelectDefaultValue(value.id, "user")
+            case nextcord.Role():
+                value = nextcord.SelectDefaultValue(value.id, "role")
+            case nextcord.abc.GuildChannel():
+                value = nextcord.SelectDefaultValue(value.id, "channel")
+            case nextcord.abc.Snowflake() if default_type is not None:
+                value = nextcord.SelectDefaultValue(value.id, default_type)
+            case int() if default_type is not None:
+                value = nextcord.SelectDefaultValue(value, default_type)
+            case _:
+                raise TypeError(f"unsupported value: {value!r}")
+        default_values.append(value)
+
+    return default_values
+
+
+def _modal_select_default_values[S: nextcord.ui.select.base.SelectBase](cls: type[S]) -> type[S]:
+    """コンポーネントに ```default_values``` フィールドを追加するためのデコレータ"""
+
+    orig_to_component_dict = cls.to_component_dict
+
+    @functools.wraps(orig_to_component_dict)
+    def to_component_dict(self: S):
+        if (default_values := getattr(self, "default_values", MISSING)) is not MISSING:
+            setattr(self._underlying, "default_values", default_values)
+        return orig_to_component_dict(self)
+
+    cls.__item_repr_attributes__ += ("default_values",)
+    cls.to_component_dict = to_component_dict
+    return cls
+
+
 @_modal_select_required
+@_modal_select_default_values
 class ModalUserSelect[V: ui.View](ui.UserSelect[V]):
     @override
     def __init__(
@@ -300,6 +356,9 @@ class ModalUserSelect[V: ui.View](ui.UserSelect[V]):
         *,
         custom_id: str | None = None,
         placeholder: str | None = None,
+        default_values: (
+            Iterable[nextcord.User | nextcord.Member | _SelectDefaultValueBaseTypes] | None
+        ) = None,
         min_values: int = 1,
         max_values: int = 1,
         required: bool = MISSING,
@@ -315,9 +374,13 @@ class ModalUserSelect[V: ui.View](ui.UserSelect[V]):
             row=row,
         )
         self.required = required
+        self.default_values = (
+            MISSING if default_values is None else _convert_default_values(default_values, "user")
+        )
 
 
 @_modal_select_required
+@_modal_select_default_values
 class ModalRoleSelect[V: ui.View](ui.RoleSelect[V]):
     @override
     def __init__(
@@ -325,6 +388,7 @@ class ModalRoleSelect[V: ui.View](ui.RoleSelect[V]):
         *,
         custom_id: str | None = None,
         placeholder: str | None = None,
+        default_values: Iterable[nextcord.Role | _SelectDefaultValueBaseTypes] | None = None,
         min_values: int = 1,
         max_values: int = 1,
         required: bool = MISSING,
@@ -340,9 +404,13 @@ class ModalRoleSelect[V: ui.View](ui.RoleSelect[V]):
             row=row,
         )
         self.required = required
+        self.default_values = (
+            MISSING if default_values is None else _convert_default_values(default_values, "role")
+        )
 
 
 @_modal_select_required
+@_modal_select_default_values
 class ModalMentionableSelect[V: ui.View](ui.MentionableSelect[V]):
     @override
     def __init__(
@@ -350,6 +418,12 @@ class ModalMentionableSelect[V: ui.View](ui.MentionableSelect[V]):
         *,
         custom_id: str | None = None,
         placeholder: str | None = None,
+        default_values: (
+            Iterable[
+                nextcord.User | nextcord.Member | nextcord.Role | _SelectDefaultValueBaseTypes
+            ]
+            | None
+        ) = None,
         min_values: int = 1,
         max_values: int = 1,
         required: bool = MISSING,
@@ -365,9 +439,13 @@ class ModalMentionableSelect[V: ui.View](ui.MentionableSelect[V]):
             row=row,
         )
         self.required = required
+        self.default_values = (
+            MISSING if default_values is None else _convert_default_values(default_values)
+        )
 
 
 @_modal_select_required
+@_modal_select_default_values
 class ModalChannelSelect[V: ui.View](ui.ChannelSelect[V]):
     @override
     def __init__(
@@ -375,6 +453,9 @@ class ModalChannelSelect[V: ui.View](ui.ChannelSelect[V]):
         *,
         custom_id: str | None = None,
         placeholder: str | None = None,
+        default_values: (
+            Iterable[nextcord.abc.GuildChannel | _SelectDefaultValueBaseTypes] | None
+        ) = None,
         min_values: int = 1,
         max_values: int = 1,
         required: bool = MISSING,
@@ -392,3 +473,8 @@ class ModalChannelSelect[V: ui.View](ui.ChannelSelect[V]):
             channel_types=channel_types,
         )
         self.required = required
+        self.default_values = (
+            MISSING
+            if default_values is None
+            else _convert_default_values(default_values, "channel")
+        )
