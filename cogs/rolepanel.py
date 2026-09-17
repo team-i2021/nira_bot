@@ -1,11 +1,13 @@
 import logging
 import re
 import traceback
+from collections.abc import Sequence
 
 import nextcord
 from nextcord import Interaction
 from nextcord.ext import commands
 
+from util import modal
 from util.admin_check import admin_check
 from util.nira import NIRA
 
@@ -16,149 +18,74 @@ rolepanel_compile = re.compile(r"[0-9]+: <@&[0-9]+>")
 # RolePanel
 
 
-class RolePanelSlashInput(nextcord.ui.Modal):
-    def __init__(self, bot):
-        super().__init__("ロールパネル", timeout=None)
+class RolePanelModal(modal.Modal):
+    def __init__(
+        self,
+        *,
+        message: nextcord.Message | None = None,
+        default_title: str | None = None,
+        default_roles: Sequence[nextcord.Role | int] | None = None,
+        has_deleted_roles: bool = False,
+    ) -> None:
+        super().__init__(f"ロールパネル{"編集" if message else "作成"}", timeout=None)
 
-        self.bot = bot
+        self.message = message
 
-        self.EmbedTitle = nextcord.ui.TextInput(
-            label="ロールパネルのタイトル",
-            style=nextcord.TextInputStyle.short,
-            placeholder="こっからロールとってね",
-            required=False,
+        self.panel_title = modal.ModalLabel(
+            text="ロールパネルのタイトル",
+            component=modal.ModalTextInput(
+                style=nextcord.TextInputStyle.short,
+                placeholder="こっからロールとってね",
+                default_value=default_title or "にらBOTロールパネル",
+                required=True,
+            ),
         )
-        self.add_item(self.EmbedTitle)
-
-        self.Roles = nextcord.ui.TextInput(
-            label="ロールの名前又はID（ロールごとに改行！）",
-            style=nextcord.TextInputStyle.paragraph,
-            placeholder="にら民1\nにら民2\n1234567890",
-            required=True,
+        self.panel_roles = modal.ModalLabel(
+            text="設定するロール (25個まで)",
+            description=(
+                "利用できなくなった一部のロールは一覧から削除されています。"
+                if has_deleted_roles
+                else None
+            ),
+            component=modal.ModalRoleSelect(
+                placeholder="ロールを選択してください",
+                default_values=default_roles,
+                max_values=25,
+                required=True,
+            ),
         )
-        self.add_item(self.Roles)
+
+        self.add_item(self.panel_title)
+        self.add_item(self.panel_roles)
 
     async def callback(self, interaction: Interaction) -> None:
-        await interaction.response.defer()
-
-        values = [i for i in self.Roles.value.splitlines() if i != ""]
-
-        if len(values) > 25:
-            await interaction.followup.send(
-                "ロールパネル機能は最大で24個まで選択肢を指定できます。"
-            )
-            return
+        await interaction.response.defer(ephemeral=not self.message)
 
         embed_content = ""
-        ViewArgs = []
+        view_args: list[tuple[int, int]] = []
 
-        for i in range(len(values)):
-            role_id = None
-            try:
-                role_id = int(values[i])
-            except ValueError:
-                roles = interaction.guild.roles
-                for j in range(len(roles)):
-                    if roles[j].name == values[i]:
-                        role_id = roles[j].id
-                        break
-                if role_id is None:
-                    await interaction.followup.send(
-                        f"`{values[i]}`という名前のロールは存在しません"
-                    )
-                    return
-            if role_id is None:
-                await interaction.followup.send(
-                    f"`{values[i]}`という名前のロールは存在しません"
-                )
-                return
-            embed_content += f"{i+1}: <@&{role_id}>\n"
-            ViewArgs.append([i + 1, role_id])
+        for i, role in enumerate(self.panel_roles.component.values.roles):
+            embed_content += f"{i + 1}: {role.mention}\n"
+            view_args.append((i + 1, role.id))
 
-        embed_title = self.EmbedTitle.value
-        if embed_title == "" or embed_title is None:
-            embed_title = "にらBOTロールパネル"
         try:
-            await interaction.followup.send(
+            fn = self.message.edit if self.message else interaction.followup.send
+            await fn(
                 embed=nextcord.Embed(
-                    title=embed_title, description=embed_content, color=0x00FF00
+                    title=self.panel_title.component.value,
+                    description=embed_content,
+                    color=0x00FF00,
                 ),
-                view=RolePanelView(ViewArgs),
+                view=RolePanelView(view_args),
+                allowed_mentions=nextcord.AllowedMentions.none(),
             )
         except Exception:
-            _logger.exception("An error has occurred")
+            _logger.exception(
+                f"An error has occurred when {"editing" if self.message else "sending"} role panel"
+            )
             await interaction.followup.send(
                 f"申し訳ございません。エラーが発生しました。\n```\n{traceback.format_exc()}```"
             )
-            return
-
-
-class RolePanelEditModal(nextcord.ui.Modal):
-    def __init__(self, bot, message, oldroles):
-        super().__init__("ロールパネル 編集", timeout=None)
-
-        self.bot = bot
-        self.message = message
-        self.oldroles = oldroles
-
-        self.Roles = nextcord.ui.TextInput(
-            label="ロールの名前又はID（ロールごとに改行！）",
-            style=nextcord.TextInputStyle.paragraph,
-            placeholder="にら民1\nにら民2\n1234567890",
-            required=True,
-            default_value="\n".join(oldroles),
-        )
-        self.add_item(self.Roles)
-
-    async def callback(self, interaction: Interaction) -> None:
-        await interaction.response.defer(ephemeral=True)
-
-        values = [i for i in self.Roles.value.splitlines() if i != ""]
-
-        if len(values) > 25:
-            await interaction.followup.send(
-                "ロールパネル機能は最大で24個まで選択肢を指定できます。"
-            )
-            return
-
-        embed_content = ""
-        ViewArgs = []
-
-        for i in range(len(values)):
-            role_id = None
-            try:
-                role_id = int(values[i])
-            except ValueError:
-                roles = interaction.guild.roles
-                for j in range(len(roles)):
-                    if roles[j].name == values[i]:
-                        role_id = roles[j].id
-                        break
-                if role_id is None:
-                    await interaction.followup.send(
-                        f"`{values[i]}`という名前のロールが見つかりませんでした。"
-                    )
-                    return
-            if role_id is None:
-                await interaction.followup.send(
-                    f"`{values[i]}`という名前のロールが見つかりませんでした。"
-                )
-                return
-            embed_content += f"{i+1}: <@&{role_id}>\n"
-            ViewArgs.append([i + 1, role_id])
-
-        EmbedTitle = self.message.embeds[0].title
-        try:
-            await self.message.edit(
-                embed=nextcord.Embed(
-                    title=EmbedTitle, description=embed_content, color=0x00FF00
-                ),
-                view=RolePanelView(ViewArgs),
-            )
-        except Exception as err:
-            _logger.exception("An error has occurred")
-            await interaction.followup.send(f"エラー: `{err}`")
-            return
 
 
 class RolePanelView(nextcord.ui.View):
@@ -193,8 +120,10 @@ class Rolepanel(commands.Cog):
     @nextcord.message_command(
         name="Edit Rolepanel",
         name_localizations={nextcord.Locale.ja: "ロールパネル編集"},
+        contexts=[nextcord.InteractionContextType.guild],
     )
     async def edit_rolepanel(self, interaction: Interaction, message: nextcord.Message):
+        assert interaction.guild and isinstance(interaction.user, nextcord.Member)
         if not admin_check(interaction.guild, interaction.user):
             await interaction.response.send_message(
                 embed=nextcord.Embed(
@@ -235,6 +164,7 @@ class Rolepanel(commands.Cog):
         # await interaction.response.defer(ephemeral=True)
         roles = []
         ErrorRole = []
+        has_deleted_roles = False
         for i in range(len(message.embeds[0].description.splitlines())):
             content = message.embeds[0].description.splitlines()[i]
             if re.fullmatch(rolepanel_compile, content) is None:
@@ -256,7 +186,10 @@ class Rolepanel(commands.Cog):
                 re.sub("[0-9]+: ", "", content).replace("<@&", "").replace(">", "")
             )
             try:
-                roles.append(interaction.guild.get_role(int(roleText)).name)
+                if role := interaction.guild.get_role(int(roleText)):
+                    roles.append(role)
+                else:
+                    has_deleted_roles = True
             except Exception:
                 ErrorRole.append(roleText)
         if ErrorRole != []:
@@ -274,7 +207,12 @@ class Rolepanel(commands.Cog):
                 )
             )
         await interaction.response.send_modal(
-            RolePanelEditModal(self.bot, message, roles)
+            RolePanelModal(
+                message=message,
+                default_title=message.embeds[0].title,
+                default_roles=roles or None,
+                has_deleted_roles=has_deleted_roles,
+            )
         )
 
     @nextcord.slash_command(
@@ -293,7 +231,7 @@ class Rolepanel(commands.Cog):
                 ephemeral=True,
             )
             return
-        modal = RolePanelSlashInput(self.bot)
+        modal = RolePanelModal()
         await interaction.response.send_modal(modal=modal)
         return
 
