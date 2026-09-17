@@ -1,3 +1,4 @@
+import dataclasses
 import logging
 import re
 import traceback
@@ -13,7 +14,7 @@ from util.nira import NIRA
 
 _logger = logging.getLogger(__name__)
 
-rolepanel_compile = re.compile(r"[0-9]+: <@&[0-9]+>")
+pat_panel_role_str = re.compile(r"([0-9]+): <@&([0-9]+)>")
 
 # RolePanel
 
@@ -105,6 +106,82 @@ class RolePanelButton(nextcord.ui.Button):
         )
 
 
+@dataclasses.dataclass(slots=True)
+class _RolePanelRoles:
+    roles: list[nextcord.Role]
+    deleted_roles: list[int]
+
+
+@dataclasses.dataclass(slots=True)
+class _RolePanelParseErr:
+    is_content_empty: bool = True
+    num_of_embeds: int = 1
+    embed_has_description: bool = True
+    embed_description_invalid: tuple[int, re.Match[str] | str | None] | None = None
+
+    def __bool__(self):
+        return not (
+            self.is_content_empty
+            and self.num_of_embeds == 1
+            and self.embed_has_description
+            and self.embed_description_invalid is None
+        )
+
+    def error_code(self) -> str:
+        if not self:
+            return ""
+        elif self.embed_description_invalid:
+            return f"E2-{self.embed_description_invalid[0]}"
+        else:
+            values = (
+                self.is_content_empty,
+                self.num_of_embeds,
+                self.embed_has_description,
+            )
+            return f"E1-{values}"
+
+
+def _parse_rolepanel(message: nextcord.Message) -> _RolePanelRoles | _RolePanelParseErr:
+    """ロールパネルメッセージを解析する"""
+
+    assert message.guild
+
+    err = _RolePanelParseErr(
+        is_content_empty=not message.content,
+        num_of_embeds=len(message.embeds),
+    )
+    if err:
+        return err
+
+    description = message.embeds[0].description
+    if not description:
+        err.embed_has_description = False
+        return err
+
+    roles: list[nextcord.Role] = []
+    deleted_roles: list[int] = []
+    for i, line in enumerate(description.splitlines()):
+        if i >= 25:
+            err.embed_description_invalid = (i, None)
+            return err
+        match = pat_panel_role_str.fullmatch(line)
+        if not match:
+            err.embed_description_invalid = (i, line)
+            return err
+        try:
+            role_id = int(match.group(2))  # 正規表現上はエラーにならないはず...
+            if role := message.guild.get_role(role_id):  # これも例外は出さないはず...
+                roles.append(role)
+            else:
+                deleted_roles.append(role_id)
+        except Exception:
+            err.embed_description_invalid = (i, match)
+            _logger.exception(f"Unexpected parsing error has occurred, {err=!r}")
+            return err
+
+    return _RolePanelRoles(roles, deleted_roles)
+
+
 class Rolepanel(commands.Cog):
     def __init__(self, bot: NIRA):
         self.bot = bot
@@ -144,9 +221,9 @@ class Rolepanel(commands.Cog):
                 ephemeral=True,
             )
             return
-        if (message.content != "" or message.content is None) or (
-            message.embeds == [] or len(message.embeds) > 1
-        ):
+
+        result = _parse_rolepanel(message)
+        if isinstance(result, _RolePanelParseErr):
             await interaction.response.send_message(
                 embed=nextcord.Embed(
                     title="エラー",
@@ -155,63 +232,19 @@ class Rolepanel(commands.Cog):
 (ロールパネルであるにもかかわらずこのメッセージが表示される場合はお問い合わせください。)
 
 ・エラーコード
-`Reject reason: E1-{[message.content != "", message.content is None, message.embeds == [], len(message.embeds) > 1]}`""",
+`Reject reason: {result.error_code()}`""",
                     color=0xFF0000,
                 ),
                 ephemeral=True,
             )
             return
-        # await interaction.response.defer(ephemeral=True)
-        roles = []
-        ErrorRole = []
-        has_deleted_roles = False
-        for i in range(len(message.embeds[0].description.splitlines())):
-            content = message.embeds[0].description.splitlines()[i]
-            if re.fullmatch(rolepanel_compile, content) is None:
-                await interaction.response.send_message(
-                    embed=nextcord.Embed(
-                        title="エラー",
-                        description=f"""\
-選択されたメッセージはロールパネルではないです。
-(ロールパネルであるにもかかわらずこのメッセージが表示される場合はお問い合わせください。)
 
-・エラーコード
-`Reject reason: E2-{i}`""",
-                        color=0xFF0000,
-                    ),
-                    ephemeral=True,
-                )
-                return
-            roleText = (
-                re.sub("[0-9]+: ", "", content).replace("<@&", "").replace(">", "")
-            )
-            try:
-                if role := interaction.guild.get_role(int(roleText)):
-                    roles.append(role)
-                else:
-                    has_deleted_roles = True
-            except Exception:
-                ErrorRole.append(roleText)
-        if ErrorRole != []:
-            await interaction.user.send(
-                embed=nextcord.Embed(
-                    title="にらBOT ロールパネル 警告",
-                    description=(
-                        "下記ロール名またはIDは、エラーのために取得されませんでした。\n"
-                        "恐れ入りますが、ロールの存在や権限設定を確認してから、再度やり直してください。\n"
-                        "```\n"
-                    )
-                    + "\n".join(ErrorRole)
-                    + "```",
-                    color=0xFFFF00,
-                )
-            )
         await interaction.response.send_modal(
             RolePanelModal(
                 message=message,
                 default_title=message.embeds[0].title,
-                default_roles=roles or None,
-                has_deleted_roles=has_deleted_roles,
+                default_roles=result.roles or None,
+                has_deleted_roles=bool(result.deleted_roles),
             )
         )
 
