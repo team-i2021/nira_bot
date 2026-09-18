@@ -1,146 +1,92 @@
+import dataclasses
 import logging
 import re
 import traceback
+from collections.abc import Sequence
 
 import nextcord
 from nextcord import Interaction
-from nextcord.ext import commands
+from nextcord.ext import application_checks, commands
 
-from util import n_fc
+from util import modal
 from util.admin_check import admin_check
 from util.nira import NIRA
 
 _logger = logging.getLogger(__name__)
 
-rolepanel_compile = re.compile(r"[0-9]+: <@&[0-9]+>")
+pat_panel_role_str = re.compile(r"([0-9]+): <@&([0-9]+)>")
 
 # RolePanel
 
-class RolePanelSlashInput(nextcord.ui.Modal):
-    def __init__(self, bot):
-        super().__init__(
-            "ロールパネル",
-            timeout=None
-        )
 
-        self.bot = bot
+class RolePanelModal(modal.Modal):
+    def __init__(
+        self,
+        *,
+        message: nextcord.Message | None = None,
+        default_title: str | None = None,
+        default_roles: Sequence[nextcord.Role | int] | None = None,
+        has_deleted_roles: bool = False,
+    ) -> None:
+        super().__init__(f"ロールパネル{"編集" if message else "作成"}", timeout=None)
 
-        self.EmbedTitle = nextcord.ui.TextInput(
-            label=f"ロールパネルのタイトル",
-            style=nextcord.TextInputStyle.short,
-            placeholder=f"こっからロールとってね",
-            required=False
-        )
-        self.add_item(self.EmbedTitle)
-
-        self.Roles = nextcord.ui.TextInput(
-            label=f"ロールの名前又はID（ロールごとに改行！）",
-            style=nextcord.TextInputStyle.paragraph,
-            placeholder=f"にら民1\nにら民2\n1234567890",
-            required=True
-        )
-        self.add_item(self.Roles)
-
-    async def callback(self, interaction: Interaction) -> None:
-        await interaction.response.defer()
-
-        values = [i for i in self.Roles.value.splitlines() if i != ""]
-
-        if len(values) > 25:
-            await interaction.followup.send("ロールパネル機能は最大で24個まで選択肢を指定できます。")
-            return
-
-        embed_content = ""
-        ViewArgs = []
-
-        for i in range(len(values)):
-            role_id = None
-            try:
-                role_id = int(values[i])
-            except ValueError:
-                roles = interaction.guild.roles
-                for j in range(len(roles)):
-                    if roles[j].name == values[i]:
-                        role_id = roles[j].id
-                        break
-                if role_id == None:
-                    await interaction.followup.send(f"`{values[i]}`という名前のロールは存在しません")
-                    return
-            if role_id == None:
-                await interaction.followup.send(f"`{values[i]}`という名前のロールは存在しません")
-                return
-            embed_content += f"{i+1}: <@&{role_id}>\n"
-            ViewArgs.append([i+1, role_id])
-
-        embed_title = self.EmbedTitle.value
-        if embed_title == "" or embed_title is None:
-            embed_title = "にらBOTロールパネル"
-        try:
-            await interaction.followup.send(embed=nextcord.Embed(title=embed_title, description=embed_content, color=0x00ff00), view=RolePanelView(ViewArgs))
-        except Exception:
-            _logger.exception("An error has occurred")
-            await interaction.followup.send(f"申し訳ございません。エラーが発生しました。\n```\n{traceback.format_exc()}```")
-            return
-
-
-class RolePanelEditModal(nextcord.ui.Modal):
-    def __init__(self, bot, message, oldroles):
-        super().__init__(
-            "ロールパネル 編集",
-            timeout=None
-        )
-
-        self.bot = bot
         self.message = message
-        self.oldroles = oldroles
 
-        self.Roles = nextcord.ui.TextInput(
-            label=f"ロールの名前又はID（ロールごとに改行！）",
-            style=nextcord.TextInputStyle.paragraph,
-            placeholder=f"にら民1\nにら民2\n1234567890",
-            required=True,
-            default_value="\n".join(oldroles)
+        self.panel_title = modal.ModalLabel(
+            text="ロールパネルのタイトル",
+            component=modal.ModalTextInput(
+                style=nextcord.TextInputStyle.short,
+                placeholder="こっからロールとってね",
+                default_value=default_title or "にらBOTロールパネル",
+                required=True,
+            ),
         )
-        self.add_item(self.Roles)
+        self.panel_roles = modal.ModalLabel(
+            text="設定するロール (25個まで)",
+            description=(
+                "利用できなくなった一部のロールは一覧から削除されています。"
+                if has_deleted_roles
+                else None
+            ),
+            component=modal.ModalRoleSelect(
+                placeholder="ロールを選択してください",
+                default_values=default_roles,
+                max_values=25,
+                required=True,
+            ),
+        )
+
+        self.add_item(self.panel_title)
+        self.add_item(self.panel_roles)
 
     async def callback(self, interaction: Interaction) -> None:
-        await interaction.response.defer(ephemeral=True)
-
-        values = [i for i in self.Roles.value.splitlines() if i != ""]
-
-        if len(values) > 25:
-            await interaction.followup.send("ロールパネル機能は最大で24個まで選択肢を指定できます。")
-            return
+        await interaction.response.defer(ephemeral=not self.message)
 
         embed_content = ""
-        ViewArgs = []
+        view_args: list[tuple[int, int]] = []
 
-        for i in range(len(values)):
-            role_id = None
-            try:
-                role_id = int(values[i])
-            except ValueError:
-                roles = interaction.guild.roles
-                for j in range(len(roles)):
-                    if roles[j].name == values[i]:
-                        role_id = roles[j].id
-                        break
-                if role_id == None:
-                    await interaction.followup.send(f"`{values[i]}`という名前のロールが見つかりませんでした。")
-                    return
-            if role_id == None:
-                await interaction.followup.send(f"`{values[i]}`という名前のロールが見つかりませんでした。")
-                return
-            embed_content += f"{i+1}: <@&{role_id}>\n"
-            ViewArgs.append([i+1, role_id])
+        for i, role in enumerate(self.panel_roles.component.values.roles):
+            embed_content += f"{i + 1}: {role.mention}\n"
+            view_args.append((i + 1, role.id))
 
-        EmbedTitle = self.message.embeds[0].title
         try:
-            await self.message.edit(embed=nextcord.Embed(title=EmbedTitle, description=embed_content, color=0x00ff00), view=RolePanelView(ViewArgs))
-        except Exception as err:
-            _logger.exception("An error has occurred")
-            await interaction.followup.send(f"エラー: `{err}`")
-            return
+            fn = self.message.edit if self.message else interaction.followup.send
+            await fn(
+                embed=nextcord.Embed(
+                    title=self.panel_title.component.value,
+                    description=embed_content,
+                    color=0x00FF00,
+                ),
+                view=RolePanelView(view_args),
+                allowed_mentions=nextcord.AllowedMentions.none(),
+            )
+        except Exception:
+            _logger.exception(
+                f"An error has occurred when {"editing" if self.message else "sending"} role panel"
+            )
+            await interaction.followup.send(
+                f"申し訳ございません。エラーが発生しました。\n```\n{traceback.format_exc()}```"
+            )
 
 
 class RolePanelView(nextcord.ui.View):
@@ -156,25 +102,130 @@ class RolePanelButton(nextcord.ui.Button):
         super().__init__(
             label=arg[0],
             style=nextcord.ButtonStyle.green,
-            custom_id=f"RolePanel:{arg[1]}"
+            custom_id=f"RolePanel:{arg[1]}",
         )
+
+
+@dataclasses.dataclass(slots=True)
+class _RolePanelRoles:
+    roles: list[nextcord.Role]
+    deleted_roles: list[int]
+
+
+@dataclasses.dataclass(slots=True)
+class _RolePanelParseErr:
+    is_content_empty: bool = True
+    num_of_embeds: int = 1
+    embed_has_description: bool = True
+    embed_description_invalid: tuple[int, re.Match[str] | str | None] | None = None
+
+    def __bool__(self):
+        return not (
+            self.is_content_empty
+            and self.num_of_embeds == 1
+            and self.embed_has_description
+            and self.embed_description_invalid is None
+        )
+
+    def error_code(self) -> str:
+        if not self:
+            return ""
+        elif self.embed_description_invalid:
+            return f"E2-{self.embed_description_invalid[0]}"
+        else:
+            values = (
+                self.is_content_empty,
+                self.num_of_embeds,
+                self.embed_has_description,
+            )
+            return f"E1-{values}"
+
+
+def _parse_rolepanel(message: nextcord.Message) -> _RolePanelRoles | _RolePanelParseErr:
+    """ロールパネルメッセージを解析する"""
+
+    assert message.guild
+
+    err = _RolePanelParseErr(
+        is_content_empty=not message.content,
+        num_of_embeds=len(message.embeds),
+    )
+    if err:
+        return err
+
+    description = message.embeds[0].description
+    if not description:
+        err.embed_has_description = False
+        return err
+
+    roles: list[nextcord.Role] = []
+    deleted_roles: list[int] = []
+    for i, line in enumerate(description.splitlines()):
+        if i >= 25:
+            err.embed_description_invalid = (i, None)
+            return err
+        match = pat_panel_role_str.fullmatch(line)
+        if not match:
+            err.embed_description_invalid = (i, line)
+            return err
+        try:
+            role_id = int(match.group(2))  # 正規表現上はエラーにならないはず...
+            if role := message.guild.get_role(role_id):  # これも例外は出さないはず...
+                roles.append(role)
+            else:
+                deleted_roles.append(role_id)
+        except Exception:
+            err.embed_description_invalid = (i, match)
+            _logger.exception(f"Unexpected parsing error has occurred, {err=!r}")
+            return err
+
+    return _RolePanelRoles(roles, deleted_roles)
 
 
 class Rolepanel(commands.Cog):
     def __init__(self, bot: NIRA):
         self.bot = bot
-        self.add_role_mes = "ロール「`{role_name}`」をあなたに追加しました！\n（もう一度同じボタンを押すと、ロール「`{role_name}`」を削除します。）"
-        self.remove_role_mes = "ロール「`{role_name}`」をあなたから削除しました！\n（もう一度同じボタンを押すと、ロール「`{role_name}`」を追加します。）"
+        self.add_role_mes = (
+            "ロール「`{role_name}`」をあなたに追加しました！\n"
+            "（もう一度同じボタンを押すと、ロール「`{role_name}`」を削除します。）"
+        )
+        self.remove_role_mes = (
+            "ロール「`{role_name}`」をあなたから削除しました！\n"
+            "（もう一度同じボタンを押すと、ロール「`{role_name}`」を追加します。）"
+        )
 
-    @nextcord.message_command(name="Edit Rolepanel", name_localizations={nextcord.Locale.ja: "ロールパネル編集"})
+    @nextcord.message_command(
+        name="Edit Rolepanel",
+        name_localizations={nextcord.Locale.ja: "ロールパネル編集"},
+        contexts=[nextcord.InteractionContextType.guild],
+    )
+    @application_checks.guild_only()
     async def edit_rolepanel(self, interaction: Interaction, message: nextcord.Message):
+        assert interaction.guild and isinstance(interaction.user, nextcord.Member)
         if not admin_check(interaction.guild, interaction.user):
-            await interaction.response.send_message(embed=nextcord.Embed(title="エラー", description=f"管理者の方のみがこのコマンドを使用できます。", color=0xff0000), ephemeral=True)
+            await interaction.response.send_message(
+                embed=nextcord.Embed(
+                    title="エラー",
+                    description="管理者の方のみがこのコマンドを使用できます。",
+                    color=0xFF0000,
+                ),
+                ephemeral=True,
+            )
             return
-        if message.author.id != self.bot.user.id:
-            await interaction.response.send_message(embed=nextcord.Embed(title="エラー", description=f"{self.bot.user.mention}が送信したロールパネルにのみこのコマンドを使用できます。", color=0xff0000), ephemeral=True)
+        if message.author != self.bot.user:
+            assert self.bot.user
+            await interaction.response.send_message(
+                embed=nextcord.Embed(
+                    title="エラー",
+                    description=f"{self.bot.user.mention}が送信したロールパネルにのみこのコマンドを使用できます。",
+                    color=0xFF0000,
+                ),
+                ephemeral=True,
+            )
             return
-        if (message.content != "" or message.content is None) or (message.embeds == [] or len(message.embeds) > 1):
+
+        result = _parse_rolepanel(message)
+        if isinstance(result, _RolePanelParseErr):
             await interaction.response.send_message(
                 embed=nextcord.Embed(
                     title="エラー",
@@ -183,62 +234,49 @@ class Rolepanel(commands.Cog):
 (ロールパネルであるにもかかわらずこのメッセージが表示される場合はお問い合わせください。)
 
 ・エラーコード
-`Reject reason: E1-{[message.content != "", message.content is None, message.embeds == [], len(message.embeds) > 1]}`""",
-                    color=0xff0000
+`Reject reason: {result.error_code()}`""",
+                    color=0xFF0000,
                 ),
-                ephemeral=True
+                ephemeral=True,
             )
             return
-        # await interaction.response.defer(ephemeral=True)
-        roles = []
-        ErrorRole = []
-        for i in range(len(message.embeds[0].description.splitlines())):
-            content = message.embeds[0].description.splitlines()[i]
-            if re.fullmatch(rolepanel_compile, content) is None:
-                await interaction.response.send_message(
-                    embed=nextcord.Embed(
-                        title="エラー",
-                        description=f"""\
-選択されたメッセージはロールパネルではないです。
-(ロールパネルであるにもかかわらずこのメッセージが表示される場合はお問い合わせください。)
 
-・エラーコード
-`Reject reason: E2-{i}`""",
-                        color=0xff0000
-                    ),
-                    ephemeral=True
-                )
-                return
-            roleText = re.sub(
-                "[0-9]+: ", "", content).replace("<@&", "").replace(">", "")
-            try:
-                roles.append(interaction.guild.get_role(int(roleText)).name)
-            except Exception:
-                ErrorRole.append(roleText)
-        if ErrorRole != []:
-            await interaction.user.send(
-                embed=nextcord.Embed(
-                    title="にらBOT ロールパネル 警告",
-                    description="下記ロール名またはIDは、エラーのために取得されませんでした。\n恐れ入りますが、ロールの存在や権限設定を確認してから、再度やり直してください。\n```\n" +
-                    "\n".join(ErrorRole) + "```",
-                    color=0xffff00
-                )
+        await interaction.response.send_modal(
+            RolePanelModal(
+                message=message,
+                default_title=message.embeds[0].title,
+                default_roles=result.roles or None,
+                has_deleted_roles=bool(result.deleted_roles),
             )
-        await interaction.response.send_modal(RolePanelEditModal(self.bot, message, roles))
+        )
 
-    @nextcord.slash_command(name="rolepanel", description="Create rolepanel", description_localizations={nextcord.Locale.ja: "ロールパネルを設置します"})
-    async def rolepanel_slash(
-        self,
-        interaction: Interaction
-    ):
+    @nextcord.slash_command(
+        name="rolepanel",
+        description="Create rolepanel",
+        description_localizations={nextcord.Locale.ja: "ロールパネルを設置します"},
+        contexts=[nextcord.InteractionContextType.guild],
+    )
+    @application_checks.guild_only()
+    async def rolepanel_slash(self, interaction: Interaction):
+        assert interaction.guild and isinstance(interaction.user, nextcord.Member)
         if not admin_check(interaction.guild, interaction.user):
-            await interaction.response.send_message(embed=nextcord.Embed(title="エラー", description=f"管理者のみがこのコマンドを使用できます。", color=0xff0000), ephemeral=True)
+            await interaction.response.send_message(
+                embed=nextcord.Embed(
+                    title="エラー",
+                    description="管理者のみがこのコマンドを使用できます。",
+                    color=0xFF0000,
+                ),
+                ephemeral=True,
+            )
             return
-        modal = RolePanelSlashInput(self.bot)
+        modal = RolePanelModal()
         await interaction.response.send_modal(modal=modal)
         return
 
-    @commands.command(name="rolepanel", aliases=["ロールパネル", "rp", "ろーるぱねる", "ろーぱね"], help="""\
+    @commands.command(
+        name="rolepanel",
+        aliases=["ロールパネル", "rp", "ろーるぱねる", "ろーぱね"],
+        help="""\
 ロールパネル機能
 
 ボタンを押すことでロールを付与/削除するメッセージを送信します。
@@ -252,13 +290,18 @@ n!rolepanel [*メッセージ内容]
 `/rolepanel`
 
 ロールは最大で25個まで指定できます。
-ただ、重複してのロール指定はできません。""")
+ただ、重複してのロール指定はできません。""",
+    )
+    @commands.guild_only()
     async def rolepanel(self, ctx: commands.Context):
+        assert ctx.guild and isinstance(ctx.author, nextcord.Member)
         if not admin_check(ctx.guild, ctx.author):
             await ctx.send("あなたは管理者ではありません。")
             return
         if len(ctx.message.content.splitlines()) < 2:
-            await ctx.send("ロールパネル機能を使用するにはメッセージ内容とロールIDまたは名前を指定してください。")
+            await ctx.send(
+                "ロールパネル機能を使用するにはメッセージ内容とロールIDまたは名前を指定してください。"
+            )
             return
         elif len(ctx.message.content.splitlines()) > 26:
             await ctx.send("ロールパネル機能は最大で25個までロールを指定できます。")
@@ -282,19 +325,30 @@ n!rolepanel [*メッセージ内容]
                     if roles[j].name == ctx.message.content.splitlines()[i]:
                         role_id = roles[j].id
                         break
-                if role_id == None:
-                    await ctx.reply(f"エラー: 指定されたロール`{ctx.message.content.splitlines()[i]}`が存在しません。")
+                if role_id is None:
+                    await ctx.reply(
+                        f"エラー: 指定されたロール`{ctx.message.content.splitlines()[i]}`が存在しません。"
+                    )
                     return
-            if role_id == None:
-                await ctx.reply(f"エラー: 指定されたロール`{ctx.message.content.splitlines()[i]}`が存在しません。")
+            if role_id is None:
+                await ctx.reply(
+                    f"エラー: 指定されたロール`{ctx.message.content.splitlines()[i]}`が存在しません。"
+                )
                 return
             embed_content += f"{i}: <@&{role_id}>\n"
             ViewArgs.append([i, role_id])
         try:
-            await ctx.send(embed=nextcord.Embed(title=f"{content}", description=embed_content, color=0x00ff00), view=RolePanelView(ViewArgs))
+            await ctx.send(
+                embed=nextcord.Embed(
+                    title=f"{content}", description=embed_content, color=0x00FF00
+                ),
+                view=RolePanelView(ViewArgs),
+            )
         except Exception:
             _logger.exception("An error has occurred")
-            await ctx.send(f"申し訳ございません。エラーが発生しました。\n```\n{traceback.format_exc()}```")
+            await ctx.send(
+                f"申し訳ございません。エラーが発生しました。\n```\n{traceback.format_exc()}```"
+            )
             return
 
     @commands.Cog.listener()
@@ -302,9 +356,13 @@ n!rolepanel [*メッセージ内容]
         # amuseから借りパク
         if interaction.type is not nextcord.InteractionType.component:
             return
+        if not interaction.guild:
+            return
+
+        assert interaction.data and isinstance(interaction.user, nextcord.Member)
 
         custom_id = interaction.data.get("custom_id")
-        if custom_id is None or not custom_id.startswith(f"RolePanel:"):
+        if custom_id is None or not custom_id.startswith("RolePanel:"):
             return
 
         role_id = None
@@ -321,26 +379,41 @@ n!rolepanel [*メッセージ内容]
 
         try:
             role = interaction.guild.get_role(RoleId)
+            if not role:
+                await interaction.send(
+                    embed=nextcord.Embed(
+                        title="エラー",
+                        description="このロールは既に削除されています。",
+                        color=0xFF0000,
+                    ),
+                    ephemeral=True,
+                )
+                return
             for i in interaction.user.roles:
                 if i == role:
                     await interaction.user.remove_roles(role)
-                    await interaction.send(self.remove_role_mes.format(role_name=role.name), ephemeral=True)
+                    await interaction.send(
+                        self.remove_role_mes.format(role_name=role.name), ephemeral=True
+                    )
                     return
             await interaction.user.add_roles(role)
-            await interaction.send(self.add_role_mes.format(role_name=role.name), ephemeral=True)
+            await interaction.send(
+                self.add_role_mes.format(role_name=role.name), ephemeral=True
+            )
             return
         except Exception as err:
             _logger.exception("An error has occurred")
             await interaction.send(
-                "大変恐れ入りますが、エラーが発生しました。\n（BOTに適切な権限がないか、サーバーからロールが削除されているかもしれません。\n解決しない場合はBOT開発者へお問い合わせください。）",
+                "大変恐れ入りますが、エラーが発生しました。\n"
+                "（BOTに適切な権限がないか、サーバーからロールが削除されているかもしれません。\n"
+                "解決しない場合はBOT開発者へお問い合わせください。）",
                 embed=nextcord.Embed(
                     title="エラー",
                     description=str(err),
-                    color=0xff0000
+                    color=0xFF0000,
                 ),
-                ephemeral=True
+                ephemeral=True,
             )
-
 
 
 def setup(bot):
