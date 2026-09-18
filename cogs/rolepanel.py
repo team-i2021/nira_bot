@@ -6,7 +6,7 @@ from collections.abc import Sequence
 
 import nextcord
 from nextcord import Interaction
-from nextcord.ext import commands
+from nextcord.ext import application_checks, commands
 
 from util import modal
 from util.admin_check import admin_check
@@ -199,6 +199,7 @@ class Rolepanel(commands.Cog):
         name_localizations={nextcord.Locale.ja: "ロールパネル編集"},
         contexts=[nextcord.InteractionContextType.guild],
     )
+    @application_checks.guild_only()
     async def edit_rolepanel(self, interaction: Interaction, message: nextcord.Message):
         assert interaction.guild and isinstance(interaction.user, nextcord.Member)
         if not admin_check(interaction.guild, interaction.user):
@@ -211,7 +212,8 @@ class Rolepanel(commands.Cog):
                 ephemeral=True,
             )
             return
-        if message.author.id != self.bot.user.id:
+        if message.author != self.bot.user:
+            assert self.bot.user
             await interaction.response.send_message(
                 embed=nextcord.Embed(
                     title="エラー",
@@ -252,8 +254,11 @@ class Rolepanel(commands.Cog):
         name="rolepanel",
         description="Create rolepanel",
         description_localizations={nextcord.Locale.ja: "ロールパネルを設置します"},
+        contexts=[nextcord.InteractionContextType.guild],
     )
+    @application_checks.guild_only()
     async def rolepanel_slash(self, interaction: Interaction):
+        assert interaction.guild and isinstance(interaction.user, nextcord.Member)
         if not admin_check(interaction.guild, interaction.user):
             await interaction.response.send_message(
                 embed=nextcord.Embed(
@@ -287,7 +292,9 @@ n!rolepanel [*メッセージ内容]
 ロールは最大で25個まで指定できます。
 ただ、重複してのロール指定はできません。""",
     )
+    @commands.guild_only()
     async def rolepanel(self, ctx: commands.Context):
+        assert ctx.guild and isinstance(ctx.author, nextcord.Member)
         if not admin_check(ctx.guild, ctx.author):
             await ctx.send("あなたは管理者ではありません。")
             return
@@ -349,6 +356,10 @@ n!rolepanel [*メッセージ内容]
         # amuseから借りパク
         if interaction.type is not nextcord.InteractionType.component:
             return
+        if not interaction.guild:
+            return
+
+        assert interaction.data and isinstance(interaction.user, nextcord.Member)
 
         custom_id = interaction.data.get("custom_id")
         if custom_id is None or not custom_id.startswith("RolePanel:"):
@@ -368,6 +379,16 @@ n!rolepanel [*メッセージ内容]
 
         try:
             role = interaction.guild.get_role(RoleId)
+            if not role:
+                await interaction.send(
+                    embed=nextcord.Embed(
+                        title="エラー",
+                        description="このロールは既に削除されています。",
+                        color=0xFF0000,
+                    ),
+                    ephemeral=True,
+                )
+                return
             for i in interaction.user.roles:
                 if i == role:
                     await interaction.user.remove_roles(role)
