@@ -161,7 +161,6 @@ class ChannelUtil(commands.Cog):
             )
         )
 
-    @application_checks.guild_only()
     @nextcord.slash_command(
         name="vclimit",
         description="Sets the user limit of the voice channel.",
