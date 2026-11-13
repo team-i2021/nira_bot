@@ -1,15 +1,85 @@
 import asyncio
+import logging
+from collections.abc import Sequence
 from typing import TypeVar
 
 import nextcord
 from motor import motor_asyncio
 from nextcord.ext import application_checks, commands
 
+from util import modal
 from util.nira import NIRA
 
 GuildChannelT_co = TypeVar(
     "GuildChannelT_co", bound=nextcord.abc.GuildChannel, covariant=True
 )
+
+_logger = logging.getLogger(__name__)
+
+
+class VCLimitManageModal(modal.Modal):
+    def __init__(
+        self,
+        cog: "ChannelUtil",
+        *,
+        default_roles: Sequence[nextcord.Role | int] | None = None,
+        has_deleted_roles: bool = False,
+    ) -> None:
+        super().__init__("ユーザー上限コマンドの設定", timeout=None)
+
+        self.cog = cog
+
+        self.roles = modal.ModalLabel(
+            text="コマンドを実行できるロール (25個まで)",
+            description=(
+                "利用できなくなった一部のロールは一覧から削除されています。"
+                if has_deleted_roles
+                else None
+            ),
+            component=modal.ModalRoleSelect(
+                placeholder="ロールを選択してください",
+                default_values=default_roles,
+                max_values=25,
+                required=True,
+            ),
+        )
+
+        self.add_item(self.roles)
+
+    async def callback(self, interaction: nextcord.Interaction) -> None:
+        assert isinstance(interaction.guild, nextcord.Guild)
+
+        await interaction.response.defer(ephemeral=True)
+
+        try:
+            await self.cog.vclimit_collection.update_one(
+                {"_id": interaction.guild.id},
+                {
+                    "$set": {
+                        "managerole": [r.id for r in self.roles.component.values.roles]
+                    }
+                },
+                upsert=True,
+            )
+
+            roles = self.roles.component.values.roles
+            roles_desc = "、".join(r.mention for r in roles[:-1])
+            roles_desc = f"{roles_desc and f'{roles_desc}及び'}{roles[-1].mention}"
+
+            await interaction.send(
+                embed=nextcord.Embed(
+                    title="完了",
+                    description=f"ユーザー上限コマンドを実行できるロールを{roles_desc}に設定しました。",
+                    color=self.cog.bot.color.NORMAL,
+                ),
+                ephemeral=True,
+            )
+
+        except Exception:
+            _logger.exception("An error has occurred when setting vclimit manage roles")
+            await interaction.send(
+                f"申し訳ございません。エラーが発生しました。\n```\n{self.cog.bot.format_exc()}```"
+            )
 
 
 class ChannelUtil(commands.Cog):
@@ -241,32 +311,31 @@ class ChannelUtil(commands.Cog):
             nextcord.Locale.ja: "ユーザー上限コマンドを実行できるロールを設定します。",
         },
     )
-    async def vclimit_manage_slash(
-        self,
-        interaction: nextcord.Interaction,
-        managerole: nextcord.Role = nextcord.SlashOption(
-            name="managerole",
-            description="The role that can execute the user limit command.",
-            description_localizations={
-                nextcord.Locale.ja: "ユーザー上限コマンドを実行できるロール",
-            },
-            required=True,
-        ),
-    ):
-        await interaction.response.defer(ephemeral=True)
+    async def vclimit_manage_slash(self, interaction: nextcord.Interaction):
         assert isinstance(interaction.guild, nextcord.Guild)
-        await self.vclimit_collection.update_one(
-            {"_id": interaction.guild.id},
-            {"$set": {"managerole": managerole.id}},
-            upsert=True,
-        )
-        await interaction.send(
-            embed=nextcord.Embed(
-                title="完了",
-                description=f"ユーザー上限コマンドを実行できるロールを{managerole.mention}に設定しました。",
-                color=self.bot.color.NORMAL,
-            ),
-            ephemeral=True,
+
+        roledata = await self.vclimit_collection.find_one({"_id": interaction.guild.id})
+        roles = []
+        has_deleted_roles = False
+        if roledata and (role_ids := roledata["managerole"]):
+            if not isinstance(role_ids, list):  # 旧フォーマット (単一ロール設定)
+                role_ids = (role_ids,)
+
+            for role_id in role_ids:
+                if role := interaction.guild.get_role(role_id):
+                    # 旧スラッシュコマンドでは@everyoneを選択することができた
+                    # モーダルのRole Selectでは選択できないため除外しておく
+                    if role.name != "@everyone":
+                        roles.append(role)
+                else:
+                    has_deleted_roles = True
+
+        await interaction.response.send_modal(
+            VCLimitManageModal(
+                self,
+                default_roles=roles or None,
+                has_deleted_roles=has_deleted_roles,
+            )
         )
 
     @application_checks.guild_only()
@@ -330,8 +399,13 @@ class ChannelUtil(commands.Cog):
                     )
                 )
                 return
-            manage_role = interaction.guild.get_role(roledata["managerole"])
-            if manage_role is None:
+            roledata = roledata["managerole"]
+            manage_roles = [
+                role
+                for role_id in (roledata if isinstance(roledata, list) else (roledata,))
+                if (role := interaction.guild.get_role(role_id))
+            ]
+            if not manage_roles:
                 await interaction.send(
                     embed=nextcord.Embed(
                         title="エラー",
@@ -343,16 +417,21 @@ class ChannelUtil(commands.Cog):
                     )
                 )
                 return
-            if manage_role not in interaction.user.roles:
+            if not (set(interaction.user.roles) & set(manage_roles)):
+                roles_desc = "、".join(r.mention for r in manage_roles[:-1])
+                roles_desc = (
+                    f"{roles_desc and f'{roles_desc}または'}{manage_roles[-1].mention}"
+                )
                 await interaction.send(
                     embed=nextcord.Embed(
                         title="エラー",
                         description=(
                             "このコマンドを実行する権限がありません。\n"
-                            f"このコマンドを実行するには、ユーザー上限コマンドを実行できるロールとして「{manage_role.name}」が必要です。"
+                            f"このコマンドを実行するには、ユーザー上限コマンドを実行できるロールとして{roles_desc}が必要です。"
                         ),
                         color=self.bot.color.ERROR,
-                    )
+                    ),
+                    allowed_mentions=nextcord.AllowedMentions.none(),
                 )
                 return
         elif not vc_grants[str(vc_channel.id)]:
@@ -458,8 +537,13 @@ VCの人数制限を変更します。
                     )
                 )
                 return
-            manage_role = ctx.guild.get_role(roledata["managerole"])
-            if manage_role is None:
+            roledata = roledata["managerole"]
+            manage_roles = [
+                role
+                for role_id in (roledata if isinstance(roledata, list) else (roledata,))
+                if (role := ctx.guild.get_role(role_id))
+            ]
+            if not manage_roles:
                 await ctx.reply(
                     embed=nextcord.Embed(
                         title="エラー",
@@ -471,16 +555,21 @@ VCの人数制限を変更します。
                     )
                 )
                 return
-            if manage_role not in ctx.author.roles:
+            if not (set(ctx.author.roles) & set(manage_roles)):
+                roles_desc = "、".join(r.mention for r in manage_roles[:-1])
+                roles_desc = (
+                    f"{roles_desc and f'{roles_desc}または'}{manage_roles[-1].mention}"
+                )
                 await ctx.reply(
                     embed=nextcord.Embed(
                         title="エラー",
                         description=(
                             "このコマンドを実行する権限がありません。\n"
-                            f"このコマンドを実行するには、ユーザー上限コマンドを実行できるロールとして「{manage_role.name}」が必要です。"
+                            f"このコマンドを実行するには、ユーザー上限コマンドを実行できるロールとして{roles_desc}が必要です。"
                         ),
                         color=self.bot.color.ERROR,
-                    )
+                    ),
+                    allowed_mentions=nextcord.AllowedMentions.none(),
                 )
                 return
         elif not vc_grants[str(vc_channel.id)]:
