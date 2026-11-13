@@ -368,7 +368,8 @@ class ChannelUtil(commands.Cog):
                     title="エラー",
                     description="このコマンドを実行するには、ボイスチャンネルに入室している必要があります。",
                     color=self.bot.color.ERROR,
-                )
+                ),
+                ephemeral=True,
             )
             return
         vc_channel = interaction.user.voice.channel
@@ -396,7 +397,8 @@ class ChannelUtil(commands.Cog):
                             "事前に管理者が`/vclimit manage`コマンドでロールを設定してください。"
                         ),
                         color=self.bot.color.ERROR,
-                    )
+                    ),
+                    ephemeral=True,
                 )
                 return
             roledata = roledata["managerole"]
@@ -414,7 +416,8 @@ class ChannelUtil(commands.Cog):
                             "事前に管理者が`/vclimit manage`コマンドでロールを設定してください。"
                         ),
                         color=self.bot.color.ERROR,
-                    )
+                    ),
+                    ephemeral=True,
                 )
                 return
             if not (set(interaction.user.roles) & set(manage_roles)):
@@ -432,6 +435,7 @@ class ChannelUtil(commands.Cog):
                         color=self.bot.color.ERROR,
                     ),
                     allowed_mentions=nextcord.AllowedMentions.none(),
+                    ephemeral=True,
                 )
                 return
         elif not vc_grants[str(vc_channel.id)]:
@@ -443,7 +447,8 @@ class ChannelUtil(commands.Cog):
                         "このチャンネルでの人数上限の変更が許可されているかご確認ください。"
                     ),
                     color=self.bot.color.ERROR,
-                )
+                ),
+                ephemeral=True,
             )
             return
         if userlimit < 0:
@@ -452,9 +457,11 @@ class ChannelUtil(commands.Cog):
                     title="エラー",
                     description="ユーザー上限は0以上の整数で指定してください。",
                     color=self.bot.color.ERROR,
-                )
+                ),
+                ephemeral=True,
             )
             return
+        await interaction.response.defer()
         try:
             await vc_channel.edit(user_limit=userlimit)
         except nextcord.Forbidden:
