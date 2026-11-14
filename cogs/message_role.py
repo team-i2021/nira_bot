@@ -373,6 +373,48 @@ class MessageRole(commands.Cog):
                 )
             await message.add_reaction("\u2705")
 
+    @commands.command(
+        name="mesrole",
+        help="""\
+指定された文章を含むメッセージが送信された場合にロールの付与/剥奪を行います。
+
+・使い方
+`/mesrole set`
+`/mesrole del`
+`/mesrole list`
+
+※コンテキストコマンド`n!mesrole`は廃止されました。スラッシュコマンドをご使用ください。
+
+・`/mesrole set`の設定項目
+`[判定するメッセージ]`
+実際に反応するメッセージです。
+メッセージには[正規表現](https://qiita.com/tossh/items/635aea9a529b9deb3038)をご使用いただけます。
+
+`[動作モード]`
+ロールを付与するか、剥奪するかを指定します。
+
+`[付与/剥奪するロール]`
+実際に付与/剥奪するロールです。
+5つまで設定可能です。
+
+・設定例
+判定するメッセージ: `I don't want to be ([に|ニ|ni]|[ら|ラ|ra])BOT`
+動作モード: `ロールを剥奪する`
+付与/剥奪するロール: `にら民`
+""",
+    )
+    async def mesrole(self, ctx: commands.Context) -> None:
+        await ctx.reply(
+            embed=nextcord.Embed(
+                title="エラー",
+                description=(
+                    f"コンテキストコマンド`{ctx.prefix}mesrole [set/del/list]`は廃止されました。\n"
+                    "スラッシュコマンド`/mesrole [set/del/list]`をご使用ください。"
+                ),
+                color=self.bot.color.RED,
+            ),
+        )
+
 
 def setup(bot):
     bot.add_cog(MessageRole(bot))
