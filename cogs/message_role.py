@@ -1,13 +1,15 @@
+import logging
 import re
 import sys
+from collections.abc import Sequence
+from typing import Self
 
 import nextcord
-from nextcord import Interaction, SlashOption
-from nextcord.ext import commands, application_checks
-
 from motor import motor_asyncio
+from nextcord import Interaction
+from nextcord.ext import application_checks, commands
 
-from util import admin_check, n_fc
+from util import admin_check, modal
 from util.nira import NIRA
 
 ROLE_ID = re.compile(r"<@&[\d]+?>")
@@ -17,195 +19,402 @@ ROLE_ID = re.compile(r"<@&[\d]+?>")
 
 SYSDIR = sys.path[0]
 
+_logger = logging.getLogger(__name__)
+
+
+class MessageRoleSetModal(modal.Modal):
+    def __init__(
+        self,
+        cog: "MessageRole",
+        *,
+        default_regex: str | None = None,
+        default_grant: bool = True,
+        default_roles: Sequence[nextcord.Role | int] | None = None,
+        has_deleted_roles: bool = False,
+    ) -> None:
+        super().__init__("メッセージロールの設定", timeout=None)
+
+        self.cog = cog
+
+        self.regex = modal.ModalLabel(
+            text="判定するメッセージ (正規表現)",
+            component=modal.ModalTextInput(
+                placeholder="判定したいメッセージを正規表現で入力してください",
+                default_value=default_regex,
+                max_length=128,
+                required=True,
+            ),
+        )
+        self.action_type = modal.ModalLabel(
+            text="動作モード",
+            component=modal.ModalStringSelect(
+                placeholder="モードを選択してください",
+                options=[
+                    nextcord.SelectOption(
+                        label="ロールを付与する",
+                        value="grant",
+                        default=default_grant,
+                    ),
+                    nextcord.SelectOption(
+                        label="ロールを剥奪する",
+                        value="revoke",
+                        default=not default_grant,
+                    ),
+                ],
+                required=True,
+            ),
+        )
+        self.roles = modal.ModalLabel(
+            text="付与/剥奪するロール (5個まで)",
+            description=(
+                "利用できなくなった一部のロールは一覧から削除されています。"
+                if has_deleted_roles
+                else None
+            ),
+            component=modal.ModalRoleSelect(
+                placeholder="ロールを選択してください",
+                default_values=default_roles,
+                max_values=5,
+                required=True,
+            ),
+        )
+
+        self.add_item(self.regex)
+        self.add_item(self.action_type)
+        self.add_item(self.roles)
+
+    def with_default_from_input(self) -> Self:
+        return self.__class__(
+            self.cog,
+            default_regex=self.regex.component.value,
+            default_grant=self.action_type.component.options[0].default,
+            default_roles=self.roles.component.values.roles or None,
+        )
+
+    async def callback(self, interaction: Interaction) -> None:
+        assert interaction.guild and isinstance(
+            interaction.channel, nextcord.abc.GuildChannel | nextcord.Thread
+        )
+
+        await interaction.response.defer(ephemeral=True)
+
+        try:
+            regex = self.regex.component.value
+            assert regex
+            action_type = self.action_type.component.values[0] == "grant"
+            roles = self.roles.component.values.roles
+
+            try:
+                _ = re.compile(regex)
+            except Exception as e:
+                await interaction.send(
+                    embed=nextcord.Embed(
+                        title="エラー",
+                        description=f"入力された正規表現が不正です。\n```\n{e}```",
+                        color=self.cog.bot.color.RED,
+                    ),
+                    view=MessageRoleSetRetryView(self.with_default_from_input()),
+                    ephemeral=True,
+                )
+                return
+
+            await self.cog.collection.update_one(
+                {
+                    "guild_id": interaction.guild.id,
+                    "channel_id": interaction.channel.id,
+                },
+                {
+                    "$set": {
+                        "regex": regex,
+                        "role_id": [r.id for r in roles],
+                        "action_type": action_type,
+                    }
+                },
+                upsert=True,
+            )
+
+            roles_desc = "、".join(r.mention for r in roles[:-1])
+            roles_desc = f"{roles_desc and f'{roles_desc}と'}{roles[-1].mention}"
+            await interaction.send(
+                embed=nextcord.Embed(
+                    title="メッセージロールの設定",
+                    description=(
+                        f"チャンネル:{interaction.channel.mention}\n"
+                        f"判定メッセージ:`{regex}`\n"
+                        f"ロール:{roles_desc}を{'付与' if action_type else '剥奪'}します。"
+                    ),
+                    color=0x00FF00,
+                ),
+                allowed_mentions=nextcord.AllowedMentions.none(),
+                ephemeral=True,
+            )
+
+        except Exception:
+            _logger.exception("An error has occurred when setting message role")
+            await interaction.send(
+                f"申し訳ございません。エラーが発生しました。\n```\n{self.cog.bot.format_exc()}```",
+                ephemeral=True,
+            )
+
+
+class MessageRoleSetRetryView(nextcord.ui.View):
+    def __init__(self, modal: MessageRoleSetModal) -> None:
+        super().__init__(timeout=900)
+        self.add_item(MessageRoleSetRetryButton(modal))
+
+
+class MessageRoleSetRetryButton(nextcord.ui.Button):
+    def __init__(self, modal: MessageRoleSetModal) -> None:
+        super().__init__(
+            style=nextcord.ButtonStyle.green,
+            label="やり直す",
+            emoji="\N{RIGHTWARDS ARROW WITH HOOK}",
+        )
+        self.modal = modal
+
+    async def callback(self, interaction: Interaction) -> None:
+        await interaction.response.send_modal(self.modal)
+
+
 class MessageRole(commands.Cog):
     def __init__(self, bot: NIRA):
         self.bot = bot
-        self.collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["message_role"]
+        self.collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database[
+            "message_role"
+        ]
 
     @nextcord.slash_command(name="mesrole", description="Message role command")
     async def slash_message_role(self, interaction: Interaction):
         pass
 
     @application_checks.has_permissions(manage_roles=True)
-    @slash_message_role.subcommand(name="set", description="チャンネルのメッセージロールの設定をします")
-    async def slash_message_role_set(
-        self,
-        interaction: Interaction,
-        regex: str = SlashOption(
-            required=True,
-            description="判定するメッセージです。正規表現型で書き込めます。"
-        ),
-        action_type: int = SlashOption(
-            required=True,
-            description="ロールを付与するか剥奪するか",
-            choices={"付与": 1, "剥奪": 0}
-        ),
-        role: nextcord.Role = SlashOption(
-            required=True,
-            description="付与/剥奪するロール"
+    @application_checks.guild_only()
+    @slash_message_role.subcommand(
+        name="set", description="チャンネルのメッセージロールの設定をします"
+    )
+    async def slash_message_role_set(self, interaction: Interaction):
+        assert interaction.guild and interaction.channel
+
+        data = await self.collection.find_one(
+            {"guild_id": interaction.guild.id, "channel_id": interaction.channel.id}
         )
-    ):
-        action_type = (lambda x: True if x else False)(action_type)
-        await interaction.response.defer(ephemeral=True)
+        roles = []
+        has_deleted_roles = False
+        if data and (role_ids := data["role_id"]):
+            if not isinstance(role_ids, list):  # 旧フォーマット (単一ロール設定)
+                role_ids = (role_ids,)
 
-        data = {"regex": regex, "role_id": role.id, "action_type": action_type}
-        await self.collection.update_one({"guild_id": interaction.guild.id, "channel_id": interaction.channel.id}, {"$set": data}, upsert=True)
+            for role_id in role_ids:
+                if role := interaction.guild.get_role(role_id):
+                    # 旧スラッシュコマンドでは@everyoneを選択することができた
+                    # (もちろん正常に動作しないが)
+                    # モーダルのRole Selectでは選択できないため除外しておく
+                    if role.name != "@everyone":
+                        roles.append(role)
+                else:
+                    has_deleted_roles = True
 
-        await interaction.followup.send(
-            embed=nextcord.Embed(
-                title="メッセージロールの設定",
-                description=f"チャンネル:<#{interaction.channel.id}>\n判定メッセージ:`{regex}`\nロール:<@&{role.id}>を{(lambda x: '付与' if x else '剥奪')(action_type)}します。",
-                color=0x00ff00
+        await interaction.response.send_modal(
+            MessageRoleSetModal(
+                self,
+                default_regex=data and data["regex"],
+                default_grant=data["action_type"] if data else True,
+                default_roles=roles or None,
+                has_deleted_roles=has_deleted_roles,
             )
         )
 
-
     @application_checks.has_permissions(manage_roles=True)
-    @slash_message_role.subcommand(name="del", description="チャンネルのメッセージロールの設定を削除します")
+    @application_checks.guild_only()
+    @slash_message_role.subcommand(
+        name="del", description="チャンネルのメッセージロールの設定を削除します"
+    )
     async def slash_message_role_del(self, interaction: Interaction):
+        assert (
+            interaction.guild
+            and interaction.channel
+            and isinstance(interaction.user, nextcord.Member)
+        )
+
         await interaction.response.defer(ephemeral=True)
 
         if not admin_check.admin_check(interaction.guild, interaction.user):
-            await interaction.followup.send(embed=nextcord.Embed(title="Error", description="あなたは管理者ではありません。", color=0xff0000))
+            await interaction.followup.send(
+                embed=nextcord.Embed(
+                    title="Error",
+                    description="あなたは管理者ではありません。",
+                    color=0xFF0000,
+                )
+            )
             return
 
-        result = await self.collection.delete_one({"guild_id": interaction.guild.id, "channel_id": interaction.channel.id})
+        result = await self.collection.delete_one(
+            {"guild_id": interaction.guild.id, "channel_id": interaction.channel.id}
+        )
 
         if result.deleted_count == 0:
-            await interaction.followup.send(embed=nextcord.Embed(title="メッセージロールの設定", description="このサーバーにはメッセージロールの設定がありません。", color=0xff0000))
+            await interaction.followup.send(
+                embed=nextcord.Embed(
+                    title="メッセージロールの設定",
+                    description="このサーバーにはメッセージロールの設定がありません。",
+                    color=0xFF0000,
+                )
+            )
         else:
-            await interaction.followup.send(embed=nextcord.Embed(title="メッセージロールの設定", description=f"チャンネル:<#{interaction.channel.id}>\nメッセージロールの設定を削除しました。", color=0x00ff00))
+            await interaction.followup.send(
+                embed=nextcord.Embed(
+                    title="メッセージロールの設定",
+                    description=(
+                        f"チャンネル:<#{interaction.channel.id}>\n"
+                        "メッセージロールの設定を削除しました。"
+                    ),
+                    color=0x00FF00,
+                )
+            )
 
     @application_checks.has_permissions(manage_roles=True)
-    @slash_message_role.subcommand(name="list", description="メッセージロールの設定を表示します")
+    @application_checks.guild_only()
+    @slash_message_role.subcommand(
+        name="list", description="メッセージロールの設定を表示します"
+    )
     async def slash_message_role_list(self, interaction: Interaction):
+        assert (
+            interaction.guild
+            and interaction.channel
+            and isinstance(interaction.user, nextcord.Member)
+        )
+
         await interaction.response.defer(ephemeral=True)
         if not admin_check.admin_check(interaction.guild, interaction.user):
-            await interaction.followup.send(embed=nextcord.Embed(title="Error", description="あなたは管理者ではありません。", color=0xff0000))
+            await interaction.followup.send(
+                embed=nextcord.Embed(
+                    title="Error",
+                    description="あなたは管理者ではありません。",
+                    color=0xFF0000,
+                )
+            )
             return
 
-        mesroledatas = await self.collection.find({"guild_id": interaction.guild.id}).to_list(length=None)
+        mesroledatas = await self.collection.find(
+            {"guild_id": interaction.guild.id}
+        ).to_list(length=None)
 
         if len(mesroledatas) == 0:
-            await interaction.followup.send(embed=nextcord.Embed(title="メッセージロールの設定", description="このサーバーにはメッセージロールの設定がありません。", color=0x00ff00))
+            await interaction.followup.send(
+                embed=nextcord.Embed(
+                    title="メッセージロールの設定",
+                    description="このサーバーにはメッセージロールの設定がありません。",
+                    color=0x00FF00,
+                )
+            )
         else:
             embed = nextcord.Embed(
-                title="メッセージロールの設定", description=interaction.guild.name, color=0x00ff00)
+                title="メッセージロールの設定",
+                description=interaction.guild.name,
+                color=0x00FF00,
+            )
             for mesroledata in mesroledatas:
+                channel = await self.bot.fetch_channel(mesroledata["channel_id"])
+                assert isinstance(channel, nextcord.abc.GuildChannel | nextcord.Thread)
+
+                role_ids = mesroledata["role_id"]
+                if not isinstance(role_ids, list):  # 旧フォーマット
+                    role_ids = (role_ids,)
+                roles_desc = "、".join(f"<@&{rid}>" for rid in role_ids[:-1])
+                roles_desc = f"{roles_desc and f'{roles_desc}と'}<@&{role_ids[-1]}>"
+
                 embed.add_field(
-                    name=(await self.bot.fetch_channel(mesroledata['channel_id'])).name,
-                    value=f"判定メッセージ:`{mesroledata['regex']}`\nロール:<@&{mesroledata['role_id']}>\nロール{'付与' if mesroledata['action_type'] else '剥奪'}をします。",
-                    inline=False
+                    name=channel.name,
+                    value=(
+                        f"判定メッセージ:`{mesroledata['regex']}`\n"
+                        f"ロール:{roles_desc}\n"
+                        f"ロール{'付与' if mesroledata['action_type'] else '剥奪'}をします。"
+                    ),
+                    inline=False,
                 )
             await interaction.followup.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
-        if isinstance(message.channel, nextcord.DMChannel):
+        if not isinstance(message.channel, nextcord.abc.GuildChannel | nextcord.Thread):
             return
         if message.author.bot:
             return
-        result = await self.collection.find_one({"guild_id": message.guild.id, "channel_id": message.channel.id})
+        assert message.guild and isinstance(message.author, nextcord.Member)
+
+        result = await self.collection.find_one(
+            {"guild_id": message.guild.id, "channel_id": message.channel.id}
+        )
         if result is None:
             return
-        if re.search(result['regex'], message.content) is not None:
-            if result['action_type']:
-                await message.author.add_roles(message.guild.get_role(result["role_id"]), reason="nira-bot MessageRole Service")
+        try:
+            m = re.search(result["regex"], message.content)
+        except Exception:
+            return
+        if m is not None:
+            role_ids = result["role_id"]
+            roles = [
+                role
+                for role_id in (role_ids if isinstance(role_ids, list) else (role_ids,))
+                if (role := message.guild.get_role(role_id))
+                and role.name != "@everyone"
+            ]
+            if not roles:
+                return
+            if result["action_type"]:
+                await message.author.add_roles(
+                    *roles,
+                    reason="nira-bot MessageRole Service",
+                )
             else:
-                await message.author.remove_roles(message.guild.get_role(result["role_id"]), reason="nira-bot MessageRole Service")
+                await message.author.remove_roles(
+                    *roles,
+                    reason="nira-bot MessageRole Service",
+                )
             await message.add_reaction("\u2705")
 
-    @commands.has_permissions(manage_roles=True)
-    @commands.command(name="mesrole", help="""\
-チャンネルで特定のメッセージを送信した人にロールを付与します。
+    @commands.command(
+        name="mesrole",
+        help="""\
+指定された文章を含むメッセージが送信された場合にロールの付与/剥奪を行います。
 
-・追加
-`n!mesrole set [判定メッセージ] [add/remove] [ロール]`
+・使い方
+`/mesrole set`
+`/mesrole del`
+`/mesrole list`
 
-[判定メッセージ]
-判定メッセージを指定します。
-そのメッセージが送信されたらロール付与/剥奪を行います。
-判定メッセージには`正規表現`を用いることができます。
-正規表現については[こちら](https://qiita.com/tossh/items/635aea9a529b9deb3038)をご確認ください。
-判定メッセージ内にスペース（空白）を入れたい場合は、判定メッセージをダブルクオーテーションで囲ってください。
+※コンテキストコマンド`n!mesrole`は廃止されました。スラッシュコマンドをご使用ください。
 
-[add/remove]
-ロールを付与するのか剥奪するのかの動作タイプを指定します。
-`add`か`remove`のみで指定できます。
-`add`:ロールを付与する
-`remove`:ロールを剥奪する
+・`/mesrole set`の設定項目
+`[判定するメッセージ]`
+実際に反応するメッセージです。
+メッセージには[正規表現](https://qiita.com/tossh/items/635aea9a529b9deb3038)をご使用いただけます。
 
-[ロール]
-付与/剥奪したいロールの名前又はIDを指定します。
+`[動作モード]`
+ロールを付与するか、剥奪するかを指定します。
 
-・削除
-`n!mesrole del`
+`[付与/剥奪するロール]`
+実際に付与/剥奪するロールです。
+5つまで設定可能です。
 
-・設定一覧表示
-`n!mesrole list`
+・設定例
+判定するメッセージ: `I don't want to be ([に|ニ|ni]|[ら|ラ|ra])BOT`
+動作モード: `ロールを剥奪する`
+付与/剥奪するロール: `にら民`
+""",
+    )
+    async def mesrole(self, ctx: commands.Context) -> None:
+        await ctx.reply(
+            embed=nextcord.Embed(
+                title="エラー",
+                description=(
+                    f"コンテキストコマンド`{ctx.prefix}mesrole [set/del/list]`は廃止されました。\n"
+                    "スラッシュコマンド`/mesrole [set/del/list]`をご使用ください。"
+                ),
+                color=self.bot.color.RED,
+            ),
+        )
 
-・例
-`n!mesrole add おはよう add 挨拶する人`
-`n!mesrole add "You Tube"` add YouTubeの間に空白入れるタイプの人`
-`n!mesrole remove ([Nn][Ii][Rr][Aa]|[にニﾆ][らラﾗ]) remove にらと言ってない人`
-`n!mesrole list`""")
-    async def mesrole(self, ctx: commands.Context, command_type: str = "list", *args):
-        # regex: str, action_type: str, role: str or int
-
-        if command_type not in ["set", "del", "list", "db"]:
-            await ctx.reply(embed=nextcord.Embed(title="Error", description=f"コマンドが正しくありません。\n個所:第1引数(command_type)\n第1引数は`set`か`del`か`list`のみが許容されます。\n`{self.bot.command_prefix}help mesrole`", color=0xff0000))
-            return
-        if command_type == "set":
-            if len(args) != 3:
-                await ctx.reply(embed=nextcord.Embed(title="Error", description=f"コマンドが正しくありません。\n引数の数が不正です。\n`{self.bot.command_prefix}mesrole set [判定メッセージ] [add/remove] [ロール]`", color=0xff0000))
-                return
-            if args[1] not in ["add", "remove"]:
-                await ctx.reply(embed=nextcord.Embed(title="Error", description=f"コマンドが正しくありません。\n個所:第3引数(動作タイプ)\n第2引数は`add`か`remove`のみが許容されます。\n`{self.bot.command_prefix}mesrole set [判定メッセージ] [add/remove] [ロール]`", color=0xff0000))
-                return
-
-            role = None
-            try:
-                role = ctx.guild.get_role(int(args[2]))
-            except ValueError:
-                pass
-
-            if role is None:
-                for r in ctx.guild.roles:
-                    if r.name == args[2]:
-                        role = r
-                        break
-
-            if role is None:
-                await ctx.reply(embed=nextcord.Embed(title="Error", description=f"指定したロール`{args[2]}`が見つかりませんでした。\nロール名又はロールIDが正しく指定されてることを確認してください。", color=0xff0000))
-                return
-
-            await self.collection.update_one({"guild_id": ctx.guild.id, "channel_id": ctx.channel.id}, {"$set": {"regex": args[0], "role_id": role.id, "action_type": True if args[1] == 'add' else False}}, upsert=True)
-
-            await ctx.reply(embed=nextcord.Embed(title="メッセージロールの設定", description=f"チャンネル:<#{ctx.channel.id}>\n判定メッセージ:`{args[0]}`\nロール:<@&{role.id}>を{(lambda x: '付与' if x else '剥奪')(args[1])}します。", color=0x00ff00))
-
-        elif command_type == "del":
-            result = await self.collection.delete_one({"guild_id": ctx.guild.id, "channel_id": ctx.channel.id})
-
-            if result.deleted_count == 0:
-                await ctx.reply(embed=nextcord.Embed(title="Error", description="このチャンネルには設定がありません。", color=0xff0000))
-                return
-
-            await ctx.reply(embed=nextcord.Embed(title="メッセージロールの設定", description=f"チャンネル:<#{ctx.channel.id}>の設定を削除しました。", color=0x00ff00))
-
-        elif command_type == "list":
-            results = await self.collection.find({"guild_id": ctx.guild.id}).to_list(length=None)
-            if len(results) == 0:
-                await ctx.reply(embed=nextcord.Embed(title="メッセージロール", description="このサーバーには設定がありません。", color=0x00ff00))
-            else:
-                embed = nextcord.Embed(
-                    title="メッセージロールの設定", description=ctx.guild.name, color=0x00ff00)
-                for result in results:
-                    embed.add_field(
-                        name=(await self.bot.fetch_channel(result['channel_id'])).name,
-                        value=f"判定メッセージ:`{result['regex']}`\nロール:<@&{result['role_id']}>\nロール{'付与' if result['action_type'] else '剥奪'}をします。",
-                        inline=False
-                    )
-                await ctx.reply(embed=embed)
 
 def setup(bot):
     bot.add_cog(MessageRole(bot))

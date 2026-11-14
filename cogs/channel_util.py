@@ -1,22 +1,101 @@
 import asyncio
+import logging
+from collections.abc import Sequence
 from typing import TypeVar
 
 import nextcord
+from motor import motor_asyncio
 from nextcord.ext import application_checks, commands
 
+from util import modal
 from util.nira import NIRA
 
-from motor import motor_asyncio
+GuildChannelT_co = TypeVar(
+    "GuildChannelT_co", bound=nextcord.abc.GuildChannel, covariant=True
+)
 
-GuildChannelT_co = TypeVar("GuildChannelT_co", bound=nextcord.abc.GuildChannel, covariant=True)
+_logger = logging.getLogger(__name__)
+
+
+class VCLimitManageModal(modal.Modal):
+    def __init__(
+        self,
+        cog: "ChannelUtil",
+        *,
+        default_roles: Sequence[nextcord.Role | int] | None = None,
+        has_deleted_roles: bool = False,
+    ) -> None:
+        super().__init__("ユーザー上限コマンドの設定", timeout=None)
+
+        self.cog = cog
+
+        self.roles = modal.ModalLabel(
+            text="コマンドを実行できるロール (25個まで)",
+            description=(
+                "利用できなくなった一部のロールは一覧から削除されています。"
+                if has_deleted_roles
+                else None
+            ),
+            component=modal.ModalRoleSelect(
+                placeholder="ロールを選択してください",
+                default_values=default_roles,
+                max_values=25,
+                required=True,
+            ),
+        )
+
+        self.add_item(self.roles)
+
+    async def callback(self, interaction: nextcord.Interaction) -> None:
+        assert isinstance(interaction.guild, nextcord.Guild)
+
+        await interaction.response.defer(ephemeral=True)
+
+        try:
+            await self.cog.vclimit_collection.update_one(
+                {"_id": interaction.guild.id},
+                {
+                    "$set": {
+                        "managerole": [r.id for r in self.roles.component.values.roles]
+                    }
+                },
+                upsert=True,
+            )
+
+            roles = self.roles.component.values.roles
+            roles_desc = "、".join(r.mention for r in roles[:-1])
+            roles_desc = f"{roles_desc and f'{roles_desc}および'}{roles[-1].mention}"
+
+            await interaction.send(
+                embed=nextcord.Embed(
+                    title="完了",
+                    description=f"ユーザー上限コマンドを実行できるロールを{roles_desc}に設定しました。",
+                    color=self.cog.bot.color.NORMAL,
+                ),
+                ephemeral=True,
+            )
+
+        except Exception:
+            _logger.exception("An error has occurred when setting vclimit manage roles")
+            await interaction.send(
+                f"申し訳ございません。エラーが発生しました。\n```\n{self.cog.bot.format_exc()}```",
+                ephemeral=True,
+            )
+
 
 class ChannelUtil(commands.Cog):
     def __init__(self, bot: NIRA):
         self.bot = bot
-        self.vclimit_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["vclimit_role"]
-        self.vclimit_channel_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["vclimit_channel"]
+        self.vclimit_collection: motor_asyncio.AsyncIOMotorCollection = (
+            self.bot.database["vclimit_role"]
+        )
+        self.vclimit_channel_collection: motor_asyncio.AsyncIOMotorCollection = (
+            self.bot.database["vclimit_channel"]
+        )
 
-    def which_channel(self, a: nextcord.abc.GuildChannel, b: nextcord.abc.GuildChannel) -> nextcord.abc.GuildChannel:
+    def which_channel(
+        self, a: nextcord.abc.GuildChannel, b: nextcord.abc.GuildChannel
+    ) -> nextcord.abc.GuildChannel:
         """
         aとbのどちらのチャンネルが優位かを判定します
 
@@ -81,7 +160,7 @@ class ChannelUtil(commands.Cog):
     async def sort_slash(
         self,
         interaction: nextcord.Interaction,
-        category: (nextcord.CategoryChannel | None) = nextcord.SlashOption(
+        category: nextcord.CategoryChannel | None = nextcord.SlashOption(
             name="category",
             description="The category to sort.",
             description_localizations={
@@ -119,14 +198,17 @@ class ChannelUtil(commands.Cog):
 
         sorted_channels = self.quick_sort(channels)
         text_channels = [
-            c for c in sorted_channels if isinstance(c, nextcord.TextChannel) or isinstance(c, nextcord.ForumChannel)
+            c
+            for c in sorted_channels
+            if isinstance(c, nextcord.TextChannel)
+            or isinstance(c, nextcord.ForumChannel)
         ]
         voice_channels = [
-            c for c in sorted_channels if isinstance(c, nextcord.VoiceChannel) or isinstance(c, nextcord.StageChannel)
+            c
+            for c in sorted_channels
+            if isinstance(c, nextcord.VoiceChannel)
+            or isinstance(c, nextcord.StageChannel)
         ]
-
-        print(text_channels)
-        print(voice_channels)
 
         for pos in range(len(text_channels)):
             if text_channels[pos].position == pos:
@@ -137,14 +219,19 @@ class ChannelUtil(commands.Cog):
         for pos in range(len(voice_channels)):
             if voice_channels[pos].position == pos:
                 continue
-            await voice_channels[pos].move(beginning=True, offset=pos, category=category)
+            await voice_channels[pos].move(
+                beginning=True, offset=pos, category=category
+            )
             await asyncio.sleep(1)
 
         await interaction.send(
-            embed=nextcord.Embed(title="完了", description="チャンネルの並べ替えが完了しました。", color=self.bot.color.NORMAL)
+            embed=nextcord.Embed(
+                title="完了",
+                description="チャンネルの並べ替えが完了しました。",
+                color=self.bot.color.NORMAL,
+            )
         )
 
-    @application_checks.guild_only()
     @nextcord.slash_command(
         name="vclimit",
         description="Sets the user limit of the voice channel.",
@@ -193,18 +280,28 @@ class ChannelUtil(commands.Cog):
         channel = interaction.user.voice.channel
         assert isinstance(channel, nextcord.VoiceChannel)
         if grant:
-            await self.vclimit_channel_collection.update_one({"guild_id": interaction.guild.id}, {"$set": {str(channel.id): True}}, upsert=True)
+            await self.vclimit_channel_collection.update_one(
+                {"guild_id": interaction.guild.id},
+                {"$set": {str(channel.id): True}},
+                upsert=True,
+            )
         else:
-            await self.vclimit_channel_collection.update_one({"guild_id": interaction.guild.id}, {"$unset": {str(channel.id): True}}, upsert=True)
+            await self.vclimit_channel_collection.update_one(
+                {"guild_id": interaction.guild.id},
+                {"$unset": {str(channel.id): True}},
+                upsert=True,
+            )
         await interaction.send(
             embed=nextcord.Embed(
                 title="完了",
-                description=f"<#{channel.id}>で、ロールが付与されていないユーザーによる、ユーザー上限コマンドの実行{'が出来るように' if grant else 'が出来なく'}なりました。",
+                description=(
+                    f"{channel.mention}で、ロールが付与されていないユーザーによる、"
+                    f"ユーザー上限コマンドの実行が{'出来るように' if grant else '出来なく'}なりました。"
+                ),
                 color=self.bot.color.NORMAL,
             ),
             ephemeral=True,
         )
-
 
     @application_checks.guild_only()
     @application_checks.has_guild_permissions(manage_channels=True)
@@ -215,30 +312,31 @@ class ChannelUtil(commands.Cog):
             nextcord.Locale.ja: "ユーザー上限コマンドを実行できるロールを設定します。",
         },
     )
-    async def vclimit_manage_slash(
-        self,
-        interaction: nextcord.Interaction,
-        managerole: nextcord.Role = nextcord.SlashOption(
-            name="managerole",
-            description="The role that can execute the user limit command.",
-            description_localizations={
-                nextcord.Locale.ja: "ユーザー上限コマンドを実行できるロール",
-            },
-            required=True,
-        ),
-    ):
-        await interaction.response.defer(ephemeral=True)
+    async def vclimit_manage_slash(self, interaction: nextcord.Interaction):
         assert isinstance(interaction.guild, nextcord.Guild)
-        await self.vclimit_collection.update_one(
-            {"_id": interaction.guild.id}, {"$set": {"managerole": managerole.id}}, upsert=True
-        )
-        await interaction.send(
-            embed=nextcord.Embed(
-                title="完了",
-                description=f"ユーザー上限コマンドを実行できるロールを{managerole.mention}に設定しました。",
-                color=self.bot.color.NORMAL,
-            ),
-            ephemeral=True,
+
+        roledata = await self.vclimit_collection.find_one({"_id": interaction.guild.id})
+        roles = []
+        has_deleted_roles = False
+        if roledata and (role_ids := roledata["managerole"]):
+            if not isinstance(role_ids, list):  # 旧フォーマット (単一ロール設定)
+                role_ids = (role_ids,)
+
+            for role_id in role_ids:
+                if role := interaction.guild.get_role(role_id):
+                    # 旧スラッシュコマンドでは@everyoneを選択することができた
+                    # モーダルのRole Selectでは選択できないため除外しておく
+                    if role.name != "@everyone":
+                        roles.append(role)
+                else:
+                    has_deleted_roles = True
+
+        await interaction.response.send_modal(
+            VCLimitManageModal(
+                self,
+                default_roles=roles or None,
+                has_deleted_roles=has_deleted_roles,
+            )
         )
 
     @application_checks.guild_only()
@@ -271,52 +369,87 @@ class ChannelUtil(commands.Cog):
                     title="エラー",
                     description="このコマンドを実行するには、ボイスチャンネルに入室している必要があります。",
                     color=self.bot.color.ERROR,
-                )
+                ),
+                ephemeral=True,
             )
             return
         vc_channel = interaction.user.voice.channel
         assert isinstance(vc_channel, nextcord.VoiceChannel)
-        vc_grants = await self.vclimit_channel_collection.find_one({"guild_id": interaction.guild.id})
+        vc_grants = await self.vclimit_channel_collection.find_one(
+            {"guild_id": interaction.guild.id},
+        )
         if vc_grants is None:
             vc_grants = {}
-            asyncio.ensure_future(self.vclimit_channel_collection.update_one({"guild_id": interaction.guild.id}, {"$set": vc_grants}, upsert=True))
+            await self.vclimit_channel_collection.update_one(
+                {"guild_id": interaction.guild.id},
+                {"$set": vc_grants},
+                upsert=True,
+            )
         if str(vc_channel.id) not in vc_grants:
-            roledata = await self.vclimit_collection.find_one({"_id": interaction.guild.id})
+            roledata = await self.vclimit_collection.find_one(
+                {"_id": interaction.guild.id},
+            )
             if roledata is None:
                 await interaction.send(
                     embed=nextcord.Embed(
                         title="エラー",
-                        description="ユーザー上限コマンドを実行できるロールが設定されていません。\n事前に管理者が`/vclimit manage`コマンドでロールを設定してください。",
+                        description=(
+                            "ユーザー上限コマンドを実行できるロールが設定されていません。\n"
+                            "事前に管理者が`/vclimit manage`コマンドでロールを設定してください。"
+                        ),
                         color=self.bot.color.ERROR,
-                    )
+                    ),
+                    ephemeral=True,
                 )
                 return
-            manage_role = interaction.guild.get_role(roledata["managerole"])
-            if manage_role is None:
+            roledata = roledata["managerole"]
+            manage_roles = [
+                role
+                for role_id in (roledata if isinstance(roledata, list) else (roledata,))
+                if (role := interaction.guild.get_role(role_id))
+            ]
+            if not manage_roles:
                 await interaction.send(
                     embed=nextcord.Embed(
                         title="エラー",
-                        description="ユーザー上限コマンドを実行できるロールが設定されていません。\n事前に管理者が`/vclimit manage`コマンドでロールを設定してください。",
+                        description=(
+                            "ユーザー上限コマンドを実行できるロールが設定されていません。\n"
+                            "事前に管理者が`/vclimit manage`コマンドでロールを設定してください。"
+                        ),
                         color=self.bot.color.ERROR,
-                    )
+                    ),
+                    ephemeral=True,
                 )
                 return
-            if manage_role not in interaction.user.roles:
+            if not (set(interaction.user.roles) & set(manage_roles)):
+                roles_desc = "、".join(r.mention for r in manage_roles[:-1])
+                roles_desc = (
+                    f"{roles_desc and f'{roles_desc}または'}{manage_roles[-1].mention}"
+                )
                 await interaction.send(
                     embed=nextcord.Embed(
                         title="エラー",
-                        description=f"このコマンドを実行する権限がありません。\nこのコマンドを実行するには、ユーザー上限コマンドを実行できるロールとして「{manage_role.name}」が必要です。",
+                        description=(
+                            "このコマンドを実行する権限がありません。\n"
+                            f"このコマンドを実行するには、ユーザー上限コマンドを実行できるロールとして{roles_desc}が必要です。"
+                        ),
                         color=self.bot.color.ERROR,
-                    )
+                    ),
+                    allowed_mentions=nextcord.AllowedMentions.none(),
+                    ephemeral=True,
                 )
                 return
         elif not vc_grants[str(vc_channel.id)]:
             await interaction.send(
                 embed=nextcord.Embed(
                     title="エラー",
-                    description="このコマンドを実行する権限がありません。\nこのチャンネルでの人数上限の変更が許可されているかご確認ください。",
+                    description=(
+                        "このコマンドを実行する権限がありません。\n"
+                        "このチャンネルでの人数上限の変更が許可されているかご確認ください。"
+                    ),
                     color=self.bot.color.ERROR,
-                )
+                ),
+                ephemeral=True,
             )
             return
         if userlimit < 0:
@@ -325,16 +458,21 @@ class ChannelUtil(commands.Cog):
                     title="エラー",
                     description="ユーザー上限は0以上の整数で指定してください。",
                     color=self.bot.color.ERROR,
-                )
+                ),
+                ephemeral=True,
             )
             return
+        await interaction.response.defer()
         try:
             await vc_channel.edit(user_limit=userlimit)
         except nextcord.Forbidden:
             await interaction.send(
                 embed=nextcord.Embed(
                     title="エラー",
-                    description="BOTが人数制限を変更する権限を持っていませんでした。\nBOTに適切な権限を付与してから再度試してください。",
+                    description=(
+                        "BOTが人数制限を変更する権限を持っていませんでした。\n"
+                        "BOTに適切な権限を付与してから再度試してください。"
+                    ),
                     color=self.bot.color.ERROR,
                 )
             )
@@ -356,7 +494,10 @@ class ChannelUtil(commands.Cog):
                 )
             )
 
-    @commands.command(name="vclimit", aliases=["vl", "人数制限"], help="""\
+    @commands.command(
+        name="vclimit",
+        aliases=["vl", "人数制限"],
+        help="""\
 VCの人数制限を変更します。
 
 引数には変更後の人数を指定してください。
@@ -365,7 +506,8 @@ VCの人数制限を変更します。
 変更には、このコマンドを実行できるロールが必要です。
 このコマンドを実行できるロールは、`/vclimit manage`コマンドで設定できます。
 
-エイリアス: `vl`、`人数制限`""")
+エイリアス: `vl`、`人数制限`""",
+    )
     async def vclimit_change(self, ctx: commands.Context, userlimit: int = 0):
         assert isinstance(ctx.author, nextcord.Member)
         assert isinstance(ctx.guild, nextcord.Guild)
@@ -381,45 +523,71 @@ VCの人数制限を変更します。
             return
         vc_channel = ctx.author.voice.channel
         assert isinstance(vc_channel, nextcord.VoiceChannel)
-        vc_grants = await self.vclimit_channel_collection.find_one({"guild_id": ctx.guild.id})
+        vc_grants = await self.vclimit_channel_collection.find_one(
+            {"guild_id": ctx.guild.id}
+        )
         if vc_grants is None:
             vc_grants = {}
-            asyncio.ensure_future(self.vclimit_channel_collection.update_one({"guild_id": ctx.guild.id}, {"$set": vc_grants}, upsert=True))
+            await self.vclimit_channel_collection.update_one(
+                {"guild_id": ctx.guild.id}, {"$set": vc_grants}, upsert=True
+            )
         if str(vc_channel.id) not in vc_grants:
             roledata = await self.vclimit_collection.find_one({"_id": ctx.guild.id})
             if roledata is None:
                 await ctx.reply(
                     embed=nextcord.Embed(
                         title="エラー",
-                        description="ユーザー上限コマンドを実行できるロールが設定されていません。\n事前に管理者が`/vclimit manage`コマンドでロールを設定してください。",
+                        description=(
+                            "ユーザー上限コマンドを実行できるロールが設定されていません。\n"
+                            "事前に管理者が`/vclimit manage`コマンドでロールを設定してください。"
+                        ),
                         color=self.bot.color.ERROR,
                     )
                 )
                 return
-            manage_role = ctx.guild.get_role(roledata["managerole"])
-            if manage_role is None:
+            roledata = roledata["managerole"]
+            manage_roles = [
+                role
+                for role_id in (roledata if isinstance(roledata, list) else (roledata,))
+                if (role := ctx.guild.get_role(role_id))
+            ]
+            if not manage_roles:
                 await ctx.reply(
                     embed=nextcord.Embed(
                         title="エラー",
-                        description="ユーザー上限コマンドを実行できるロールが設定されていません。\n事前に管理者が`/vclimit manage`コマンドでロールを設定してください。",
+                        description=(
+                            "ユーザー上限コマンドを実行できるロールが設定されていません。\n"
+                            "事前に管理者が`/vclimit manage`コマンドでロールを設定してください。"
+                        ),
                         color=self.bot.color.ERROR,
                     )
                 )
                 return
-            if manage_role not in ctx.author.roles:
+            if not (set(ctx.author.roles) & set(manage_roles)):
+                roles_desc = "、".join(r.mention for r in manage_roles[:-1])
+                roles_desc = (
+                    f"{roles_desc and f'{roles_desc}または'}{manage_roles[-1].mention}"
+                )
                 await ctx.reply(
                     embed=nextcord.Embed(
                         title="エラー",
-                        description=f"このコマンドを実行する権限がありません。\nこのコマンドを実行するには、ユーザー上限コマンドを実行できるロールとして「{manage_role.name}」が必要です。",
+                        description=(
+                            "このコマンドを実行する権限がありません。\n"
+                            f"このコマンドを実行するには、ユーザー上限コマンドを実行できるロールとして{roles_desc}が必要です。"
+                        ),
                         color=self.bot.color.ERROR,
-                    )
+                    ),
+                    allowed_mentions=nextcord.AllowedMentions.none(),
                 )
                 return
         elif not vc_grants[str(vc_channel.id)]:
             await ctx.reply(
                 embed=nextcord.Embed(
                     title="エラー",
-                    description="このコマンドを実行する権限がありません。\nこのチャンネルでの人数上限の変更が許可されているかご確認ください。",
+                    description=(
+                        "このコマンドを実行する権限がありません。\n"
+                        "このチャンネルでの人数上限の変更が許可されているかご確認ください。"
+                    ),
                     color=self.bot.color.ERROR,
                 )
             )
@@ -439,7 +607,10 @@ VCの人数制限を変更します。
             await ctx.reply(
                 embed=nextcord.Embed(
                     title="エラー",
-                    description="BOTが人数制限を変更する権限を持っていませんでした。\nBOTに適切な権限を付与してから再度試してください。",
+                    description=(
+                        "BOTが人数制限を変更する権限を持っていませんでした。\n"
+                        "BOTに適切な権限を付与してから再度試してください。"
+                    ),
                     color=self.bot.color.ERROR,
                 )
             )

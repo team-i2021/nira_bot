@@ -10,6 +10,8 @@ from util import nira
 
 # メッセージコマンド
 
+COMPONENT_ID = "cogs.MessageCommands"
+
 SYSDIR = sys.path[0]
 
 
@@ -28,6 +30,7 @@ class MessageCommandPulldown(nextcord.ui.Select):
         ]
 
         super().__init__(
+            custom_id=COMPONENT_ID,
             placeholder="選択してください...",
             min_values=1,
             max_values=1,

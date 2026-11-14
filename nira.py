@@ -1,9 +1,9 @@
 # 沢山のインポート
 import json
 import logging
+import logging.config
 import os
 import sys
-import traceback
 from argparse import ArgumentParser
 
 import nextcord
@@ -11,10 +11,9 @@ from motor import motor_asyncio
 
 from util import n_fc
 from util.nira import NIRA
-from util.settings import BotSettings
+from util.settings import BotSettings, Logging
 
 sys.setrecursionlimit(10000)  # エラー回避
-print("モジュールインポート完了")
 
 
 # 引数解析
@@ -41,15 +40,30 @@ with open(f"{sys.path[0]}/setting.json", "r") as file:
     settings = BotSettings.model_validate(json.load(file))
 
 
+# loggingの設定
+if isinstance(settings.logging, Logging):
+    logging.basicConfig(
+        format=settings.logging.format,
+        filename=settings.logging.filepath,
+        level=settings.logging.level,
+    )
+else:
+    logging.config.dictConfig(settings.logging.model_dump())
+
+logging.captureWarnings(True)
+
+_logger = logging.getLogger("main")
+_logger.info("Starting NIRA Bot...")
+
+
 n_fc.GUILD_IDS = settings.guild_ids
 n_fc.py_admin = settings.py_admin
 UNLOAD_COGS = settings.unload_cogs
 LOAD_COGS = settings.load_cogs
-DEBUG = False
+DEBUG: bool = args.debug
 
-if args.debug:
-    DEBUG = True
-    print(f"NIRA Bot Debug Mode\nThe following will be loaded... :{LOAD_COGS}")
+if DEBUG:
+    _logger.info(f"[Debug Mode] The following will be loaded... :{LOAD_COGS}")
 
 
 # データベースの設定
@@ -63,7 +77,6 @@ intents.presences = False  # 未認証なのでPresence Intentは無効化
 intents.members = True  # Members Intentを有効化
 intents.message_content = True  # Message Content Intentを有効化
 
-# TODO: BotSettings を直接渡せるようにする
 bot = NIRA(
     mongo=_MONGO_CLIENT,  # mongo_db
     debug=DEBUG,
@@ -71,7 +84,7 @@ bot = NIRA(
     database_name=settings.database_name,
     shard_id=settings.shard_id,
     shard_count=settings.shard_count,
-    settings=settings.model_dump(),
+    settings=settings,
     command_prefix=settings.prefix,
     intents=intents,
     help_command=None,
@@ -81,20 +94,11 @@ bot = NIRA(
     default_guild_ids=list(settings.guild_ids) if DEBUG else None
 )
 
-bot.load_extension("onami")
-
-print("BOTの設定完了")
-
-
-# loggingの設定
-
-logging.basicConfig(
-    format=settings.logging.format,
-    filename=settings.logging.filepath,
-    level=settings.logging.level,
-)
-
-print("Logging設定完了")
+_logger.debug("Loading jishaku...")
+bot.load_extension("ncjishaku")
+if jishaku := bot.remove_command("jishaku"):
+    jishaku.aliases = sorted(set(jishaku.aliases) | {"onami", "oni"})
+    bot.add_command(jishaku)
 
 
 @bot.event
@@ -112,15 +116,12 @@ async def on_ready():
 
     assert bot.user
 
-    print("Welcome to nira-bot!")
-    print(
-        f"""\
-USER: {bot.user.name}#{bot.user.discriminator}
+    _logger.info(f"""Welcome to nira-bot!
+USER: {bot.user.name}{bot.user.discriminator and f"#{bot.user.discriminator}"}
 ID: {bot.user.id}
-COGS: {[dict(bot.cogs)[i].qualified_name for i in dict(bot.cogs).keys()]}
-COMMANDS: {[i.name for i in list(bot.commands)]}
-"""
-    )
+COGS: {[cog.qualified_name for cog in bot.cogs.values()]}
+COMMANDS: {sorted(cmd.name for cmd in bot.commands)}
+"""[:-1])
 
 
 # 暫定: 元のエラーハンドラが反応して標準エラーにスタックトレースを出力してしまうので
@@ -136,33 +137,33 @@ if not bot.debug:
 
 # load extensions
 cogs_dir = HOME + "/cogs"
-cogs_num = len(os.listdir(cogs_dir))
-cogs_list = os.listdir(cogs_dir)
 if bot.debug:
-    cogs_num = len(LOAD_COGS)
     cogs_list = LOAD_COGS
-for i in range(cogs_num):
+else:
+    cogs_list = os.listdir(cogs_dir)
+cogs_list = [
+    f"cogs.{f.removesuffix('.py')}"
+    for f in cogs_list
+    if f.endswith(".py") and f != "not_ready.py" and f not in UNLOAD_COGS
+]
+_logger.info(f"Loading {len(cogs_list)} cogs...")
+cogs_num_loaded = 0
+for cog in cogs_list:
     try:
-        if not (
-            cogs_list[i][-3:] != ".py"
-            or cogs_list[i] == "__pycache__"
-            or cogs_list[i] == "not_ready.py"
-            or cogs_list[i] in UNLOAD_COGS
-        ):
-            bot.load_extension(f"cogs.{cogs_list[i][:-3]}")
+        _logger.debug(f"Loading cog {cog}...")
+        bot.load_extension(cog)
     except Exception:
-        print("Cog読み込み失敗:", cogs_list[i], file=sys.stderr)
-        traceback.print_exc()
-        logging.exception(f"Cog読み込み失敗: {cogs_list[i]}")
-
-print("Cogの読み込み終了")
+        _logger.exception(f"Failed to load cog {cog}")
+    else:
+        cogs_num_loaded += 1
+_logger.info(f"{cogs_num_loaded} cogs are loaded")
 
 
 def main():
     # BOT起動
-    print("BOT起動開始...")
+    _logger.info("Running bot...")
     bot.run()
-    print("BOT終了")
+    _logger.info("Exiting bot")
 
 
 if __name__ == "__main__":

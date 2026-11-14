@@ -2,6 +2,7 @@ import asyncio
 import datetime
 import logging
 import traceback
+from typing import Any
 
 import nextcord
 from nextcord.ext import commands
@@ -10,6 +11,7 @@ from motor import motor_asyncio
 
 from util.nira import NIRA
 
+_logger = logging.getLogger(__name__)
 
 # ユーザー参加時の挙動
 
@@ -19,25 +21,23 @@ class UserJoin(commands.Cog):
         self.bot = bot
         self.winfo_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["welcome_info"]
         self.rk_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["role_keeper"]
-        self.invite_collection: motor_asyncio.AsyncIOMotorCollection = self.bot.database["invite_data"]
-        asyncio.ensure_future(self.fetch_role_keeper())
+        self.bot.schedule_task(self.fetch_role_keeper())
 
     async def fetch_role_keeper(self):
         await self.bot.wait_until_ready()
 
         for guild in self.bot.guilds:
-            rolekeeper = await self.rk_collection.find_one({"guild_id": guild.id})
-            if guild.id not in rolekeeper:
-                rolekeeper = {"rk": 0}
+            rolekeeper: dict[str, Any] | None = await self.rk_collection.find_one({"guild_id": guild.id})
+            if not rolekeeper:
+                rolekeeper = {"setting": False}
             for member in guild.members:
                 rolekeeper[str(member.id)] = [role.id for role in member.roles if role.id != guild.id]
-            asyncio.ensure_future(self.rk_collection.update_one({"guild_id": guild.id}, {"$set": rolekeeper}, upsert=True))
+            await self.rk_collection.update_one({"guild_id": guild.id}, {"$set": rolekeeper}, upsert=True)
 
     @commands.Cog.listener()
     async def on_member_join(self, member: nextcord.Member):
         welcomeinfo = await self.winfo_collection.find_one({"guild_id": member.guild.id})
-        rolekeeper = await self.rk_collection.find_one({"guild_id": member.guild.id})
-        invites = await self.invite_collection.find_one({"guild_id": member.guild.id})
+        rolekeeper: dict[str, Any] | None = await self.rk_collection.find_one({"guild_id": member.guild.id})
 
         if welcomeinfo is None:
             channel = None
@@ -45,16 +45,16 @@ class UserJoin(commands.Cog):
         try:
             channel = member.guild.get_channel(welcomeinfo["channel_id"])
             if rolekeeper is None:
-                rolekeeper = {"rk": False}
-                for i in range(len(member.guild.members)):
-                    if member.guild.members[i].id != member.id:
-                        rolekeeper[member.guild.members[i].id] = [j.id for j in member.guild.members[i].roles if j.id != member.guild.id]
-                asyncio.ensure_future(self.rk_collection.update_one({"guild_id": member.guild.id}, {"$set": rolekeeper}, upsert=True))
-        except Exception as err:
-            logging.error(err, traceback.format_exc())
+                rolekeeper = {"setting": False}
+                for m in member.guild.members:
+                    if m.id != member.id:
+                        rolekeeper[str(m.id)] = [role.id for role in m.roles if role.id != member.guild.id]
+                await self.rk_collection.update_one({"guild_id": member.guild.id}, {"$set": rolekeeper}, upsert=True)
+        except Exception:
+            _logger.exception("An error has occurred")
 
         try:
-            if member.id not in rolekeeper:
+            if not rolekeeper or str(member.id) not in rolekeeper:
                 # ロールキーパーデータにない場合
                 embed = nextcord.Embed(
                     title="こんにちは！",
@@ -80,33 +80,8 @@ class UserJoin(commands.Cog):
                 name="現在のユーザー数",
                 value=f"`{len(member.guild.members)}`人"
             )
-        except Exception as err:
-            logging.error(err, traceback.format_exc())
-
-        try:
-            Invites = await member.guild.invites()
-            if invites is None:
-                invites = {i.url: [None, i.uses] for i in Invites}
-            else:
-                invitedUrl = None
-                for key, value in invites.items():
-                    for i in Invites:
-                        if i.url == key and i.uses != value[1]:
-                            invitedUrl = i
-                            invites[invitedUrl.url][1] = invitedUrl.uses
-                            break
-                invitedFrom = f"[{invites[invitedUrl.url][0]}]({invitedUrl.url})"
-                if invites[invitedUrl.url][0] is None:
-                    invitedFrom = f"[{invitedUrl.url}]({invitedUrl.url})"
-                embed.add_field(
-                    name="招待リンク",
-                    value=f"{invitedFrom}から招待を受けました！",
-                    inline=False
-                )
-            asyncio.ensure_future(self.invite_collection.update_one({"guild_id": member.guild.id}, {"$set": invites}, upsert=True))
-
-        except Exception as err:
-            logging.error(f"{err}\n{traceback.format_exc()}")
+        except Exception:
+            _logger.exception("An error has occurred")
 
         try:
             if channel is not None:
@@ -114,27 +89,27 @@ class UserJoin(commands.Cog):
             else:
                 members_message = None
 
-        except Exception as err:
-            logging.error(err)
+        except Exception:
+            _logger.exception("An error has occurred")
 
         await asyncio.sleep(3)
 
-        if rolekeeper["rk"]:
+        if rolekeeper and rolekeeper["setting"]:
             try:
-                if member.id in rolekeeper:
-                    for i in range(len(rolekeeper[member.id])):
-                        role = member.guild.get_role(rolekeeper[member.id][i])
+                if role_ids := rolekeeper.get(str(member.id)):
+                    for role_id in role_ids:
+                        role = member.guild.get_role(role_id)
                         if role is not None: await member.add_roles(role)
 
                     embed.add_field(
                         name="付与済みロール",
-                        value=f"{' '.join([f'<@&{i}>' for i in rolekeeper[member.id]])}"
+                        value=f"{' '.join([f'<@&{i}>' for i in role_ids])}"
                     )
                     if members_message is not None: await members_message.edit(embed=embed)
 
             except Exception as err:
+                _logger.exception("An error has occurred")
                 if members_message is not None: await members_message.edit(f"ロール付与時に何かしらのエラーが発生しました。\n何度も発生する場合はお問い合わせください。\n`{err}`", embed=embed)
-                logging.error(err)
 
 
     @commands.Cog.listener()
@@ -181,17 +156,16 @@ class UserJoin(commands.Cog):
 
             # After send...
 
-            rolekeeper = await self.rk_collection.find_one({"guild_id": member.guild.id})
+            rolekeeper: dict[str, Any] | None = await self.rk_collection.find_one({"guild_id": member.guild.id})
 
             if rolekeeper is None:
-                rolekeeper = {"rk": 0}
-                return
+                rolekeeper = {"setting": False}
             rolekeeper[str(member.id)] = role_ids
             await self.rk_collection.update_one({"guild_id": member.guild.id}, {"$set": rolekeeper}, upsert=True)
             return
         except Exception as err:
+            _logger.exception("An error has occurred when processing the Guild Member Remove event")
             if channel is not None: await removed_message.edit(f"おっと...これは大変ですね...\nユーザー離脱時の処理時にエラーが発生しました。\n`{err}`", embed=embed)
-            logging.error(f"ユーザー離脱時の情報表示システムのエラー\n{err}\n`{traceback.format_exc()}`")
             return
 
 

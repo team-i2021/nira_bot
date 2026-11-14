@@ -29,6 +29,8 @@ MAX_LENGTH: Final = 2000
 
 glock = asyncio.Lock()
 
+_logger = logging.getLogger(__name__)
+
 
 class Mode(Enum):
     ON = auto()
@@ -372,14 +374,14 @@ Webhookは使いたくない精神なので、にらBOTが直々に送ってあ�
             msg = await document.channel.send(document.text)
         except Exception as e:
             if isinstance(e, nextcord.Forbidden):
-                logging.exception("Error while sending message")
+                _logger.exception("An error has occurred when sending message")
             return False
 
         try:
             document.last_message = msg
             await self.collection.update(document)
         except Exception:
-            logging.exception("Error while updating database")
+            _logger.exception("An error has occurred when updating database")
 
         return True
 
@@ -392,29 +394,26 @@ Webhookは使いたくない精神なので、にらBOTが直々に送ってあ�
         except (nextcord.NotFound, nextcord.Forbidden):
             pass
         except Exception:
-            logging.exception("Error while deleting message")
+            _logger.exception("An error has occurred when deleting message")
             return False
 
         try:
             document.last_message = None
             await self.collection.update(document)
         except Exception:
-            logging.exception("Error while updating database")
+            _logger.exception("An error has occurred when updating database")
 
         return True
 
     async def _refresh_channel(self, ch: MessageableGuildChannel) -> None:
         lock = self._get_lock(ch.id)
         async with lock.save:
-            last_message = None
             try:
-                last_message = (await ch.history(limit=1).flatten())[0]
-            except IndexError:
-                pass
+                last_message = await anext(ch.history(limit=1), None)
             except nextcord.Forbidden:
                 return
             except Exception:
-                logging.exception("Error while fetching message history")
+                _logger.exception("An error has occurred when fetching message history")
                 return
 
             if lock.sleep.locked():
@@ -434,7 +433,7 @@ Webhookは使いたくない精神なので、にらBOTが直々に送ってあ�
                 if isinstance(document, PinDocument):
                     await self._refresh_channel(document.channel)
                 else:
-                    logging.exception("Error while fetching channel", exc_info=document)
+                    _logger.exception("An error has occurred when fetching channel", exc_info=document)
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
@@ -501,4 +500,4 @@ def setup(bot: NIRA) -> None:
 
 
 def teardown(_) -> None:
-    logging.info("Tearing down bottom pin")
+    _logger.info("Tearing down bottom pin")

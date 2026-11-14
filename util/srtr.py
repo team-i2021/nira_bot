@@ -23,6 +23,8 @@ srtr_data = {}
 
 SYSDIR = sys.path[0]
 
+_logger = logging.getLogger(__name__)
+
 kks = pykakasi.kakasi()
 
 async def on_srtr(message: nextcord.Message, collection: motor_asyncio.AsyncIOMotorCollection):
@@ -32,19 +34,19 @@ async def on_srtr(message: nextcord.Message, collection: motor_asyncio.AsyncIOMo
     try:
         ply_dt = []
         srtr_str = ""
-        logging.info(ply_dt)
+        _logger.debug(ply_dt)
         if message.author.bot or message.content == "" or message.content == None:
             return
         for i in range(len(kks.convert(message.content))):
             srtr_str = srtr_str + kks.convert(message.content)[i]["hira"]
-        logging.info(kks.convert(message.content))
+        _logger.debug(kks.convert(message.content))
         if not re.sub("[^A-Za-z\u3041-\u3096\u30A1-\u30FA\u4E00-\u9FFF\uF900-\uFA6D\uFF66-\uFF9D]+", "", srtr_str) == "":
             srtr_str = re.sub(
                 "[^A-Za-z\u3041-\u3096\u30A1-\u30FA\u4E00-\u9FFF\uF900-\uFA6D\uFF66-\uFF9D]+", "", srtr_str)
             last_str = srtr_str[-1]
         else:
             last_str = srtr_str[-1]
-        logging.info(last_str)
+        _logger.debug(last_str)
         if re_katakana.fullmatch(last_str):
             lstr = jaconv.kata2hira(last_str)
         elif re_hiragana.fullmatch(last_str):
@@ -53,7 +55,7 @@ async def on_srtr(message: nextcord.Message, collection: motor_asyncio.AsyncIOMo
             lstr = last_str.lower()
         else:
             return
-        logging.info(lstr)
+        _logger.debug(lstr)
         if lstr in word_data.chara_ary:
             if len(srtr_data[message.guild.id][f"{lstr}_wd"]) == 0:
                 await message.reply(embed=nextcord.Embed(title="しりとり", description=f"にらBOTには`{lstr}`から始まる言葉がない！\nあなたの勝ちです！\n再度しりとりをするには、`n!srtr start`と入力してください！", color=0x00ff00))
@@ -98,5 +100,5 @@ async def on_srtr(message: nextcord.Message, collection: motor_asyncio.AsyncIOMo
                         continue
             return
     except Exception:
+        _logger.exception("An error has occurred")
         await message.reply(f"エラーが発生しました。\n```sh\n{traceback.format_exc()}```")
-        logging.error("Error", exc_info=True)

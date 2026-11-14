@@ -38,7 +38,7 @@ Steam非公式サーバーやMinecraftサーバーのステータスに関する
 """,
         7: """\
 VC系
-音楽再生や読み上げなど、VCに関する機能があります。
+読み上げなど、VCに関する機能があります。
 """,
         8: """\
 にらBOT全般
@@ -104,16 +104,13 @@ VC系
 サーバー加入時 自動ロール付与
 サーバーに誰かが入ってきた際に、自動的に指定したロールを付与します。
 
+ロールは5つまで指定可能です。
+
 ・使い方
-`%CommandPrefix%autorole [ロール名またはID]`
-(エイリアス: `自動ロール`,`オートロール`)
+設定: `/autorole on` (モーダルウィンドウが開きます。)
+無効化: `/autorole off`
 
-・引数
-`[ロール名またはID]`
-付与したいロール名またはIDです。
-
-・例
-`%CommandPrefix%autorole にら民`
+※コンテキストコマンド`n!autorole`は廃止されました。スラッシュコマンドをご使用ください。
 """,
         4: """\
 ボタンでロールを付与するパネル
@@ -198,38 +195,6 @@ disboardのBumpが出来る時間(2時間)になったらお知らせしてく�
 ・例
 `%CommandPrefix%bump on`
 """,
-        9: """\
-ボタンで投票するパネル
-ボタンを押すことで投票することが出来るパネルです。
-特にバグリやすそうなコマンドな気がするので気を付けてください。（気づいたらボタンが反応しなくなってるとか...）
-
-・使い方
-```
-%CommandPrefix%pollpanel [on/off] [*タイトル]
-[選択肢1]
-[選択肢2]
-[選択肢3]...
-```
-
-・引数
-`[on/off]`
-onにすると、一人一票になります。
-
-`[*タイトル]`
-あってもなくてもかまいません。
-特定のメッセージをロールパネルのタイトルにしたい場合は入力してください。
-
-`[選択肢]`
-選択肢です。
-
-・例
-```
-%CommandPrefix%pollpanel on 好きなねこ教えてね
-しろねこ
-くろねこ
-みけねこ
-```
-""",
         10: """\
 DissokuのUp通知を行います
 
@@ -282,27 +247,28 @@ DissokuのUpをしたら、その1時間後に通知します。
 指定された文章を含むメッセージが送信された場合にロールの付与/剥奪を行います。
 
 ・使い方
-`%CommandPrefix%mesrole set [反応メッセージ] [add/del] [ロール名又はID]`
-`%CommandPrefix%mesrole del`
-`%CommandPrefix%mesrole list`
+`/mesrole set`
+`/mesrole del`
+`/mesrole list`
 
-・引数
-`[反応メッセージ]`
+※コンテキストコマンド`%CommandPrefix%mesrole`は廃止されました。スラッシュコマンドをご使用ください。
+
+・`/mesrole set`の設定項目
+`[判定するメッセージ]`
 実際に反応するメッセージです。
-反応メッセージには[正規表現](https://qiita.com/tossh/items/635aea9a529b9deb3038)をご使用いただけます。
-反応メッセージにスペースを含みたい場合は、反応メッセージ全体を「""」（ダブルクオーテーション）で囲んでください。
+メッセージには[正規表現](https://qiita.com/tossh/items/635aea9a529b9deb3038)をご使用いただけます。
 
-`[add/del]`
-ロールを付与する場合は`add`、
-剥奪する場合は`del`です。
+`[動作モード]`
+ロールを付与するか、剥奪するかを指定します。
 
-`[ロール名又はID]`
+`[付与/剥奪するロール]`
 実際に付与/剥奪するロールです。
+5つまで設定可能です。
 
-・例
-`%CommandPrefix%mesrole set "I don't want to be ([に|ニ|ni]|[ら|ラ|ra])BOT" del にら民`
-`%CommandPrefix%mesrole del`
-`%CommandPrefix%mesrole list`
+・設定例
+判定するメッセージ: `I don't want to be ([に|ニ|ni]|[ら|ラ|ra])BOT`
+動作モード: `ロールを剥奪する`
+付与/剥奪するロール: `にら民`
 """,
         13: """\
 メッセージを下部にピン留めします。
@@ -377,32 +343,6 @@ DissokuのUpをしたら、その1時間後に通知します。
 
 ・例
 `%CommandPrefix%admin`
-""",
-        3: """\
-招待リンクに名前を付けて管理する
-招待リンクに名前を付けます。
-この名前はにらBOT内のみで管理されます。
-この機能は単体ではあんま強みがないですが、`サーバー便利/管理`の`加入/離脱者情報表示`を使用すると、どの招待リンクを使って来たかが分かりやすくなると思います。
-
-・使い方
-`%CommandPrefix%invite set [招待リンクまたはコード] [つけたい名前]`
-`%CommandPrefix%invite del [招待リンクまたはコード]`
-`%CommandPrefix%invite`（リスト表示）
-
-サーバー参加者がどのURLを使用したかは、頑張って検知するようにしますが、場合によっては検知出来ない場合があります。その場合は優しく見守ってください。
-
-・引数
-`[招待リンクまたはコード]`
-招待リンクまたはコードです。
-`https://discord.gg/aBcD1234`のような形または`aBcD1234`のような形です。
-
-`[つけたい名前]`
-つけたい名前です。
-
-・例
-`%CommandPrefix%invite set awfFpCYTcP メイン`
-`%CommandPrefix%invite del awfFpCYTcP`
-`%CommandPrefix%invite list`
 """},
     Amuse: {
         1: """\
@@ -511,7 +451,7 @@ Embedのタイトルを指定します。
 `[本文]`
 Embedの本文を指定します。
 """,
-        1: """\
+        2: """\
 メッセージを翻訳する
 翻訳の意味が分からない方はどうぞ翻訳してください。
 
@@ -610,38 +550,6 @@ Powered by DeepL Translate/Google Translate
 `%CommandPrefix%nr off`
 """},
     VoiceClient: {
-        1: """\
-VCにBOTを参加させる
-音楽再生をする際に、VCにBOTを参加させることができます。
-なお、読み上げ機能を使う際は`%CommandPrefix%tts join`を使う必要があります。
-
-音楽再生のコマンドについては[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)にもまとめてあります。
-
-・使い方
-`%CommandPrefix%join`
-
-・例
-`%CommandPrefix%join`
-""",
-        2: """\
-VCからBOTを離脱させる
-音楽再生などが終わった際に、VCからBOTを離脱させることができます。
-なお、読み上げから切断する場合は`%CommandPrefix%tts leave`を使う必要があります。
-また、BOTがバグってしまって、VCに取り残されてる場合にもこのコマンドを使うことができます。
-
-音楽再生のコマンドについては[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)にもまとめてあります。
-
-・使い方
-`%CommandPrefix%leave [*f]`
-
-・引数
-`[*f]`
-`＊通常は指定しません。`
-BOTを強制的に離脱させたい場合は、`f`を指定してください。
-
-・例
-`%CommandPrefix%leave`
-""",
         3: """\
 読み上げ機能
 聞き専などで、しゃべりたいけどマイクが使えないみたいなときに、特定のチャンネルでのメッセージを読み上げてくれる機能です。
@@ -662,42 +570,6 @@ TTSの読み上げ音声には、VOICEVOXが使われています。
 
 ・例
 `%CommandPrefix%tts join`
-""",
-        4: """\
-音楽を再生する
-音楽再生を開始します。
-
-音楽再生のコマンドについては[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)にまとめてあります。
-""",
-        5: """\
-音楽再生を全部止める
-現在再生中の音楽を止め、プレイリストからも全曲を削除して、完璧に停止します。
-
-音楽再生のコマンドについては[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)にまとめてあります。
-""",
-        6: """\
-音楽を一時停止する
-音楽再生を一時停止します。
-
-音楽再生のコマンドについては[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)にまとめてあります。
-""",
-        7: """\
-音楽再生を再開する
-一時停止した音楽を再開させます。
-
-音楽再生のコマンドについては[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)にまとめてあります。
-""",
-        8: """\
-曲のリスト表示
-現在プレイリストに入っている曲数を表示します。
-
-音楽再生のコマンドについては[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)にまとめてあります。
-""",
-        9: """\
-リストの一番後ろを消す
-プレイリストの一番最後の曲を削除します。
-
-音楽再生のコマンドについては[こちら](https://sites.google.com/view/nira-bot/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89/music)にまとめてあります。
 """},
     BotUtility: {
         1: """\
@@ -808,16 +680,6 @@ AutoSSを選択されたメッセージで開始します。
 にらBOTが送信した`%CommandPrefix%rolepanel`または`/rolepanel`で生成したロールパネル
 
 ロールパネルは`%CommandPrefix%rolepanel`で生成可能です。(`%CommandPrefix%help rolepanel`)
-""",
-        5: """\
-投票パネル編集
-作成された投票パネルを編集することができます。
-すでに票が入っている選択肢を削除/編集した場合は、その票は削除されます。
-
-・対象メッセージ
-にらBOTが送信した`%CommandPrefix%pollpanel`または`/pollpanel`で生成した投票パネル
-
-ロールパネルは`%CommandPrefix%pollpanel`で生成可能です。(`%CommandPrefix%help pollpanel`)
 """,
         6: """\
 下部ピン留めする
