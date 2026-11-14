@@ -29,6 +29,7 @@ class MessageRole(commands.Cog):
         pass
 
     @application_checks.has_permissions(manage_roles=True)
+    @application_checks.guild_only()
     @slash_message_role.subcommand(
         name="set", description="チャンネルのメッセージロールの設定をします"
     )
@@ -48,6 +49,8 @@ class MessageRole(commands.Cog):
             required=True, description="付与/剥奪するロール"
         ),
     ):
+        assert interaction.guild and interaction.channel
+
         action_type = (lambda x: True if x else False)(action_type)
         await interaction.response.defer(ephemeral=True)
 
@@ -71,10 +74,17 @@ class MessageRole(commands.Cog):
         )
 
     @application_checks.has_permissions(manage_roles=True)
+    @application_checks.guild_only()
     @slash_message_role.subcommand(
         name="del", description="チャンネルのメッセージロールの設定を削除します"
     )
     async def slash_message_role_del(self, interaction: Interaction):
+        assert (
+            interaction.guild
+            and interaction.channel
+            and isinstance(interaction.user, nextcord.Member)
+        )
+
         await interaction.response.defer(ephemeral=True)
 
         if not admin_check.admin_check(interaction.guild, interaction.user):
@@ -112,10 +122,17 @@ class MessageRole(commands.Cog):
             )
 
     @application_checks.has_permissions(manage_roles=True)
+    @application_checks.guild_only()
     @slash_message_role.subcommand(
         name="list", description="メッセージロールの設定を表示します"
     )
     async def slash_message_role_list(self, interaction: Interaction):
+        assert (
+            interaction.guild
+            and interaction.channel
+            and isinstance(interaction.user, nextcord.Member)
+        )
+
         await interaction.response.defer(ephemeral=True)
         if not admin_check.admin_check(interaction.guild, interaction.user):
             await interaction.followup.send(
@@ -146,8 +163,10 @@ class MessageRole(commands.Cog):
                 color=0x00FF00,
             )
             for mesroledata in mesroledatas:
+                channel = await self.bot.fetch_channel(mesroledata["channel_id"])
+                assert isinstance(channel, nextcord.abc.GuildChannel | nextcord.Thread)
                 embed.add_field(
-                    name=(await self.bot.fetch_channel(mesroledata["channel_id"])).name,
+                    name=channel.name,
                     value=(
                         f"判定メッセージ:`{mesroledata['regex']}`\n"
                         f"ロール:<@&{mesroledata['role_id']}>\n"
@@ -159,10 +178,12 @@ class MessageRole(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
-        if isinstance(message.channel, nextcord.DMChannel):
+        if not isinstance(message.channel, nextcord.abc.GuildChannel | nextcord.Thread):
             return
         if message.author.bot:
             return
+        assert message.guild and isinstance(message.author, nextcord.Member)
+
         result = await self.collection.find_one(
             {"guild_id": message.guild.id, "channel_id": message.channel.id}
         )
