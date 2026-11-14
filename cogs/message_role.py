@@ -190,14 +190,17 @@ class MessageRole(commands.Cog):
         if result is None:
             return
         if re.search(result["regex"], message.content) is not None:
+            role = message.guild.get_role(result["role_id"])
+            if not role:
+                return
             if result["action_type"]:
                 await message.author.add_roles(
-                    message.guild.get_role(result["role_id"]),
+                    role,
                     reason="nira-bot MessageRole Service",
                 )
             else:
                 await message.author.remove_roles(
-                    message.guild.get_role(result["role_id"]),
+                    role,
                     reason="nira-bot MessageRole Service",
                 )
             await message.add_reaction("\u2705")
