@@ -78,7 +78,8 @@ class VCLimitManageModal(modal.Modal):
         except Exception:
             _logger.exception("An error has occurred when setting vclimit manage roles")
             await interaction.send(
-                f"申し訳ございません。エラーが発生しました。\n```\n{self.cog.bot.format_exc()}```"
+                f"申し訳ございません。エラーが発生しました。\n```\n{self.cog.bot.format_exc()}```",
+                ephemeral=True,
             )
 
 

@@ -85,7 +85,8 @@ class RolePanelModal(modal.Modal):
                 f"An error has occurred when {"editing" if self.message else "sending"} role panel"
             )
             await interaction.followup.send(
-                f"申し訳ございません。エラーが発生しました。\n```\n{traceback.format_exc()}```"
+                f"申し訳ございません。エラーが発生しました。\n```\n{traceback.format_exc()}```",
+                ephemeral=True,
             )
 
 
