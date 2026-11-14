@@ -64,7 +64,7 @@ class VCLimitManageModal(modal.Modal):
 
             roles = self.roles.component.values.roles
             roles_desc = "、".join(r.mention for r in roles[:-1])
-            roles_desc = f"{roles_desc and f'{roles_desc}及び'}{roles[-1].mention}"
+            roles_desc = f"{roles_desc and f'{roles_desc}および'}{roles[-1].mention}"
 
             await interaction.send(
                 embed=nextcord.Embed(
