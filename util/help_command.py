@@ -250,27 +250,28 @@ DissokuのUpをしたら、その1時間後に通知します。
 指定された文章を含むメッセージが送信された場合にロールの付与/剥奪を行います。
 
 ・使い方
-`%CommandPrefix%mesrole set [反応メッセージ] [add/del] [ロール名又はID]`
-`%CommandPrefix%mesrole del`
-`%CommandPrefix%mesrole list`
+`/mesrole set`
+`/mesrole del`
+`/mesrole list`
 
-・引数
-`[反応メッセージ]`
+※コンテキストコマンド`%CommandPrefix%mesrole`は廃止されました。スラッシュコマンドをご使用ください。
+
+・`/mesrole set`の設定項目
+`[判定するメッセージ]`
 実際に反応するメッセージです。
-反応メッセージには[正規表現](https://qiita.com/tossh/items/635aea9a529b9deb3038)をご使用いただけます。
-反応メッセージにスペースを含みたい場合は、反応メッセージ全体を「""」（ダブルクオーテーション）で囲んでください。
+メッセージには[正規表現](https://qiita.com/tossh/items/635aea9a529b9deb3038)をご使用いただけます。
 
-`[add/del]`
-ロールを付与する場合は`add`、
-剥奪する場合は`del`です。
+`[動作モード]`
+ロールを付与するか、剥奪するかを指定します。
 
-`[ロール名又はID]`
+`[付与/剥奪するロール]`
 実際に付与/剥奪するロールです。
+5つまで設定可能です。
 
-・例
-`%CommandPrefix%mesrole set "I don't want to be ([に|ニ|ni]|[ら|ラ|ra])BOT" del にら民`
-`%CommandPrefix%mesrole del`
-`%CommandPrefix%mesrole list`
+・設定例
+判定するメッセージ: `I don't want to be ([に|ニ|ni]|[ら|ラ|ra])BOT`
+動作モード: `ロールを剥奪する`
+付与/剥奪するロール: `にら民`
 """,
         13: """\
 メッセージを下部にピン留めします。
