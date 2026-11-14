@@ -74,6 +74,7 @@ class autorole(commands.Cog):
             )
 
     @commands.has_permissions(manage_roles=True)
+    @commands.guild_only()
     @commands.command(
         name="autorole",
         aliases=("自動ロール", "オートロール"),
@@ -160,6 +161,7 @@ class autorole(commands.Cog):
         await messages.mreply(ctx, msg[0], embed=msg[1])
 
     @application_checks.has_permissions(manage_roles=True)
+    @application_checks.guild_only()
     @autorole.subcommand(name="off", description="自動ロールを無効にします")
     async def autorole_off(self, interaction: Interaction):
         msg = await self.autorole_message(
@@ -168,6 +170,7 @@ class autorole(commands.Cog):
         await messages.mreply(interaction, msg[0], embed=msg[1], ephemeral=True)
 
     @application_checks.has_permissions(manage_roles=True)
+    @application_checks.guild_only()
     @autorole.subcommand(
         name="on", description="ユーザーが加入したときに自動的にロールを付与します"
     )
@@ -183,6 +186,7 @@ class autorole(commands.Cog):
         )
         await messages.mreply(interaction, msg[0], embed=msg[1], ephemeral=True)
 
+    @application_checks.guild_only()
     @autorole.subcommand(name="status", description="自動ロールの設定状態を確認します")
     async def autorole_status(self, interaction: Interaction):
         msg = await self.autorole_message(
