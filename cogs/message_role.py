@@ -83,6 +83,14 @@ class MessageRoleSetModal(modal.Modal):
         self.add_item(self.action_type)
         self.add_item(self.roles)
 
+    def with_default_from_input(self) -> Self:
+        return self.__class__(
+            self.cog,
+            default_regex=self.regex.component.value,
+            default_grant=self.action_type.component.options[0].default,
+            default_roles=self.roles.component.values.roles or None,
+        )
+
     async def callback(self, interaction: Interaction) -> None:
         assert interaction.guild and isinstance(
             interaction.channel, nextcord.abc.GuildChannel | nextcord.Thread
@@ -92,8 +100,23 @@ class MessageRoleSetModal(modal.Modal):
 
         try:
             regex = self.regex.component.value
+            assert regex
             action_type = self.action_type.component.values[0] == "grant"
             roles = self.roles.component.values.roles
+
+            try:
+                _ = re.compile(regex)
+            except Exception as e:
+                await interaction.send(
+                    embed=nextcord.Embed(
+                        title="エラー",
+                        description=f"入力された正規表現が不正です。\n```\n{e}```",
+                        color=self.cog.bot.color.RED,
+                    ),
+                    view=MessageRoleSetRetryView(self.with_default_from_input()),
+                    ephemeral=True,
+                )
+                return
 
             await self.cog.collection.update_one(
                 {
@@ -132,6 +155,25 @@ class MessageRoleSetModal(modal.Modal):
                 f"申し訳ございません。エラーが発生しました。\n```\n{self.cog.bot.format_exc()}```",
                 ephemeral=True,
             )
+
+
+class MessageRoleSetRetryView(nextcord.ui.View):
+    def __init__(self, modal: MessageRoleSetModal) -> None:
+        super().__init__(timeout=900)
+        self.add_item(MessageRoleSetRetryButton(modal))
+
+
+class MessageRoleSetRetryButton(nextcord.ui.Button):
+    def __init__(self, modal: MessageRoleSetModal) -> None:
+        super().__init__(
+            style=nextcord.ButtonStyle.green,
+            label="やり直す",
+            emoji="\N{RIGHTWARDS ARROW WITH HOOK}",
+        )
+        self.modal = modal
+
+    async def callback(self, interaction: Interaction) -> None:
+        await interaction.response.send_modal(self.modal)
 
 
 class MessageRole(commands.Cog):
@@ -305,7 +347,11 @@ class MessageRole(commands.Cog):
         )
         if result is None:
             return
-        if re.search(result["regex"], message.content) is not None:
+        try:
+            m = re.search(result["regex"], message.content)
+        except Exception:
+            return
+        if m is not None:
             role_ids = result["role_id"]
             roles = [
                 role
